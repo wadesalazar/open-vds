@@ -1,0 +1,190 @@
+/****************************************************************************
+** Copyright 2019 The Open Group
+** Copyright 2019 Bluware, Inc.
+**
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+**     http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+****************************************************************************/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <random>
+#include <iterator>
+
+#include "File.h"
+
+#include "ThreadPool.h"
+
+#ifdef _WIN32
+#undef WIN32_LEAN_AND_MEAN // avoid warnings if defined on command line
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX 1
+#include <Windows.h>
+#endif
+
+template<typename T>
+size_t memsize_of_vec(const std::vector<T>& vec)
+{
+  return vec.size() * sizeof(*vec.data());
+}
+
+struct Offset
+{
+  uint32_t offset;
+  uint32_t size;
+};
+
+#define DATA_SIZE (1<<20)
+
+int main(int argc, char** argv)
+{
+#ifdef _WIN32
+  char dir[MAX_PATH];
+  GetCurrentDirectory(MAX_PATH, dir);
+  fprintf(stderr, "Current dir: %s\n", dir);
+#endif
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<uint32_t> dis(0, std::numeric_limits<uint32_t>::max());
+
+  std::vector<uint32_t> rand_data;
+  rand_data.resize(DATA_SIZE);
+  for (auto& i : rand_data)
+    i = dis(gen);
+
+  Offset offsets[128];
+
+  int n = 0;
+  for (auto& offset : offsets)
+  {
+    offset.offset = rand_data[n] % DATA_SIZE;
+    uint32_t next_rand = ++n == std::size(rand_data) ? rand_data[0] : rand_data[n];
+    offset.size = std::min(uint32_t(std::size(rand_data)) - offset.offset, uint32_t(next_rand % 4096));
+  }
+
+  OpenVDS::File::Error error;
+  std::string filename("test.txt");
+  {
+    OpenVDS::File file;
+    OpenVDS::File::CloseGuard closer(file);
+    if (file.open(filename, true, true, true, error) < 0)
+    {
+      fprintf(stderr, "Could not open file for write %s\n", error.string.c_str());
+      return -1;
+    }
+    if (!file.write(rand_data.data(), 0, memsize_of_vec(rand_data), error))
+    {
+      fprintf(stderr, "Could not write file %s\n", error.string.c_str());
+      return -1;
+    }
+  }
+  {
+    OpenVDS::File file;
+    OpenVDS::File::CloseGuard closer(file);
+    if (file.open(filename, false, false, false, error) < 0)
+    {
+      fprintf(stderr, "Could not open file read %s\n", error.string.c_str());
+      return -1;
+    }
+
+    std::vector<uint8_t> data;
+    data.resize(memsize_of_vec(rand_data));
+    if (!file.read(&data[0], 0, data.size(), error))
+    {
+      fprintf(stderr, "Could not read file %s\n", error.string.c_str());
+      return -1;
+    }
+    if (memcmp(rand_data.data(), data.data(), data.size()))
+    {
+      fprintf(stderr, "Data from file is not what was suppose to be writtern\n");
+      abort();
+    }
+  }
+
+  ThreadPool thread_pool(32);
+  {
+    OpenVDS::File file;
+    OpenVDS::File::Error error;
+    if (file.open("test_multi.txt", true, true, true, error) < 0)
+    {
+      fprintf(stderr, "Could not open file for multi %s\n", error.string.c_str());
+      return -1;
+    }
+
+    {
+
+      void* empty = calloc(1, memsize_of_vec(rand_data));
+      if (!file.write(empty, 0, memsize_of_vec(rand_data), error))
+      {
+        fprintf(stderr, "Failed to resize to null the multi file: %s\n", error.string.c_str());
+        return -1;
+      }
+      file.flush();
+      free(empty);
+    }
+
+    std::vector<std::future<OpenVDS::File::Error>> results;
+    results.reserve(std::size(offsets));
+
+    for (const auto& offset : offsets)
+    {
+      results.push_back(thread_pool.enqueue([&file, &rand_data](const Offset & offset)
+        {
+          OpenVDS::File::Error error;
+          file.write(&rand_data[offset.offset], offset.offset * sizeof(*rand_data.data()), offset.size * sizeof(*rand_data.data()), error);
+          return error;
+        }, offset));
+    }
+
+    for (auto& result_future : results)
+    {
+      auto result = result_future.get();
+      if (result.code != 0)
+        fprintf(stderr, "Write reported error %d: %s\n", result.code, result.string.c_str());
+      return result.code;
+    }
+    file.flush();
+    results.clear();
+
+    for (const auto& offset : offsets)
+    {
+      results.push_back(thread_pool.enqueue([&file, &rand_data](const Offset & offset)
+        {
+          OpenVDS::File::Error error;
+          std::vector<uint8_t> vec;
+          vec.resize(offset.size * sizeof(*rand_data.data()));
+          if (!file.read(vec.data(), offset.offset * sizeof(*rand_data.data()), offset.size * sizeof(*rand_data.data()), error))
+          {
+            return error;
+          }
+
+          if (memcmp(vec.data(), &rand_data[offset.offset], offset.size * sizeof(*rand_data.data())))
+          {
+            error.code = -255;
+            error.string = "Compared data is not the same.";
+          }
+          return error;
+        }, offset));
+    }
+
+    for (auto& result_future : results)
+    {
+      auto result = result_future.get();
+      if (result.code != 0)
+        fprintf(stderr, "Read reported error %d: %s\n", result.code, result.string.c_str());
+      return result.code;
+    }
+  }
+
+  return 0;
+}
