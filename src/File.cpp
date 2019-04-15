@@ -22,9 +22,34 @@
 namespace OpenVDS
 {
 
+FileView * FileView::addReference(FileView *pcFileView)
+{
+  assert(pcFileView);
+
+  pcFileView->m_nReferenceCount++;
+
+  assert(pcFileView->m_nReferenceCount > 0);
+  return pcFileView;
+}
+
+bool FileView::removeReference(FileView *pcFileView)
+{
+  assert(pcFileView);
+  assert(pcFileView->m_nReferenceCount > 0);
+
+  if(--pcFileView->m_nReferenceCount == 0)
+  {
+    delete pcFileView;
+    return true;
+  }
+
+  return false;
+}
+
 File::File()
   : _pxPlatformHandle(nullptr)
   , _isWriteable(false)
+  , m_pFileMappingObject(nullptr)
 {
 }
 
@@ -46,6 +71,11 @@ bool File::isOpen() const
 std::string File::fileName() const
 {
   return _cFileName;
+}
+
+void *File::handle() const
+{
+  return _pxPlatformHandle;
 }
 
 } // namespace OpenVDS

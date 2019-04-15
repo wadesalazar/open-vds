@@ -72,12 +72,12 @@ int main(int argc, char** argv)
     offset.size = std::min(uint32_t(std::size(rand_data)) - offset.offset, uint32_t(next_rand % 4096));
   }
 
-  OpenVDS::File::Error error;
+  OpenVDS::IOError error;
   std::string filename("test.txt");
   {
     OpenVDS::File file;
     OpenVDS::File::CloseGuard closer(file);
-    if (file.open(filename, true, true, true, error) < 0)
+    if (!file.open(filename, true, true, true, error))
     {
       fprintf(stderr, "Could not open file for write %s\n", error.string.c_str());
       return -1;
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
   {
     OpenVDS::File file;
     OpenVDS::File::CloseGuard closer(file);
-    if (file.open(filename, false, false, false, error) < 0)
+    if (!file.open(filename, false, false, false, error))
     {
       fprintf(stderr, "Could not open file read %s\n", error.string.c_str());
       return -1;
@@ -114,8 +114,8 @@ int main(int argc, char** argv)
   ThreadPool thread_pool(32);
   {
     OpenVDS::File file;
-    OpenVDS::File::Error error;
-    if (file.open("test_multi.txt", true, true, true, error) < 0)
+    OpenVDS::IOError error;
+    if (!file.open("test_multi.txt", true, true, true, error))
     {
       fprintf(stderr, "Could not open file for multi %s\n", error.string.c_str());
       return -1;
@@ -133,14 +133,14 @@ int main(int argc, char** argv)
       free(empty);
     }
 
-    std::vector<std::future<OpenVDS::File::Error>> results;
+    std::vector<std::future<OpenVDS::IOError>> results;
     results.reserve(std::size(offsets));
 
     for (const auto& offset : offsets)
     {
       results.push_back(thread_pool.enqueue([&file, &rand_data](const Offset & offset)
         {
-          OpenVDS::File::Error error;
+          OpenVDS::IOError error;
           file.write(&rand_data[offset.offset], offset.offset * sizeof(*rand_data.data()), offset.size * sizeof(*rand_data.data()), error);
           return error;
         }, offset));
@@ -150,8 +150,10 @@ int main(int argc, char** argv)
     {
       auto result = result_future.get();
       if (result.code != 0)
+      {
         fprintf(stderr, "Write reported error %d: %s\n", result.code, result.string.c_str());
-      return result.code;
+        return result.code;
+      }
     }
     file.flush();
     results.clear();
@@ -160,7 +162,7 @@ int main(int argc, char** argv)
     {
       results.push_back(thread_pool.enqueue([&file, &rand_data](const Offset & offset)
         {
-          OpenVDS::File::Error error;
+          OpenVDS::IOError error;
           std::vector<uint8_t> vec;
           vec.resize(offset.size * sizeof(*rand_data.data()));
           if (!file.read(vec.data(), offset.offset * sizeof(*rand_data.data()), offset.size * sizeof(*rand_data.data()), error))
@@ -181,8 +183,26 @@ int main(int argc, char** argv)
     {
       auto result = result_future.get();
       if (result.code != 0)
+      {
         fprintf(stderr, "Read reported error %d: %s\n", result.code, result.string.c_str());
-      return result.code;
+        return result.code;
+      }
+    }
+
+    auto fileview = file.createFileView(0, DATA_SIZE * sizeof(*rand_data.data()), true, error);
+    if (!fileview)
+    {
+      fprintf(stderr, "Error %s\n.", error.string.c_str());
+      return error.code;
+    }
+    const void *data = fileview->pointer();
+    for (const auto &offset : offsets)
+    {
+      if (memcmp(static_cast<const uint32_t *>(data) + offset.offset, &rand_data[offset.offset], offset.size * sizeof(*rand_data.data())))
+      {
+        fprintf(stderr, "Bad compare in fileview %d %d\n", offset.offset, offset.size);
+        return -1;
+      }
     }
   }
 

@@ -24,18 +24,67 @@
 namespace OpenVDS
 {
 
+class File;
+
+struct IOError
+{
+  int code = 0;
+  std::string string;
+};
+
+class FileView
+{
+  int m_nReferenceCount;
+protected:
+  const void * m_pData;
+  int64_t m_nPos;
+  int64_t m_nSize;
+
+  FileView()
+    : m_nReferenceCount(1)
+    , m_nPos(0)
+    , m_nSize(0)
+    , m_pData(nullptr)
+  {
+  }
+  virtual ~FileView()
+  {
+  }
+public:
+
+  class SystemFileMappingObject
+  {
+  public:
+    static bool open(SystemFileMappingObject** ppcFileMappingObject, File &file, IOError &error);
+    static void close(SystemFileMappingObject** pcFileMappingObject);
+  };
+
+  const void * pointer() const
+  {
+    return m_pData;
+  }
+  int64_t pos()     const
+  {
+    return m_nPos;
+  }
+  int64_t size()    const
+  {
+    return m_nSize;
+  }
+
+  virtual bool prefetch(const void *pData, int64_t nSize, IOError &error) const = 0;
+
+  static FileView* addReference(FileView* pcFileView);
+
+  static bool removeReference(FileView* pcFileView);
+};
+
 // This class is thread-safe except for the following methods:
-// Open, Close
+// open, close, createFileView
 // The user must ensure that these methods are called from a single thread only.
 class File
 {
 public:
-
-  struct Error
-  {
-    int code = 0;
-    std::string string;
-  };
 
   class CloseGuard
   {
@@ -56,26 +105,48 @@ public:
   File();
   ~File();
 
-  bool open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, Error& error);
+  bool open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError& error);
   void close();
 
-  int64_t size(Error& error) const;
+  int64_t size(IOError& error) const;
 
-  bool read(void* pxData, int64_t nOffset, int32_t nLength, Error& error);
-  bool write(const void* pxData, int64_t nOffset, int32_t nLength, Error& error);
+  bool read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error);
+  bool write(const void* pxData, int64_t nOffset, int32_t nLength, IOError& error);
 
   bool flush();
   bool isWriteable() const;
   bool isOpen() const;
   std::string fileName() const;
 
+  FileView *createFileView(int64_t iPos, int64_t nSize, bool isPopulate, IOError &error);
+
+  void *handle() const;
 private:
   void* _pxPlatformHandle;
   bool _isWriteable;
   std::string _cFileName;
+  FileView::SystemFileMappingObject * m_pFileMappingObject;
+  
+
 };
 
 
 } // namespace core
+
+#ifdef _WIN32
+// From "Reading and Writing From a File View" - https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801(v=vs.85).aspx
+//#define FILEVIEW_SIGNAL_HANDLER
+#define FILEVIEW_TRY   __try
+#define FILEVIEW_CATCH __except (GetExceptionCode() == EXCEPTION_IN_PAGE_ERROR ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+#define FILEVIEW_FINALLY
+#else
+// From "SIGBUS handling" - https://www.linuxprogrammingblog.com/code-examples/SIGBUS-handling
+#include <setjmp.h>
+
+extern "C" CORE_EXPORT void SystemFileView_SetSigBusJmpEnv(sigjmp_buf* pSigjmpEnv);
+#define FILEVIEW_TRY     { sigjmp_buf sj_env; SystemFileView_SetSigBusJmpEnv(&sj_env); if (sigsetjmp(sj_env, 1) == 0)
+#define FILEVIEW_CATCH   else
+#define FILEVIEW_FINALLY SystemFileView_SetSigBusJmpEnv(NULL); }
+#endif
 
 #endif // File_h_
