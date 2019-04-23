@@ -17,8 +17,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <random>
-#include <iterator>
 
 #include "File.h"
 
@@ -35,6 +35,18 @@ template<typename T>
 size_t memsize_of_vec(const std::vector<T>& vec)
 {
   return vec.size() * sizeof(*vec.data());
+}
+
+template<typename T, size_t N>
+constexpr size_t array_size(const T (&)[N])
+{
+  return N;
+}
+
+template <typename T>
+constexpr auto array_size(const T& t) -> decltype(t.size())
+{
+      return t.size();
 }
 
 struct Offset
@@ -68,8 +80,8 @@ int main(int argc, char** argv)
   for (auto& offset : offsets)
   {
     offset.offset = rand_data[n] % DATA_SIZE;
-    uint32_t next_rand = ++n == std::size(rand_data) ? rand_data[0] : rand_data[n];
-    offset.size = std::min(uint32_t(std::size(rand_data)) - offset.offset, uint32_t(next_rand % 4096));
+    uint32_t next_rand = ++n == array_size(rand_data) ? rand_data[0] : rand_data[n];
+    offset.size = std::min(uint32_t(array_size(rand_data)) - offset.offset, uint32_t(next_rand % 4096));
   }
 
   OpenVDS::IOError error;
@@ -134,7 +146,7 @@ int main(int argc, char** argv)
     }
 
     std::vector<std::future<OpenVDS::IOError>> results;
-    results.reserve(std::size(offsets));
+    results.reserve(array_size(offsets));
 
     for (const auto& offset : offsets)
     {
