@@ -143,10 +143,13 @@ private:
 // From "SIGBUS handling" - https://www.linuxprogrammingblog.com/code-examples/SIGBUS-handling
 #include <setjmp.h>
 
+namespace OpenVDS
+{
 extern "C" void SystemFileView_SetSigBusJmpEnv(sigjmp_buf* pSigjmpEnv);
-#define FILEVIEW_TRY     { sigjmp_buf sj_env; SystemFileView_SetSigBusJmpEnv(&sj_env); if (sigsetjmp(sj_env, 1) == 0)
+}
+#define FILEVIEW_TRY     { sigjmp_buf sj_env; OpenVDS::SystemFileView_SetSigBusJmpEnv(&sj_env); if (sigsetjmp(sj_env, 1) == 0)
 #define FILEVIEW_CATCH   else
-#define FILEVIEW_FINALLY SystemFileView_SetSigBusJmpEnv(NULL); }
+#define FILEVIEW_FINALLY OpenVDS::SystemFileView_SetSigBusJmpEnv(NULL); }
 #endif
 
 #endif // File_h_

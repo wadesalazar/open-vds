@@ -1,4 +1,4 @@
-add_library(openvds
+add_library(openvds STATIC
     File.h
     File.cpp
     Linux_File.cpp

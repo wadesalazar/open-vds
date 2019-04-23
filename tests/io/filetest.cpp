@@ -201,21 +201,24 @@ int main(int argc, char** argv)
       }
     }
 
-    auto fileview = file.createFileView(0, DATA_SIZE * sizeof(*rand_data.data()), true, error);
-    if (!fileview)
+    FILEVIEW_TRY
     {
-      fprintf(stderr, "Error %s\n.", error.string.c_str());
-      return error.code;
-    }
-    const void *data = fileview->pointer();
-    for (const auto &offset : offsets)
-    {
-      if (memcmp(static_cast<const uint32_t *>(data) + offset.offset, &rand_data[offset.offset], offset.size * sizeof(*rand_data.data())))
+      auto fileview = file.createFileView(0, DATA_SIZE * sizeof(*rand_data.data()), true, error);
+      if (!fileview)
       {
-        fprintf(stderr, "Bad compare in fileview %d %d\n", offset.offset, offset.size);
-        return -1;
+        fprintf(stderr, "Error %s\n.", error.string.c_str());
+        return error.code;
       }
-    }
+      const void *data = fileview->pointer();
+      for (const auto &offset : offsets)
+      {
+        if (memcmp(static_cast<const uint32_t *>(data) + offset.offset, &rand_data[offset.offset], offset.size * sizeof(*rand_data.data())))
+        {
+          fprintf(stderr, "Bad compare in fileview %d %d\n", offset.offset, offset.size);
+          return -1;
+        }
+      }
+    } FILEVIEW_CATCH { fprintf(stderr, "FILEVIEW EXCEPTION\n"); return -2; } FILEVIEW_FINALLY;
   }
 
   return 0;
