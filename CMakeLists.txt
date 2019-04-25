@@ -9,6 +9,14 @@ if (UNIX)
   add_definitions(-Wreturn-type)
 endif()
 
+include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
+ExternalProject_Add(aws-sdk-cpp
+    GIT_REPOSITORY https://github.com/aws/aws-sdk-cpp.git
+    GIT_TAG 1.7.90
+    CMAKE_ARGS "-DBUILD_ONLY=\"s3\""
+    STEP_TARGETS build
+    )
+
 add_subdirectory(src)
 
 enable_testing()
