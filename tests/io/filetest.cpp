@@ -57,6 +57,38 @@ struct Offset
 
 #define DATA_SIZE (1<<20)
 
+
+static int test_file_view(OpenVDS::File &file, const std::vector<uint32_t> &rand_data, Offset (&offsets)[128])
+{
+  OpenVDS::IOError error;
+  int result = 0;
+  OpenVDS::FileView *fileview = file.createFileView(0, DATA_SIZE * sizeof(*rand_data.data()), true, error);
+  if (!fileview)
+  {
+    fprintf(stderr, "Error %s\n.", error.string.c_str());
+    return error.code;
+  }
+
+  const void* data = fileview->pointer();
+  for (const auto& offset : offsets)
+  {
+    if (memcmp(static_cast<const uint32_t*>(data) + offset.offset, &rand_data[offset.offset], offset.size * sizeof(*rand_data.data())))
+    {
+      fprintf(stderr, "Bad compare in fileview %d %d\n", offset.offset, offset.size);
+      return -1;
+    }
+  }
+  return 0;
+}
+
+static int test_file_view_wrapper(OpenVDS::File &file, const std::vector<uint32_t> &rand_data, Offset (&offsets)[128])
+{
+  FILEVIEW_TRY
+  {
+    return test_file_view(file, rand_data, offsets);
+  } FILEVIEW_CATCH { fprintf(stderr, "FILEVIEW EXCEPTION\n"); return -2; } FILEVIEW_FINALLY;
+}
+
 int main(int argc, char** argv)
 {
 #ifdef _WIN32
@@ -200,25 +232,11 @@ int main(int argc, char** argv)
         return result.code;
       }
     }
+ 
+    int file_view_result = test_file_view_wrapper(file, rand_data, offsets);
+    if (file_view_result)
+      return file_view_result;
 
-    FILEVIEW_TRY
-    {
-      auto fileview = file.createFileView(0, DATA_SIZE * sizeof(*rand_data.data()), true, error);
-      if (!fileview)
-      {
-        fprintf(stderr, "Error %s\n.", error.string.c_str());
-        return error.code;
-      }
-      const void *data = fileview->pointer();
-      for (const auto &offset : offsets)
-      {
-        if (memcmp(static_cast<const uint32_t *>(data) + offset.offset, &rand_data[offset.offset], offset.size * sizeof(*rand_data.data())))
-        {
-          fprintf(stderr, "Bad compare in fileview %d %d\n", offset.offset, offset.size);
-          return -1;
-        }
-      }
-    } FILEVIEW_CATCH { fprintf(stderr, "FILEVIEW EXCEPTION\n"); return -2; } FILEVIEW_FINALLY;
   }
 
   return 0;
