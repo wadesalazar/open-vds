@@ -5,7 +5,7 @@ add_library(openvds
     Win_File.cpp
     )
 
-add_dependencies(openvds aws-sdk-cpp)
+add_dependencies(openvds aws-cpp-sdk)
 target_include_directories(openvds PRIVATE "${AWS_INCLUDE_PATH}")
 target_link_libraries(openvds Threads::Threads ${AWS_LIBS})
 
