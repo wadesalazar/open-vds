@@ -3,6 +3,7 @@ add_library(openvds
     File.cpp
     Linux_File.cpp
     Win_File.cpp
+    S3_Downloader.cpp
     )
 
 add_dependencies(openvds aws-cpp-sdk)
