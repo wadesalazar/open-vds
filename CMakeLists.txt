@@ -6,7 +6,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 find_package(Threads)
 
 if (UNIX)
-  add_definitions(-Wreturn-type)
+  add_definitions(-Wreturn-type -pthread)
 endif()
 
 set(AWS_VERSION 1.7.90)
@@ -29,6 +29,7 @@ list(APPEND AWS_LIBS "${AWS_INSTALL}/lib/libaws-cpp-sdk-s3.so")
 list(APPEND AWS_LIBS "crypto")
 list(APPEND AWS_LIBS "curl")
 endif()
+add_definitions(-DUSE_IMPORT_EXPORT)
 
 
 if (NOT (EXISTS ${AWS_SOURCE_DIR}))

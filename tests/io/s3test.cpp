@@ -22,6 +22,6 @@
 int main()
 {
   fprintf(stderr, "S3 Downloader\n");
-  s3_function();
+  //s3_function();
   return 0;
 }
