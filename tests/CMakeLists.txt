@@ -1,6 +1,9 @@
 add_executable(io-filetest io/filetest.cpp)
 target_include_directories(io-filetest PRIVATE ${PROJECT_SOURCE_DIR}/src)
-target_link_libraries(io-filetest openvds Threads::Threads -pthread)
+target_link_libraries(io-filetest openvds Threads::Threads)
+if (UNIX)
+  target_link_libraries(io-filetest -pthread)
+endif()
 add_test(NAME io-filetest COMMAND io-filetest)
 
 add_executable(io-s3test io/s3test.cpp)
