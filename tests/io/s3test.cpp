@@ -15,13 +15,13 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "S3_Downloader.h"
+#include "OpenVDS/OpenVDS.h"
 
 #include <stdio.h>
 
 int main()
 {
   fprintf(stderr, "S3 Downloader\n");
-  //s3_function();
+  s3_function();
   return 0;
 }

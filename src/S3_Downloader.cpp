@@ -16,7 +16,7 @@
 ****************************************************************************/
 
 #include "S3_Downloader.h"
-
+#include "OpenVDS/openvds_export.h"
 #include <vector>
 
 #include <aws/core/Aws.h>
@@ -33,7 +33,7 @@ static std::string convert_aws_string(const Aws::String &str)
   return std::string(str.data(), str.size());
 }
 
-void s3_function()
+OPENVDS_EXPORT void s3_function()
 {
   Aws::SDKOptions options;
   Aws::InitAPI(options);

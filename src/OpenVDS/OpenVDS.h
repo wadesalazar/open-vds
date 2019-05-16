@@ -15,6 +15,11 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "open-vds/open-vds.h"
+#ifndef OPENVDS_H
+#define OPENVDS_H
 
+#include "openvds_export.h"
 
+OPENVDS_EXPORT void s3_function();
+
+#endif //OPENVDS_H

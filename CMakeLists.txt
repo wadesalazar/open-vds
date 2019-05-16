@@ -6,7 +6,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 find_package(Threads)
 
 if (UNIX)
-  add_definitions(-Wreturn-type -pthread)
+  add_definitions(-Wreturn-type)
 endif()
 
 set(AWS_VERSION 1.7.90)
@@ -29,12 +29,13 @@ list(APPEND AWS_LIBS "${AWS_INSTALL}/lib/libaws-cpp-sdk-s3.so")
 list(APPEND AWS_LIBS "crypto")
 list(APPEND AWS_LIBS "curl")
 endif()
-add_definitions(-DUSE_IMPORT_EXPORT)
 
+add_definitions(-DUSE_IMPORT_EXPORT)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if (NOT (EXISTS ${AWS_SOURCE_DIR}))
     include(CMake/FetchContentLocal.cmake)
-
+    set(FETCHCONTENT_QUIET OFF)
     FetchContent_Declare( aws-cpp-sdk-download
         URL https://github.com/aws/aws-sdk-cpp/archive/${AWS_VERSION}.zip
         URL_MD5 d2b923b1ea11e780365cbec0fc627b7f
@@ -52,6 +53,7 @@ ExternalProject_Add(aws-cpp-sdk
     BUILD_BYPRODUCTS ${AWS_LIBS}
     )
 
+include (CMake/CopyDllForTarget.cmake)
 add_subdirectory(src)
 
 enable_testing()

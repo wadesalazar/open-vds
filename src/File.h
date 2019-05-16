@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include <OpenVDS/openvds_export.h>
+
 namespace OpenVDS
 {
 
@@ -32,7 +34,7 @@ struct IOError
   std::string string;
 };
 
-class FileView
+class OPENVDS_EXPORT FileView
 {
   int m_nReferenceCount;
 protected:
@@ -82,7 +84,7 @@ public:
 // This class is thread-safe except for the following methods:
 // open, close, createFileView
 // The user must ensure that these methods are called from a single thread only.
-class File
+class OPENVDS_EXPORT File
 {
 public:
 

@@ -15,8 +15,6 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#ifndef OPEN_VDS_H
-#define OPEN_VDS_H
+#include "OpenVDS/OpenVDS.h"
 
 
-#endif //OPEN_VDS_H

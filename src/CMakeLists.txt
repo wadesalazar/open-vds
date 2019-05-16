@@ -4,14 +4,15 @@ set(SOURCE_FILES
     Linux_File.cpp
     Win_File.cpp
     S3_Downloader.cpp
-    open-vds.cpp)
+    OpenVDS.cpp)
 
 set (PRIVATE_HEADER_FILES
     File.h
     S3_Downloader.h)
 
 set (EXPORTED_HEADER_FILES
-    open-vds/open-vds.h)
+    OpenVDS/OpenVDS.h
+    OpenVDS/openvds_export.h)
 
 add_library(openvds SHARED
     ${PRIVATE_HEADER_FILES}
@@ -19,8 +20,9 @@ add_library(openvds SHARED
     ${SOURCE_FILES}
     )
 
+add_definitions(-Dopenvds_EXPORTS)
 add_dependencies(openvds aws-cpp-sdk)
-target_include_directories(openvds PRIVATE "${AWS_INCLUDE_PATH}")
+target_include_directories(openvds PRIVATE "${AWS_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(openvds PUBLIC Threads::Threads ${AWS_LIBS})
 
 if (WIN32)
@@ -30,7 +32,7 @@ elseif (UNIX)
 endif()
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/Dist/open-vds CACHE STRING "" FORCE)
+    set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/Dist/OpenVDS CACHE STRING "" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 set_target_properties(openvds
@@ -49,14 +51,14 @@ endif()
 
 install(TARGETS openvds
     ARCHIVE
-        DESTINATION lib_static${LIB_TOOLSET_DIR}
+        DESTINATION lib${LIB_TOOLSET_DIR}
     LIBRARY
         DESTINATION lib${LIB_TOOLSET_DIR}
     RUNTIME
         DESTINATION bin${LIB_TOOLSET_DIR}
     PUBLIC_HEADER
-        DESTINATION include
+        DESTINATION include/OpenVDS
     PRIVATE_HEADER
-        DESTINATION include/private
+        DESTINATION include/OpenVDS/private
 )
 
