@@ -19,9 +19,11 @@
 
 #include <stdio.h>
 
-int main()
+#include <gtest/gtest.h>
+
+GTEST_TEST(BasicS3Test, io_s3)
 {
   fprintf(stderr, "S3 Downloader\n");
   s3_function();
-  return 0;
+  EXPECT_TRUE(&s3_function);
 }

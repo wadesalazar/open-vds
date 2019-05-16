@@ -30,9 +30,6 @@ list(APPEND AWS_LIBS "crypto")
 list(APPEND AWS_LIBS "curl")
 endif()
 
-add_definitions(-DUSE_IMPORT_EXPORT)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 if (NOT (EXISTS ${AWS_SOURCE_DIR}))
     include(CMake/FetchContentLocal.cmake)
     set(FETCHCONTENT_QUIET OFF)
@@ -43,6 +40,7 @@ if (NOT (EXISTS ${AWS_SOURCE_DIR}))
         )
     FetchContent_Populate(aws-cpp-sdk-download)
 endif()
+
 include(ExternalProject)
 ExternalProject_Add(aws-cpp-sdk
     PREFIX ${CMAKE_BINARY_DIR}/aws-cpp-sdk
@@ -53,7 +51,19 @@ ExternalProject_Add(aws-cpp-sdk
     BUILD_BYPRODUCTS ${AWS_LIBS}
     )
 
-include (CMake/CopyDllForTarget.cmake)
+add_definitions(-DUSE_IMPORT_EXPORT)
+
+set(GTEST_VERSION 1.8.1)
+set(GTEST_SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rdparty/gtest-${GTEST_VERSION})
+if (NOT (EXISTS ${GTEST_SOURCE_DIR}))
+    FetchContent_Declare( gtest-download
+        URL https://github.com/google/googletest/archive/release-${GTEST_VERSION}.tar.gz
+        URL_MD5  2e6fbeb6a91310a16efe181886c59596
+        SOURCE_DIR ${GTEST_SOURCE_DIR}
+        )
+    FetchContent_Populate(gtest-download)
+endif()
+
 add_subdirectory(src)
 
 enable_testing()

@@ -31,6 +31,8 @@
 #include <Windows.h>
 #endif
 
+#include <gtest/gtest.h>
+
 template<typename T>
 size_t memsize_of_vec(const std::vector<T>& vec)
 {
@@ -89,7 +91,7 @@ static int test_file_view_wrapper(OpenVDS::File &file, const std::vector<uint32_
   } FILEVIEW_CATCH { fprintf(stderr, "FILEVIEW EXCEPTION\n"); return -2; } FILEVIEW_FINALLY;
 }
 
-int main(int argc, char** argv)
+TEST(FileTest, io_file)
 {
 #ifdef _WIN32
   char dir[MAX_PATH];
@@ -124,12 +126,12 @@ int main(int argc, char** argv)
     if (!file.open(filename, true, true, true, error))
     {
       fprintf(stderr, "Could not open file for write %s\n", error.string.c_str());
-      return -1;
+      ASSERT_TRUE(false);
     }
     if (!file.write(rand_data.data(), 0, memsize_of_vec(rand_data), error))
     {
       fprintf(stderr, "Could not write file %s\n", error.string.c_str());
-      return -1;
+      ASSERT_TRUE(false);
     }
   }
   {
@@ -138,7 +140,7 @@ int main(int argc, char** argv)
     if (!file.open(filename, false, false, false, error))
     {
       fprintf(stderr, "Could not open file read %s\n", error.string.c_str());
-      return -1;
+      ASSERT_TRUE(false);
     }
 
     std::vector<uint8_t> data;
@@ -146,7 +148,7 @@ int main(int argc, char** argv)
     if (!file.read(&data[0], 0, data.size(), error))
     {
       fprintf(stderr, "Could not read file %s\n", error.string.c_str());
-      return -1;
+      ASSERT_TRUE(false);
     }
     if (memcmp(rand_data.data(), data.data(), data.size()))
     {
@@ -162,7 +164,7 @@ int main(int argc, char** argv)
     if (!file.open("test_multi.txt", true, true, true, error))
     {
       fprintf(stderr, "Could not open file for multi %s\n", error.string.c_str());
-      return -1;
+      ASSERT_TRUE(false);
     }
 
     {
@@ -171,7 +173,7 @@ int main(int argc, char** argv)
       if (!file.write(empty, 0, memsize_of_vec(rand_data), error))
       {
         fprintf(stderr, "Failed to resize to null the multi file: %s\n", error.string.c_str());
-        return -1;
+        ASSERT_TRUE(false);
       }
       file.flush();
       free(empty);
@@ -196,7 +198,7 @@ int main(int argc, char** argv)
       if (result.code != 0)
       {
         fprintf(stderr, "Write reported error %d: %s\n", result.code, result.string.c_str());
-        return result.code;
+        ASSERT_TRUE(false);
       }
     }
     file.flush();
@@ -229,15 +231,12 @@ int main(int argc, char** argv)
       if (result.code != 0)
       {
         fprintf(stderr, "Read reported error %d: %s\n", result.code, result.string.c_str());
-        return result.code;
+        ASSERT_TRUE(false);
       }
     }
  
     int file_view_result = test_file_view_wrapper(file, rand_data, offsets);
-    if (file_view_result)
-      return file_view_result;
+    ASSERT_FALSE(file_view_result);
 
   }
-
-  return 0;
 }
