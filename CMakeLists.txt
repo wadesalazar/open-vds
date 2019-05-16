@@ -30,9 +30,10 @@ list(APPEND AWS_LIBS "crypto")
 list(APPEND AWS_LIBS "curl")
 endif()
 
+include(CMake/FetchContentLocal.cmake)
+set(FETCHCONTENT_QUIET OFF)
+
 if (NOT (EXISTS ${AWS_SOURCE_DIR}))
-    include(CMake/FetchContentLocal.cmake)
-    set(FETCHCONTENT_QUIET OFF)
     FetchContent_Declare( aws-cpp-sdk-download
         URL https://github.com/aws/aws-sdk-cpp/archive/${AWS_VERSION}.zip
         URL_MD5 d2b923b1ea11e780365cbec0fc627b7f
