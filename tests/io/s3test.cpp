@@ -17,8 +17,6 @@
 
 #include "OpenVDS/OpenVDS.h"
 
-#include <stdio.h>
-
 #include <gtest/gtest.h>
 
 GTEST_TEST(BasicS3Test, io_s3)

@@ -1,28 +1,22 @@
 include (${PROJECT_SOURCE_DIR}/CMake/CopyDllForTarget.cmake)
-#mark_as_advanced(
-#    BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
-#    gmock gmock_main gtest gtest_main gmock_build_tests gtest_build_samples gtest_build_tests
-#    gtest_disable_pthreads gtest_force_shared_crt gtest_hide_internal_symbols
-#)
 
-set(gtest_force_shared_crt ON)
-add_subdirectory(${GTEST_SOURCE_DIR} ${PROJECT_BINARY_DIR}/gtest)
-set_target_properties(gmock PROPERTIES
-    FOLDER ExternalProjectTargets)
-set_target_properties(gmock_main PROPERTIES
-    FOLDER ExternalProjectTargets)
+include(GoogleTest)
+set(BUILD_GMOCK OFF)
+set(gtest_force_shared_crt ON FORCE)
+set(INSTALL_GTEST OFF)
+add_subdirectory(${gtest_SOURCE_DIR} ${PROJECT_BINARY_DIR}/gtest)
 set_target_properties(gtest PROPERTIES
-    FOLDER ExternalProjectTargets)
+  FOLDER ExternalProjectTargets/GoogleTest)
 set_target_properties(gtest_main PROPERTIES
-    FOLDER ExternalProjectTargets)
+  FOLDER ExternalProjectTargets/GoogleTest)
 
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/src)
-include(GoogleTest)
 
 add_executable(io_tests
-    io/filetest.cpp
-    io/s3test.cpp
-    )
+  io/filetest.cpp
+  io/s3test.cpp)
 target_link_libraries(io_tests openvds Threads::Threads gtest gtest_main)
 copyDllForTarget(io_tests)
 gtest_discover_tests(io_tests)
+set_target_properties(io_tests PROPERTIES FOLDER tests)
+
