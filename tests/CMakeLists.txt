@@ -20,3 +20,9 @@ copyDllForTarget(io_tests)
 gtest_discover_tests(io_tests)
 set_target_properties(io_tests PROPERTIES FOLDER tests)
 
+add_executable(jsoncpp_tests
+  jsoncpp/jsoncpp_parse.cpp
+  jsoncpp/jsoncpp_serialize.cpp)
+target_link_libraries(jsoncpp_tests openvds Threads::Threads gtest gtest_main ${JSONCPP_LIBS})
+target_include_directories(jsoncpp_tests PRIVATE ${JSONCPP_INCLUDE_PATH})
+set_target_properties(jsoncpp_tests PROPERTIES FOLDER tests)

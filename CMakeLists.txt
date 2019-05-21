@@ -12,8 +12,8 @@ endif()
 include(CMake/Fetch3rdParty.cmake)
 Fetch3rdParty()
 
-include(CMake/BuildAWSSDK.cmake)
-BuildAWSSDK()
+include(CMake/Build3rdParty.cmake)
+build3rdparty()
 
 add_subdirectory(src)
 

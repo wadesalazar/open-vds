@@ -1,0 +1,22 @@
+function(BuildJsonCpp)
+  set(JSONCPP_INSTALL_INT "${PROJECT_BINARY_DIR}/jsoncpp_install")
+  if (WIN32)
+    list(APPEND JSONCPP_LIBS_LIST "${JSONCPP_INSTALL_INT}/lib/jsoncpp.lib")
+  else()
+    list(APPEND JSONCPP_LIBS_LIST "${JSONCPP_INSTALL_INT}/lib/libjsoncpp.a")
+  endif()
+
+  include(ExternalProject)
+  ExternalProject_Add(jsoncpp
+    PREFIX ${PROJECT_BINARY_DIR}/jsoncpp
+    SOURCE_DIR ${jsoncpp_SOURCE_DIR}
+    URL ""
+    INSTALL_DIR ${JSONCPP_INSTALL_INT}
+    CMAKE_ARGS "-DJSONCPP_WITH_TESTS=OFF" "-DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF" "-DJSONCPP_WITH_PKGCONFIG_SUPPORT=OFF" "-DCMAKE_BUILD_TYPE=$<CONFIG>" "-DCMAKE_INSTALL_PREFIX=${JSONCPP_INSTALL_INT}"
+    BUILD_BYPRODUCTS ${JSONCPP_LIBS_LIST})
+
+  #parent scope variables cant be used in this file
+  set(JSONCPP_LIBS ${JSONCPP_LIBS_LIST} PARENT_SCOPE)
+  set(JSONCPP_INCLUDE_PATH "${JSONCPP_INSTALL_INT}/include" PARENT_SCOPE)
+endfunction()
+

@@ -1,2 +1,3 @@
 aws-cpp-sdk*
 gtest*
+jsoncpp*
