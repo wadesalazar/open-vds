@@ -39,5 +39,4 @@ GTEST_TEST(JsonCppSerialize, simple_serialize)
   
   std::string data = Json::StyledWriter().write(root);
   EXPECT_TRUE(data == simple_serialize_data);
-  fprintf(stderr, "%s", data.c_str());
 }

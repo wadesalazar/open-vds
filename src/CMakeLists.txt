@@ -19,9 +19,9 @@ add_library(openvds SHARED
   ${SOURCE_FILES})
 
 add_dependencies(openvds aws-cpp-sdk)
-target_include_directories(openvds PRIVATE "${AWS_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(openvds PRIVATE "${aws-cpp-sdk_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(openvds PRIVATE openvds_EXPORTS)
-target_link_libraries(openvds PUBLIC Threads::Threads ${AWS_LIBS})
+target_link_libraries(openvds PUBLIC Threads::Threads ${aws-cpp-sdk_LIBS})
 
 if (WIN32)
   set_source_files_properties(Linux_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)

@@ -1,3 +1,4 @@
+include(CMake/BuildExternal.cmake)
 include(CMake/BuildAWSSDK.cmake)
 include(CMake/BuildJsonCpp.cmake)
 
