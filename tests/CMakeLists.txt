@@ -26,3 +26,4 @@ add_executable(jsoncpp_tests
 target_link_libraries(jsoncpp_tests openvds Threads::Threads gtest gtest_main ${jsoncpp_LIBS})
 target_include_directories(jsoncpp_tests PRIVATE ${jsoncpp_INCLUDE_PATH})
 set_target_properties(jsoncpp_tests PROPERTIES FOLDER tests)
+add_dependencies(jsoncpp_tests jsoncpp)
