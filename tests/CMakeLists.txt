@@ -2,7 +2,7 @@ include (${PROJECT_SOURCE_DIR}/CMake/CopyDllForTarget.cmake)
 
 include(GoogleTest)
 set(BUILD_GMOCK OFF CACHE BOOL "We dont need mock" FORCE)
-set(gtest_force_shared_crt ON)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 set(INSTALL_GTEST OFF CACHE BOOL "Dont install" FORCE)
 add_subdirectory(${gtest_SOURCE_DIR} ${PROJECT_BINARY_DIR}/gtest)
 set_target_properties(gtest PROPERTIES
@@ -23,7 +23,5 @@ set_target_properties(io_tests PROPERTIES FOLDER tests)
 add_executable(jsoncpp_tests
   jsoncpp/jsoncpp_parse.cpp
   jsoncpp/jsoncpp_serialize.cpp)
-target_link_libraries(jsoncpp_tests openvds Threads::Threads gtest gtest_main ${jsoncpp_LIBS})
-target_include_directories(jsoncpp_tests PRIVATE ${jsoncpp_INCLUDE_PATH})
+target_link_libraries(jsoncpp_tests openvds Threads::Threads gtest gtest_main jsoncpp_lib_static)
 set_target_properties(jsoncpp_tests PROPERTIES FOLDER tests)
-add_dependencies(jsoncpp_tests jsoncpp)
