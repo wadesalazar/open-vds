@@ -283,7 +283,7 @@ int64_t File::size(IOError& error) const
   return int64_t(li.QuadPart);
 }
 
-bool File::read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error)
+bool File::read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const
 {
   assert(nOffset >= 0);
 

@@ -112,7 +112,7 @@ public:
 
   int64_t size(IOError& error) const;
 
-  bool read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error);
+  bool read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const;
   bool write(const void* pxData, int64_t nOffset, int32_t nLength, IOError& error);
 
   bool flush();
