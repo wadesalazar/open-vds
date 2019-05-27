@@ -3,11 +3,16 @@ set(SOURCE_FILES
   Linux_File.cpp
   Win_File.cpp
   S3_Downloader.cpp
-  OpenVDS.cpp)
+  OpenVDS.cpp
+  VolumeDataPartition.cpp
+  DimensionGroup.cpp)
 
 set (PRIVATE_HEADER_FILES
   File.h
-  S3_Downloader.h)
+  S3_Downloader.h
+  VolumeData.h
+  VolumeDataPartition.h
+  DimensionGroup.h)
 
 set (EXPORTED_HEADER_FILES
   OpenVDS/OpenVDS.h
