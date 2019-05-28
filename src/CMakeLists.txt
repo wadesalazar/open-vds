@@ -59,3 +59,4 @@ install(TARGETS openvds
   PRIVATE_HEADER
     DESTINATION include/OpenVDS/private)
 
+add_subdirectory(SEG-Y)
