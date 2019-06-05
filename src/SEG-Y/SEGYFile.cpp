@@ -15,7 +15,7 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "File.h"
+#include "IO/File.h"
 #include "SEGYFile.h"
 
 #include <iostream>

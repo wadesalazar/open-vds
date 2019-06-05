@@ -1,18 +1,18 @@
 set(SOURCE_FILES
-  File.cpp
-  Linux_File.cpp
-  Win_File.cpp
-  S3_Downloader.cpp
   OpenVDS.cpp
-  VolumeDataPartition.cpp
-  DimensionGroup.cpp)
+  IO/File.cpp
+  IO/Linux_File.cpp
+  IO/Win_File.cpp
+  IO/S3_Downloader.cpp
+  VDS/VolumeDataPartition.cpp
+  VDS/DimensionGroup.cpp)
 
 set (PRIVATE_HEADER_FILES
-  File.h
-  S3_Downloader.h
-  VolumeData.h
-  VolumeDataPartition.h
-  DimensionGroup.h)
+  IO/File.h
+  IO/S3_Downloader.h
+  VDS/VolumeData.h
+  VDS/VolumeDataPartition.h
+  VDS/DimensionGroup.h)
 
 set (EXPORTED_HEADER_FILES
   OpenVDS/OpenVDS.h
@@ -29,9 +29,9 @@ target_compile_definitions(openvds PRIVATE openvds_EXPORTS)
 target_link_libraries(openvds PUBLIC Threads::Threads ${aws-cpp-sdk_LIBS})
 
 if (WIN32)
-  set_source_files_properties(Linux_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
+  set_source_files_properties(IO/Linux_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
 elseif (UNIX)
-  set_source_files_properties(Win_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
+  set_source_files_properties(IO/Win_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
 endif()
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
