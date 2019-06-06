@@ -15,9 +15,43 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#include "SEGYFile.h"
+
 #include <cstdlib>
+#include "cxxopts.hpp"
 
 int main(int argc, char *argv[])
 {
+  cxxopts::Options options("SEGYScan", "SEGYScan - A tool to scan a SEG-Y file and create an index");
+
+  options.add_option("", "f", "file", "File name", cxxopts::value<std::string>(), "The input SEG-Y file");
+
+  auto args = options.parse(argc, argv);
+
+  OpenVDS::File
+    file;
+
+  OpenVDS::IOError
+    error;
+
+  file.open(args["file"].as<std::string>().c_str(), false, false, false, error);
+
+  if(error.code != 0)
+  {
+    std::cerr << std::string("Could not open file: ") << args["file"].as<std::string>();
+    return EXIT_FAILURE;
+  }
+
+  SEGYFileInfo
+    fileInfo;
+
+  bool success = fileInfo.scan(file, HeaderField(189, FieldWidth::FourByte));
+
+  if(!success)
+  {
+    std::cerr << std::string("Failed to scan file: ") << args["file"].as<std::string>();
+    return EXIT_FAILURE;
+  }
+
   return EXIT_SUCCESS;
 }

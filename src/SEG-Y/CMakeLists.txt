@@ -1,3 +1,5 @@
+include (${PROJECT_SOURCE_DIR}/CMake/CopyDllForTarget.cmake)
+
 set(SOURCE_FILES
     SEGYFile.cpp
     SEGYScan.cpp)
@@ -12,6 +14,8 @@ add_executable(SEGYScan
 
 target_include_directories(SEGYScan PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(SEGYScan PUBLIC Threads::Threads openvds)
+
+copyDllForTarget(SEGYScan)
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/Dist/OpenVDS CACHE STRING "" FORCE)
