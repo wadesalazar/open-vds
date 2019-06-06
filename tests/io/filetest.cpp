@@ -34,7 +34,7 @@
 #include <gtest/gtest.h>
 
 template<typename T>
-size_t memsize_of_vec(const std::vector<T>& vec)
+int32_t bytesize(const std::vector<T>& vec)
 {
   return vec.size() * sizeof(*vec.data());
 }
@@ -128,7 +128,7 @@ TEST(FileTest, io_file)
       fprintf(stderr, "Could not open file for write %s\n", error.string.c_str());
       ASSERT_TRUE(false);
     }
-    if (!file.write(rand_data.data(), 0, memsize_of_vec(rand_data), error))
+    if (!file.write(rand_data.data(), 0, bytesize(rand_data), error))
     {
       fprintf(stderr, "Could not write file %s\n", error.string.c_str());
       ASSERT_TRUE(false);
@@ -144,8 +144,8 @@ TEST(FileTest, io_file)
     }
 
     std::vector<uint8_t> data;
-    data.resize(memsize_of_vec(rand_data));
-    if (!file.read(&data[0], 0, data.size(), error))
+    data.resize(bytesize(rand_data));
+    if (!file.read(&data[0], 0, int32_t(data.size()), error))
     {
       fprintf(stderr, "Could not read file %s\n", error.string.c_str());
       ASSERT_TRUE(false);
@@ -169,8 +169,8 @@ TEST(FileTest, io_file)
 
     {
 
-      void* empty = calloc(1, memsize_of_vec(rand_data));
-      if (!file.write(empty, 0, memsize_of_vec(rand_data), error))
+      void* empty = calloc(1, bytesize(rand_data));
+      if (!file.write(empty, 0, bytesize(rand_data), error))
       {
         fprintf(stderr, "Failed to resize to null the multi file: %s\n", error.string.c_str());
         ASSERT_TRUE(false);
