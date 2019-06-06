@@ -30,12 +30,6 @@ const T &clamp(const T &v, const T &low, const T &high)
     return std::min(std::max(low, v), high);
 }
 
-template<typename T, size_t N>
-constexpr size_t array_size(const T (&)[N])
-{
-  return N;
-}
-
 VolumeDataPartition::VolumeDataPartition(int32_t LOD, DimensionGroup dimensionGroup, const IndexArray& firstSample, const IndexArray& numSamples, const IndexArray& brickSize, const IndexArray& negativeMargin, const IndexArray& positiveMargin, BorderMode borderMode, const IndexArray& negativeBorder, const IndexArray& positiveBorder, int32_t negativeRenderMargin, int32_t positiveRenderMargin, int32_t fullResolutionDimension)
   : m_originalDimensionGroup(dimensionGroup)
   , m_LOD(LOD)

@@ -26,6 +26,12 @@
 namespace OpenVDS
 {
 
+template<typename T, size_t N>
+constexpr size_t array_size(const T (&)[N])
+{
+  return N;
+}
+
 /// The border mode describes how the voxels outside the input dataset are filled in when using indexing with window
 enum class BorderMode
 {
@@ -37,10 +43,10 @@ enum class BorderMode
 
 class VolumeDataPartition
 {
-  friend class VolumeDataRegion;
-private:
-  using IndexArray = int32_t[Dimensionality_Max];
+public:
   using ChunkVoxelSize = int32_t[4];
+private:
+  friend class VolumeDataRegion;
 
   DimensionGroup    m_originalDimensionGroup;
 
@@ -70,7 +76,7 @@ private:
   IndexArray        m_chunksInDimension;
 
   //TODO rename pitch
-  uint64_t m_modulo[Dimensionality_Max];
+  uint64_t          m_modulo[Dimensionality_Max];
 
   int64_t           m_totalChunks;
 

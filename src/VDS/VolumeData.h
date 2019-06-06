@@ -78,6 +78,17 @@ enum class VolumeDataMapping
   PerTrace ///< Each trace in the volume has a specified number of values. A trace is the entire length of dimension 0
 };
 
+enum class CompressionMethod
+{
+  None,
+  Wavelet,
+  Rle,
+  Zip,
+  WaveletNormalizeBlock,
+  WaveletLossless,
+  WaveletNormalizeBlockLossless,
+  Max
+};
 } /* namespace OpenVDS */
 
 #endif //VOLUMEDATA_H_INCLUDED

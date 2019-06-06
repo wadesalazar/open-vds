@@ -20,6 +20,7 @@
 
 #include "VolumeData.h"
 #include <cstdint>
+#include <cstring>
 
 namespace OpenVDS
 {
@@ -114,6 +115,20 @@ enum Dimensionality
   Dimensionality_5,
   Dimensionality_6,
   Dimensionality_Max = Dimensionality_6
+};
+using IndexArray = int32_t[Dimensionality_Max];
+
+struct NDPos
+{
+  NDPos()
+  {
+    Clear();
+  }
+  void Clear()
+  {
+    memset(data, 0, sizeof data);
+  }
+  float data[Dimensionality_Max];
 };
 
 namespace DimensionGroupUtil

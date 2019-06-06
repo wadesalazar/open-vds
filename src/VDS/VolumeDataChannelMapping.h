@@ -24,7 +24,7 @@ namespace OpenVDS
 
 class VolumeDataPartition;
 
-class OPENVDS_EXPORT VolumeDataChannelMapping
+class VolumeDataChannelMapping
 {
 public:
   virtual      ~VolumeDataChannelMapping() {}

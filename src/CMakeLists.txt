@@ -5,6 +5,11 @@ set(SOURCE_FILES
   IO/Win_File.cpp
   IO/S3_Downloader.cpp
   VDS/VolumeDataPartition.cpp
+  VDS/VolumeDataLayer.cpp
+  VDS/VolumeDataLayout.cpp
+  VDS/VolumeDataChunk.cpp
+  VDS/VolumeDataRegion.cpp
+  VDS/VolumeDataHash.cpp
   VDS/DimensionGroup.cpp)
 
 set (PRIVATE_HEADER_FILES
@@ -12,7 +17,17 @@ set (PRIVATE_HEADER_FILES
   IO/S3_Downloader.h
   VDS/VolumeData.h
   VDS/VolumeDataPartition.h
-  VDS/DimensionGroup.h)
+  VDS/VolumeDataLayer.h
+  VDS/VolumeDataLayout.h
+  VDS/VolumeDataChunk.h
+  VDS/VolumeDataRegion.h
+  VDS/VolumeDataChannelDescriptor.h
+  VDS/VolumeDataHash.h
+  VDS/VolumeDataAxisDescriptor.h
+  VDS/DimensionGroup.h
+  VDS/Hash.h
+  Math/Vector.h
+  VDS/Bitmask.h)
 
 set (EXPORTED_HEADER_FILES
   OpenVDS/OpenVDS.h
