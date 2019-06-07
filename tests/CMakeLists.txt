@@ -28,8 +28,8 @@ set_target_properties(jsoncpp_tests PROPERTIES FOLDER tests)
 
 add_executable(segy_tests
   SEG-Y/SEGYScanTest.cpp
-  ../src/SEG-Y/SEGYFile.cpp
-  ../src/SEG-Y/SEGYFile.h)
+  ../src/SEG-Y/SEGYFileInfo.cpp
+  ../src/SEG-Y/SEGYFileInfo.h)
 target_link_libraries(segy_tests openvds Threads::Threads gtest gtest_main)
 target_include_directories(segy_tests PRIVATE ../src/SEG-Y)
 copyDllForTarget(segy_tests)
