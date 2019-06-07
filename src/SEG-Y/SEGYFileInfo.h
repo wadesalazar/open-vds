@@ -205,19 +205,23 @@ struct SEGYSegmentInfo
   SEGYSegmentInfo(int primaryKey, int64_t trace) : m_primaryKey(primaryKey), m_traceStart(trace), m_traceStop(trace) {}
 };
 
-class SEGYFileInfo
+struct SEGYFileInfo
 {
-  int           m_traceSize;
-  int64_t       m_traceCount;
-
   Endianness    m_headerEndianness;
+
+  SEGY::BinaryHeader::DataSampleFormatCode
+                m_dataSampleFormatCode;
+
+  int           m_sampleCount;
+
+  int64_t       m_traceCount;
 
   std::vector<SEGYSegmentInfo>
                 m_segmentInfo;
 
-public:
-  SEGYFileInfo() : m_traceSize(), m_traceCount(), m_headerEndianness(), m_segmentInfo() {}
+  SEGYFileInfo(Endianness headerEndianness = Endianness::BigEndian) : m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(0), m_traceCount(0), m_segmentInfo() {}
 
+  int  traceByteSize();
   bool readTraceHeader(OpenVDS::File const &file, int64_t trace, char (&header)[SEGY::TraceHeaderSize], OpenVDS::IOError &error);
   bool scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField);
 };

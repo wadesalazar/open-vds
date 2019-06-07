@@ -15,18 +15,53 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "SEGYFile.h"
-
-#include <cstdlib>
+#include "SEGYFileInfo.h"
 #include "cxxopts.hpp"
 
-int main(int argc, char *argv[])
+#include <cstdlib>
+#include <json/json.h>
+
+Json::Value
+serializeSEGYFileInfo(SEGYFileInfo const &segyFileInfo)
+{
+  Json::Value
+    jsonFileInfo;
+
+  Json::Value
+    jsonSegmentInfoArray(Json::ValueType::arrayValue);
+
+  for(auto const &segySegmentInfo : segyFileInfo.m_segmentInfo)
+  {
+    Json::Value
+      jsonSegmentInfo;
+
+    jsonSegmentInfo["primaryKey"] = segySegmentInfo.m_primaryKey;
+    jsonSegmentInfo["traceStart"] = segySegmentInfo.m_traceStart;
+    jsonSegmentInfo["traceStop"]  = segySegmentInfo.m_traceStop;
+
+    jsonSegmentInfoArray.append(jsonSegmentInfo);
+  }
+
+  jsonFileInfo["segmentInfo"] = jsonSegmentInfoArray;
+
+  return jsonFileInfo;
+}
+
+
+int
+main(int argc, char *argv[])
 {
   cxxopts::Options options("SEGYScan", "SEGYScan - A tool to scan a SEG-Y file and create an index");
 
   options.add_option("", "f", "file", "File name", cxxopts::value<std::string>(), "The input SEG-Y file");
 
   auto args = options.parse(argc, argv);
+
+  if(args["file"].count() == 0)
+  {
+    std::cerr << std::string("No input SEG-Y file(s) specified");
+    return EXIT_FAILURE;
+  }
 
   OpenVDS::File
     file;
@@ -52,6 +87,14 @@ int main(int argc, char *argv[])
     std::cerr << std::string("Failed to scan file: ") << args["file"].as<std::string>();
     return EXIT_FAILURE;
   }
+
+  Json::Value jsonFileInfo = serializeSEGYFileInfo(fileInfo);
+
+  Json::StreamWriterBuilder wbuilder;
+  wbuilder["indentation"] = "  ";
+  std::string document = Json::writeString(wbuilder, jsonFileInfo);
+  
+  std::cout << document;
 
   return EXIT_SUCCESS;
 }

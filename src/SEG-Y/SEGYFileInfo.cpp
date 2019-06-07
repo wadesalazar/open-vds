@@ -16,7 +16,7 @@
 ****************************************************************************/
 
 #include "IO/File.h"
-#include "SEGYFile.h"
+#include "SEGYFileInfo.h"
 
 #include <iostream>
 #include <algorithm>
@@ -65,37 +65,12 @@ readFieldFromHeader(const char *header, HeaderField const &headerField, Endianne
   }
 }
 
-bool
-SEGYFileInfo::readTraceHeader(OpenVDS::File const &file, int64_t trace, char (&header)[SEGY::TraceHeaderSize], OpenVDS::IOError &error)
+int
+SEGYFileInfo::traceByteSize()
 {
-  int64_t
-    offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + trace * m_traceSize;
-
-  return file.read(header, offset, SEGY::TraceHeaderSize, error);
-}
-
-bool
-SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField)
-{
-  char textualFileHeader[SEGY::TextualFileHeaderSize];
-  char binaryFileHeader[SEGY::BinaryFileHeaderSize];
-  char traceHeader[SEGY::TraceHeaderSize];
-
-  OpenVDS::IOError error;
-
-  file.read(textualFileHeader,                          0, SEGY::TextualFileHeaderSize, error) &&
-  file.read(binaryFileHeader, SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize,  error);
-
-  if(error.code != 0)
-  {
-    return false;
-  }
-
-  auto dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(readFieldFromHeader(binaryFileHeader, SEGY::BinaryHeader::DataSampleFormatCodeHeaderField, m_headerEndianness));
-
   int formatSize;
 
-  switch(dataSampleFormatCode)
+  switch(m_dataSampleFormatCode)
   {
   default:
     return false;
@@ -120,6 +95,37 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
     formatSize = 8; break;
   }
 
+  return SEGY::TraceHeaderSize + m_sampleCount * formatSize;
+}
+
+bool
+SEGYFileInfo::readTraceHeader(OpenVDS::File const &file, int64_t trace, char (&header)[SEGY::TraceHeaderSize], OpenVDS::IOError &error)
+{
+  int64_t
+    offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + trace * traceByteSize();
+
+  return file.read(header, offset, SEGY::TraceHeaderSize, error);
+}
+
+bool
+SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField)
+{
+  char textualFileHeader[SEGY::TextualFileHeaderSize];
+  char binaryFileHeader[SEGY::BinaryFileHeaderSize];
+  char traceHeader[SEGY::TraceHeaderSize];
+
+  OpenVDS::IOError error;
+
+  file.read(textualFileHeader,                          0, SEGY::TextualFileHeaderSize, error) &&
+  file.read(binaryFileHeader, SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize,  error);
+
+  if(error.code != 0)
+  {
+    return false;
+  }
+
+  m_dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(readFieldFromHeader(binaryFileHeader, SEGY::BinaryHeader::DataSampleFormatCodeHeaderField, m_headerEndianness));
+
   int64_t fileSize = file.size(error);
 
   if(error.code != 0)
@@ -127,26 +133,25 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
     return false;
   }
 
-  int sampleCount = readFieldFromHeader(binaryFileHeader, SEGY::BinaryHeader::NumSamplesHeaderField, m_headerEndianness);
+  m_sampleCount = readFieldFromHeader(binaryFileHeader, SEGY::BinaryHeader::NumSamplesHeaderField, m_headerEndianness);
   
   // If the sample count is not set in the binary header we try to read the first trace header and find the sample count there
-  if(sampleCount == 0)
+  if(m_sampleCount == 0)
   {
     readTraceHeader(file, 0, traceHeader, error);
-    sampleCount = readFieldFromHeader(traceHeader, SEGY::TraceHeader::NumSamplesHeaderField, m_headerEndianness);
+    m_sampleCount = readFieldFromHeader(traceHeader, SEGY::TraceHeader::NumSamplesHeaderField, m_headerEndianness);
   }
 
-  if(sampleCount == 0)
+  if(m_sampleCount == 0)
   {
     return false;
   }
 
   int64_t traceDataSize = (fileSize - SEGY::TextualFileHeaderSize - SEGY::BinaryFileHeaderSize);
 
-  m_traceSize  = SEGY::TraceHeaderSize + sampleCount * formatSize;
-  m_traceCount = traceDataSize / m_traceSize;
+  m_traceCount = traceDataSize / traceByteSize();
 
-  if(traceDataSize % m_traceSize != 0)
+  if(traceDataSize % traceByteSize() != 0)
   {
     std::cerr << "Warning: File size is inconsistent with trace size";
   }

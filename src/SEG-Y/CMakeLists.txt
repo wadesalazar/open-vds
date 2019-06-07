@@ -1,11 +1,11 @@
 include (${PROJECT_SOURCE_DIR}/CMake/CopyDllForTarget.cmake)
 
 set(SOURCE_FILES
-    SEGYFile.cpp
+    SEGYFileInfo.cpp
     SEGYScan.cpp)
 
 set(PRIVATE_HEADER_FILES
-    SEGYFile.h)
+    SEGYFileInfo.h)
 
 add_executable(SEGYScan
     ${PRIVATE_HEADER_FILES}
@@ -13,7 +13,7 @@ add_executable(SEGYScan
     )
 
 target_include_directories(SEGYScan PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
-target_link_libraries(SEGYScan PUBLIC Threads::Threads openvds)
+target_link_libraries(SEGYScan PUBLIC Threads::Threads openvds jsoncpp_lib_static)
 
 copyDllForTarget(SEGYScan)
 
