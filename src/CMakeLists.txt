@@ -26,7 +26,7 @@ add_library(openvds SHARED
 add_dependencies(openvds aws-cpp-sdk)
 target_include_directories(openvds PRIVATE "${aws-cpp-sdk_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(openvds PRIVATE openvds_EXPORTS)
-target_link_libraries(openvds PUBLIC Threads::Threads ${aws-cpp-sdk_LIBS})
+target_link_libraries(openvds PUBLIC Threads::Threads ${aws-cpp-sdk_EXTERNAL_LIBS} ${aws-cpp-sdk_LIBS})
 
 if (WIN32)
   set_source_files_properties(IO/Linux_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -63,5 +63,12 @@ install(TARGETS openvds
     DESTINATION include/OpenVDS
   PRIVATE_HEADER
     DESTINATION include/OpenVDS/private)
+
+  install(FILES ${aws-cpp-sdk_LIBS}
+    DESTINATION lib${LIB_TOOLSET_DIR})
+  if (aws-cpp-sdk_RUNTIME)
+    install(FILES ${aws-cpp-sdk_RUNTIME}
+      DESTINATION bin${LIB_TOOLSET_DIR})
+  endif()
 
 add_subdirectory(SEG-Y)
