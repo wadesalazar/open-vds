@@ -184,6 +184,12 @@ public:
   }
 };
 
+bool File::exists(const std::string& filename)
+{
+  struct stat buf;
+  return (lstat(filename.c_str(), &buf) == 0) && S_ISREG(buf.st_mode);
+}
+
 bool File::open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError &error)
 {
   assert(!isDestroyExisting || isCreate);

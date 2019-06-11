@@ -225,6 +225,16 @@ public:
 SystemFileView::PrefetchVirtualMemory_pf SystemFileView::s_pfPrefetchVirtualMemory = SystemFileView::staticGetPrefetchVirtualMemoryProcAddress();
 DWORD SystemFileView::s_dwPageSize = SystemFileView::staticPageSize();
 
+bool File::exists(const std::string& filename)
+{
+  std::wstring native_name;
+  s2ws(filename, native_name);
+
+  DWORD result = GetFileAttributesW(native_name.c_str());
+
+  return (result != INVALID_FILE_ATTRIBUTES) && ((result & FILE_ATTRIBUTE_DIRECTORY) == 0);
+}
+
 bool File::open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError& error)
 {
   assert(!isDestroyExisting || isCreate);
