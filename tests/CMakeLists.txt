@@ -30,6 +30,7 @@ add_executable(segy_tests
   SEG-Y/SEGYScanTest.cpp
   ../src/SEG-Y/SEGYFileInfo.cpp
   ../src/SEG-Y/SEGYFileInfo.h)
+target_compile_definitions(segy_tests PRIVATE -DTEST_DATA_PATH="${TEST_DATA_PATH}")
 target_link_libraries(segy_tests openvds Threads::Threads gtest gtest_main)
 target_include_directories(segy_tests PRIVATE ../src/SEG-Y)
 copyDllForTarget(segy_tests)
