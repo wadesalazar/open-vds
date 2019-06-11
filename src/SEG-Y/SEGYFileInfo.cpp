@@ -156,13 +156,17 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
     std::cerr << "Warning: File size is inconsistent with trace size";
   }
 
+  if(m_traceCount == 0)
+  {
+    return true;
+  }
+
   const int64_t lastTrace = (m_traceCount - 1);
 
-  // The inside/outside trace is the last known trace in the current segment and the first known trace outside the current segment (used when binary searching)
-  int64_t insideTrace = 0, outsideTrace = 0, jump = 1;
+  // The outside trace is the first known trace outside the current segment (used when binary searching)
+  int64_t outsideTrace = 0, jump = 1;
 
-  SEGYSegmentInfo
-    segmentInfo;
+  SEGYSegmentInfo segmentInfo;
 
   int64_t trace = 0;
 
@@ -170,7 +174,7 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
 
   int readCount = 0;
 
-  while(insideTrace != lastTrace)
+  while(segmentInfo.m_traceStop != lastTrace)
   {
     readTraceHeader(file, trace, traceHeader, error);
     if(error.code != 0)
@@ -187,8 +191,6 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
     }
     else if(primaryKey == segmentInfo.m_primaryKey) // expand current segment if the primary key matches
     {
-      assert(insideTrace == 0 || trace > insideTrace);
-      insideTrace = trace;
       assert(trace > segmentInfo.m_traceStop);
       segmentInfo.m_traceStop = trace;
     }
@@ -199,7 +201,7 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
       nextPrimaryKey = primaryKey;
     }
 
-    if(outsideTrace == insideTrace + 1) // current segment is finished
+    if(outsideTrace == segmentInfo.m_traceStop + 1) // current segment is finished
     {
       m_segmentInfo.push_back(segmentInfo);
       int64_t segmentLength = segmentInfo.m_traceStop - segmentInfo.m_traceStart + 1;
@@ -207,21 +209,21 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
       // start a new segment
       segmentInfo = SEGYSegmentInfo(nextPrimaryKey, outsideTrace);
       trace = std::min(lastTrace, outsideTrace + segmentLength);
-      insideTrace = 0, outsideTrace = 0, jump = 1;
+      outsideTrace = 0, jump = 1;
     }
     else if(outsideTrace == 0) // looking for a trace outside the current segment
     {
       trace = std::min(lastTrace, trace + jump);
       jump *= 2;
     }
-    else if(insideTrace == 0) // looking for a trace inside the current segment
+    else if(trace - jump > segmentInfo.m_traceStop) // looking for a trace inside the current segment
     {
-      trace = std::max(segmentInfo.m_traceStart, trace - jump);
+      trace = trace - jump;
       jump *= 2;
     }
-    else // search for end of segment which must lie somewhere between the last known trace in the current segment and the first known trace outside the current segment
+    else // search for end of segment which must lie somewhere between the last known trace inside the current segment and the first known trace outside the current segment
     {
-      trace = (insideTrace + outsideTrace + 1) / 2;
+      trace = (segmentInfo.m_traceStop + outsideTrace + 1) / 2;
     }
   }
 
