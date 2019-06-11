@@ -36,7 +36,7 @@
 template<typename T>
 int32_t bytesize(const std::vector<T>& vec)
 {
-  return vec.size() * sizeof(*vec.data());
+  return int32_t(vec.size() * sizeof(*vec.data()));
 }
 
 template<typename T, size_t N>
