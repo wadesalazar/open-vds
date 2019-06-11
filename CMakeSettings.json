@@ -18,7 +18,7 @@
       "configurationType": "Debug",
       "buildRoot": "${workspaceRoot}\\Builds\\${name}\\b",
       "installRoot": "${workspaceRoot}\\Builds\\${name}\\i",
-      "cmakeCommandArgs": "",
+      "cmakeCommandArgs": "-DTEST_DATA_PATH:PATH=\"D:\\Datasets\"",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ],
