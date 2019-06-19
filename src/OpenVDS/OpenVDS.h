@@ -20,6 +20,26 @@
 
 #include "openvds_export.h"
 
-OPENVDS_EXPORT void s3_function();
+#include <string>
+
+namespace OpenVDS
+{
+struct OpenOptions
+{
+  std::string bucket;
+  std::string key;
+  std::string region;
+};
+
+struct Error
+{
+  int code = 0;
+  std::string string;
+};
+
+struct VDSHandle;
+OPENVDS_EXPORT VDSHandle* Open(const OpenOptions& options, Error &error);
+OPENVDS_EXPORT void Destroy(VDSHandle *handle);
+}
 
 #endif //OPENVDS_H

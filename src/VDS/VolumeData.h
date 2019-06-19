@@ -18,6 +18,8 @@
 #ifndef VOLUMEDATA_H
 #define VOLUMEDATA_H
 
+#include <cstdint>
+
 namespace OpenVDS
 {
 
@@ -72,10 +74,10 @@ enum class DimensionsND
 };
 
 /// Mapping volume data channels
-enum class VolumeDataMapping
+enum class VolumeDataMapping : uint64_t
 {
-  Direct,   ///< Each voxel in the volume has a value 
-  PerTrace ///< Each trace in the volume has a specified number of values. A trace is the entire length of dimension 0
+  Direct   = 0xFFFFFFFFFFFFFFFFULL, ///< Each voxel in the volume has a value 
+  PerTrace = 0x1B6F015EB8864888ULL  ///< Each trace in the volume has a specified number of values. A trace is the entire length of dimension 0
 };
 
 enum class CompressionMethod

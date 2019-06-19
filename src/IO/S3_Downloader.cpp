@@ -28,15 +28,29 @@
 #include <aws/s3/model/BucketLocationConstraint.h>
 #include <aws/s3/model/GetObjectRequest.h>
 
+namespace OpenVDS
+{
+namespace S3
+{
 static std::string convert_aws_string(const Aws::String &str)
 {
   return std::string(str.data(), str.size());
 }
 
-OPENVDS_EXPORT void s3_function()
+static void initializeAWSSDK()
 {
+  static bool initialized = false;
+  if (initialized)
+    return;
+
+  initialized = true;
   Aws::SDKOptions options;
   Aws::InitAPI(options);
+}
+
+void test_function()
+{
+  initializeAWSSDK();
   std::string bucket_name = "";
   std::string location;
   {
@@ -149,5 +163,33 @@ OPENVDS_EXPORT void s3_function()
     }
   }
 
-  Aws::ShutdownAPI(options);
+}
+bool DownloadJson(const std::string &region, const std::string& bucket, const std::string &key, std::string &json, Error &error)
+{
+  initializeAWSSDK();
+  Aws::Client::ClientConfiguration config;
+  config.region = region.c_str();
+  Aws::S3::S3Client s3_client(config);
+  Aws::S3::Model::GetObjectRequest object_request;
+  object_request.SetBucket(bucket.c_str());
+  object_request.SetKey(key.c_str());
+  auto get_object_outcome = s3_client.GetObject(object_request);
+  if (!get_object_outcome.IsSuccess())
+  {
+    auto s3error = get_object_outcome.GetError();
+    error.code = int(s3error.GetResponseCode());
+    error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
+    return false;
+  }
+  auto result = get_object_outcome.GetResultWithOwnership();
+  auto& retrieved_object = result.GetBody();
+  auto content_length = result.GetContentLength();
+  if (content_length > 0)
+  {
+    json.resize(content_length);
+    retrieved_object.read(&json[0], content_length);
+  }
+  return true;
+}
+}
 }

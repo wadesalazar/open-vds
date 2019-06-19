@@ -15,13 +15,13 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "OpenVDS/OpenVDS.h"
+#include <IO/S3_Downloader.h>
 
 #include <gtest/gtest.h>
 
 GTEST_TEST(BasicS3Test, io_s3)
 {
   fprintf(stderr, "S3 Downloader\n");
-  s3_function();
-  EXPECT_TRUE(&s3_function);
+  OpenVDS::S3::test_function();
+  EXPECT_TRUE(&OpenVDS::S3::test_function);
 }

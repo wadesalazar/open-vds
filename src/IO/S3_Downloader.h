@@ -17,3 +17,15 @@
 
 
 //void s3_function();
+#include <OpenVDS/openvds_export.h>
+#include <OpenVDS/OpenVDS.h>
+
+namespace OpenVDS
+{
+namespace S3
+{
+OPENVDS_EXPORT void test_function();
+
+bool DownloadJson(const std::string &region, const std::string& bucket, const std::string &key, std::string &json, Error &error);
+}
+}

@@ -81,6 +81,10 @@ using Vec3 = Vector<T, 3>;
 template<typename T>
 using Vec4 = Vector<T, 4>;
 
+using IntVec2 = Vec2<int>;
+using IntVec3 = Vec3<int>;
+using IntVec4 = Vec4<int>;
+
 using FloatVec2 = Vec2<float>;
 using FloatVec3 = Vec3<float>;
 using FloatVec4 = Vec4<float>;

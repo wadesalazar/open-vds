@@ -62,6 +62,7 @@ struct bit_mask {
     friend constexpr bit_mask<V> operator&(V a, const bit_mask<V> &b);
   template<typename V>
     friend constexpr bit_mask<V> operator^(V a, const bit_mask<V> &b);
+  T to_enum() const { return T(_flags); }
   U _flags;
 };
 

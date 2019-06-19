@@ -15,28 +15,17 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "OpenVDS/OpenVDS.h"
+#include <OpenVDS/OpenVDS.h>
 
-#include <OpenVDSHandle.h>
+#include <gtest/gtest.h>
 
-#include <IO/S3_Downloader.h>
-#include <VDS/ParseVDSJson.h>
-
-#include <memory>
-namespace OpenVDS
+GTEST_TEST(DownloadJson, OpenVDS_integration)
 {
-VDSHandle *Open(const OpenOptions &options, Error &error)
-{
-  std::unique_ptr<VDSHandle> ret(new VDSHandle());
-  if (!DownloadAndParseVDSJson(options, *ret.get(), error))
-  {
-    return nullptr;
-  }
-  return ret.release();
-}
-
-void Destroy(VDSHandle *handle)
-{
-}
-
+  OpenVDS::Error error;
+  OpenVDS::OpenOptions options;
+  options.bucket = "bluware-vds-us-east-2";
+  options.key = "47231464AA898322";
+  options.region = "us-east-2";
+  OpenVDS::VDSHandle *handle = OpenVDS::Open(options, error);
+  EXPECT_TRUE(handle);
 }

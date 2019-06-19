@@ -15,9 +15,9 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#define _USE_MATH_DEFINES
 #include "VolumeDataLayer.h"
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "VolumeDataLayout.h"

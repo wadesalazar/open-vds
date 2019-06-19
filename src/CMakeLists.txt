@@ -10,7 +10,8 @@ set(SOURCE_FILES
   VDS/VolumeDataChunk.cpp
   VDS/VolumeDataRegion.cpp
   VDS/VolumeDataHash.cpp
-  VDS/DimensionGroup.cpp)
+  VDS/DimensionGroup.cpp
+  VDS/ParseVDSJson.cpp)
 
 set (PRIVATE_HEADER_FILES
   IO/File.h
@@ -27,7 +28,8 @@ set (PRIVATE_HEADER_FILES
   VDS/DimensionGroup.h
   VDS/Hash.h
   Math/Vector.h
-  VDS/Bitmask.h)
+  VDS/Bitmask.h
+  VDS/ParseVDSJson.h)
 
 set (EXPORTED_HEADER_FILES
   OpenVDS/OpenVDS.h
@@ -41,7 +43,9 @@ add_library(openvds SHARED
 add_dependencies(openvds aws-cpp-sdk)
 target_include_directories(openvds PRIVATE "${aws-cpp-sdk_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(openvds PRIVATE openvds_EXPORTS)
-target_link_libraries(openvds PUBLIC Threads::Threads ${aws-cpp-sdk_EXTERNAL_LIBS} ${aws-cpp-sdk_LIBS})
+target_link_libraries(openvds Threads::Threads)
+target_link_libraries(openvds jsoncpp_lib_static)
+target_link_libraries(openvds ${aws-cpp-sdk_EXTERNAL_LIBS} ${aws-cpp-sdk_LIBS})
 
 if (WIN32)
   set_source_files_properties(IO/Linux_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)

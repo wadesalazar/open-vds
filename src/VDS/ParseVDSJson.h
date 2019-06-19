@@ -15,28 +15,15 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "OpenVDS/OpenVDS.h"
+#ifndef PARSEVDSJSON_H
+#define PARSEVDSJSON_H
 
+#include <OpenVDS/OpenVDS.h>
 #include <OpenVDSHandle.h>
 
-#include <IO/S3_Downloader.h>
-#include <VDS/ParseVDSJson.h>
-
-#include <memory>
 namespace OpenVDS
 {
-VDSHandle *Open(const OpenOptions &options, Error &error)
-{
-  std::unique_ptr<VDSHandle> ret(new VDSHandle());
-  if (!DownloadAndParseVDSJson(options, *ret.get(), error))
-  {
-    return nullptr;
-  }
-  return ret.release();
+  bool DownloadAndParseVDSJson(const OpenOptions &options, VDSHandle &handle, Error &error);
 }
 
-void Destroy(VDSHandle *handle)
-{
-}
-
-}
+#endif //PARSEVDSJSON_H

@@ -242,7 +242,7 @@ VolumeDataMapping VolumeDataLayout::GetChannelMapping(int32_t iChannel) const
 //  }
 //  else if (pcVolumeDataChannelDescriptor->GetChannelMapping() == TraceVolumeDataChannelMapping_c::GetInstance().GetObjID())
 //  {
-//    return ::SpaceLib::VOLUMEDATAMAPPING_PER_TRACE;
+//    return VOLUMEDATAMAPPING_PER_TRACE;
 //  }
 //  else
 //  {
