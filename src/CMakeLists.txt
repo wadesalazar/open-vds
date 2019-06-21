@@ -7,7 +7,6 @@ set(SOURCE_FILES
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataLayer.cpp
   VDS/VolumeDataLayout.cpp
-  VDS/VolumeDataChunk.cpp
   VDS/VolumeDataRegion.cpp
   VDS/VolumeDataHash.cpp
   VDS/DimensionGroup.cpp
