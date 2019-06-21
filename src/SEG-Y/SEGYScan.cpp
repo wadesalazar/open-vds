@@ -267,7 +267,7 @@ main(int argc, char *argv[])
   std::vector<std::string> fileNames;
   std::string headerFormatFileName;
   std::string primaryKey = "InlineNumber";
-  double scale;
+  double scale = 0;
   bool littleEndian = false;
 
   options.add_option("", "h", "header-format", "A JSON file defining the header format for the input SEG-Y file. The expected format is a dictonary of strings (field names) to pairs (byte position, field width) where field width can be \"TwoByte\" or \"FourByte\". Additionally, an \"Endianness\" key can be specified as \"BigEndian\" or \"LittleEndian\".", cxxopts::value<std::string>(headerFormatFileName), "<file>");
