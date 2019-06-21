@@ -21,6 +21,7 @@
 #include "VolumeDataChannelMapping.h"
 
 #include <assert.h>
+#include <cstddef>
 
 namespace OpenVDS
 {
