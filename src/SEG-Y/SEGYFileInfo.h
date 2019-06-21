@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <functional>
 
 enum class FieldWidth
 {
@@ -98,17 +99,17 @@ enum class MeasurementSystem
 };
 
 // Standard header fields
-static HeaderField TracesPerEnsembleHeaderField(13, FieldWidth::TwoByte);
-static HeaderField AuxiliaryTracesPerEnsembleHeaderField(15, FieldWidth::TwoByte);
-static HeaderField SampleIntervalHeaderField(17, FieldWidth::TwoByte);
-static HeaderField NumSamplesHeaderField(21, FieldWidth::TwoByte);
-static HeaderField DataSampleFormatCodeHeaderField(25, FieldWidth::TwoByte);
-static HeaderField EnsembleFoldHeaderField(27, FieldWidth::TwoByte);
-static HeaderField TraceSortingCodeHeaderField(29, FieldWidth::TwoByte);
-static HeaderField MeasurementSystemHeaderField(55, FieldWidth::TwoByte);
-static HeaderField SEGYFormatRevisionNumberHeaderField(301, FieldWidth::TwoByte);
-static HeaderField FixedLengthTraceFlagHeaderField(303, FieldWidth::TwoByte);
-static HeaderField ExtendedTextualFileHeaderCountHeaderField(305, FieldWidth::TwoByte);
+static const HeaderField TracesPerEnsembleHeaderField(13, FieldWidth::TwoByte);
+static const HeaderField AuxiliaryTracesPerEnsembleHeaderField(15, FieldWidth::TwoByte);
+static const HeaderField SampleIntervalHeaderField(17, FieldWidth::TwoByte);
+static const HeaderField NumSamplesHeaderField(21, FieldWidth::TwoByte);
+static const HeaderField DataSampleFormatCodeHeaderField(25, FieldWidth::TwoByte);
+static const HeaderField EnsembleFoldHeaderField(27, FieldWidth::TwoByte);
+static const HeaderField TraceSortingCodeHeaderField(29, FieldWidth::TwoByte);
+static const HeaderField MeasurementSystemHeaderField(55, FieldWidth::TwoByte);
+static const HeaderField SEGYFormatRevisionNumberHeaderField(301, FieldWidth::TwoByte);
+static const HeaderField FixedLengthTraceFlagHeaderField(303, FieldWidth::TwoByte);
+static const HeaderField ExtendedTextualFileHeaderCountHeaderField(305, FieldWidth::TwoByte);
 
 } // end namespace BinaryHeader
 
@@ -170,29 +171,40 @@ enum class CoordinateUnits
   DegreesMinutesSeconds = 4  // Degrees, minutes, seconds (DMS)
 };
 
-static HeaderField TraceSequenceNumberHeaderField(1, FieldWidth::FourByte);
-static HeaderField TraceSequenceNumberWithinFileHeaderField(5, FieldWidth::FourByte);
-static HeaderField EnergySourcePointNumberHeaderField(17, FieldWidth::FourByte);
-static HeaderField EnsembleNumberHeaderField(21, FieldWidth::FourByte);
-static HeaderField TraceNumberWithinEnsembleHeaderField(25, FieldWidth::FourByte);
-static HeaderField TraceIdentificationCodeHeaderField(29, FieldWidth::TwoByte);
-static HeaderField CoordinateScaleHeaderField(71, FieldWidth::TwoByte);
-static HeaderField SourceXCoordinateHeaderField(73, FieldWidth::FourByte);
-static HeaderField SourceYCoordinateHeaderField(77, FieldWidth::FourByte);
-static HeaderField GroupXCoordinateHeaderField(81, FieldWidth::FourByte);
-static HeaderField GroupYCoordinateHeaderField(84, FieldWidth::FourByte);
-static HeaderField CoordinateUnitsHeaderField(89, FieldWidth::TwoByte);
-static HeaderField StartTimeHeaderField(109, FieldWidth::TwoByte);
-static HeaderField NumSamplesHeaderField(115, FieldWidth::TwoByte);
-static HeaderField SampleIntervalHeaderField(117, FieldWidth::TwoByte);
-static HeaderField EnsembleXCoordinateHeaderField(181, FieldWidth::FourByte);
-static HeaderField EnsembleYCoordinateHeaderField(185, FieldWidth::FourByte);
-static HeaderField InlineNumberHeaderField(189, FieldWidth::FourByte);
-static HeaderField CrosslineNumberHeaderField(193, FieldWidth::FourByte);
+static const HeaderField TraceSequenceNumberHeaderField(1, FieldWidth::FourByte);
+static const HeaderField TraceSequenceNumberWithinFileHeaderField(5, FieldWidth::FourByte);
+static const HeaderField EnergySourcePointNumberHeaderField(17, FieldWidth::FourByte);
+static const HeaderField EnsembleNumberHeaderField(21, FieldWidth::FourByte);
+static const HeaderField TraceNumberWithinEnsembleHeaderField(25, FieldWidth::FourByte);
+static const HeaderField TraceIdentificationCodeHeaderField(29, FieldWidth::TwoByte);
+static const HeaderField CoordinateScaleHeaderField(71, FieldWidth::TwoByte);
+static const HeaderField SourceXCoordinateHeaderField(73, FieldWidth::FourByte);
+static const HeaderField SourceYCoordinateHeaderField(77, FieldWidth::FourByte);
+static const HeaderField GroupXCoordinateHeaderField(81, FieldWidth::FourByte);
+static const HeaderField GroupYCoordinateHeaderField(84, FieldWidth::FourByte);
+static const HeaderField CoordinateUnitsHeaderField(89, FieldWidth::TwoByte);
+static const HeaderField StartTimeHeaderField(109, FieldWidth::TwoByte);
+static const HeaderField NumSamplesHeaderField(115, FieldWidth::TwoByte);
+static const HeaderField SampleIntervalHeaderField(117, FieldWidth::TwoByte);
+static const HeaderField EnsembleXCoordinateHeaderField(181, FieldWidth::FourByte);
+static const HeaderField EnsembleYCoordinateHeaderField(185, FieldWidth::FourByte);
+static const HeaderField InlineNumberHeaderField(189, FieldWidth::FourByte);
+static const HeaderField CrosslineNumberHeaderField(193, FieldWidth::FourByte);
 
 } // end namespace TraceHeader
 
 } // end namespace SEGY
+
+struct SEGYBinInfo
+{
+  int    m_inlineNumber;
+  int    m_crosslineNumber;
+  double m_ensembleXCoordinate;
+  double m_ensembleYCoordinate;
+
+  SEGYBinInfo() : m_inlineNumber(), m_crosslineNumber(), m_ensembleXCoordinate(), m_ensembleYCoordinate() {}
+  SEGYBinInfo(int inlineNumber, int crosslineNumber, double positionX, double positionY) : m_inlineNumber(inlineNumber), m_crosslineNumber(crosslineNumber), m_ensembleXCoordinate(positionX), m_ensembleYCoordinate(positionY) {}
+};
 
 struct SEGYSegmentInfo
 {
@@ -201,8 +213,27 @@ struct SEGYSegmentInfo
   int64_t m_traceStart,
           m_traceStop;
 
-  SEGYSegmentInfo() : m_primaryKey(), m_traceStart(), m_traceStop() {}
-  SEGYSegmentInfo(int primaryKey, int64_t trace) : m_primaryKey(primaryKey), m_traceStart(trace), m_traceStop(trace) {}
+  SEGYBinInfo
+          m_binInfoStart,
+          m_binInfoStop;
+
+  SEGYSegmentInfo() : m_primaryKey(), m_traceStart(), m_traceStop(), m_binInfoStart(), m_binInfoStop() {}
+  SEGYSegmentInfo(int primaryKey, int64_t trace, SEGYBinInfo const &binInfo) : m_primaryKey(primaryKey), m_traceStart(trace), m_traceStop(trace), m_binInfoStart(binInfo), m_binInfoStop(binInfo) {}
+};
+
+struct SEGYBinInfoHeaderFields
+{
+  HeaderField m_inlineNumberHeaderField;
+  HeaderField m_crosslineNumberHeaderField;
+  HeaderField m_coordinateScaleHeaderField;
+  HeaderField m_ensembleXCoordinateHeaderField;
+  HeaderField m_ensembleYCoordinateHeaderField;
+  double      m_scaleOverride;
+
+  SEGYBinInfoHeaderFields() : m_inlineNumberHeaderField(), m_crosslineNumberHeaderField(), m_coordinateScaleHeaderField(), m_ensembleXCoordinateHeaderField(), m_ensembleYCoordinateHeaderField(), m_scaleOverride() {}
+  SEGYBinInfoHeaderFields(HeaderField inlineNumberHeaderField, HeaderField crosslineNumberHeaderField, HeaderField coordinateScaleHeaderField, HeaderField ensembleXCoordinateHeaderField, HeaderField ensembleYCoordinateHeaderField, double scaleOverride = 0.0) : m_inlineNumberHeaderField(inlineNumberHeaderField), m_crosslineNumberHeaderField(crosslineNumberHeaderField), m_coordinateScaleHeaderField(coordinateScaleHeaderField), m_ensembleXCoordinateHeaderField(ensembleXCoordinateHeaderField), m_ensembleYCoordinateHeaderField(ensembleYCoordinateHeaderField), m_scaleOverride(scaleOverride) {}
+
+  static SEGYBinInfoHeaderFields standardHeaderFields() { return SEGYBinInfoHeaderFields(SEGY::TraceHeader::InlineNumberHeaderField, SEGY::TraceHeader::CrosslineNumberHeaderField, SEGY::TraceHeader::CoordinateScaleHeaderField, SEGY::TraceHeader::EnsembleXCoordinateHeaderField, SEGY::TraceHeader::EnsembleYCoordinateHeaderField); }
 };
 
 struct SEGYFileInfo
@@ -223,5 +254,5 @@ struct SEGYFileInfo
 
   int  traceByteSize();
   bool readTraceHeader(OpenVDS::File const &file, int64_t trace, char (&header)[SEGY::TraceHeaderSize], OpenVDS::IOError &error);
-  bool scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField);
+  bool scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::standardHeaderFields());
 };

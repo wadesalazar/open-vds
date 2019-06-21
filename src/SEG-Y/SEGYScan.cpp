@@ -22,7 +22,38 @@
 #include <json/json.h>
 
 Json::Value
-serializeSEGYFileInfo(SEGYFileInfo const &segyFileInfo)
+serializeSEGYBinInfo(SEGYBinInfo const &binInfo)
+{
+  Json::Value
+    jsonBinInfo;
+
+  jsonBinInfo["inlineNumber"]    = binInfo.m_inlineNumber;
+  jsonBinInfo["crosslineNumber"] = binInfo.m_crosslineNumber;
+
+  jsonBinInfo["ensembleXCoordinate"]  = binInfo.m_ensembleXCoordinate;
+  jsonBinInfo["ensembleYCoordinate"]  = binInfo.m_ensembleYCoordinate;
+
+  return jsonBinInfo;
+}
+
+Json::Value
+serializeSEGYSegmentInfo(SEGYSegmentInfo const &segmentInfo)
+{
+  Json::Value
+    jsonSegmentInfo;
+
+  jsonSegmentInfo["primaryKey"] = segmentInfo.m_primaryKey;
+  jsonSegmentInfo["traceStart"] = segmentInfo.m_traceStart;
+  jsonSegmentInfo["traceStop"]  = segmentInfo.m_traceStop;
+
+  jsonSegmentInfo["binInfoStart"] = serializeSEGYBinInfo(segmentInfo.m_binInfoStart);
+  jsonSegmentInfo["binInfoStop"]  = serializeSEGYBinInfo(segmentInfo.m_binInfoStop);
+
+  return jsonSegmentInfo;
+}
+
+Json::Value
+serializeSEGYFileInfo(SEGYFileInfo const &fileInfo)
 {
   Json::Value
     jsonFileInfo;
@@ -30,16 +61,9 @@ serializeSEGYFileInfo(SEGYFileInfo const &segyFileInfo)
   Json::Value
     jsonSegmentInfoArray(Json::ValueType::arrayValue);
 
-  for(auto const &segySegmentInfo : segyFileInfo.m_segmentInfo)
+  for(auto const &segmentInfo : fileInfo.m_segmentInfo)
   {
-    Json::Value
-      jsonSegmentInfo;
-
-    jsonSegmentInfo["primaryKey"] = segySegmentInfo.m_primaryKey;
-    jsonSegmentInfo["traceStart"] = segySegmentInfo.m_traceStart;
-    jsonSegmentInfo["traceStop"]  = segySegmentInfo.m_traceStop;
-
-    jsonSegmentInfoArray.append(jsonSegmentInfo);
+    jsonSegmentInfoArray.append(serializeSEGYSegmentInfo(segmentInfo));
   }
 
   jsonFileInfo["segmentInfo"] = jsonSegmentInfoArray;
@@ -47,21 +71,280 @@ serializeSEGYFileInfo(SEGYFileInfo const &segyFileInfo)
   return jsonFileInfo;
 }
 
+std::map<std::string, HeaderField>
+g_traceHeaderFields = 
+{
+  { "TraceSequenceNumber"          , SEGY::TraceHeader::TraceSequenceNumberHeaderField },
+  { "TraceSequenceNumberWithinFile", SEGY::TraceHeader::TraceSequenceNumberWithinFileHeaderField },
+  { "EnergySourcePointNumber"      , SEGY::TraceHeader::EnergySourcePointNumberHeaderField },
+  { "EnsembleNumber"               , SEGY::TraceHeader::EnsembleNumberHeaderField },
+  { "TraceNumberWithinEnsemble"    , SEGY::TraceHeader::TraceNumberWithinEnsembleHeaderField },
+  { "TraceIdentificationCode"      , SEGY::TraceHeader::TraceIdentificationCodeHeaderField },
+  { "CoordinateScale"              , SEGY::TraceHeader::CoordinateScaleHeaderField },
+  { "SourceXCoordinate"            , SEGY::TraceHeader::SourceXCoordinateHeaderField },
+  { "SourceYCoordinate"            , SEGY::TraceHeader::SourceYCoordinateHeaderField },
+  { "GroupXCoordinate"             , SEGY::TraceHeader::GroupXCoordinateHeaderField },
+  { "GroupYCoordinate"             , SEGY::TraceHeader::GroupYCoordinateHeaderField },
+  { "CoordinateUnits"              , SEGY::TraceHeader::CoordinateUnitsHeaderField },
+  { "StartTime"                    , SEGY::TraceHeader::StartTimeHeaderField },
+  { "NumSamples"                   , SEGY::TraceHeader::NumSamplesHeaderField },
+  { "SampleInterval"               , SEGY::TraceHeader::SampleIntervalHeaderField },
+  { "EnsembleXCoordinate"          , SEGY::TraceHeader::EnsembleXCoordinateHeaderField },
+  { "EnsembleYCoordinate"          , SEGY::TraceHeader::EnsembleYCoordinateHeaderField },
+  { "InlineNumber"                 , SEGY::TraceHeader::InlineNumberHeaderField },
+  { "CrosslineNumber"              , SEGY::TraceHeader::CrosslineNumberHeaderField }
+};
+
+std::map<std::string, std::string>
+g_aliases = 
+{
+  { "Inline",              "InlineNumber" },
+  { "InLine",              "InlineNumber" },
+  { "InLineNumber",        "InlineNumber" },
+  { "Crossline",           "CrosslineNumber" },
+  { "CrossLine",           "CrosslineNumber" },
+  { "CrossLineNumber",     "CrosslineNumber" },
+  { "Easting",             "EnsembleXCoordinate" },
+  { "Northing",            "EnsembleYCoordinate" },
+  { "CDPXCoordinate",      "EnsembleXCoordinate" },
+  { "CDPYCoordinate",      "EnsembleYCoordinate" },
+  { "CDP-X",               "EnsembleXCoordinate" },
+  { "CDP-Y",               "EnsembleYCoordinate" },
+  { "Source-X",            "SourceXCoordinate" },
+  { "Source-Y",            "SourceYCoordinate" },
+  { "Group-X",             "GroupXCoordinate" },
+  { "Group-Y",             "GroupYCoordinate" },
+  { "ReceiverXCoordinate", "GroupXCoordinate" },
+  { "ReceiverYCoordinate", "GroupYCoordinate" },
+  { "Receiver-X",          "GroupXCoordinate" },
+  { "Receiver-Y",          "GroupYCoordinate" },
+  { "Scalar",              "CoordinateScale" }
+};
+
+void
+resolveAlias(std::string &fieldName)
+{
+  if(g_aliases.find(fieldName) != g_aliases.end())
+  {
+    fieldName = g_aliases[fieldName];
+  }
+}
+
+Endianness
+endiannessFromJson(Json::Value const &jsonEndianness)
+{
+  std::string
+    endiannessString = jsonEndianness.asString();
+
+  if(endiannessString == "BigEndian")
+  {
+    return Endianness::BigEndian;
+  }
+  else if(endiannessString == "LittleEndian")
+  {
+    return Endianness::LittleEndian;
+  }
+
+  throw Json::Exception("Illegal endianness");
+}
+
+FieldWidth
+fieldWidthFromJson(Json::Value const &jsonFieldWidth)
+{
+  std::string
+    fieldWidthString = jsonFieldWidth.asString();
+
+  if(fieldWidthString == "TwoByte")
+  {
+    return FieldWidth::TwoByte;
+  }
+  else if(fieldWidthString == "FourByte")
+  {
+    return FieldWidth::FourByte;
+  }
+
+  throw Json::Exception("Illegal field width");
+}
+
+HeaderField
+headerFieldFromJson(Json::Value const &jsonHeaderField)
+{
+  int
+    bytePosition = jsonHeaderField[0].asInt();
+
+  FieldWidth
+    fieldWidth = fieldWidthFromJson(jsonHeaderField[1]);
+
+  if(bytePosition < 1 || bytePosition > SEGY::TraceHeaderSize - ((fieldWidth == FieldWidth::TwoByte) ? 2 : 4))
+  {
+    throw Json::Exception(std::string("Illegal field definition: ") + jsonHeaderField.toStyledString());
+  }
+
+  return HeaderField(bytePosition, fieldWidth);
+}
+
+bool
+parseHeaderFormatFile(OpenVDS::File const &file, std::map<std::string, HeaderField> &traceHeaderFields, Endianness &headerEndianness)
+{
+  OpenVDS::IOError error;
+
+  int64_t fileSize = file.size(error);
+
+  if(error.code != 0)
+  {
+    return false;
+  }
+
+  if(fileSize > INT_MAX)
+  {
+    return false;
+  }
+
+  std::unique_ptr<char[]>
+    buffer(new char[fileSize]);
+
+  file.read(buffer.get(), 0, (int32_t)fileSize, error);
+
+  if(error.code != 0)
+  {
+    return false;
+  }
+
+  try
+  {
+    Json::CharReaderBuilder
+      rbuilder;
+
+    rbuilder["collectComments"] = false;
+
+    std::string
+      errs;
+
+    std::unique_ptr<Json::CharReader>
+      reader(rbuilder.newCharReader());
+
+    Json::Value
+      root;
+
+    bool
+      success = reader->parse(buffer.get(), buffer.get() + fileSize, &root, &errs);
+
+    if(!success)
+    {
+      throw Json::Exception(errs);
+    }
+
+    for (std::string const & fieldName : root.getMemberNames())
+    {
+      std::string canonicalFieldName = fieldName;
+      resolveAlias(canonicalFieldName);
+
+      if(fieldName == "Endianness")
+      {
+        headerEndianness = endiannessFromJson(root[fieldName]);
+      }
+      else
+      {
+        traceHeaderFields[canonicalFieldName] = headerFieldFromJson(root[fieldName]);
+      }
+    }
+  }
+  catch(Json::Exception e)
+  {
+    std::cerr << "Failed to parse JSON header format file: " << e.what();
+    return false;
+  }
+
+  return true;
+}
 
 int
 main(int argc, char *argv[])
 {
   cxxopts::Options options("SEGYScan", "SEGYScan - A tool to scan a SEG-Y file and create an index");
+  options.positional_help("<input file>");
 
-  options.add_option("", "f", "file", "File name", cxxopts::value<std::string>(), "The input SEG-Y file");
+  std::vector<std::string> fileNames;
+  std::string headerFormatFileName;
+  std::string primaryKey = "InlineNumber";
+  double scale;
+  bool littleEndian = false;
 
-  auto args = options.parse(argc, argv);
+  options.add_option("", "h", "header-format", "A JSON file defining the header format for the input SEG-Y file. The expected format is a dictonary of strings (field names) to pairs (byte position, field width) where field width can be \"TwoByte\" or \"FourByte\". Additionally, an \"Endianness\" key can be specified as \"BigEndian\" or \"LittleEndian\".", cxxopts::value<std::string>(headerFormatFileName), "<file>");
+  options.add_option("", "p", "primary-key", "The name of the trace header field to use as the primary key.", cxxopts::value<std::string>(primaryKey)->default_value("Inline"), "<field>");
+  options.add_option("", "s", "scale", "If a scale override (floating point) is given, it is used to scale the coordinates in the header instead of determining the scale factor from the coordinate scale trace header field.", cxxopts::value<double>(scale), "<value>");
+  options.add_option("", "l", "little-endian", "Force (non-standard) little-endian trace headers.", cxxopts::value<bool>(littleEndian), "");
 
-  if(args["file"].count() == 0)
+  options.add_option("", "", "input", "", cxxopts::value<std::vector<std::string>>(fileNames), "");
+  options.parse_positional("input");
+
+  if(argc == 1)
   {
-    std::cerr << std::string("No input SEG-Y file(s) specified");
+    std::cout << options.help();
+    return EXIT_SUCCESS;
+  }
+
+  try
+  {
+    options.parse(argc, argv);
+  }
+  catch(cxxopts::OptionParseException e)
+  {
+    std::cerr << e.what();
     return EXIT_FAILURE;
   }
+
+  if(fileNames.empty())
+  {
+    std::cerr << std::string("No input SEG-Y file specified");
+    return EXIT_FAILURE;
+  }
+
+  if(fileNames.size() > 1)
+  {
+    std::cerr << std::string("Only one input SEG-Y file may be specified");
+    return EXIT_FAILURE;
+  }
+
+  Endianness headerEndianness = (littleEndian ? Endianness::LittleEndian : Endianness::BigEndian);
+
+  if(!headerFormatFileName.empty())
+  {
+    OpenVDS::File
+      headerFormatFile;
+
+    OpenVDS::IOError
+      error;
+
+    headerFormatFile.open(headerFormatFileName.c_str(), false, false, false, error);
+
+    if(error.code != 0)
+    {
+      std::cerr << std::string("Could not open file: ") << headerFormatFileName;
+      return EXIT_FAILURE;
+    }
+
+    parseHeaderFormatFile(headerFormatFile, g_traceHeaderFields, headerEndianness);
+  }
+
+  // get the canonical field name for the primary key
+  resolveAlias(primaryKey);
+
+  HeaderField
+    primaryKeyHeaderField;
+
+  if(g_traceHeaderFields.find(primaryKey) != g_traceHeaderFields.end())
+  {
+    primaryKeyHeaderField = g_traceHeaderFields[primaryKey];
+  }
+  else
+  {
+    std::cerr << std::string("Unrecognized header field given for primary key: ") << primaryKey;
+    return EXIT_FAILURE;
+  }
+
+  SEGYBinInfoHeaderFields
+    binInfoHeaderFields(g_traceHeaderFields["InlineNumber"], g_traceHeaderFields["CrosslineNumber"], g_traceHeaderFields["CoordinateScale"], g_traceHeaderFields["EnsembleXCoordinate"], g_traceHeaderFields["EnsembleYCoordinate"], scale);
 
   OpenVDS::File
     file;
@@ -69,22 +352,22 @@ main(int argc, char *argv[])
   OpenVDS::IOError
     error;
 
-  file.open(args["file"].as<std::string>().c_str(), false, false, false, error);
+  file.open(fileNames[0].c_str(), false, false, false, error);
 
   if(error.code != 0)
   {
-    std::cerr << std::string("Could not open file: ") << args["file"].as<std::string>();
+    std::cerr << std::string("Could not open file: ") << fileNames[0];
     return EXIT_FAILURE;
   }
 
   SEGYFileInfo
-    fileInfo;
+    fileInfo(headerEndianness);
 
-  bool success = fileInfo.scan(file, HeaderField(189, FieldWidth::FourByte));
+  bool success = fileInfo.scan(file, primaryKeyHeaderField, binInfoHeaderFields);
 
   if(!success)
   {
-    std::cerr << std::string("Failed to scan file: ") << args["file"].as<std::string>();
+    std::cerr << std::string("Failed to scan file: ") << fileNames[0];
     return EXIT_FAILURE;
   }
 

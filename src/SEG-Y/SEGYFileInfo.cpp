@@ -65,6 +65,37 @@ readFieldFromHeader(const char *header, HeaderField const &headerField, Endianne
   }
 }
 
+static SEGYBinInfo
+readBinInfoFromHeader(const char *header, SEGYBinInfoHeaderFields const &headerFields, Endianness endianness)
+{
+  int inlineNumber    = readFieldFromHeader(header, headerFields.m_inlineNumberHeaderField,    endianness);
+  int crosslineNumber = readFieldFromHeader(header, headerFields.m_crosslineNumberHeaderField, endianness);
+
+  int ensembleXCoordinate = readFieldFromHeader(header, headerFields.m_ensembleXCoordinateHeaderField, endianness);
+  int ensembleYCoordinate = readFieldFromHeader(header, headerFields.m_ensembleYCoordinateHeaderField, endianness);
+
+  double scaleFactor = 1.0f;
+
+  if(headerFields.m_scaleOverride == 0.0)
+  {
+    int scale = readFieldFromHeader(header, SEGY::TraceHeader::CoordinateScaleHeaderField, endianness);
+    if(scale < 0)
+    {
+      scaleFactor = 1.0 / float(scale);
+    }
+    else if(scale > 0)
+    {
+      scaleFactor = 1.0 * float(scale);
+    }
+  }
+  else
+  {
+    scaleFactor = headerFields.m_scaleOverride;
+  }
+
+  return SEGYBinInfo(inlineNumber, crosslineNumber, double(ensembleXCoordinate) * scaleFactor, double(ensembleYCoordinate) * scaleFactor);
+}
+
 int
 SEGYFileInfo::traceByteSize()
 {
@@ -108,7 +139,7 @@ SEGYFileInfo::readTraceHeader(OpenVDS::File const &file, int64_t trace, char (&h
 }
 
 bool
-SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField)
+SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
 {
   char textualFileHeader[SEGY::TextualFileHeaderSize];
   char binaryFileHeader[SEGY::BinaryFileHeaderSize];
@@ -166,6 +197,8 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
   // The outside trace is the first known trace outside the current segment (used when binary searching)
   int64_t outsideTrace = 0, jump = 1;
 
+  SEGYBinInfo outsideBinInfo;
+
   SEGYSegmentInfo segmentInfo;
 
   int64_t trace = 0;
@@ -187,17 +220,19 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
 
     if(trace == 0) // start the first segment of the file
     {
-      segmentInfo = SEGYSegmentInfo(primaryKey, trace);
+      segmentInfo = SEGYSegmentInfo(primaryKey, trace, readBinInfoFromHeader(traceHeader, binInfoHeaderFields, m_headerEndianness));
     }
     else if(primaryKey == segmentInfo.m_primaryKey) // expand current segment if the primary key matches
     {
       assert(trace > segmentInfo.m_traceStop);
       segmentInfo.m_traceStop = trace;
+      segmentInfo.m_binInfoStop = readBinInfoFromHeader(traceHeader, binInfoHeaderFields, m_headerEndianness);
     }
     else
     {
       assert(outsideTrace == 0 || trace < outsideTrace);
       outsideTrace = trace;
+      outsideBinInfo = readBinInfoFromHeader(traceHeader, binInfoHeaderFields, m_headerEndianness);
       nextPrimaryKey = primaryKey;
     }
 
@@ -207,7 +242,7 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
       int64_t segmentLength = segmentInfo.m_traceStop - segmentInfo.m_traceStart + 1;
 
       // start a new segment
-      segmentInfo = SEGYSegmentInfo(nextPrimaryKey, outsideTrace);
+      segmentInfo = SEGYSegmentInfo(nextPrimaryKey, outsideTrace, outsideBinInfo);
       trace = std::min(lastTrace, outsideTrace + segmentLength);
       outsideTrace = 0, jump = 1;
     }
