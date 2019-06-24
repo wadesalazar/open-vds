@@ -34,6 +34,7 @@ set (PRIVATE_HEADER_FILES
 
 set (EXPORTED_HEADER_FILES
   OpenVDS/OpenVDS.h
+  OpenVDS/KnownMetadata.h
   OpenVDS/openvds_export.h)
 
 add_library(openvds SHARED
