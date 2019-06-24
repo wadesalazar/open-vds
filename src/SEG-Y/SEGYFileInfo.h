@@ -219,6 +219,7 @@ struct SEGYSegmentInfo
 
   SEGYSegmentInfo() : m_primaryKey(), m_traceStart(), m_traceStop(), m_binInfoStart(), m_binInfoStop() {}
   SEGYSegmentInfo(int primaryKey, int64_t trace, SEGYBinInfo const &binInfo) : m_primaryKey(primaryKey), m_traceStart(trace), m_traceStop(trace), m_binInfoStart(binInfo), m_binInfoStop(binInfo) {}
+  SEGYSegmentInfo(int primaryKey, int64_t traceStart, int64_t traceStop, SEGYBinInfo const &binInfoStart, SEGYBinInfo const &binInfoStop) : m_primaryKey(primaryKey), m_traceStart(traceStart), m_traceStop(traceStop), m_binInfoStart(binInfoStart), m_binInfoStop(binInfoStop) {}
 };
 
 struct SEGYBinInfoHeaderFields
