@@ -21,8 +21,9 @@ set (PRIVATE_HEADER_FILES
   VDS/VolumeDataLayout.h
   VDS/VolumeDataChunk.h
   VDS/VolumeDataRegion.h
-  VDS/VolumeDataChannelDescriptor.h
   VDS/VolumeDataHash.h
+  VDS/VolumeDataLayoutDescriptor.h
+  VDS/VolumeDataChannelDescriptor.h
   VDS/VolumeDataAxisDescriptor.h
   VDS/DimensionGroup.h
   VDS/Hash.h
