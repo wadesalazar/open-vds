@@ -77,24 +77,13 @@ struct VDSMetaContainer
   std::unordered_map<VDSMetaDataKey, std::vector<uint8_t>> blobData;
 };
 
-struct VDSFreeDelete
-{
-    void operator()(void* x) { free(x); }
-};
-
-struct VDSDescriptorString
-{
-  uint32_t size;
-  char data[];
-};
-
 struct VDSHandle
 {
   std::string url;
   VolumeDataLayoutDescriptor layoutDescriptor;
   std::vector<VolumeDataAxisDescriptor> axisDescriptors;
   std::vector<VolumeDataChannelDescriptor> channelDescriptors;
-  std::vector<std::unique_ptr<VDSDescriptorString, VDSFreeDelete>> descriptorStrings;
+  std::vector<std::unique_ptr<char[]>> descriptorStrings;
   std::vector<VolumeDataLayer::ProduceStatus> produceStatuses;
   VDSMetaContainer metaDataContainer;
 };

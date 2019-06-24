@@ -224,11 +224,11 @@ static int ConvertToDimensionality(Json::Value const &jsonDimensionlaity)
 
 const char *AddDescriptorString(std::string const &descriptorString, VDSHandle &handle)
 {
-  VDSDescriptorString *vdsDescriptorString = static_cast<VDSDescriptorString *>(calloc(1, sizeof(VDSDescriptorString) + descriptorString.size() + 1 ));
-  vdsDescriptorString->size = uint32_t(descriptorString.size());
-  memcpy(vdsDescriptorString->data, descriptorString.data(), descriptorString.size());
-  handle.descriptorStrings.emplace_back(vdsDescriptorString);
-  return vdsDescriptorString->data;
+  char *data = new char[descriptorString.size() + 1];
+  memcpy(data, descriptorString.data(), descriptorString.size());
+  data[descriptorString.size() - 1] = 0;
+  handle.descriptorStrings.emplace_back(data);
+  return data;
 }
 
 static VolumeDataChannelDescriptor::Format ConvertToVoxelFormat(Json::Value const &jsonVoxelFormat)
