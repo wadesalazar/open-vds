@@ -60,32 +60,32 @@ public:
   };
 
 private:
-  BrickSize           brickSize;
+  BrickSize           m_brickSize;
 
-  int                 negativeMargin,
-                      positiveMargin;
+  int                 m_negativeMargin,
+                      m_positiveMargin;
 
-  LODLevels           lodLevels;
+  LODLevels           m_lodLevels;
 
-  Options             options;
+  Options             m_options;
 
-  int                 fullResolutionDimension;
+  int                 m_fullResolutionDimension;
 
 public:
-  VolumeDataLayoutDescriptor() : brickSize((enum BrickSize)0), negativeMargin(0), positiveMargin(0), lodLevels(LODLevelNone), options(Options_None), fullResolutionDimension(0) {}
-  VolumeDataLayoutDescriptor(BrickSize brickSize, int negativeMargin, int positiveMargin, LODLevels lodLevels, Options options, int fullResolutionDimension = 0) : brickSize(brickSize), negativeMargin(negativeMargin), positiveMargin(positiveMargin), lodLevels(lodLevels), options(options), fullResolutionDimension(fullResolutionDimension) {}
+  VolumeDataLayoutDescriptor() : m_brickSize(), m_negativeMargin(), m_positiveMargin(), m_lodLevels(), m_options(), m_fullResolutionDimension() {}
+  VolumeDataLayoutDescriptor(BrickSize brickSize, int negativeMargin, int positiveMargin, LODLevels lodLevels, Options options, int fullResolutionDimension = 0) : m_brickSize(brickSize), m_negativeMargin(negativeMargin), m_positiveMargin(positiveMargin), m_lodLevels(lodLevels), m_options(options), m_fullResolutionDimension(fullResolutionDimension) {}
 
-  bool                IsValid()        const { return brickSize != 0; }
+  bool                isValid()        const { return m_brickSize != 0; }
 
-  BrickSize           BrickSize()      const { return brickSize; }
-  int                 NegativeMargin() const { return negativeMargin; }
-  int                 PositiveMargin() const { return positiveMargin; }
-  LODLevels           LODLevels()      const { return lodLevels; }
+  BrickSize           brickSize()      const { return m_brickSize; }
+  int                 negativeMargin() const { return m_negativeMargin; }
+  int                 positiveMargin() const { return m_positiveMargin; }
+  LODLevels           lODLevels()      const { return m_lodLevels; }
 
-  bool                IsCreate2DLODs()                 const { return (options & Options_Create2DLODs) != 0; }
-  bool                IsForceFullResolutionDimension() const { return (options & Options_ForceFullResolutionDimension) != 0; }
+  bool                isCreate2DLODs()                 const { return (m_options & Options_Create2DLODs) != 0; }
+  bool                isForceFullResolutionDimension() const { return (m_options & Options_ForceFullResolutionDimension) != 0; }
 
-  int                 FullResolutionDimension() const { return fullResolutionDimension; }
+  int                 fullResolutionDimension() const { return m_fullResolutionDimension; }
 };
 }
 #endif //VOLUMEDATALAYOUTDESCRIPTOR_H
