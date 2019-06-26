@@ -18,30 +18,27 @@
 #include "VolumeDataLayout.h"
 
 #include "DimensionGroup.h"
+#include "VolumeDataLayoutDescriptor.h"
 
 #include "Bitmask.h"
 
 namespace OpenVDS
 {
   
-VolumeDataLayout::VolumeDataLayout(int32_t dimensionality,
-                                  const IndexArray &size,
-                                  int32_t baseBrickSize,
-                                  int32_t negativeRenderMargin,
-                                  int32_t positiveRenderMargin, 
-                                  std::vector<VolumeDataChannelDescriptor> const &volumeDataChannelDescriptor, 
-                                  int32_t actualValueRangeChannel, 
-                                  Range<float> const &actualValueRange, 
-                                  VolumeDataHash const &volumeDataHash, 
-                                  CompressionMethod compressionMethod, 
-                                  float compressionTolerance, 
-                                  bool isZipLosslessChannels, 
-                                  int32_t waveletAdaptiveLoadLevel, 
-                                  int32_t fullResolutionDimension)
-  : m_dimensionality(dimensionality)
-  , m_baseBrickSize(baseBrickSize)
-  , m_negativeRenderMargin(negativeRenderMargin)
-  , m_positiveRenderMargin(positiveRenderMargin)
+VolumeDataLayout::VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescriptor,
+                   const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
+                   const std::vector<VolumeDataChannelDescriptor> const &volumeDataChannelDescriptor,
+                   int32_t actualValueRangeChannel,
+                   Range<float> const &actualValueRange,
+                   VolumeDataHash const &volumeDataHash,
+                   CompressionMethod compressionMethod,
+                   float compressionTolerance,
+                   bool isZipLosslessChannels,
+                   int32_t waveletAdaptiveLoadLevel)
+  : m_dimensionality(axisDescriptor.size())
+  , m_baseBrickSize(int32_t(1) << layoutDescriptor.brickSize())
+  , m_negativeRenderMargin(layoutDescriptor.negativeMargin())
+  , m_positiveRenderMargin(layoutDescriptor.positiveMargin())
   , m_volumeDataChannelDescriptor(volumeDataChannelDescriptor)
   , m_actualValueRangeChannel(actualValueRangeChannel)
   , m_actualValueRange(actualValueRange)
@@ -50,15 +47,18 @@ VolumeDataLayout::VolumeDataLayout(int32_t dimensionality,
   , m_compressionTolerance(compressionTolerance)
   , m_isZipLosslessChannels(isZipLosslessChannels)
   , m_waveletAdaptiveLoadLevel(waveletAdaptiveLoadLevel)
-  , m_fullResolutionDimension(fullResolutionDimension)
+  , m_fullResolutionDimension(layoutDescriptor.fullResolutionDimension())
 {
 
   for(int32_t iDimension = 0; iDimension < array_size(m_dimensionNumSamples); iDimension++)
   {
-    if(iDimension < dimensionality)
+    if(iDimension < m_dimensionality)
     {
-      assert(size[iDimension] >= 1);
-      m_dimensionNumSamples[iDimension] = size[iDimension];
+      assert(axisDescriptor[iDimension].GetNumSamples() >= 1);
+      m_dimensionNumSamples[iDimension] = axisDescriptor[iDimension].GetNumSamples();
+      m_dimensionName[iDimension] = axisDescriptor[iDimension].GetName();
+      m_dimensionUnit[iDimension] = axisDescriptor[iDimension].GetUnit();
+      m_dimensionRange[iDimension] = { axisDescriptor[iDimension].GetCoordinateMin(), axisDescriptor[iDimension].GetCoordinateMax() };
     }
     else
     {
@@ -326,7 +326,7 @@ void VolumeDataLayout::CreateRenderLayers(DimensionGroup dimensionGroup, int32_t
         layerType = VolumeDataLayer::Auxiliary;
       }
 
-      VolumeDataChannelMapping const * volumeDataChannelMapping = nullptr;// = GetVolumeDataChannelMapping(iChannel);
+      VolumeDataChannelMapping const *volumeDataChannelMapping = nullptr;// = GetVolumeDataChannelMapping(iChannel);
 
       VolumeDataLayer *volumeDataLayer = new VolumeDataLayer(VolumeDataPartition::StaticMapPartition(primaryPartition, volumeDataChannelMapping, GetMappedValueCount(iChannel)),
                                                             this, iChannel,primaryChannelLayer, lowerLOD[iChannel], layerType, volumeDataChannelMapping);

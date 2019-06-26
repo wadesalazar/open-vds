@@ -22,6 +22,7 @@
 #include <VDS/VolumeDataAxisDescriptor.h>
 #include <VDS/VolumeDataChannelDescriptor.h>
 #include <VDS/VolumeDataLayer.h>
+#include <VDS/VolumeDataLayout.h>
 
 #include <Math/Vector.h>
 
@@ -86,6 +87,8 @@ struct VDSHandle
   std::vector<std::unique_ptr<char[]>> descriptorStrings;
   std::vector<VolumeDataLayer::ProduceStatus> produceStatuses;
   VDSMetaContainer metaDataContainer;
+
+  std::unique_ptr<VolumeDataLayout> volumeDataLayout;
 };
 }
 

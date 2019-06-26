@@ -17,7 +17,8 @@
 
 #include "ParseVDSJson.h"
 #include "VolumeDataLayer.h"
-
+#include "VolumeDataLayout.h"
+#include "VolumeDataHash.h"
 #include <IO/S3_Downloader.h>
 
 #include <json/json.h>
@@ -337,9 +338,11 @@ static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &er
   enum VolumeDataLayoutDescriptor::LODLevels lodLevel = ConvertToLodLevel(root["LODLevels"]);
   Internal::bit_mask<enum VolumeDataLayoutDescriptor::Options> options(root["Create2DLODs"].asBool() ? VolumeDataLayoutDescriptor::Options_Create2DLODs : VolumeDataLayoutDescriptor::Options_None);
   options |= root["ForceFullResolutionDimension"].asBool() ? VolumeDataLayoutDescriptor::Options_ForceFullResolutionDimension : VolumeDataLayoutDescriptor::Options_None;
+  int brickSizeMultiplier2D = root.isMember("2DBrickSizeMultiplier") ? root["2DBrickSizeMultiplier"].asInt() : 4;
   handle.layoutDescriptor = VolumeDataLayoutDescriptor(brickSize,
                                                   root["NegativeMargin"].asInt(),
                                                   root["PositiveMargin"].asInt(),
+                                                  brickSizeMultiplier2D,
                                                   lodLevel,
                                                   options.to_enum(),
                                                   root["FullResolutionDimension"].asInt());
@@ -597,6 +600,70 @@ static bool ParseMetaDataStatus(const std::string &json, VDSHandle &handle, Erro
   return true;
 }
 
+static int32_t getInternalCubeSizeLod0(const VolumeDataLayoutDescriptor &desc)
+{
+  int32_t size = int32_t(1) << desc.brickSize();
+
+  size -= desc.negativeMargin();
+  size -= desc.positiveMargin();
+
+  assert(size > 0);
+
+  return size;
+}
+
+static int32_t getLodCount(const VolumeDataLayoutDescriptor &desc)
+{
+  return desc.lodLevels() + 1;
+}
+
+static void createVolumeDataLayout(VDSHandle &handle)
+{
+  //handle.volumeDataLayout.reset(new VolumeDataLayout(handle.channelDescriptors)
+  int32_t dimensionality = handle.axisDescriptors.size();
+
+  // Check if input layouts are valid so we can create a new layout
+  if (dimensionality < 2)
+  {
+    handle.volumeDataLayout.reset();
+    return;
+  }
+
+  handle.volumeDataLayout.reset(
+    new VolumeDataLayout(
+      handle.layoutDescriptor,
+      handle.axisDescriptors,
+      handle.channelDescriptors,
+      0, //MIA for now
+      { 1, 0 }, //MIA for now
+      VolumeDataHash::GetUniqueHash(),
+      CompressionMethod::None,
+      0,
+      false,
+      0));
+
+  for(int32_t iDimensionGroup = 0; iDimensionGroup < DimensionGroup_3D_Max; iDimensionGroup++)
+  {
+    DimensionGroup dimensionGroup = (DimensionGroup)iDimensionGroup;
+
+    int32_t nChunkDimensionality = DimensionGroupUtil::GetDimensionality(dimensionGroup);
+
+        // Check if highest dimension in chunk is higher than the highest dimension in the dataset or 1D
+    if(DimensionGroupUtil::GetDimension(dimensionGroup, nChunkDimensionality - 1) >= dimensionality ||
+       nChunkDimensionality == 1)
+    {
+      continue;
+    }
+
+    assert(nChunkDimensionality == 2 || nChunkDimensionality == 3);
+
+    int32_t physicalLODLevels = (nChunkDimensionality == 3 || handle.layoutDescriptor.isCreate2DLODs()) ? getLodCount(handle.layoutDescriptor) : 1;
+    int32_t brickSize = getInternalCubeSizeLod0(handle.layoutDescriptor) * (nChunkDimensionality == 2 ? handle.layoutDescriptor.brickSizeMultiplier2D() : 1);
+
+    handle.volumeDataLayout->CreateRenderLayers(dimensionGroup, brickSize, physicalLODLevels);
+  }
+}
+
 bool DownloadAndParseVDSJson(const OpenOptions& options, VDSHandle& handle, Error& error)
 {
   std::string vdsobject_json;
@@ -633,6 +700,8 @@ bool DownloadAndParseVDSJson(const OpenOptions& options, VDSHandle& handle, Erro
     error.code = -2;
     return false;
   }
+
+  createVolumeDataLayout(handle);
 
   return true;
 }

@@ -23,6 +23,9 @@
 #include "VolumeDataLayout.h"
 #include "VolumeDataRegion.h"
 
+#include "VolumeDataAccess.h"
+
+
 #include "Hash.h"
 
 #include <mutex>

@@ -62,8 +62,9 @@ public:
 private:
   BrickSize           m_brickSize;
 
-  int                 m_negativeMargin,
-                      m_positiveMargin;
+  int                 m_negativeMargin;
+  int                 m_positiveMargin;
+  int                 m_brickSizeMultiplier2D;
 
   LODLevels           m_lodLevels;
 
@@ -72,15 +73,16 @@ private:
   int                 m_fullResolutionDimension;
 
 public:
-  VolumeDataLayoutDescriptor() : m_brickSize(), m_negativeMargin(), m_positiveMargin(), m_lodLevels(), m_options(), m_fullResolutionDimension() {}
-  VolumeDataLayoutDescriptor(BrickSize brickSize, int negativeMargin, int positiveMargin, LODLevels lodLevels, Options options, int fullResolutionDimension = 0) : m_brickSize(brickSize), m_negativeMargin(negativeMargin), m_positiveMargin(positiveMargin), m_lodLevels(lodLevels), m_options(options), m_fullResolutionDimension(fullResolutionDimension) {}
+  VolumeDataLayoutDescriptor() : m_brickSize(), m_negativeMargin(), m_positiveMargin(), m_brickSizeMultiplier2D(), m_lodLevels(), m_options(), m_fullResolutionDimension() {}
+  VolumeDataLayoutDescriptor(BrickSize brickSize, int negativeMargin, int positiveMargin, int brickSizeMultiplier2D, LODLevels lodLevels, Options options, int fullResolutionDimension = 0) : m_brickSize(brickSize), m_negativeMargin(negativeMargin), m_positiveMargin(positiveMargin), m_brickSizeMultiplier2D(brickSizeMultiplier2D), m_lodLevels(lodLevels), m_options(options), m_fullResolutionDimension(fullResolutionDimension) {}
 
   bool                isValid()        const { return m_brickSize != 0; }
 
   BrickSize           brickSize()      const { return m_brickSize; }
   int                 negativeMargin() const { return m_negativeMargin; }
   int                 positiveMargin() const { return m_positiveMargin; }
-  LODLevels           lODLevels()      const { return m_lodLevels; }
+  int                 brickSizeMultiplier2D() const { return m_brickSizeMultiplier2D; }
+  LODLevels           lodLevels()      const { return m_lodLevels; }
 
   bool                isCreate2DLODs()                 const { return (m_options & Options_Create2DLODs) != 0; }
   bool                isForceFullResolutionDimension() const { return (m_options & Options_ForceFullResolutionDimension) != 0; }

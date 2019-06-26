@@ -28,6 +28,7 @@
 namespace OpenVDS
 {
 
+class VolumeDataLayoutDescriptor;
 class VolumeDataLayout
 {
 private:
@@ -56,20 +57,16 @@ private:
   int32_t m_fullResolutionDimension;
 
 public:
-  VolumeDataLayout(int32_t dimensionality,
-                   const IndexArray &size,
-                   int32_t baseBrickSize,
-                   int32_t negativeRenderMargin,
-                   int32_t positiveRenderMargin, 
-                   std::vector<VolumeDataChannelDescriptor> const &volumeDataChannelDescriptor, 
+  VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescriptor,
+                   const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
+                   const std::vector<VolumeDataChannelDescriptor> const &volumeDataChannelDescriptor,
                    int32_t actualValueRangeChannel, 
                    Range<float> const &actualValueRange, 
                    VolumeDataHash const &volumeDataHash, 
                    CompressionMethod compressionMethod, 
                    float compressionTolerance, 
                    bool isZipLosslessChannels, 
-                   int32_t waveletAdaptiveLoadLevel, 
-                   int32_t fullResolutionDimension);
+                   int32_t waveletAdaptiveLoadLevel);
 
   uint64_t GetContentsHash() const { return m_contentsHash; }
   VolumeDataLayer::VolumeDataLayerID AddDataLayer(VolumeDataLayer *layer);
