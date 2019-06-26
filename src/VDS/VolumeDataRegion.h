@@ -39,19 +39,19 @@ private:
   int64_t m_layerModulo[Dimensionality_Max];
 
 public:
-  int64_t GetNumChunksInRegion() const;
-  int64_t GetChunkIndexInRegion(int64_t iChunkInRegion) const;
-  void GetChunkInRegion(int64_t iChunkInRegion, VolumeDataChunk *volumeDataChunk) const { *volumeDataChunk = m_volumeDataLayer->GetChunkFromIndex(GetChunkIndexInRegion(iChunkInRegion)); }
-  void GetChunksInRegion(std::vector<VolumeDataChunk> *volumeDataChunk, bool isAppend = false) const;
-  bool IsChunkInRegion(VolumeDataChunk const &volumeDataChunk) const;
+  int64_t getNumChunksInRegion() const;
+  int64_t getChunkIndexInRegion(int64_t chunkInRegion) const;
+  void getChunkInRegion(int64_t chunkInRegion, VolumeDataChunk *volumeDataChunk) const { *volumeDataChunk = m_volumeDataLayer->getChunkFromIndex(getChunkIndexInRegion(chunkInRegion)); }
+  void getChunksInRegion(std::vector<VolumeDataChunk> *volumeDataChunk, bool isAppend = false) const;
+  bool isChunkInRegion(VolumeDataChunk const &volumeDataChunk) const;
 
   VolumeDataRegion() : m_volumeDataLayer(nullptr), m_chunksInRegion(0) {};
 
-  VolumeDataRegion(VolumeDataLayer const &cVolumeDataLayer,
-                        const IndexArray &anMin,
-                        const IndexArray &anMax);
+  VolumeDataRegion(VolumeDataLayer const &volumeDataLayer,
+                        const IndexArray &min,
+                        const IndexArray &max);
 
-  static VolumeDataRegion VolumeDataRegionOverlappingChunk(VolumeDataLayer const &VolumeDataLayer, VolumeDataChunk const &VolumeDataChunk, const IndexArray &anOffset);
+  static VolumeDataRegion VolumeDataRegionOverlappingChunk(VolumeDataLayer const &volumeDataLayer, VolumeDataChunk const &volumeDataChunk, const IndexArray &offset);
 };
 }
 #endif //VOLUMEDATAREGION_H

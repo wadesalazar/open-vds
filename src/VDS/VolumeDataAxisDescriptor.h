@@ -24,14 +24,14 @@ namespace OpenVDS
 {
 class VolumeDataAxisDescriptor
 {
-  int         numSamples;
-  std::string pName;
-  std::string pUnit;
-  float       coordinateMin;
-  float       coordinateMax;
+  int         m_numSamples;
+  std::string m_name;
+  std::string m_unit;
+  float       m_coordinateMin;
+  float       m_coordinateMax;
 
 public:
-  VolumeDataAxisDescriptor() : numSamples(-1), pName(0), pUnit(0), coordinateMin(0.0f), coordinateMax(0.0f) {}
+  VolumeDataAxisDescriptor() : m_numSamples(-1), m_name(0), m_unit(0), m_coordinateMin(0.0f), m_coordinateMax(0.0f) {}
 
   /// \param numSamples the number of samples along this axis
   /// \param pName the name of this axis
@@ -39,24 +39,24 @@ public:
   /// \param coordinateMin the minumum coordinate for this axis
   /// \param coordinateMax the maximum coordinate for this axis
   VolumeDataAxisDescriptor(int numSamples, const std::string &pName, const std::string &pUnit, float coordinateMin, float coordinateMax)
-    : numSamples(numSamples), pName(pName), pUnit(pUnit), coordinateMin(coordinateMin), coordinateMax(coordinateMax) {}
+    : m_numSamples(numSamples), m_name(pName), m_unit(pUnit), m_coordinateMin(coordinateMin), m_coordinateMax(coordinateMax) {}
 
-  int         GetNumSamples()    const { return numSamples; }
-  const std::string &GetName()          const { return pName; }
-  const std::string &GetUnit()          const { return pUnit; }
-  float       GetCoordinateMin() const { return coordinateMin; }
-  float       GetCoordinateMax() const { return coordinateMax; }
-  float       GetCoordinateStep() const { return (numSamples > 1) ? ((coordinateMax - coordinateMin) / (numSamples - 1)) : 0; }
+  int         getNumSamples()    const { return m_numSamples; }
+  const std::string &getName()          const { return m_name; }
+  const std::string &getUnit()          const { return m_unit; }
+  float       getCoordinateMin() const { return m_coordinateMin; }
+  float       getCoordinateMax() const { return m_coordinateMax; }
+  float       getCoordinateStep() const { return (m_numSamples > 1) ? ((m_coordinateMax - m_coordinateMin) / (m_numSamples - 1)) : 0; }
 
   /// Convert a sample index on this axis to a coordinate value
   /// \param sampleIndex the sample index to convert
   /// \return the coordinate
-  float       SampleIndexToCoordinate(int sampleIndex)  { return coordinateMin + sampleIndex * GetCoordinateStep(); }
+  float       sampleIndexToCoordinate(int sampleIndex)  { return m_coordinateMin + sampleIndex * getCoordinateStep(); }
 
   /// Convert a coordinate to a sample index (rounding to the closest index)
   /// \param coordinate the coordinate to convert
   /// \return the sample index
-  int         CoordinateToSampleIndex(float coordinate) { return (coordinate == coordinateMin) ? 0 : (int)floorf(((coordinate - coordinateMin) / (coordinateMax - coordinateMin)) * (numSamples - 1) + 0.5f); }
+  int         coordinateToSampleIndex(float coordinate) { return (coordinate == m_coordinateMin) ? 0 : (int)floorf(((coordinate - m_coordinateMin) / (m_coordinateMax - m_coordinateMin)) * (m_numSamples - 1) + 0.5f); }
 };
 }
 #endif //VOLUMEDATAAXISDESCRIPTOR_H

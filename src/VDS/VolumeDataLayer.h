@@ -77,8 +77,8 @@ private:
 
   VolumeDataLayer * m_primaryChannelLayer;
   VolumeDataLayer * m_nextChannelLayer;
-  VolumeDataLayer * m_lowerLOD;
-  VolumeDataLayer * m_higherLOD;
+  VolumeDataLayer * m_lowerLod;
+  VolumeDataLayer * m_higherLod;
 
  mutable const VolumeDataLayer * m_remapFromLayer;
  //bool m_isAllowRemapFromRemap;
@@ -89,143 +89,140 @@ private:
   {
   }
 
-  uint64_t GetFormatHash(VolumeDataChannelDescriptor::Format actualFormat, bool isReplaceNoValue, float replacementNoValue) const;
+  uint64_t getFormatHash(VolumeDataChannelDescriptor::Format actualFormat, bool isReplaceNoValue, float replacementNoValue) const;
 
 public:
-  VolumeDataLayer(VolumeDataPartition const& volumeDataPartition, VolumeDataLayout* volumeDataLayout, int32_t channel, VolumeDataLayer* primaryChannelLayer, VolumeDataLayer* lowerLOD, LayerType layerType, const VolumeDataChannelMapping* volumeDataChannelMapping);
+  VolumeDataLayer(VolumeDataPartition const& volumeDataPartition, VolumeDataLayout* volumeDataLayout, int32_t channel, VolumeDataLayer* primaryChannelLayer, VolumeDataLayer* lowerLod, LayerType layerType, const VolumeDataChannelMapping* volumeDataChannelMapping);
 
-  VolumeDataLayout *GetLayout() const
+  VolumeDataLayout *getLayout() const
   {
     return m_volumeDataLayout;
   }
 
-  int32_t GetChannelIndex() const
+  int32_t getChannelIndex() const
   {
     return m_channel;
   }
 
-  const VolumeDataChannelMapping* GetVolumeDataChannelMapping() const;
+  const VolumeDataChannelMapping* getVolumeDataChannelMapping() const;
 
-  int32_t GetMappedValueCount() const;
+  int32_t getMappedValueCount() const;
 
-  LayerType GetLayerType() const
+  LayerType getLayerType() const
   {
     return m_layerType;
   }
 
-  VolumeDataLayer& GetPrimaryChannelLayer()
+  VolumeDataLayer& getPrimaryChannelLayer()
   {
     return m_primaryChannelLayer ? *m_primaryChannelLayer : *this;
   }
 
-  const VolumeDataLayer& GetPrimaryChannelLayer() const
+  const VolumeDataLayer& getPrimaryChannelLayer() const
   {
     return m_primaryChannelLayer ? *m_primaryChannelLayer : *this;
   }
 
-  VolumeDataLayer& GetBaseLayer()
+  VolumeDataLayer& getBaseLayer()
   {
-    VolumeDataLayer* baseLayer = this; while (baseLayer->m_lowerLOD) baseLayer = baseLayer->m_lowerLOD; return *baseLayer;
+    VolumeDataLayer* baseLayer = this; while (baseLayer->m_lowerLod) baseLayer = baseLayer->m_lowerLod; return *baseLayer;
   }
 
-  const VolumeDataLayer& GetBaseLayer() const
+  const VolumeDataLayer& getBaseLayer() const
   {
-    VolumeDataLayer const* baseLayer = this; while (baseLayer->m_lowerLOD) baseLayer = baseLayer->m_lowerLOD; return *baseLayer;
+    VolumeDataLayer const* baseLayer = this; while (baseLayer->m_lowerLod) baseLayer = baseLayer->m_lowerLod; return *baseLayer;
   }
 
-  VolumeDataLayer* GetNextChannelLayer()
-  {
-    return m_nextChannelLayer;
-  }
-
-  const VolumeDataLayer* GetNextChannelLayer() const
+  VolumeDataLayer* getNextChannelLayer()
   {
     return m_nextChannelLayer;
   }
 
-  VolumeDataLayer* GetParentLayer()
+  const VolumeDataLayer* getNextChannelLayer() const
   {
-    return m_higherLOD;
+    return m_nextChannelLayer;
   }
 
-  const VolumeDataLayer* GetParentLayer() const
+  VolumeDataLayer* getParentLayer()
   {
-    return m_higherLOD;
+    return m_higherLod;
   }
 
-  VolumeDataLayer* GetChildLayer()
+  const VolumeDataLayer* getParentLayer() const
   {
-    return m_lowerLOD;
+    return m_higherLod;
   }
 
-  const VolumeDataLayer* GetChildLayer() const
+  VolumeDataLayer* getChildLayer()
   {
-    return m_lowerLOD;
+    return m_lowerLod;
   }
 
-  const VolumeDataLayer* GetLayerToRemapFrom() const;
-
-  void          GetChunkIndexArrayFromVoxel(const IndexArray & voxel, IndexArray &chunk) const;
-
-  int64_t       GetChunkIndexFromNDPos(const NDPos & cNDPos) const;
-
-  void          GetChunksInRegion(const IndexArray& min, const IndexArray& max, std::vector<VolumeDataChunk>* volumeDataChunk, bool isAppend = false) const;
-
-  void          GetChunksOverlappingChunk(VolumeDataChunk const& cVolumeDataChunk, std::vector<VolumeDataChunk>* volumeDataChunk, bool isAppend = false) const;
-
-  VolumeDataChunk GetChunkFromIndex(int64_t iChunk) const;
-
-  //ProduceMethod GetProduceMethod() const;
-
-  ProduceStatus GetProduceStatus() const;
-
-  const VolumeDataChannelDescriptor& GetVolumeDataChannelDescriptor() const;
-
-  Range<float> const& GetValueRange() const;
-
-  Range<float> const& GetActualValueRange() const;
-
-  VolumeDataChannelDescriptor::Format GetFormat() const;
-
-  VolumeDataChannelDescriptor::Components GetComponents() const;
-
-  bool          IsDiscrete() const;
-
-  uint64_t           GetFormatHash(VolumeDataChannelDescriptor::Format actualFormat = VolumeDataChannelDescriptor::FormatAny) const
+  const VolumeDataLayer* getChildLayer() const
   {
-    return GetFormatHash(actualFormat, false, 0);
+    return m_lowerLod;
   }
 
-  uint64_t           GetFormatHash(VolumeDataChannelDescriptor::Format actualFormat, float replacementNoValue) const
+  const VolumeDataLayer* getLayerToRemapFrom() const;
+
+  void          getChunkIndexArrayFromVoxel(const IndexArray & voxel, IndexArray &chunk) const;
+
+  int64_t       getChunkIndexFromNDPos(const NDPos & cNDPos) const;
+
+  void          getChunksInRegion(const IndexArray& min, const IndexArray& max, std::vector<VolumeDataChunk>* volumeDataChunk, bool isAppend = false) const;
+
+  void          getChunksOverlappingChunk(VolumeDataChunk const& cVolumeDataChunk, std::vector<VolumeDataChunk>* volumeDataChunk, bool isAppend = false) const;
+
+  VolumeDataChunk getChunkFromIndex(int64_t iChunk) const;
+
+  ProduceStatus getProduceStatus() const;
+
+  const VolumeDataChannelDescriptor& getVolumeDataChannelDescriptor() const;
+
+  Range<float> const& getValueRange() const;
+
+  Range<float> const& getActualValueRange() const;
+
+  VolumeDataChannelDescriptor::Format getFormat() const;
+
+  VolumeDataChannelDescriptor::Components getComponents() const;
+
+  bool isDiscrete() const;
+
+  uint64_t getFormatHash(VolumeDataChannelDescriptor::Format actualFormat = VolumeDataChannelDescriptor::FormatAny) const
   {
-    return GetFormatHash(actualFormat, true, replacementNoValue);
+    return getFormatHash(actualFormat, false, 0);
   }
 
-  bool          IsUseNoValue() const;
+  uint64_t getFormatHash(VolumeDataChannelDescriptor::Format actualFormat, float replacementNoValue) const
+  {
+    return getFormatHash(actualFormat, true, replacementNoValue);
+  }
 
-  float           GetNoValue() const;
+  bool isUseNoValue() const;
 
-  CompressionMethod GetEffectiveCompressionMethod() const;
+  float getNoValue() const;
 
-  float           GetEffectiveCompressionTolerance() const;
+  CompressionMethod getEffectiveCompressionMethod() const;
 
-  static int32_t    GetEffectiveWaveletAdaptiveLoadLevel(float effectiveCompressionTolerance, float compressionTolerance);
+  float getEffectiveCompressionTolerance() const;
 
-  int32_t           GetEffectiveWaveletAdaptiveLoadLevel() const;
+  static int32_t getEffectiveWaveletAdaptiveLoadLevel(float effectiveCompressionTolerance, float compressionTolerance);
 
-  float           GetIntegerScale() const;
+  int32_t getEffectiveWaveletAdaptiveLoadLevel() const;
 
-  float           GetIntegerOffset() const;
+  float getIntegerScale() const;
+
+  float getIntegerOffset() const;
 
   // in cases where we have an integer data block for a non-integer layer, use this scale/offset to get back to the original values
-  FloatVec2 GetQuantizingScaleOffset(VolumeDataChannelDescriptor::Format dataBlockFormat) const;
+  FloatVec2 getQuantizingScaleOffset(VolumeDataChannelDescriptor::Format dataBlockFormat) const;
 
-  FloatVec2 GetTextureScaleOffset(VolumeDataChannelDescriptor::Format dataBlockFormat) const;
+  FloatVec2 getTextureScaleOffset(VolumeDataChannelDescriptor::Format dataBlockFormat) const;
 
-  void          SetProduceStatus(ProduceStatus produceStatus);
+  void setProduceStatus(ProduceStatus produceStatus);
 
-  // Static methods
-  static FloatVec2 StaticGetTextureScaleOffset(const Range<float> &valueRange, float integerScale, float integerOffset, bool isUseNoValue, VolumeDataChannelDescriptor::Format originalFormat, VolumeDataChannelDescriptor::Format dataBlockFormat);
+  static FloatVec2 staticGetTextureScaleOffset(const Range<float> &valueRange, float integerScale, float integerOffset, bool isUseNoValue, VolumeDataChannelDescriptor::Format originalFormat, VolumeDataChannelDescriptor::Format dataBlockFormat);
 };
 }
 #endif //VOLUMEDATALAYER_H

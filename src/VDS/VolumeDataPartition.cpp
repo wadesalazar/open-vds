@@ -30,9 +30,9 @@ const T &clamp(const T &v, const T &low, const T &high)
     return std::min(std::max(low, v), high);
 }
 
-VolumeDataPartition::VolumeDataPartition(int32_t LOD, DimensionGroup dimensionGroup, const IndexArray& firstSample, const IndexArray& numSamples, const IndexArray& brickSize, const IndexArray& negativeMargin, const IndexArray& positiveMargin, BorderMode borderMode, const IndexArray& negativeBorder, const IndexArray& positiveBorder, int32_t negativeRenderMargin, int32_t positiveRenderMargin, int32_t fullResolutionDimension)
+VolumeDataPartition::VolumeDataPartition(int32_t lod, DimensionGroup dimensionGroup, const IndexArray& firstSample, const IndexArray& numSamples, const IndexArray& brickSize, const IndexArray& negativeMargin, const IndexArray& positiveMargin, BorderMode borderMode, const IndexArray& negativeBorder, const IndexArray& positiveBorder, int32_t negativeRenderMargin, int32_t positiveRenderMargin, int32_t fullResolutionDimension)
   : m_originalDimensionGroup(dimensionGroup)
-  , m_LOD(LOD)
+  , m_lod(lod)
   , m_fullResolutionDimension(fullResolutionDimension)
   , m_borderMode(borderMode)
   , m_negativeRenderMargin(negativeRenderMargin)
@@ -59,7 +59,7 @@ VolumeDataPartition::VolumeDataPartition(int32_t LOD, DimensionGroup dimensionGr
   {
     int32_t nChunksInDimension;
 
-    if(DimensionGroupUtil::IsDimensionInGroup(m_originalDimensionGroup, iDimension))
+    if(DimensionGroupUtil::isDimensionInGroup(m_originalDimensionGroup, iDimension))
     {
       chunkedDimensions[nChunkedDimensions++] = iDimension;
       nChunksInDimension = (m_dimensionNumSamples[iDimension] - 1 - m_negativeRenderMargin - m_positiveRenderMargin) / m_brickSize[iDimension] + 1;
@@ -91,7 +91,7 @@ VolumeDataPartition::VolumeDataPartition(int32_t LOD, DimensionGroup dimensionGr
     chunkedDimensions[nChunkedDimensions++] = -1;
   }
 
-  m_chunkDimensionGroup = DimensionGroupUtil::GetDimensionGroupFromDimensionIndices(chunkedDimensions[0],
+  m_chunkDimensionGroup = DimensionGroupUtil::getDimensionGroupFromDimensionIndices(chunkedDimensions[0],
                                                                                     chunkedDimensions[1],
                                                                                     chunkedDimensions[2],
                                                                                     chunkedDimensions[3],
@@ -103,7 +103,7 @@ bool
 VolumeDataPartition::operator==(VolumeDataPartition const &volumeDataPartion) const
 {
   return m_originalDimensionGroup == volumeDataPartion.m_originalDimensionGroup &&
-         m_LOD == volumeDataPartion.m_LOD &&
+         m_lod == volumeDataPartion.m_lod &&
          memcmp(m_brickSize, volumeDataPartion.m_brickSize, sizeof(m_brickSize)) == 0 &&
          memcmp(m_dimensionFirstSample, volumeDataPartion.m_dimensionFirstSample, sizeof(m_dimensionFirstSample)) == 0 &&
          memcmp(m_dimensionNumSamples, volumeDataPartion.m_dimensionNumSamples, sizeof(m_dimensionNumSamples)) == 0 &&
@@ -121,14 +121,14 @@ VolumeDataPartition::operator==(VolumeDataPartition const &volumeDataPartion) co
 // StaticMapPartition
 
 VolumeDataPartition
-VolumeDataPartition::StaticMapPartition(VolumeDataPartition const &primaryPartition, const VolumeDataChannelMapping *volumeDataChannelMapping, int32_t mappedValues)
+VolumeDataPartition::staticMapPartition(VolumeDataPartition const &primaryPartition, const VolumeDataChannelMapping *volumeDataChannelMapping, int32_t mappedValues)
 {
   if(!volumeDataChannelMapping)
   {
     return primaryPartition;
   }
 
-  DimensionGroup eMappedDimensionGroup = volumeDataChannelMapping->GetMappedChunkDimensionGroup(primaryPartition, mappedValues);
+  DimensionGroup eMappedDimensionGroup = volumeDataChannelMapping->getMappedChunkDimensionGroup(primaryPartition, mappedValues);
 
   int32_t anMappedDimensionFirstSample[Dimensionality_Max];
   int32_t anMappedDimensionNumSamples[Dimensionality_Max];
@@ -140,23 +140,23 @@ VolumeDataPartition::StaticMapPartition(VolumeDataPartition const &primaryPartit
 
   for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
   {
-    anMappedDimensionFirstSample[iDimension] = volumeDataChannelMapping->GetMappedDimensionFirstSample(iDimension, primaryPartition.m_dimensionFirstSample[iDimension], mappedValues);
-    anMappedDimensionNumSamples[iDimension] = volumeDataChannelMapping->GetMappedDimensionNumSamples(iDimension, primaryPartition.m_dimensionNumSamples[iDimension], mappedValues);
-    anMappedBrickSize[iDimension] = volumeDataChannelMapping->GetMappedBrickSize(primaryPartition, iDimension, mappedValues);
-    anMappedNegativeMargin[iDimension] = volumeDataChannelMapping->GetMappedNegativeMargin(primaryPartition, iDimension);
-    anMappedPositiveMargin[iDimension] = volumeDataChannelMapping->GetMappedPositiveMargin(primaryPartition, iDimension);
-    anMappedNegativeBorder[iDimension] = volumeDataChannelMapping->GetMappedNegativeBorder(primaryPartition, iDimension);
-    anMappedPositiveBorder[iDimension] = volumeDataChannelMapping->GetMappedPositiveBorder(primaryPartition, iDimension);
+    anMappedDimensionFirstSample[iDimension] = volumeDataChannelMapping->getMappedDimensionFirstSample(iDimension, primaryPartition.m_dimensionFirstSample[iDimension], mappedValues);
+    anMappedDimensionNumSamples[iDimension] = volumeDataChannelMapping->getMappedDimensionNumSamples(iDimension, primaryPartition.m_dimensionNumSamples[iDimension], mappedValues);
+    anMappedBrickSize[iDimension] = volumeDataChannelMapping->getMappedBrickSize(primaryPartition, iDimension, mappedValues);
+    anMappedNegativeMargin[iDimension] = volumeDataChannelMapping->getMappedNegativeMargin(primaryPartition, iDimension);
+    anMappedPositiveMargin[iDimension] = volumeDataChannelMapping->getMappedPositiveMargin(primaryPartition, iDimension);
+    anMappedNegativeBorder[iDimension] = volumeDataChannelMapping->getMappedNegativeBorder(primaryPartition, iDimension);
+    anMappedPositiveBorder[iDimension] = volumeDataChannelMapping->getMappedPositiveBorder(primaryPartition, iDimension);
   }
 
-  return VolumeDataPartition(primaryPartition.m_LOD, eMappedDimensionGroup, anMappedDimensionFirstSample, anMappedDimensionNumSamples, anMappedBrickSize, anMappedNegativeMargin, anMappedPositiveMargin, primaryPartition.m_borderMode, anMappedNegativeBorder, anMappedPositiveBorder, primaryPartition.m_negativeRenderMargin, primaryPartition.m_positiveRenderMargin, primaryPartition.m_fullResolutionDimension);
+  return VolumeDataPartition(primaryPartition.m_lod, eMappedDimensionGroup, anMappedDimensionFirstSample, anMappedDimensionNumSamples, anMappedBrickSize, anMappedNegativeMargin, anMappedPositiveMargin, primaryPartition.m_borderMode, anMappedNegativeBorder, anMappedPositiveBorder, primaryPartition.m_negativeRenderMargin, primaryPartition.m_positiveRenderMargin, primaryPartition.m_fullResolutionDimension);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // StaticFindSuperPartition
 
 VolumeDataPartition
-VolumeDataPartition::StaticFindSuperPartition(VolumeDataPartition const &partitionA, VolumeDataPartition const &partitionB)
+VolumeDataPartition::staticFindSuperPartition(VolumeDataPartition const &partitionA, VolumeDataPartition const &partitionB)
 {
   int32_t anSuperBrickSize[Dimensionality_Max];
 
@@ -168,16 +168,16 @@ VolumeDataPartition::StaticFindSuperPartition(VolumeDataPartition const &partiti
     anSuperBrickSize[iDimension] = std::max(partitionA.m_brickSize[iDimension], partitionB.m_brickSize[iDimension]);
   }
 
-  DimensionGroup dimensionGroup = DimensionGroupUtil::Union(partitionA.m_originalDimensionGroup, partitionB.m_originalDimensionGroup);
+  DimensionGroup dimensionGroup = DimensionGroupUtil::unionGroups(partitionA.m_originalDimensionGroup, partitionB.m_originalDimensionGroup);
 
-  return VolumeDataPartition(partitionA.m_LOD, dimensionGroup, partitionA.m_dimensionFirstSample, partitionA.m_dimensionNumSamples, anSuperBrickSize, partitionA.m_negativeMargin, partitionA.m_positiveMargin, partitionA.m_borderMode, partitionA.m_negativeBorder, partitionA.m_positiveBorder, partitionA.m_negativeRenderMargin, partitionA.m_positiveRenderMargin, partitionA.m_fullResolutionDimension);
+  return VolumeDataPartition(partitionA.m_lod, dimensionGroup, partitionA.m_dimensionFirstSample, partitionA.m_dimensionNumSamples, anSuperBrickSize, partitionA.m_negativeMargin, partitionA.m_positiveMargin, partitionA.m_borderMode, partitionA.m_negativeBorder, partitionA.m_positiveBorder, partitionA.m_negativeRenderMargin, partitionA.m_positiveRenderMargin, partitionA.m_fullResolutionDimension);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // ChunkIndexToIndexArray
 
 void
-VolumeDataPartition::ChunkIndexToIndexArray(int64_t chunkIndex, IndexArray &indexArray) const
+VolumeDataPartition::chunkIndexToIndexArray(int64_t chunkIndex, IndexArray &indexArray) const
 {
   for(int32_t iDimension = Dimensionality_Max - 1; iDimension >= 0; iDimension--)
   {
@@ -189,7 +189,7 @@ VolumeDataPartition::ChunkIndexToIndexArray(int64_t chunkIndex, IndexArray &inde
 //////////////////////////////////////////////////////////////////////////////
 // IndexArrayToChunkIndex
 
-int64_t VolumeDataPartition::IndexArrayToChunkIndex(const IndexArray &indexArray) const
+int64_t VolumeDataPartition::indexArrayToChunkIndex(const IndexArray &indexArray) const
 {
   int64_t iChunkIndex = 0;
   for(int32_t iDimension = Dimensionality_Max - 1; iDimension >= 0; iDimension--)
@@ -202,7 +202,7 @@ int64_t VolumeDataPartition::IndexArrayToChunkIndex(const IndexArray &indexArray
 //////////////////////////////////////////////////////////////////////////////
 // GetParentIndex
 
-int64_t VolumeDataPartition::GetParentIndex(int64_t chunk, VolumeDataPartition const &parentPartition, int32_t *child) const
+int64_t VolumeDataPartition::getParentIndex(int64_t chunk, VolumeDataPartition const &parentPartition, int32_t *child) const
 {
   int32_t
     iChild = 0;
@@ -212,10 +212,10 @@ int64_t VolumeDataPartition::GetParentIndex(int64_t chunk, VolumeDataPartition c
   int32_t
     aiIndexArray[Dimensionality_Max];
 
-  ChunkIndexToIndexArray(chunk, aiIndexArray);
+  chunkIndexToIndexArray(chunk, aiIndexArray);
   for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
   {
-    if(IsDimensionChunked(iDimension))
+    if(isDimensionChunked(iDimension))
     {
       iChild |= (aiIndexArray[iDimension] & 1) << (iChunkedDimension++);
       aiIndexArray[iDimension] = aiIndexArray[iDimension] / (iDimension != m_fullResolutionDimension ? 2 : 1);
@@ -224,14 +224,14 @@ int64_t VolumeDataPartition::GetParentIndex(int64_t chunk, VolumeDataPartition c
   assert(iChunkedDimension <= 3);
   if(child) *child = iChild;
 
-  return parentPartition.IndexArrayToChunkIndex(aiIndexArray);
+  return parentPartition.indexArrayToChunkIndex(aiIndexArray);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // GetChildIndices
 
 void
-VolumeDataPartition::GetChildIndices(int64_t chunk, VolumeDataPartition const &childPartition, int64_t *childIndices) const
+VolumeDataPartition::getChildIndices(int64_t chunk, VolumeDataPartition const &childPartition, int64_t *childIndices) const
 {
   for(int32_t iChild = 0; iChild < 8; iChild++)
   {
@@ -250,10 +250,10 @@ VolumeDataPartition::GetChildIndices(int64_t chunk, VolumeDataPartition const &c
   int32_t
     nChunkedDimensions = 0;
 
-  ChunkIndexToIndexArray(chunk, aiIndexArray);
+  chunkIndexToIndexArray(chunk, aiIndexArray);
   for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
   {
-    if(IsDimensionChunked(iDimension))
+    if(isDimensionChunked(iDimension))
     {
       aiChunkedIndex[nChunkedDimensions] = aiIndexArray[iDimension] * (iDimension != m_fullResolutionDimension ? 2 : 1);
       aiChunkedDimensions[nChunkedDimensions++] = iDimension;
@@ -297,7 +297,7 @@ VolumeDataPartition::GetChildIndices(int64_t chunk, VolumeDataPartition const &c
 
     if(isValid)
     {
-      childIndices[iChild] = childPartition.IndexArrayToChunkIndex(aiIndexArray);
+      childIndices[iChild] = childPartition.indexArrayToChunkIndex(aiIndexArray);
     }
   }
 }
@@ -306,19 +306,19 @@ VolumeDataPartition::GetChildIndices(int64_t chunk, VolumeDataPartition const &c
 // GetChunkMinMax
 
 void
-VolumeDataPartition::GetChunkMinMax(int64_t chunk, int32_t *min, int32_t *max, bool isIncludeMargin) const
+VolumeDataPartition::getChunkMinMax(int64_t chunk, int32_t *min, int32_t *max, bool isIncludeMargin) const
 {
   for(int32_t iDimension = Dimensionality_Max - 1; iDimension >= 0; iDimension--)
   {
-    assert((DimensionGroupUtil::IsDimensionInGroup(m_originalDimensionGroup, iDimension) || m_negativeBorder[iDimension] <= m_negativeMargin[iDimension]) && "We can't have layers with border and no margin in dimensions that are not chunked");
-    assert((DimensionGroupUtil::IsDimensionInGroup(m_originalDimensionGroup, iDimension) || m_positiveBorder[iDimension] <= m_positiveMargin[iDimension]) && "We can't have layers with border and no margin in dimensions that are not chunked");
+    assert((DimensionGroupUtil::isDimensionInGroup(m_originalDimensionGroup, iDimension) || m_negativeBorder[iDimension] <= m_negativeMargin[iDimension]) && "We can't have layers with border and no margin in dimensions that are not chunked");
+    assert((DimensionGroupUtil::isDimensionInGroup(m_originalDimensionGroup, iDimension) || m_positiveBorder[iDimension] <= m_positiveMargin[iDimension]) && "We can't have layers with border and no margin in dimensions that are not chunked");
 
     int32_t iChunkInDimension = (int32_t)(chunk / m_modulo[iDimension]);
 
     int32_t nMin;
     int32_t nMax;
 
-    if(DimensionGroupUtil::IsDimensionInGroup(m_originalDimensionGroup, iDimension))
+    if(DimensionGroupUtil::isDimensionInGroup(m_originalDimensionGroup, iDimension))
     {
       nMin = iChunkInDimension * m_brickSize[iDimension];
       nMax = (iChunkInDimension + 1) * m_brickSize[iDimension];
@@ -381,27 +381,27 @@ VolumeDataPartition::GetChunkMinMax(int64_t chunk, int32_t *min, int32_t *max, b
   }
 }
 
-void VolumeDataPartition::GetChunkVoxelSize(int64_t chunk, ChunkVoxelSize &size) const
+void VolumeDataPartition::getChunkVoxelSize(int64_t chunk, ChunkVoxelSize &size) const
 {
-  assert(DimensionGroupUtil::GetDimensionality(m_chunkDimensionGroup) <= array_size(size));
+  assert(DimensionGroupUtil::getDimensionality(m_chunkDimensionGroup) <= array_size(size));
 
   int32_t
     anMin[Dimensionality_Max], anMax[Dimensionality_Max];
 
-  GetChunkMinMax(chunk, anMin, anMax, true);
+  getChunkMinMax(chunk, anMin, anMax, true);
 
   for(int32_t iDataBlockDimension = 0; iDataBlockDimension < array_size(size); iDataBlockDimension++)
   {
     int32_t
-      iDimension = DimensionGroupUtil::GetDimension(m_chunkDimensionGroup, iDataBlockDimension);
+      iDimension = DimensionGroupUtil::getDimension(m_chunkDimensionGroup, iDataBlockDimension);
 
     if(iDimension == -1)
     {
       size[iDataBlockDimension] = 1;
     }
-    else if (IsDimensionLODDecimated(iDimension))
+    else if (isDimensionLodDecimated(iDimension))
     {
-      size[iDataBlockDimension] = (anMax[iDimension] - anMin[iDimension] + (1 << m_LOD) - 1) >> m_LOD;
+      size[iDataBlockDimension] = (anMax[iDimension] - anMin[iDimension] + (1 << m_lod) - 1) >> m_lod;
     }
     else
     {
@@ -413,12 +413,12 @@ void VolumeDataPartition::GetChunkVoxelSize(int64_t chunk, ChunkVoxelSize &size)
 //////////////////////////////////////////////////////////////////////////////
 // VoxelToIndex
 
-int32_t VolumeDataPartition::VoxelToIndex(int32_t voxel, int32_t dimension) const
+int32_t VolumeDataPartition::voxelToIndex(int32_t voxel, int32_t dimension) const
 {
   // Adjust for subset layers
   voxel -= m_dimensionFirstSample[dimension];
 
-  if(DimensionGroupUtil::IsDimensionInGroup(m_originalDimensionGroup, dimension))
+  if(DimensionGroupUtil::isDimensionInGroup(m_originalDimensionGroup, dimension))
   {
     voxel -= m_negativeRenderMargin;
   }
@@ -426,17 +426,17 @@ int32_t VolumeDataPartition::VoxelToIndex(int32_t voxel, int32_t dimension) cons
   return clamp(iIndex, 0, m_chunksInDimension[dimension] - 1);
 }
 
-int64_t VolumeDataPartition::GetTotalVoxels(bool isIncludeMargins) const
+int64_t VolumeDataPartition::getTotalVoxels(bool isIncludeMargins) const
 {
   int64_t nTotalLayerSize = 1;
 
-  int32_t iLOD = GetLOD();
+  int32_t lod = getLod();
 
   for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
   {
-    int32_t nNumChunksInDimension = GetNumChunksInDimension(iDimension);
-    int32_t nDimensionNumSamples = GetDimensionNumSamples(iDimension);
-    if(DimensionGroupUtil::IsDimensionInGroup(m_originalDimensionGroup, iDimension))
+    int32_t nNumChunksInDimension = getNumChunksInDimension(iDimension);
+    int32_t nDimensionNumSamples = getDimensionNumSamples(iDimension);
+    if(DimensionGroupUtil::isDimensionInGroup(m_originalDimensionGroup, iDimension))
     {
       if(isIncludeMargins)
       {
@@ -445,7 +445,7 @@ int64_t VolumeDataPartition::GetTotalVoxels(bool isIncludeMargins) const
 
       if (iDimension != m_fullResolutionDimension)
       {
-        nDimensionNumSamples = (nDimensionNumSamples + (1 << iLOD) - 1) >> iLOD;
+        nDimensionNumSamples = (nDimensionNumSamples + (1 << lod) - 1) >> lod;
       }
     }
     nTotalLayerSize = nTotalLayerSize * nDimensionNumSamples;

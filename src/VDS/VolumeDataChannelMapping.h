@@ -29,19 +29,18 @@ class VolumeDataChannelMapping
 public:
   virtual      ~VolumeDataChannelMapping() {}
 
-  virtual DimensionGroup
-                    GetMappedChunkDimensionGroup(VolumeDataPartition const &cPrimaryPartition, int32_t nMappedValues) const = 0;
-  virtual int32_t   GetMappedPositiveMargin(VolumeDataPartition const &cPrimaryPartition, int32_t iDimension) const = 0;
-  virtual int32_t   GetMappedNegativeMargin(VolumeDataPartition const &cPrimaryPartition, int32_t iDimension) const = 0;
-  virtual int32_t   GetMappedPositiveBorder(VolumeDataPartition const &cPrimaryPartition, int32_t iDimension) const = 0;
-  virtual int32_t   GetMappedNegativeBorder(VolumeDataPartition const &cPrimaryPartition, int32_t iDimension) const = 0;
-  virtual int32_t   GetMappedDimensionFirstSample(int32_t iDimension, int32_t nDimensionFirstSample, int32_t nMappedValues) const = 0;
-  virtual int32_t   GetMappedDimensionNumSamples(int32_t iDimension, int32_t nDimensionNumSamples, int32_t nMappedValues) const = 0;
-  virtual int32_t   GetMappedBrickSize(VolumeDataPartition const &cPrimaryPartition, int32_t iDimension, int32_t nMappedValues) const = 0;
+  virtual DimensionGroup getMappedChunkDimensionGroup(VolumeDataPartition const &primaryPartition, int32_t mappedValues) const = 0;
+  virtual int32_t   getMappedPositiveMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const = 0;
+  virtual int32_t   getMappedNegativeMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const = 0;
+  virtual int32_t   getMappedPositiveBorder(VolumeDataPartition const &primaryPartition, int32_t dimension) const = 0;
+  virtual int32_t   getMappedNegativeBorder(VolumeDataPartition const &primaryPartition, int32_t dimension) const = 0;
+  virtual int32_t   getMappedDimensionFirstSample(int32_t dimension, int32_t dimensionFirstSample, int32_t mappedValues) const = 0;
+  virtual int32_t   getMappedDimensionNumSamples(int32_t dimension, int32_t dimensionNumSamples, int32_t mappedValues) const = 0;
+  virtual int32_t   getMappedBrickSize(VolumeDataPartition const &primaryPartition, int32_t dimension, int32_t mappedValues) const = 0;
 
-  virtual int64_t   GetMappedChunkIndex(VolumeDataPartition const &cPrimaryPartition, int64_t iChunkIndex) const = 0;
-  virtual int32_t   GetMappedChunkIndexFromVoxel(VolumeDataPartition const &cPrimaryPartition, int32_t nVoxel, int32_t iDimension) const = 0;
-  virtual void      GetLayoutMinMax(VolumeDataPartition const &cPrimaryPartition, int64_t iMappedChunkIndex, int32_t *pnMin, int32_t *pnMax, bool isIncludeMargin) const = 0;
-  virtual int64_t   GetPrimaryChunkIndex(VolumeDataPartition const &cPrimaryPartition, int64_t iMappedChunkIndex) const = 0;
+  virtual int64_t   getMappedChunkIndex(VolumeDataPartition const &primaryPartition, int64_t chunkIndex) const = 0;
+  virtual int32_t   getMappedChunkIndexFromVoxel(VolumeDataPartition const &primaryPartition, int32_t voxel, int32_t dimension) const = 0;
+  virtual void      getLayoutMinMax(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex, int32_t *min, int32_t *max, bool isIncludeMargin) const = 0;
+  virtual int64_t   getPrimaryChunkIndex(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex) const = 0;
 };
 }

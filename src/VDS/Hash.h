@@ -22,19 +22,19 @@ namespace OpenVDS
 {
 
 template <class T>
-inline uint64_t ConvertToIntForHashing(T tValue)
+inline uint64_t convertToIntForHashing(T tValue)
 {
   return tValue;
 }
 
 template <>
-inline uint64_t ConvertToIntForHashing(float rValue)
+inline uint64_t convertToIntForHashing(float rValue)
 {
   return *(uint32_t *)&rValue;
 }
 
 template <>
-inline uint64_t ConvertToIntForHashing(double rValue)
+inline uint64_t convertToIntForHashing(double rValue)
 {
   return *(uint64_t *)&rValue;
 }
@@ -43,7 +43,7 @@ inline uint64_t ConvertToIntForHashing(double rValue)
 template <typename T>
 struct InternalHasher
 {
-static uint64_t CalculateHash(const T &tValue)
+static uint64_t calculateHash(const T &tValue)
 {
   uint64_t uValue = tValue;
   uValue *= 0x87c37b91114253d5ULL;
@@ -55,22 +55,22 @@ static uint64_t CalculateHash(const T &tValue)
 template <>
 struct InternalHasher<float>
 {
-static uint64_t CalculateHash(float rValue) { union { float _rValue; uint32_t _uValue; } convert; convert._rValue = rValue; return InternalHasher<uint32_t>::CalculateHash(convert._uValue); }
+static uint64_t calculateHash(float rValue) { union { float _rValue; uint32_t _uValue; } convert; convert._rValue = rValue; return InternalHasher<uint32_t>::calculateHash(convert._uValue); }
 };
 template <>
 struct InternalHasher<double>
 {
-static uint64_t CalculateHash(double rValue) { union { double _rValue; uint64_t _uValue; } convert; convert._rValue = rValue; return InternalHasher<uint64_t>::CalculateHash(convert._uValue); }
+static uint64_t calculateHash(double rValue) { union { double _rValue; uint64_t _uValue; } convert; convert._rValue = rValue; return InternalHasher<uint64_t>::calculateHash(convert._uValue); }
 };
 
 
 template<typename T>
 struct InternalHasher<Range<T>>
 {
-  static uint64_t CalculateHash(const Range<T>& value)
+  static uint64_t calculateHash(const Range<T>& value)
   {
-    return ConvertToIntForHashing(value.min) * 98953412543643LL +
-           ConvertToIntForHashing(value.max) * 45985432099125LL;
+    return convertToIntForHashing(value.min) * 98953412543643LL +
+           convertToIntForHashing(value.max) * 45985432099125LL;
   }
 };
 
@@ -82,7 +82,7 @@ class HashTraits
   template <typename T> struct TypeCheck;
 
 public:
-  static uint64_t CalculateHash(Key const &cA) { return InternalHasher<Key>::CalculateHash(cA); }
+  static uint64_t calculateHash(Key const &cA) { return InternalHasher<Key>::calculateHash(cA); }
 
   static bool
     Equal(Key const &cA, Key const &cB) { return cA == cB; }
@@ -101,7 +101,7 @@ public:
   explicit HashCombiner(const T& tValue)
     : m_combinedHash(0xff51afd7ed558ccdULL)
   {
-    Add(tValue);
+    add(tValue);
   }
 
   operator uint64_t() const
@@ -113,16 +113,16 @@ public:
   uint64_t GetCombinedHash() const { return m_combinedHash; }
 
   template<typename T>
-  HashCombiner& Add(const T& tValue)
+  HashCombiner& add(const T& tValue)
   {
-    m_combinedHash ^= HashTraits<T>::CalculateHash(tValue);
+    m_combinedHash ^= HashTraits<T>::calculateHash(tValue);
     m_combinedHash = (m_combinedHash << 27) | (m_combinedHash >> (64 - 27));
     m_combinedHash = m_combinedHash * 5 + 0x52dce729;
     return *this;
   }
 
   template<typename T>
-  HashCombiner& Add(const T* atValue, int32_t nSize)
+  HashCombiner& add(const T* atValue, int32_t nSize)
   {
     for (int32_t i = 0; i < nSize; ++i)
     {

@@ -22,7 +22,7 @@
 
 namespace OpenVDS
 {
-uint64_t VolumeDataHash::GetUniqueHash()
+uint64_t VolumeDataHash::getUniqueHash()
 {
   static std::mutex hashMutex;
 

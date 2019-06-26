@@ -27,7 +27,7 @@ class VolumeDataHash
 public:
   static const uint64_t UNKNOWN  = 0;
   static const uint64_t NOVALUE  = ~0ULL;
-  static uint64_t GetUniqueHash();
+  static uint64_t getUniqueHash();
 
 private:
   static const uint32_t CONSTANT = 0x01010101;
@@ -42,20 +42,20 @@ private:
     } m_constant;
   };
 public:
-  bool      IsDefined() const { return m_dataHash != UNKNOWN; }
-  bool      IsNoValue() const { return m_dataHash == NOVALUE; }
-  bool      IsConstant() const { return IsNoValue() || m_constant.magic == CONSTANT; }
-  float       GetConstantValue() const { assert(IsConstant() && !IsNoValue()); return m_constant.value; }
-  float       GetConstantValue(float rNoValue) const { assert(IsConstant()); return IsNoValue() ? rNoValue : m_constant.value; }
-  uint64_t       CalculateHash() const { return m_dataHash; }
+  bool      isDefined() const { return m_dataHash != UNKNOWN; }
+  bool      isNoValue() const { return m_dataHash == NOVALUE; }
+  bool      isConstant() const { return isNoValue() || m_constant.magic == CONSTANT; }
+  float     getConstantValue() const { assert(isConstant() && !isNoValue()); return m_constant.value; }
+  float     getConstantValue(float rNoValue) const { assert(isConstant()); return isNoValue() ? rNoValue : m_constant.value; }
+  uint64_t  calculateHash() const { return m_dataHash; }
 
-  VolumeDataHash & operator= (uint64_t uDataHash) { m_dataHash = uDataHash; return *this; }
+  VolumeDataHash & operator= (uint64_t dataHash) { m_dataHash = dataHash; return *this; }
   VolumeDataHash() : m_dataHash(UNKNOWN) {}
-  VolumeDataHash(VolumeDataHash const &cVolumeDataHash) : m_dataHash(cVolumeDataHash.m_dataHash) {}
-  VolumeDataHash(uint64_t uDataHash) : m_dataHash(uDataHash) {}
-  explicit VolumeDataHash(float rConstantValue) { m_constant.value = rConstantValue; m_constant.magic = CONSTANT; }
+  VolumeDataHash(VolumeDataHash const &volumeDataHash) : m_dataHash(volumeDataHash.m_dataHash) {}
+  VolumeDataHash(uint64_t dataHash) : m_dataHash(dataHash) {}
+  explicit VolumeDataHash(float constantValue) { m_constant.value = constantValue; m_constant.magic = CONSTANT; }
 
-  bool operator== (uint64_t uDataHash) { return m_dataHash == uDataHash; }
+  bool operator== (uint64_t dataHash) { return m_dataHash == dataHash; }
   operator uint64_t () const { return m_dataHash; }
 };
 

@@ -25,7 +25,7 @@
 #include <memory>
 namespace OpenVDS
 {
-VDSHandle *Open(const OpenOptions &options, Error &error)
+VDSHandle *open(const OpenOptions &options, Error &error)
 {
   std::unique_ptr<VDSHandle> ret(new VDSHandle());
   if (!DownloadAndParseVDSJson(options, *ret.get(), error))
@@ -35,8 +35,9 @@ VDSHandle *Open(const OpenOptions &options, Error &error)
   return ret.release();
 }
 
-void Destroy(VDSHandle *handle)
+void destroy(VDSHandle *handle)
 {
+  delete handle;
 }
 
 }

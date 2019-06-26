@@ -23,9 +23,7 @@ GTEST_TEST(DownloadJson, OpenVDS_integration)
 {
   OpenVDS::Error error;
   OpenVDS::OpenOptions options;
-  options.bucket = "bluware-vds-us-east-2";
-  options.key = "47231464AA898322";
-  options.region = "us-east-2";
-  OpenVDS::VDSHandle *handle = OpenVDS::Open(options, error);
+  OpenVDS::VDSHandle *handle = OpenVDS::open(options, error);
   EXPECT_TRUE(handle);
+  OpenVDS::destroy(handle);
 }

@@ -22,9 +22,9 @@ namespace OpenVDS
 {
 namespace DimensionGroupUtil
 {
-bool IsDimensionInGroup(DimensionGroup dimensionGroup, int32_t iDimension)
+bool isDimensionInGroup(DimensionGroup dimensionGroup, int32_t dimension)
 {
-  switch(iDimension)
+  switch(dimension)
   {
   case 0:
     switch(dimensionGroup)
@@ -269,7 +269,7 @@ bool IsDimensionInGroup(DimensionGroup dimensionGroup, int32_t iDimension)
 /////////////////////////////////////////////////////////////////////////////
 // DimensionGroup::GetDimensionality
 
-int32_t GetDimensionality(DimensionGroup dimensionGroup)
+int32_t getDimensionality(DimensionGroup dimensionGroup)
 {
   switch(dimensionGroup)
   {
@@ -357,11 +357,11 @@ int32_t GetDimensionality(DimensionGroup dimensionGroup)
 /////////////////////////////////////////////////////////////////////////////
 // DimensionGroup::GetDimension
 
-int32_t GetDimension(DimensionGroup dimensionGroup, int32_t iIndexInGroup)
+int32_t getDimension(DimensionGroup dimensionGroup, int32_t indexInGroup)
 {
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_Max);
 
-  switch(iIndexInGroup)
+  switch(indexInGroup)
   {
   case 0:
     switch(dimensionGroup)
@@ -634,9 +634,9 @@ int32_t GetDimension(DimensionGroup dimensionGroup, int32_t iIndexInGroup)
   }
 }
 
-DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0)
+DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0)
 {
-  switch(iDimension0)
+  switch(dimension0)
   {
   case 0:
     return DimensionGroup_0;
@@ -655,14 +655,14 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0)
   }
 }
 
-DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimension1)
+DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0, int dimension1)
 {
-  if(iDimension1 == -1) return GetDimensionGroupFromDimensionIndices(iDimension0);
+  if(dimension1 == -1) return getDimensionGroupFromDimensionIndices(dimension0);
 
-  switch(iDimension0)
+  switch(dimension0)
   {
   case 0:
-    switch(iDimension1)
+    switch(dimension1)
     {
     case 1:
       return DimensionGroup_01;
@@ -678,7 +678,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       return DimensionGroup_Max;
     }
   case 1:
-    switch(iDimension1)
+    switch(dimension1)
     {
     case 2:
       return DimensionGroup_12;
@@ -692,7 +692,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       return DimensionGroup_Max;
     }
   case 2:
-    switch(iDimension1)
+    switch(dimension1)
     {
     case 3:
       return DimensionGroup_23;
@@ -704,7 +704,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       return DimensionGroup_Max;
     }
   case 3:
-    switch(iDimension1)
+    switch(dimension1)
     {
     case 4:
       return DimensionGroup_34;
@@ -714,7 +714,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       return DimensionGroup_Max;
     }
   case 4:
-    switch(iDimension1)
+    switch(dimension1)
     {
     case 5:
       return DimensionGroup_45;
@@ -728,17 +728,17 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
   }
 }
 
-DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimension1, int iDimension2)
+DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0, int dimension1, int dimension2)
 {
-  if(iDimension2 == -1) return GetDimensionGroupFromDimensionIndices(iDimension0, iDimension1);
+  if(dimension2 == -1) return getDimensionGroupFromDimensionIndices(dimension0, dimension1);
 
-  switch(iDimension0)
+  switch(dimension0)
   {
   case 0:
-    switch(iDimension1)
+    switch(dimension1)
     {
     case 1:
-      switch(iDimension2)
+      switch(dimension2)
       {
       case 2:
         return DimensionGroup_012;
@@ -752,7 +752,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
         return DimensionGroup_Max;
       }
     case 2:
-      switch(iDimension2)
+      switch(dimension2)
       {
       case 3:
         return DimensionGroup_023;
@@ -764,7 +764,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
         return DimensionGroup_Max;
       }
     case 3:
-      switch(iDimension2)
+      switch(dimension2)
       {
       case 4:
         return DimensionGroup_034;
@@ -774,7 +774,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
         return DimensionGroup_Max;
       }
     case 4:
-      if(iDimension2 == 5)
+      if(dimension2 == 5)
       {
         return DimensionGroup_045;
       }
@@ -786,10 +786,10 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       return DimensionGroup_Max;
     }
   case 1:
-    switch(iDimension1)
+    switch(dimension1)
     {
     case 2:
-      switch(iDimension2)
+      switch(dimension2)
       {
       case 3:
         return DimensionGroup_123;
@@ -801,7 +801,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
         return DimensionGroup_Max;
       }
     case 3:
-      switch(iDimension2)
+      switch(dimension2)
       {
       case 4:
         return DimensionGroup_134;
@@ -811,7 +811,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
         return DimensionGroup_Max;
       }
     case 4:
-      if(iDimension2 == 5)
+      if(dimension2 == 5)
       {
         return DimensionGroup_145;
       }
@@ -823,14 +823,14 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       return DimensionGroup_Max;
     }
   case 2:
-    switch(iDimension1)
+    switch(dimension1)
     {
     case 3:
-      if(iDimension2 == 4)
+      if(dimension2 == 4)
       {
         return DimensionGroup_234;
       }
-      else if(iDimension2 == 5)
+      else if(dimension2 == 5)
       {
         return DimensionGroup_235;
       }
@@ -839,7 +839,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
         return DimensionGroup_Max;
       }
     case 4:
-      if(iDimension2 == 5)
+      if(dimension2 == 5)
       {
         return DimensionGroup_245;
       }
@@ -851,7 +851,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       return DimensionGroup_Max;
     }
   case 3:
-    if(iDimension1 == 4 && iDimension2 == 5)
+    if(dimension1 == 4 && dimension2 == 5)
     {
       return DimensionGroup_345;
     }
@@ -864,20 +864,20 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
   }
 }
 
-DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimension1, int iDimension2, int iDimension3)
+DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0, int dimension1, int dimension2, int dimension3)
 {
-  if(iDimension3 == -1) return GetDimensionGroupFromDimensionIndices(iDimension0, iDimension1, iDimension2);
+  if(dimension3 == -1) return getDimensionGroupFromDimensionIndices(dimension0, dimension1, dimension2);
 
-  switch(iDimension0)
+  switch(dimension0)
   {
   case 0:
-    switch(iDimension1)
+    switch(dimension1)
     {
     case 1:
-      switch(iDimension2)
+      switch(dimension2)
       {
       case 2:
-        switch(iDimension3)
+        switch(dimension3)
         {
         case 3:
           return DimensionGroup_0123;
@@ -889,7 +889,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
           return DimensionGroup_Max;
         }
       case 3:
-        switch(iDimension3)
+        switch(dimension3)
         {
         case 4:
           return DimensionGroup_0134;
@@ -899,7 +899,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
           return DimensionGroup_Max;
         }
       case 4:
-        if(iDimension3 == 5)
+        if(dimension3 == 5)
         {
           return DimensionGroup_0145;
         }
@@ -912,7 +912,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       }
     case 2:
     case 3:
-      if(iDimension2 == 4 && iDimension3 == 5)
+      if(dimension2 == 4 && dimension3 == 5)
       {
         return DimensionGroup_0345;
       }
@@ -924,13 +924,13 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       return DimensionGroup_Max;
     }
   case 1:
-    switch(iDimension1)
+    switch(dimension1)
     {
     case 2:
-      switch(iDimension2)
+      switch(dimension2)
       {
       case 3:
-        switch(iDimension3)
+        switch(dimension3)
         {
         case 4:
           return DimensionGroup_1234;
@@ -940,7 +940,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
           return DimensionGroup_Max;
         }
       case 4:
-        if(iDimension3 == 5)
+        if(dimension3 == 5)
         {
           return DimensionGroup_1245;
         }
@@ -952,7 +952,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
         return DimensionGroup_Max;
       }
     case 3:
-      if(iDimension2 == 4 && iDimension3 == 5)
+      if(dimension2 == 4 && dimension3 == 5)
       {
         return DimensionGroup_1345;
       }
@@ -964,7 +964,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       return DimensionGroup_Max;
     }
   case 2:
-    if(iDimension1 == 3 && iDimension2 == 4 && iDimension3 == 5)
+    if(dimension1 == 3 && dimension2 == 4 && dimension3 == 5)
     {
       return DimensionGroup_2345;
     }
@@ -977,22 +977,22 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
   }
 }
 
-DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimension1, int iDimension2, int iDimension3, int iDimension4)
+DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0, int dimension1, int dimension2, int dimension3, int dimension4)
 {
-  if(iDimension4 == -1) return GetDimensionGroupFromDimensionIndices(iDimension0, iDimension1, iDimension2, iDimension3);
-  if(iDimension0 == 0)
+  if(dimension4 == -1) return getDimensionGroupFromDimensionIndices(dimension0, dimension1, dimension2, dimension3);
+  if(dimension0 == 0)
   {
-    if(iDimension1 == 1)
+    if(dimension1 == 1)
     {
-      if(iDimension2 == 2)
+      if(dimension2 == 2)
       {
-        if(iDimension3 == 3)
+        if(dimension3 == 3)
         {
-          if(iDimension4 == 4)
+          if(dimension4 == 4)
           {
             return DimensionGroup_01234;
           }
-          else if(iDimension4 == 5)
+          else if(dimension4 == 5)
           {
             return DimensionGroup_01235;
           }
@@ -1001,7 +1001,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
             return DimensionGroup_Max;
           }
         }
-        else if(iDimension3 == 4 && iDimension4 == 5)
+        else if(dimension3 == 4 && dimension4 == 5)
         {
           return DimensionGroup_01245;
         }
@@ -1010,7 +1010,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
           return DimensionGroup_Max;
         }
       }
-      else if(iDimension2 == 3 && iDimension3 == 4 && iDimension4 == 5)
+      else if(dimension2 == 3 && dimension3 == 4 && dimension4 == 5)
       {
         return DimensionGroup_01345;
       }
@@ -1019,7 +1019,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
         return DimensionGroup_Max;
       }
     }
-    else if(iDimension1 == 2 && iDimension2 == 3 && iDimension3 == 4 && iDimension4 == 5)
+    else if(dimension1 == 2 && dimension2 == 3 && dimension3 == 4 && dimension4 == 5)
     {
       return DimensionGroup_02345;
     }
@@ -1028,7 +1028,7 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
       return DimensionGroup_Max;
     }
   }
-  else if(iDimension0 == 1 && iDimension1 == 2 && iDimension2 == 3 && iDimension3 == 4 && iDimension4 == 5)
+  else if(dimension0 == 1 && dimension1 == 2 && dimension2 == 3 && dimension3 == 4 && dimension4 == 5)
   {
     return DimensionGroup_12345;
   }
@@ -1038,10 +1038,10 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
   }
 }
 
-DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimension1, int iDimension2, int iDimension3, int iDimension4, int iDimension5)
+DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0, int dimension1, int dimension2, int dimension3, int dimension4, int dimension5)
 {
-  if(iDimension5 == -1) return GetDimensionGroupFromDimensionIndices(iDimension0, iDimension1, iDimension2, iDimension3, iDimension4);
-  if(iDimension0 == 0 && iDimension1 == 1 && iDimension2 == 2 && iDimension3 == 3 && iDimension4 == 4 && iDimension5 == 5)
+  if(dimension5 == -1) return getDimensionGroupFromDimensionIndices(dimension0, dimension1, dimension2, dimension3, dimension4);
+  if(dimension0 == 0 && dimension1 == 1 && dimension2 == 2 && dimension3 == 3 && dimension4 == 4 && dimension5 == 5)
   {
     return DimensionGroup_012345;
   }
@@ -1051,9 +1051,9 @@ DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimen
   }
 }
 
-DimensionGroup GetDimensionGroupFromDimensionsND(DimensionsND eDimensionsND)
+DimensionGroup getDimensionGroupFromDimensionsND(DimensionsND dimensionsND)
 {
-  switch(eDimensionsND)
+  switch(dimensionsND)
   {
   default:
     assert(false && ("Illegal dimensions ND"));
@@ -1130,9 +1130,9 @@ DimensionGroup GetDimensionGroupFromDimensionsND(DimensionsND eDimensionsND)
   }
 }
 
-DimensionsND GetDimensionsNDFromDimensionGroup(DimensionGroup eDimensionGroup)
+DimensionsND getDimensionsNDFromDimensionGroup(DimensionGroup dimensionGroup)
 {
-  switch(eDimensionGroup)
+  switch(dimensionGroup)
   {
   default:
     assert(false && ("Illegal dimensiongroup"));
@@ -1209,7 +1209,7 @@ DimensionsND GetDimensionsNDFromDimensionGroup(DimensionGroup eDimensionGroup)
   }
 }
 
-const char * GetDimensionGroupShortName(DimensionGroup eDimensionGroup)
+const char * getDimensionGroupShortName(DimensionGroup dimensionGroup)
 {
   static const char *apzDimensionNames[DimensionGroup_Max] = 
   {
@@ -1283,11 +1283,11 @@ const char * GetDimensionGroupShortName(DimensionGroup eDimensionGroup)
     "0/1/2/3/4/5"
   };
 
-  assert(eDimensionGroup >= 0 && eDimensionGroup < DimensionGroup_Max);
-  return apzDimensionNames[eDimensionGroup];
+  assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_Max);
+  return apzDimensionNames[dimensionGroup];
 }
 
-const char * GetDimensionGroupName(DimensionGroup dimensionGroup)
+const char * getDimensionGroupName(DimensionGroup dimensionGroup)
 {
   static const char *apzDimensionNames[DimensionGroup_Max] = 
   {
@@ -1365,25 +1365,25 @@ const char * GetDimensionGroupName(DimensionGroup dimensionGroup)
   return apzDimensionNames[dimensionGroup];
 }
 
-bool IsRemappingPossible(DimensionGroup eDimensionGroupA, DimensionGroup eDimensionGroupB)
+bool isRemappingPossible(DimensionGroup dimensionGroupA, DimensionGroup dimensionGroupB)
 {
-  int32_t nDimensionalityA = GetDimensionality(eDimensionGroupA);
-  int32_t nDimensionalityB = GetDimensionality(eDimensionGroupB);
+  int32_t nDimensionalityA = getDimensionality(dimensionGroupA);
+  int32_t nDimensionalityB = getDimensionality(dimensionGroupB);
 
   if(nDimensionalityA > nDimensionalityB)
   {
     // Normalize the problem
-    return IsRemappingPossible(eDimensionGroupB, eDimensionGroupA);
+    return isRemappingPossible(dimensionGroupB, dimensionGroupA);
   }
   else if(nDimensionalityA == nDimensionalityB)
   {
-    return eDimensionGroupA == eDimensionGroupB;
+    return dimensionGroupA == dimensionGroupB;
   }
   else if(nDimensionalityA == nDimensionalityB - 1)
   {
     for(int32_t iIndexInGroup = 0; iIndexInGroup < nDimensionalityA; iIndexInGroup++)
     {
-      if(!IsDimensionInGroup(eDimensionGroupB, GetDimension(eDimensionGroupA, iIndexInGroup)))
+      if(!isDimensionInGroup(dimensionGroupB, getDimension(dimensionGroupA, iIndexInGroup)))
       {
         return false;
       }
@@ -1396,7 +1396,7 @@ bool IsRemappingPossible(DimensionGroup eDimensionGroupA, DimensionGroup eDimens
   }
 }
 
-DimensionGroup Union(DimensionGroup eDimensionGroupA, DimensionGroup eDimensionGroupB)
+DimensionGroup unionGroups(DimensionGroup dimensionGroupA, DimensionGroup dimensionGroupB)
 {
  int32_t nDimensions = 0;
 
@@ -1405,12 +1405,12 @@ DimensionGroup Union(DimensionGroup eDimensionGroupA, DimensionGroup eDimensionG
   for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
   {
     aiDimension[iDimension] = -1;
-    if(IsDimensionInGroup(eDimensionGroupA, iDimension) || IsDimensionInGroup(eDimensionGroupB, iDimension))
+    if(isDimensionInGroup(dimensionGroupA, iDimension) || isDimensionInGroup(dimensionGroupB, iDimension))
     {
       aiDimension[nDimensions++] = iDimension;
     }
   }
-  return GetDimensionGroupFromDimensionIndices(aiDimension[0], aiDimension[1], aiDimension[2], aiDimension[3], aiDimension[4], aiDimension[5]);
+  return getDimensionGroupFromDimensionIndices(aiDimension[0], aiDimension[1], aiDimension[2], aiDimension[3], aiDimension[4], aiDimension[5]);
 }
 
 } //namespace DimensionGroupUtil

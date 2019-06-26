@@ -50,7 +50,7 @@ private:
 
   DimensionGroup    m_originalDimensionGroup;
 
-  int32_t           m_LOD;
+  int32_t           m_lod;
 
   int32_t           m_fullResolutionDimension;
 
@@ -81,65 +81,63 @@ private:
   int64_t           m_totalChunks;
 
 public:
-  VolumeDataPartition(int32_t LOD, DimensionGroup dimensionGroup, const IndexArray &firstSample, const IndexArray &numSamples, const IndexArray &brickSize, const IndexArray &negativeMargin, const IndexArray &positiveMargin, BorderMode borderMode, const IndexArray &negativeBorder, const IndexArray &positiveBorder, int32_t negativeRenderMargin, int32_t positiveRenderMargin, int32_t fullResolutionDimension);
+  VolumeDataPartition(int32_t lod, DimensionGroup dimensionGroup, const IndexArray &firstSample, const IndexArray &numSamples, const IndexArray &brickSize, const IndexArray &negativeMargin, const IndexArray &positiveMargin, BorderMode borderMode, const IndexArray &negativeBorder, const IndexArray &positiveBorder, int32_t negativeRenderMargin, int32_t positiveRenderMargin, int32_t fullResolutionDimension);
   ~VolumeDataPartition()
   {
   }
 
-  bool              operator==(const VolumeDataPartition &volumeDataPartion) const;
+  bool operator==(const VolumeDataPartition &volumeDataPartion) const;
 
-  int32_t           getChunkDimensionality() const;
+  int32_t getChunkDimensionality() const;
 
-  int               GetChunkDimension(int chunkDimension) const;
+  int getChunkDimension(int chunkDimension) const;
 
-  int32_t           VoxelToIndex(int32_t voxel, int32_t dimension) const;
+  int32_t voxelToIndex(int32_t voxel, int32_t dimension) const;
 
-  void              ChunkIndexToIndexArray(int64_t chunkIndex, IndexArray &indexArray) const;
-  int64_t           IndexArrayToChunkIndex(const IndexArray &indexArray) const;
+  void chunkIndexToIndexArray(int64_t chunkIndex, IndexArray &indexArray) const;
+  int64_t indexArrayToChunkIndex(const IndexArray &indexArray) const;
 
-  int32_t           GetLOD() const { return m_LOD; }
+  int32_t getLod() const { return m_lod; }
 
-  BorderMode        GetBorderMode() const { return m_borderMode; }
+  BorderMode getBorderMode() const { return m_borderMode; }
 
-  bool              IsDimensionChunked(int32_t dimension) const { return DimensionGroupUtil::IsDimensionInGroup(m_chunkDimensionGroup, dimension); }
-  bool              IsDimensionLODDecimated(int32_t dimension) const { return DimensionGroupUtil::IsDimensionInGroup(m_originalDimensionGroup, dimension) && dimension != m_fullResolutionDimension; }
-  int32_t           GetNumChunksInDimension(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_chunksInDimension[dimension]; }
-  int64_t           GetTotalChunkCount() const { return m_totalChunks; }
+  bool isDimensionChunked(int32_t dimension) const { return DimensionGroupUtil::isDimensionInGroup(m_chunkDimensionGroup, dimension); }
+  bool isDimensionLodDecimated(int32_t dimension) const { return DimensionGroupUtil::isDimensionInGroup(m_originalDimensionGroup, dimension) && dimension != m_fullResolutionDimension; }
+  int32_t getNumChunksInDimension(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_chunksInDimension[dimension]; }
+  int64_t getTotalChunkCount() const { return m_totalChunks; }
 
-  int64_t           GetParentIndex(int64_t chunk, VolumeDataPartition const &parentPartition, int32_t *child = NULL) const;
-  void              GetChildIndices(int64_t chunk, VolumeDataPartition const &childPartition, int64_t *childIndices) const;
+  int64_t getParentIndex(int64_t chunk, VolumeDataPartition const &parentPartition, int32_t *child = NULL) const;
+  void    getChildIndices(int64_t chunk, VolumeDataPartition const &childPartition, int64_t *childIndices) const;
 
-  int64_t           GetTotalVoxels(bool isIncludeMargins) const;
+  int64_t getTotalVoxels(bool isIncludeMargins) const;
 
-  int32_t           GetDimensionFirstSample(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_dimensionFirstSample[dimension]; }
+  int32_t getDimensionFirstSample(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_dimensionFirstSample[dimension]; }
 
-  int32_t           GetDimensionNumSamples(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_dimensionNumSamples[dimension]; }
+  int32_t getDimensionNumSamples(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_dimensionNumSamples[dimension]; }
 
-  int32_t           GetBrickSize(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_brickSize[dimension]; }
+  int32_t getBrickSize(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_brickSize[dimension]; }
 
-  int32_t           GetNegativeMargin(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_negativeMargin[dimension]; }
+  int32_t getNegativeMargin(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_negativeMargin[dimension]; }
 
-  int32_t           GetPositiveMargin(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_positiveMargin[dimension]; }
+  int32_t getPositiveMargin(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_positiveMargin[dimension]; }
 
-  int32_t           GetNegativeBorder(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_negativeBorder[dimension]; }
+  int32_t getNegativeBorder(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_negativeBorder[dimension]; }
 
-  int32_t           GetPositiveBorder(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_positiveBorder[dimension]; }
+  int32_t getPositiveBorder(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_positiveBorder[dimension]; }
 
-  int32_t           GetNegativeRenderMargin() const { return m_negativeRenderMargin; }
-  int32_t           GetPositiveRenderMargin() const { return m_positiveRenderMargin; }
+  int32_t getNegativeRenderMargin() const { return m_negativeRenderMargin; }
+  int32_t getPositiveRenderMargin() const { return m_positiveRenderMargin; }
 
-  DimensionGroup    GetOriginalDimensionGroup() const { return m_originalDimensionGroup; } // This function returns the dimensiongroup of the layer before the margins were added (NOTE: not the render margins)
+  DimensionGroup getOriginalDimensionGroup() const { return m_originalDimensionGroup; } // This function returns the dimensiongroup of the layer before the margins were added (NOTE: not the render margins)
 
-  DimensionGroup    GetChunkDimensionGroup() const { return m_chunkDimensionGroup; }
+  DimensionGroup getChunkDimensionGroup() const { return m_chunkDimensionGroup; }
 
-  void              GetChunkMinMax(int64_t chunk, int32_t *min, int32_t *max, bool isIncludeMargin) const;
+  void getChunkMinMax(int64_t chunk, int32_t *min, int32_t *max, bool isIncludeMargin) const;
 
-  void              GetChunkVoxelSize(int64_t chunk, ChunkVoxelSize &size) const;
+  void getChunkVoxelSize(int64_t chunk, ChunkVoxelSize &size) const;
 
-  static VolumeDataPartition
-                StaticMapPartition(VolumeDataPartition const &primaryPartition, const VolumeDataChannelMapping *volumeDataChannelMapping, int32_t mappedValues);
+  static VolumeDataPartition staticMapPartition(VolumeDataPartition const &primaryPartition, const VolumeDataChannelMapping *volumeDataChannelMapping, int32_t mappedValues);
 
-  static VolumeDataPartition
-                StaticFindSuperPartition(VolumeDataPartition const &partitionA, VolumeDataPartition const &partitionB);
+  static VolumeDataPartition staticFindSuperPartition(VolumeDataPartition const &partitionA, VolumeDataPartition const &partitionB);
 };
 }

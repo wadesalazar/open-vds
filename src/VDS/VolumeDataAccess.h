@@ -92,8 +92,8 @@ public:
   /// <param name="eDimensionsND">
   /// The dimensions group that the volume data page accessor will access.
   /// </param>
-  /// <param name="iLOD">
-  /// The LOD level that the volume data page accessor will access.
+  /// <param name="lod">
+  /// The lod level that the volume data page accessor will access.
   /// </param>
   /// <param name="iChannel">
   /// The channel index that the volume data page accessor will access.
@@ -170,8 +170,8 @@ public:
   /// <param name="eDimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
-  /// <param name="iLOD">
-  /// The LOD level the requested data is read from.
+  /// <param name="lod">
+  /// The lod level the requested data is read from.
   /// </param>
   /// <param name="iChannel">
   /// The channel index the requested data is read from.
@@ -202,8 +202,8 @@ public:
   /// <param name="eDimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
-  /// <param name="iLOD">
-  /// The LOD level the requested data is read from.
+  /// <param name="lod">
+  /// The lod level the requested data is read from.
   /// </param>
   /// <param name="iChannel">
   /// The channel index the requested data is read from.
@@ -237,8 +237,8 @@ public:
   /// <param name="eDimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
-  /// <param name="iLOD">
-  /// The LOD level the requested data is read from.
+  /// <param name="lod">
+  /// The lod level the requested data is read from.
   /// </param>
   /// <param name="iChannel">
   /// The channel index the requested data is read from.
@@ -278,8 +278,8 @@ public:
   /// <param name="eDimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
-  /// <param name="iLOD">
-  /// The LOD level the requested data is read from.
+  /// <param name="lod">
+  /// The lod level the requested data is read from.
   /// </param>
   /// <param name="iChannel">
   /// The channel index the requested data is read from.
@@ -322,8 +322,8 @@ public:
   /// <param name="eDimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
-  /// <param name="iLOD">
-  /// The LOD level the requested data is read from.
+  /// <param name="lod">
+  /// The lod level the requested data is read from.
   /// </param>
   /// <param name="iChannel">
   /// The channel index the requested data is read from.
@@ -354,8 +354,8 @@ public:
   /// <param name="eDimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
-  /// <param name="iLOD">
-  /// The LOD level the requested data is read from.
+  /// <param name="lod">
+  /// The lod level the requested data is read from.
   /// </param>
   /// <param name="iChannel">
   /// The channel index the requested data is read from.
@@ -389,8 +389,8 @@ public:
   /// <param name="eDimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
-  /// <param name="iLOD">
-  /// The LOD level the requested data is read from.
+  /// <param name="lod">
+  /// The lod level the requested data is read from.
   /// </param>
   /// <param name="iChannel">
   /// The channel index the requested data is read from.
@@ -424,8 +424,8 @@ public:
   /// <param name="eDimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
-  /// <param name="iLOD">
-  /// The LOD level the requested data is read from.
+  /// <param name="lod">
+  /// The lod level the requested data is read from.
   /// </param>
   /// <param name="iChannel">
   /// The channel index the requested data is read from.
@@ -459,8 +459,8 @@ public:
   /// <param name="eDimensionsND">
   /// The dimensiongroup the requested chunk belongs to.
   /// </param>
-  /// <param name="iLOD">
-  /// The LOD level the requested chunk belongs to.
+  /// <param name="lod">
+  /// The lod level the requested chunk belongs to.
   /// </param>
   /// <param name="iChannel">
   /// The channel index the requested chunk belongs to.

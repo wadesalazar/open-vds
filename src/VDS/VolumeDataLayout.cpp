@@ -27,7 +27,7 @@ namespace OpenVDS
   
 VolumeDataLayout::VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescriptor,
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
-                   const std::vector<VolumeDataChannelDescriptor> const &volumeDataChannelDescriptor,
+                   const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
                    int32_t actualValueRangeChannel,
                    Range<float> const &actualValueRange,
                    VolumeDataHash const &volumeDataHash,
@@ -35,10 +35,10 @@ VolumeDataLayout::VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescr
                    float compressionTolerance,
                    bool isZipLosslessChannels,
                    int32_t waveletAdaptiveLoadLevel)
-  : m_dimensionality(axisDescriptor.size())
-  , m_baseBrickSize(int32_t(1) << layoutDescriptor.brickSize())
-  , m_negativeRenderMargin(layoutDescriptor.negativeMargin())
-  , m_positiveRenderMargin(layoutDescriptor.positiveMargin())
+  : m_dimensionality(int32_t(axisDescriptor.size()))
+  , m_baseBrickSize(int32_t(1) << layoutDescriptor.getBrickSize())
+  , m_negativeRenderMargin(layoutDescriptor.getNegativeMargin())
+  , m_positiveRenderMargin(layoutDescriptor.getPositiveMargin())
   , m_volumeDataChannelDescriptor(volumeDataChannelDescriptor)
   , m_actualValueRangeChannel(actualValueRangeChannel)
   , m_actualValueRange(actualValueRange)
@@ -47,22 +47,22 @@ VolumeDataLayout::VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescr
   , m_compressionTolerance(compressionTolerance)
   , m_isZipLosslessChannels(isZipLosslessChannels)
   , m_waveletAdaptiveLoadLevel(waveletAdaptiveLoadLevel)
-  , m_fullResolutionDimension(layoutDescriptor.fullResolutionDimension())
+  , m_fullResolutionDimension(layoutDescriptor.getFullResolutionDimension())
 {
 
-  for(int32_t iDimension = 0; iDimension < array_size(m_dimensionNumSamples); iDimension++)
+  for(int32_t dimension = 0; dimension < array_size(m_dimensionNumSamples); dimension++)
   {
-    if(iDimension < m_dimensionality)
+    if(dimension < m_dimensionality)
     {
-      assert(axisDescriptor[iDimension].GetNumSamples() >= 1);
-      m_dimensionNumSamples[iDimension] = axisDescriptor[iDimension].GetNumSamples();
-      m_dimensionName[iDimension] = axisDescriptor[iDimension].GetName();
-      m_dimensionUnit[iDimension] = axisDescriptor[iDimension].GetUnit();
-      m_dimensionRange[iDimension] = { axisDescriptor[iDimension].GetCoordinateMin(), axisDescriptor[iDimension].GetCoordinateMax() };
+      assert(axisDescriptor[dimension].getNumSamples() >= 1);
+      m_dimensionNumSamples[dimension] = axisDescriptor[dimension].getNumSamples();
+      m_dimensionName[dimension] = axisDescriptor[dimension].getName();
+      m_dimensionUnit[dimension] = axisDescriptor[dimension].getUnit();
+      m_dimensionRange[dimension] = { axisDescriptor[dimension].getCoordinateMin(), axisDescriptor[dimension].getCoordinateMax() };
     }
     else
     {
-      m_dimensionNumSamples[iDimension] = 1;
+      m_dimensionNumSamples[dimension] = 1;
     }
   }
 
@@ -70,40 +70,40 @@ VolumeDataLayout::VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescr
   memset(m_primaryTopLayers, 0, sizeof(m_primaryTopLayers));
 }
 
-VolumeDataLayer::VolumeDataLayerID VolumeDataLayout::AddDataLayer(VolumeDataLayer *layer)
+VolumeDataLayer::VolumeDataLayerID VolumeDataLayout::addDataLayer(VolumeDataLayer *layer)
 {
   m_volumeDataLayers.push_back(layer);
   return VolumeDataLayer::VolumeDataLayerID(m_volumeDataLayers.size() - 1);
 }
 
-VolumeDataLayer* VolumeDataLayout::GetBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const
+VolumeDataLayer* VolumeDataLayout::getBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const
 {
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_3D_Max);
-  assert(channel >= 0 && channel < GetChannelCount());
+  assert(channel >= 0 && channel < getChannelCount());
 
   VolumeDataLayer *volumeDataLayer = m_primaryBaseLayers[dimensionGroup];
 
   while(channel-- && volumeDataLayer)
   {
-    volumeDataLayer = volumeDataLayer->GetNextChannelLayer();
+    volumeDataLayer = volumeDataLayer->getNextChannelLayer();
   }
   return volumeDataLayer;
 }
 
-Range<float> const& VolumeDataLayout::GetChannelActualValueRange(int32_t iChannel) const
+Range<float> const& VolumeDataLayout::getChannelActualValueRange(int32_t channel) const
 {
-  return (iChannel == m_actualValueRangeChannel) ? m_actualValueRange : m_volumeDataChannelDescriptor[iChannel].GetValueRange();
+  return (channel == m_actualValueRangeChannel) ? m_actualValueRange : m_volumeDataChannelDescriptor[channel].getValueRange();
 }
 
-int32_t VolumeDataLayout::GetMappedValueCount(int32_t iChannel) const
+int32_t VolumeDataLayout::getMappedValueCount(int32_t channel) const
 {
-  return m_volumeDataChannelDescriptor[iChannel].GetMappedValueCount();
+  return m_volumeDataChannelDescriptor[channel].getMappedValueCount();
 }
 
-Range<float> const& VolumeDataLayout::GetDimensionRange(int32_t iDimension) const
+Range<float> const& VolumeDataLayout::getDimensionRange(int32_t dimension) const
 {
-  assert(iDimension >= 0 && iDimension < m_dimensionality);
-  return m_dimensionRange[iDimension];
+  assert(dimension >= 0 && dimension < m_dimensionality);
+  return m_dimensionRange[dimension];
 }
 
 //const VolumeDataChannelMapping* VolumeDataLayout::GetVolumeDataChannelMapping(int32_t channel) const
@@ -127,10 +127,10 @@ Range<float> const& VolumeDataLayout::GetDimensionRange(int32_t iDimension) cons
 //  }
 //}
 
-VolumeDataLayer *VolumeDataLayout::GetVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const
+VolumeDataLayer *VolumeDataLayout::getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const
 {
   assert(volumeDataLayerID >= 0 || volumeDataLayerID == VolumeDataLayer::LayerIdNone);
-  if(volumeDataLayerID == VolumeDataLayer::LayerIdNone || volumeDataLayerID >= GetLayerCount())
+  if(volumeDataLayerID == VolumeDataLayer::LayerIdNone || volumeDataLayerID >= getLayerCount())
   {
     return NULL;
   }
@@ -140,101 +140,101 @@ VolumeDataLayer *VolumeDataLayout::GetVolumeDataLayerFromID(VolumeDataLayer::Vol
   }
 }
   
-VolumeDataLayer *VolumeDataLayout::GetTopLayer(DimensionGroup dimensionGroup, int32_t iChannel) const
+VolumeDataLayer *VolumeDataLayout::getTopLayer(DimensionGroup dimensionGroup, int32_t channel) const
 {
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_3D_Max);
-  assert(iChannel >= 0 && iChannel < GetChannelCount());
+  assert(channel >= 0 && channel < getChannelCount());
 
   VolumeDataLayer *volumeDataLayer = m_primaryTopLayers[dimensionGroup];
 
-  while(iChannel-- && volumeDataLayer)
+  while(channel-- && volumeDataLayer)
   {
-    volumeDataLayer = volumeDataLayer->GetNextChannelLayer();
+    volumeDataLayer = volumeDataLayer->getNextChannelLayer();
   }
   return volumeDataLayer;
 }
 
-bool VolumeDataLayout::IsChannelAvailable(const std::string &channelName) const
+bool VolumeDataLayout::isChannelAvailable(const std::string &channelName) const
 {
-  int32_t nChannels = GetChannelCount();
+  int32_t nChannels = getChannelCount();
 
-  for(int32_t iChannel = 0; iChannel < nChannels; iChannel++)
+  for(int32_t channel = 0; channel < nChannels; channel++)
   {
-    if(m_volumeDataChannelDescriptor[iChannel].GetName() == channelName) return true;
+    if(m_volumeDataChannelDescriptor[channel].getName() == channelName) return true;
   }
 
   return false;
 }
 
-int32_t VolumeDataLayout::GetChannelIndex(const std::string& channelName) const
+int32_t VolumeDataLayout::getChannelIndex(const std::string& channelName) const
 {
-  int32_t  nChannels = GetChannelCount();
+  int32_t  nChannels = getChannelCount();
 
-  for(int32_t iChannel = 0; iChannel < nChannels; iChannel++)
+  for(int32_t channel = 0; channel < nChannels; channel++)
   {
-    if(m_volumeDataChannelDescriptor[iChannel].GetName() == channelName) return iChannel;
+    if(m_volumeDataChannelDescriptor[channel].getName() == channelName) return channel;
   }
   assert(0 && "Should not call this function unless IsChannelAvailable() is true");
   return 0;
 }
 
-VolumeDataChannelDescriptor VolumeDataLayout::GetChannelDescriptor(int32_t iChannel) const
+VolumeDataChannelDescriptor VolumeDataLayout::getChannelDescriptor(int32_t channel) const
 {
-  assert(iChannel >= 0 && iChannel < GetChannelCount()); 
+  assert(channel >= 0 && channel < getChannelCount()); 
 
-  const VolumeDataChannelDescriptor &volumeDataChannelDescriptor = m_volumeDataChannelDescriptor[iChannel];
+  const VolumeDataChannelDescriptor &volumeDataChannelDescriptor = m_volumeDataChannelDescriptor[channel];
 
-  Internal::bit_mask<VolumeDataChannelDescriptor::Flags> bFlags = VolumeDataChannelDescriptor::Flags(0);
+  Internal::BitMask<VolumeDataChannelDescriptor::Flags> bFlags = VolumeDataChannelDescriptor::Flags(0);
 
-  if(volumeDataChannelDescriptor.IsDiscrete())                      bFlags = bFlags | VolumeDataChannelDescriptor::DiscreteData;
-  if(!volumeDataChannelDescriptor.IsAllowLossyCompression())        bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompression;
-  if(volumeDataChannelDescriptor.IsUseZipForLosslessCompression())  bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompressionUseZip;
-  if(!volumeDataChannelDescriptor.IsRenderable())                   bFlags = bFlags | VolumeDataChannelDescriptor::NotRenderable;
+  if(volumeDataChannelDescriptor.isDiscrete())                      bFlags = bFlags | VolumeDataChannelDescriptor::DiscreteData;
+  if(!volumeDataChannelDescriptor.isAllowLossyCompression())        bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompression;
+  if(volumeDataChannelDescriptor.isUseZipForLosslessCompression())  bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompressionUseZip;
+  if(!volumeDataChannelDescriptor.isRenderable())                   bFlags = bFlags | VolumeDataChannelDescriptor::NotRenderable;
 
-  if (volumeDataChannelDescriptor.IsUseNoValue())
+  if (volumeDataChannelDescriptor.isUseNoValue())
   {
-    return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.GetFormat(),
-                                       volumeDataChannelDescriptor.GetComponents(),
-                                       volumeDataChannelDescriptor.GetName(),
-                                       volumeDataChannelDescriptor.GetUnit(),
-                                       volumeDataChannelDescriptor.GetValueRange().min,
-                                       volumeDataChannelDescriptor.GetValueRange().max,
-                                       GetChannelMapping(iChannel),
-                                       volumeDataChannelDescriptor.GetMappedValueCount(),
+    return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.getFormat(),
+                                       volumeDataChannelDescriptor.getComponents(),
+                                       volumeDataChannelDescriptor.getName(),
+                                       volumeDataChannelDescriptor.getUnit(),
+                                       volumeDataChannelDescriptor.getValueRange().min,
+                                       volumeDataChannelDescriptor.getValueRange().max,
+                                       getChannelMapping(channel),
+                                       volumeDataChannelDescriptor.getMappedValueCount(),
                                        VolumeDataChannelDescriptor::Flags(bFlags._flags),
-                                       volumeDataChannelDescriptor.GetNoValue(),
-                                       volumeDataChannelDescriptor.GetIntegerScale(),
-                                       volumeDataChannelDescriptor.GetIntegerOffset());
+                                       volumeDataChannelDescriptor.getNoValue(),
+                                       volumeDataChannelDescriptor.getIntegerScale(),
+                                       volumeDataChannelDescriptor.getIntegerOffset());
   }
 
-  return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.GetFormat(),
-                                     volumeDataChannelDescriptor.GetComponents(),
-                                     volumeDataChannelDescriptor.GetName(),
-                                     volumeDataChannelDescriptor.GetUnit(),
-                                     volumeDataChannelDescriptor.GetValueRange().min,
-                                     volumeDataChannelDescriptor.GetValueRange().max,
-                                     GetChannelMapping(iChannel),
-                                     volumeDataChannelDescriptor.GetMappedValueCount(),
+  return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.getFormat(),
+                                     volumeDataChannelDescriptor.getComponents(),
+                                     volumeDataChannelDescriptor.getName(),
+                                     volumeDataChannelDescriptor.getUnit(),
+                                     volumeDataChannelDescriptor.getValueRange().min,
+                                     volumeDataChannelDescriptor.getValueRange().max,
+                                     getChannelMapping(channel),
+                                     volumeDataChannelDescriptor.getMappedValueCount(),
                                      VolumeDataChannelDescriptor::Flags(bFlags._flags),
-                                     volumeDataChannelDescriptor.GetIntegerScale(),
-                                     volumeDataChannelDescriptor.GetIntegerOffset());
+                                     volumeDataChannelDescriptor.getIntegerScale(),
+                                     volumeDataChannelDescriptor.getIntegerOffset());
 }
 
-VolumeDataAxisDescriptor VolumeDataLayout::GetAxisDescriptor(int32_t iDimension) const
+VolumeDataAxisDescriptor VolumeDataLayout::getAxisDescriptor(int32_t dimension) const
 {
-  assert(iDimension >= 0 && iDimension < m_dimensionality);
-  return VolumeDataAxisDescriptor(GetDimensionNumSamples(iDimension),
-                                       GetDimensionName(iDimension),
-                                       GetDimensionUnit(iDimension),
-                                       GetDimensionRange(iDimension).min,
-                                       GetDimensionRange(iDimension).max);
+  assert(dimension >= 0 && dimension < m_dimensionality);
+  return VolumeDataAxisDescriptor(getDimensionNumSamples(dimension),
+                                       GetDimensionName(dimension),
+                                       GetDimensionUnit(dimension),
+                                       getDimensionRange(dimension).min,
+                                       getDimensionRange(dimension).max);
 }
 
-VolumeDataMapping VolumeDataLayout::GetChannelMapping(int32_t iChannel) const
+VolumeDataMapping VolumeDataLayout::getChannelMapping(int32_t channel) const
 {
-  assert(iChannel >= 0 && iChannel < GetChannelCount());
+  assert(channel >= 0 && channel < getChannelCount());
   assert(0); 
-//  const VolumeDataChannelDescriptor &volumeDataChannelDescriptor = m_volumeDataChannelDescriptor[iChannel];
+//  const VolumeDataChannelDescriptor &volumeDataChannelDescriptor = m_volumeDataChannelDescriptor[channel];
 //
 //  if (volumeDataChannelDescriptor.GetChannelMapping() == nullptr)
 //  {
@@ -252,113 +252,113 @@ VolumeDataMapping VolumeDataLayout::GetChannelMapping(int32_t iChannel) const
   return VolumeDataMapping::Direct;
 }
 
-int VolumeDataLayout::GetDimensionNumSamples(int32_t iDimension) const
+int VolumeDataLayout::getDimensionNumSamples(int32_t dimension) const
 {
-  assert(iDimension >= 0 && iDimension < array_size(m_dimensionNumSamples));
-  return m_dimensionNumSamples[iDimension];
+  assert(dimension >= 0 && dimension < array_size(m_dimensionNumSamples));
+  return m_dimensionNumSamples[dimension];
 }
 
-const std::string& VolumeDataLayout::GetDimensionName(int32_t iDimension) const
+const std::string& VolumeDataLayout::GetDimensionName(int32_t dimension) const
 {
-  assert(iDimension >= 0 && iDimension < array_size(m_dimensionName));
-  return m_dimensionName[iDimension];
+  assert(dimension >= 0 && dimension < array_size(m_dimensionName));
+  return m_dimensionName[dimension];
 }
 
-const std::string& VolumeDataLayout::GetDimensionUnit(int32_t iDimension) const
+const std::string& VolumeDataLayout::GetDimensionUnit(int32_t dimension) const
 {
-  assert(iDimension >= 0 && iDimension < array_size(m_dimensionUnit));
-  return m_dimensionUnit[iDimension];
+  assert(dimension >= 0 && dimension < array_size(m_dimensionUnit));
+  return m_dimensionUnit[dimension];
 }
   
-void VolumeDataLayout::SetContentsHash(VolumeDataHash const &contentsHash)
+void VolumeDataLayout::setContentsHash(VolumeDataHash const &contentsHash)
 {
   m_contentsHash = contentsHash;
 }
 
-void VolumeDataLayout::SetActualValueRange(int32_t actualValueRangeChannel, Range<float> const& actualValueRange)
+void VolumeDataLayout::setActualValueRange(int32_t actualValueRangeChannel, Range<float> const& actualValueRange)
 {
   m_actualValueRangeChannel = actualValueRangeChannel;
   m_actualValueRange = actualValueRange;
 }
 
 
-void VolumeDataLayout::CreateRenderLayers(DimensionGroup dimensionGroup, int32_t nBrickSize, int32_t nPhysicalLODLevels)
+void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLodLevels)
 {
-  assert(nPhysicalLODLevels > 0);
+  assert(physicalLodLevels > 0);
 
-  int32_t nChannels = GetChannelCount();
+  int32_t channels = getChannelCount();
 
-  IndexArray brickSize;
+  IndexArray brickSizeArray;
 
   static IndexArray null;
 
-  VolumeDataLayer **lowerLOD = (VolumeDataLayer **)alloca(nChannels * sizeof(VolumeDataLayer*));
+  VolumeDataLayer **lowerLod = (VolumeDataLayer **)alloca(channels * sizeof(VolumeDataLayer*));
 
-  memset(lowerLOD, 0, nChannels * sizeof(VolumeDataLayer*));
+  memset(lowerLod, 0, channels * sizeof(VolumeDataLayer*));
 
-  bool isCreateMoreLODs = true;
+  bool isCreateMoreLods = true;
 
-  for(int32_t iLOD = 0; isCreateMoreLODs; iLOD++)
+  for(int32_t lod = 0; isCreateMoreLods; lod++)
   {
-    isCreateMoreLODs = (iLOD < nPhysicalLODLevels - 1); // Always create all physical LODs even if we get only one cube before the top level;
+    isCreateMoreLods = (lod < physicalLodLevels - 1); // Always create all physical lods even if we get only one cube before the top level;
 
-    for(int32_t iDimension = 0; iDimension < array_size(brickSize); iDimension++)
+    for(int32_t dimension = 0; dimension < array_size(brickSizeArray); dimension++)
     {
-      brickSize[iDimension] = DimensionGroupUtil::IsDimensionInGroup(dimensionGroup, iDimension) ? (nBrickSize << (iDimension != m_fullResolutionDimension ? iLOD : 0)) : 1;
+      brickSizeArray[dimension] = DimensionGroupUtil::isDimensionInGroup(dimensionGroup, dimension) ? (brickSize << (dimension != m_fullResolutionDimension ? lod : 0)) : 1;
     }
 
-    VolumeDataPartition primaryPartition(iLOD, dimensionGroup, null, m_dimensionNumSamples, brickSize, null, null, BorderMode::None, null, null, m_negativeRenderMargin, m_positiveRenderMargin, m_fullResolutionDimension);
+    VolumeDataPartition primaryPartition(lod, dimensionGroup, null, m_dimensionNumSamples, brickSizeArray, null, null, BorderMode::None, null, null, m_negativeRenderMargin, m_positiveRenderMargin, m_fullResolutionDimension);
 
     VolumeDataLayer *primaryChannelLayer = NULL;
 
-    for(int32_t iChannel = 0; iChannel < nChannels; iChannel++)
+    for(int32_t channel = 0; channel < channels; channel++)
     {
-      if(iLOD > 0 && !IsChannelRenderable(iChannel))
+      if(lod > 0 && !isChannelRenderable(channel))
       {
         continue;
       }
 
-      VolumeDataLayer::LayerType layerType = (iLOD < nPhysicalLODLevels) ? VolumeDataLayer::Renderable : VolumeDataLayer::Virtual;
+      VolumeDataLayer::LayerType layerType = (lod < physicalLodLevels) ? VolumeDataLayer::Renderable : VolumeDataLayer::Virtual;
 
-      if(!IsChannelRenderable(iChannel))
+      if(!isChannelRenderable(channel))
       {
-        assert(iChannel != 0);
+        assert(channel != 0);
         layerType = VolumeDataLayer::Auxiliary;
       }
 
-      VolumeDataChannelMapping const *volumeDataChannelMapping = nullptr;// = GetVolumeDataChannelMapping(iChannel);
+      VolumeDataChannelMapping const *volumeDataChannelMapping = nullptr;// = GetVolumeDataChannelMapping(channel);
 
-      VolumeDataLayer *volumeDataLayer = new VolumeDataLayer(VolumeDataPartition::StaticMapPartition(primaryPartition, volumeDataChannelMapping, GetMappedValueCount(iChannel)),
-                                                            this, iChannel,primaryChannelLayer, lowerLOD[iChannel], layerType, volumeDataChannelMapping);
+      VolumeDataLayer *volumeDataLayer = new VolumeDataLayer(VolumeDataPartition::staticMapPartition(primaryPartition, volumeDataChannelMapping, getMappedValueCount(channel)),
+                                                            this, channel,primaryChannelLayer, lowerLod[channel], layerType, volumeDataChannelMapping);
 
-      if(iChannel == 0)
+      if(channel == 0)
       {
         primaryChannelLayer = volumeDataLayer;
       }
 
-      assert(volumeDataLayer->GetLOD() == iLOD);
+      assert(volumeDataLayer->getLod() == lod);
 
-      lowerLOD[iChannel] = volumeDataLayer;
+      lowerLod[channel] = volumeDataLayer;
 
-      for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
+      for(int32_t dimension = 0; dimension < Dimensionality_Max; dimension++)
       {
-        if(volumeDataLayer->IsDimensionChunked(iDimension) && volumeDataLayer->GetNumChunksInDimension(iDimension) > 1 && iDimension != m_fullResolutionDimension)
+        if(volumeDataLayer->isDimensionChunked(dimension) && volumeDataLayer->getNumChunksInDimension(dimension) > 1 && dimension != m_fullResolutionDimension)
         {
-          isCreateMoreLODs = true;
+          isCreateMoreLods = true;
           break;
         }
       }
     }
 
     m_primaryTopLayers[dimensionGroup] = primaryChannelLayer;
-    if(iLOD == 0)
+    if(lod == 0)
     {
       m_primaryBaseLayers[dimensionGroup] = primaryChannelLayer;
     }
 
     //// Default physical layers to NEVER_REMAP
-    //if(iLOD < nPhysicalLODLevels) _apcPrimaryTopLayers[eDimensionGroup]->SetProduceMethod(VolumeDataLayer_c::NEVER_REMAP, 0);
-    if(iLOD < nPhysicalLODLevels) m_primaryTopLayers[dimensionGroup]->SetProduceStatus(VolumeDataLayer::ProduceStatusNormal);
+    //if(lod < physicalLodLevels) _apcPrimaryTopLayers[eDimensionGroup]->SetProduceMethod(VolumeDataLayer_c::NEVER_REMAP, 0);
+    if(lod < physicalLodLevels) m_primaryTopLayers[dimensionGroup]->setProduceStatus(VolumeDataLayer::ProduceStatusNormal);
   }
 }
 

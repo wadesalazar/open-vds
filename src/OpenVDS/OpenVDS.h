@@ -38,8 +38,8 @@ struct Error
 };
 
 struct VDSHandle;
-OPENVDS_EXPORT VDSHandle* Open(const OpenOptions& options, Error &error);
-OPENVDS_EXPORT void Destroy(VDSHandle *handle);
+OPENVDS_EXPORT VDSHandle* open(const OpenOptions& options, Error &error);
+OPENVDS_EXPORT void destroy(VDSHandle *handle);
 }
 
 #endif //OPENVDS_H

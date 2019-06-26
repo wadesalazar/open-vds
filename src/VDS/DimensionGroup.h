@@ -122,9 +122,9 @@ struct NDPos
 {
   NDPos()
   {
-    Clear();
+    clear();
   }
-  void Clear()
+  void clear()
   {
     memset(data, 0, sizeof data);
   }
@@ -133,30 +133,30 @@ struct NDPos
 
 namespace DimensionGroupUtil
 {
-  bool       IsDimensionInGroup(DimensionGroup eDimensionGroup, int32_t iDimension);
+  bool       isDimensionInGroup(DimensionGroup dimensionGroup, int32_t dimension);
 
-  int32_t    GetDimensionality(DimensionGroup eDimensionGroup);
+  int32_t    getDimensionality(DimensionGroup dimensionGroup);
 
-  int32_t    GetDimension(DimensionGroup eDimensionGroup, int32_t iIndexInGroup);
+  int32_t    getDimension(DimensionGroup dimensionGroup, int32_t indexInGroup);
 
-  DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0);
-  DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimension1);
-  DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimension1, int iDimension2);
-  DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimension1, int iDimension2, int iDimension3);
-  DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimension1, int iDimension2, int iDimension3, int iDimension4);
-  DimensionGroup GetDimensionGroupFromDimensionIndices(int iDimension0, int iDimension1, int iDimension2, int iDimension3, int iDimension4, int iDimension5);
+  DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0);
+  DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0, int dimension1);
+  DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0, int dimension1, int dimension2);
+  DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0, int dimension1, int dimension2, int dimension3);
+  DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0, int dimension1, int dimension2, int dimension3, int dimension4);
+  DimensionGroup getDimensionGroupFromDimensionIndices(int dimension0, int dimension1, int dimension2, int dimension3, int dimension4, int dimension5);
 
-  DimensionGroup GetDimensionGroupFromDimensionsND(DimensionsND eDimensionsND);
+  DimensionGroup getDimensionGroupFromDimensionsND(DimensionsND dimensionsND);
 
-  DimensionsND GetDimensionsNDFromDimensionGroup(DimensionGroup eDimensionGroup);
+  DimensionsND getDimensionsNDFromDimensionGroup(DimensionGroup dimensionGroup);
 
-  const char *GetDimensionGroupShortName(DimensionGroup eDimensionGroup);
+  const char *getDimensionGroupShortName(DimensionGroup dimensionGroup);
 
-  const char *GetDimensionGroupName(DimensionGroup eDimensionGroup);
+  const char *getDimensionGroupName(DimensionGroup dimensionGroup);
 
-  bool IsRemappingPossible(DimensionGroup eDimensionGroupA, DimensionGroup eDimensionGroupB);
+  bool isRemappingPossible(DimensionGroup dimensionGroupA, DimensionGroup dimensionGroupB);
 
-  DimensionGroup Union(DimensionGroup eDimensionGroupA, DimensionGroup eDimensionGroupB);
+  DimensionGroup unionGroups(DimensionGroup dimensionGroupA, DimensionGroup dimensionGroupB);
 }
 }
 #endif

@@ -62,26 +62,26 @@ public:
 
 
 private:
-  Format format;
-  Components components;
-  const char *pName;
-  const char *pUnit;
-  Range<float> valueRange;
+  Format m_format;
+  Components m_components;
+  const char *m_name;
+  const char *m_unit;
+  Range<float> m_valueRange;
 
-  VolumeDataMapping mapping;
-  int         mappedValueCount;
+  VolumeDataMapping m_mapping;
+  int         m_mappedValueCount;
 
-  Flags       flags;
+  Flags       m_flags;
 
-  bool        useNoValue;
-  float       noValue;
+  bool        m_useNoValue;
+  float       m_noValue;
 
-  float       integerScale;
-  float       integerOffset;
+  float       m_integerScale;
+  float       m_integerOffset;
 
 public:
   VolumeDataChannelDescriptor()
-    : format(FormatAny), components(Components_1), pName(nullptr), pUnit(nullptr), valueRange({0.0f,0.0f}), mapping(VolumeDataMapping::Direct), mappedValueCount(1), flags(Default), useNoValue(false), noValue(0.0f), integerScale(1.0f), integerOffset(0.0f) {}
+    : m_format(FormatAny), m_components(Components_1), m_name(nullptr), m_unit(nullptr), m_valueRange({0.0f,0.0f}), m_mapping(VolumeDataMapping::Direct), m_mappedValueCount(1), m_flags(Default), m_useNoValue(false), m_noValue(0.0f), m_integerScale(1.0f), m_integerOffset(0.0f) {}
 
   /// The minimum constructor for a VolumeDataChannelDescriptor. This will use direct mapping, default flags, and no No Value
   /// \param format the data format for this channel
@@ -91,7 +91,7 @@ public:
   /// \param valueRangeMin the value range minimum of this channel
   /// \param valueRangeMax the value range maximum of this channel
   VolumeDataChannelDescriptor(Format format, Components components, const char *pName, const char *pUnit, float valueRangeMin, float valueRangeMax)
-    : format(format), components(components), pName(pName), pUnit(pUnit), valueRange({valueRangeMin, valueRangeMax}), mapping(VolumeDataMapping::Direct), mappedValueCount(1), flags(Default), useNoValue(false), noValue(0.0f), integerScale(1.0f), integerOffset(0.0f) {}
+    : m_format(format), m_components(components), m_name(pName), m_unit(pUnit), m_valueRange({valueRangeMin, valueRangeMax}), m_mapping(VolumeDataMapping::Direct), m_mappedValueCount(1), m_flags(Default), m_useNoValue(false), m_noValue(0.0f), m_integerScale(1.0f), m_integerOffset(0.0f) {}
 
   /// \param format the data format for this channel
   /// \param components the vector count for this channel
@@ -101,7 +101,7 @@ public:
   /// \param valueRangeMax the value range maximum of this channel
   /// \param mapping the mapping for this channel
   VolumeDataChannelDescriptor(Format format, Components components, const char *pName, const char *pUnit, float valueRangeMin, float valueRangeMax, enum VolumeDataMapping mapping)
-    : format(format), components(components), pName(pName), pUnit(pUnit), valueRange({valueRangeMin, valueRangeMax}), mapping(mapping), mappedValueCount(1), flags(Default), useNoValue(false), noValue(0.0f), integerScale(1.0f), integerOffset(0.0f) {}
+    : m_format(format), m_components(components), m_name(pName), m_unit(pUnit), m_valueRange({valueRangeMin, valueRangeMax}), m_mapping(mapping), m_mappedValueCount(1), m_flags(Default), m_useNoValue(false), m_noValue(0.0f), m_integerScale(1.0f), m_integerOffset(0.0f) {}
 
   /// \param format the data format for this channel
   /// \param components the vector count for this channel
@@ -111,7 +111,7 @@ public:
   /// \param valueRangeMax the value range maximum of this channel
   /// \param flags the flags for this channel
   VolumeDataChannelDescriptor(Format format, Components components, const char *pName, const char *pUnit, float valueRangeMin, float valueRangeMax, enum Flags flags)
-    : format(format), components(components), pName(pName), pUnit(pUnit), valueRange({valueRangeMin, valueRangeMax}), mapping(VolumeDataMapping::Direct), mappedValueCount(1), flags(flags), useNoValue(false), noValue(0.0f), integerScale(1.0f), integerOffset(0.0f) {}
+    : m_format(format), m_components(components), m_name(pName), m_unit(pUnit), m_valueRange({valueRangeMin, valueRangeMax}), m_mapping(VolumeDataMapping::Direct), m_mappedValueCount(1), m_flags(flags), m_useNoValue(false), m_noValue(0.0f), m_integerScale(1.0f), m_integerOffset(0.0f) {}
 
   /// \param format the data format for this channel
   /// \param components the vector count for this channel
@@ -122,7 +122,7 @@ public:
   /// \param mapping the mapping for this channel
   /// \param flags the flags for this channel
   VolumeDataChannelDescriptor(Format format, Components components, const char *pName, const char *pUnit, float valueRangeMin, float valueRangeMax, enum VolumeDataMapping mapping, enum Flags flags)
-    : format(format), components(components), pName(pName), pUnit(pUnit), valueRange({valueRangeMin, valueRangeMax}), mapping(mapping), mappedValueCount(1), flags(flags), useNoValue(false), noValue(0.0f), integerScale(1.0f), integerOffset(0.0f) {}
+    : m_format(format), m_components(components), m_name(pName), m_unit(pUnit), m_valueRange({valueRangeMin, valueRangeMax}), m_mapping(mapping), m_mappedValueCount(1), m_flags(flags), m_useNoValue(false), m_noValue(0.0f), m_integerScale(1.0f), m_integerOffset(0.0f) {}
 
   /// \param format the data format for this channel
   /// \param components the vector count for this channel
@@ -136,7 +136,7 @@ public:
   /// \param integerScale the scale to use for integer types
   /// \param integerOffset the offset to use for integer types
   VolumeDataChannelDescriptor(Format format, Components components, const char *pName, const char *pUnit, float valueRangeMin, float valueRangeMax, enum VolumeDataMapping mapping, int mappedValueCount, enum Flags flags, float integerScale, float integerOffset)
-    : format(format), components(components), pName(pName), pUnit(pUnit), valueRange({valueRangeMin, valueRangeMax}), mapping(mapping), mappedValueCount(mappedValueCount), flags(flags), useNoValue(false), noValue(0.0f), integerScale(integerScale), integerOffset(integerOffset) {}
+    : m_format(format), m_components(components), m_name(pName), m_unit(pUnit), m_valueRange({valueRangeMin, valueRangeMax}), m_mapping(mapping), m_mappedValueCount(mappedValueCount), m_flags(flags), m_useNoValue(false), m_noValue(0.0f), m_integerScale(integerScale), m_integerOffset(integerOffset) {}
 
   /// \param format the data format for this channel
   /// \param components the vector count for this channel
@@ -146,7 +146,7 @@ public:
   /// \param valueRangeMax the value range maximum of this channel
   /// \param noValue the No Value for this channel
   VolumeDataChannelDescriptor(Format format, Components components, const char *pName, const char *pUnit, float valueRangeMin, float valueRangeMax, float noValue)
-    : format(format), components(components), pName(pName), pUnit(pUnit), valueRange({valueRangeMin, valueRangeMax}), mapping(VolumeDataMapping::Direct), mappedValueCount(1), flags(Default), useNoValue(true), noValue(noValue), integerScale(1.0f), integerOffset(0.0f) {}
+    : m_format(format), m_components(components), m_name(pName), m_unit(pUnit), m_valueRange({valueRangeMin, valueRangeMax}), m_mapping(VolumeDataMapping::Direct), m_mappedValueCount(1), m_flags(Default), m_useNoValue(true), m_noValue(noValue), m_integerScale(1.0f), m_integerOffset(0.0f) {}
 
   /// \param format the data format for this channel
   /// \param components the vector count for this channel
@@ -158,7 +158,7 @@ public:
   /// \param mapping the mapping for this channel
   /// \param flags the flags for this channel
   VolumeDataChannelDescriptor(Format format, Components components, const char *pName, const char *pUnit, float valueRangeMin, float valueRangeMax, float noValue, enum VolumeDataMapping mapping, enum Flags flags)
-    : format(format), components(components), pName(pName), pUnit(pUnit), valueRange({valueRangeMin, valueRangeMax}), mapping(mapping), mappedValueCount(1), flags(flags), useNoValue(true), noValue(noValue), integerScale(1.0f), integerOffset(0.0f) {}
+    : m_format(format), m_components(components), m_name(pName), m_unit(pUnit), m_valueRange({valueRangeMin, valueRangeMax}), m_mapping(mapping), m_mappedValueCount(1), m_flags(flags), m_useNoValue(true), m_noValue(noValue), m_integerScale(1.0f), m_integerOffset(0.0f) {}
   
   /// \param format the data format for this channel
   /// \param components the vector count for this channel
@@ -173,28 +173,28 @@ public:
   /// \param integerScale the scale to use for integer types
   /// \param integerOffset the offset to use for integer types
   VolumeDataChannelDescriptor(Format format, Components components, const char *pName, const char *pUnit, float valueRangeMin, float valueRangeMax, enum VolumeDataMapping mapping, int mappedValueCount, enum Flags flags, float noValue, float integerScale, float integerOffset)
-    : format(format), components(components), pName(pName), pUnit(pUnit), valueRange({valueRangeMin, valueRangeMax}), mapping(mapping), mappedValueCount(mappedValueCount), flags(flags), useNoValue(true), noValue(noValue), integerScale(integerScale), integerOffset(integerOffset) {}
+    : m_format(format), m_components(components), m_name(pName), m_unit(pUnit), m_valueRange({valueRangeMin, valueRangeMax}), m_mapping(mapping), m_mappedValueCount(mappedValueCount), m_flags(flags), m_useNoValue(true), m_noValue(noValue), m_integerScale(integerScale), m_integerOffset(integerOffset) {}
 
-  Format      GetFormat()                       const { return format; }
-  Components  GetComponents()                   const { return components; }
-  bool        IsDiscrete()                      const { return (flags & DiscreteData) || format == Format1Bit; }
-  bool        IsRenderable()                    const { return !(flags & NotRenderable); }
-  bool        IsAllowLossyCompression()         const { return !(flags & NoLossyCompression) && !IsDiscrete(); }
-  bool        IsUseZipForLosslessCompression()  const { return (flags & NoLossyCompressionUseZip) == NoLossyCompressionUseZip; }
-  const char *GetName()                   const { return pName; }
-  const char *GetUnit()                   const { return pUnit; }
-  const Range<float> &GetValueRange()           const { return valueRange; }
-  float       GetValueRangeMin()                const { return valueRange.min; }
-  float       GetValueRangeMax()                const { return valueRange.max; }
+  Format      getFormat()                       const { return m_format; }
+  Components  getComponents()                   const { return m_components; }
+  bool        isDiscrete()                      const { return (m_flags & DiscreteData) || m_format == Format1Bit; }
+  bool        isRenderable()                    const { return !(m_flags & NotRenderable); }
+  bool        isAllowLossyCompression()         const { return !(m_flags & NoLossyCompression) && !isDiscrete(); }
+  bool        isUseZipForLosslessCompression()  const { return (m_flags & NoLossyCompressionUseZip) == NoLossyCompressionUseZip; }
+  const char *getName()                   const { return m_name; }
+  const char *getUnit()                   const { return m_unit; }
+  const Range<float> &getValueRange()           const { return m_valueRange; }
+  float       getValueRangeMin()                const { return m_valueRange.min; }
+  float       getValueRangeMax()                const { return m_valueRange.max; }
 
-  VolumeDataMapping GetMapping()                      const { return mapping; }
-  int         GetMappedValueCount()             const { return mappedValueCount; }
+  VolumeDataMapping getMapping()                      const { return m_mapping; }
+  int         getMappedValueCount()             const { return m_mappedValueCount; }
 
-  bool        IsUseNoValue()                    const { return useNoValue; }
-  float       GetNoValue()                      const { return noValue; }
+  bool        isUseNoValue()                    const { return m_useNoValue; }
+  float       getNoValue()                      const { return m_noValue; }
 
-  float       GetIntegerScale()                 const { return integerScale; }
-  float       GetIntegerOffset()                const { return integerOffset; }
+  float       getIntegerScale()                 const { return m_integerScale; }
+  float       getIntegerOffset()                const { return m_integerOffset; }
 
   /// Named constructor for a trace mapped channel
   /// \param format the data format for this channel

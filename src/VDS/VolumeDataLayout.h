@@ -59,7 +59,7 @@ private:
 public:
   VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescriptor,
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
-                   const std::vector<VolumeDataChannelDescriptor> const &volumeDataChannelDescriptor,
+                   const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
                    int32_t actualValueRangeChannel, 
                    Range<float> const &actualValueRange, 
                    VolumeDataHash const &volumeDataHash, 
@@ -68,97 +68,94 @@ public:
                    bool isZipLosslessChannels, 
                    int32_t waveletAdaptiveLoadLevel);
 
-  uint64_t GetContentsHash() const { return m_contentsHash; }
-  VolumeDataLayer::VolumeDataLayerID AddDataLayer(VolumeDataLayer *layer);
+  uint64_t getContentsHash() const { return m_contentsHash; }
+  VolumeDataLayer::VolumeDataLayerID addDataLayer(VolumeDataLayer *layer);
 
-  Range<float> const &GetChannelValueRange(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].GetValueRange(); }
+  Range<float> const &getChannelValueRange(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getValueRange(); }
 
-  Range<float> const &GetChannelActualValueRange(int32_t iChannel) const;
+  Range<float> const &getChannelActualValueRange(int32_t channel) const;
 
   //TODO SHOULD THIS BE REMOVED
-  int32_t           GetMappedValueCount(int32_t iChannel) const;
+  int32_t getMappedValueCount(int32_t channel) const;
 
-  Range<float> const &GetDimensionRange(int32_t iDimension) const;
+  Range<float> const &getDimensionRange(int32_t dimension) const;
 
-  VolumeDataLayer *GetVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const; 
-  VolumeDataLayer *GetVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayout *>(this)->GetVolumeDataLayerFromID(volumeDataLayerID)); }
+  VolumeDataLayer *getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const; 
+  VolumeDataLayer *getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayout *>(this)->getVolumeDataLayerFromID(volumeDataLayerID)); }
 
-  VolumeDataLayer *GetTopLayer(DimensionGroup dimensionGroup, int32_t iChannel) const;
-  VolumeDataLayer *GetTopLayer(DimensionGroup dimensionGroup, int32_t iChannel) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayout *>(this)->GetTopLayer(dimensionGroup, iChannel)); }
+  VolumeDataLayer *getTopLayer(DimensionGroup dimensionGroup, int32_t channel) const;
+  VolumeDataLayer *getTopLayer(DimensionGroup dimensionGroup, int32_t channel) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayout *>(this)->getTopLayer(dimensionGroup, channel)); }
 
-  VolumeDataLayer *GetBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const;
-  VolumeDataLayer *GetBaseLayer(DimensionGroup dimensionGroup, int32_t iChannel) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayout *>(this)->GetBaseLayer(dimensionGroup, iChannel)); }
+  VolumeDataLayer *getBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const;
+  VolumeDataLayer *getBaseLayer(DimensionGroup dimensionGroup, int32_t channel) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayout *>(this)->getBaseLayer(dimensionGroup, channel)); }
 
-  int32_t           GetBaseBrickSize() const { return m_baseBrickSize; }
-  int32_t           GetLayoutDimensionNumSamples(int32_t iDimension) const { assert(iDimension >= 0 && iDimension < Dimensionality_Max); return m_dimensionNumSamples[iDimension]; }
-  int32_t           GetLayerCount() const { return int32_t(m_volumeDataLayers.size()); }
+  int32_t getBaseBrickSize() const { return m_baseBrickSize; }
+  int32_t getLayoutDimensionNumSamples(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_dimensionNumSamples[dimension]; }
+  int32_t getLayerCount() const { return int32_t(m_volumeDataLayers.size()); }
 
-  bool          IsReadOnly() const { return m_isReadOnly; }
-  CompressionMethod GetCompressionMethod() const { return m_compressionMethod; }
-  float GetCompressionTolerance() const { return m_compressionTolerance; }
+  bool isReadOnly() const { return m_isReadOnly; }
+  CompressionMethod getCompressionMethod() const { return m_compressionMethod; }
+  float getCompressionTolerance() const { return m_compressionTolerance; }
   bool isZipLosslessChannels() const { return m_isZipLosslessChannels; }
-  int32_t GetWaveletAdaptiveLoadLevel() const { return m_waveletAdaptiveLoadLevel; }
+  int32_t getWaveletAdaptiveLoadLevel() const { return m_waveletAdaptiveLoadLevel; }
 
-  const VolumeDataChannelDescriptor &GetVolumeDataChannelDescriptor(int32_t iChannel) const { return m_volumeDataChannelDescriptor[iChannel]; }
+  const VolumeDataChannelDescriptor &getVolumeDataChannelDescriptor(int32_t channel) const { return m_volumeDataChannelDescriptor[channel]; }
 
   //REMOVE VIRTUAL?
 //  // Implementation of VolumeDataLayout interface
-  virtual int32_t GetChannelCount() const { return int32_t(m_volumeDataChannelDescriptor.size()); }
-  virtual bool IsChannelAvailable(const std::string &channelName) const;
-  virtual int32_t GetChannelIndex(const std::string &channelName) const;
-  virtual VolumeDataChannelDescriptor GetChannelDescriptor(int32_t iChannel) const;
-  virtual int32_t GetDimensionality() const { return m_dimensionality; }
+  virtual int32_t getChannelCount() const { return int32_t(m_volumeDataChannelDescriptor.size()); }
+  virtual bool isChannelAvailable(const std::string &channelName) const;
+  virtual int32_t getChannelIndex(const std::string &channelName) const;
+  virtual VolumeDataChannelDescriptor getChannelDescriptor(int32_t channel) const;
+  virtual int32_t getDimensionality() const { return m_dimensionality; }
 
-  virtual VolumeDataAxisDescriptor GetAxisDescriptor(int32_t iDimension) const;
+  virtual VolumeDataAxisDescriptor getAxisDescriptor(int32_t dimension) const;
 
 //  // These convenience functions provide access to the individual elements of the value descriptor
-  virtual VolumeDataChannelDescriptor::Format GetChannelFormat(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].GetFormat(); }
+  virtual VolumeDataChannelDescriptor::Format getChannelFormat(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getFormat(); }
 
-  virtual VolumeDataChannelDescriptor::Components GetChannelComponents(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].GetComponents(); }
+  virtual VolumeDataChannelDescriptor::Components getChannelComponents(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getComponents(); }
 
-  virtual const std::string &GetChannelName(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].GetName(); }
+  virtual const std::string &getChannelName(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getName(); }
 
-  virtual float GetChannelValueRangeMin(int32_t iChannel) const { return GetChannelValueRange(iChannel).min; }
-  virtual float GetChannelValueRangeMax(int32_t iChannel) const { return GetChannelValueRange(iChannel).max; }
+  virtual float getChannelValueRangeMin(int32_t channel) const { return getChannelValueRange(channel).min; }
+  virtual float getChannelValueRangeMax(int32_t channel) const { return getChannelValueRange(channel).max; }
 
-  virtual const std::string &GetChannelUnit(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].GetUnit(); }
+  virtual const std::string &getChannelUnit(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getUnit(); }
 
-  virtual bool  IsChannelDiscrete(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].IsDiscrete(); }
-
-  virtual bool  IsChannelRenderable(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].IsRenderable(); }
-
-  virtual bool  IsChannelAllowingLossyCompression(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].IsAllowLossyCompression(); }
-
-  virtual bool  IsChannelUseZipForLosslessCompression(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].IsUseZipForLosslessCompression(); }
+  virtual bool isChannelDiscrete(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isDiscrete(); }
+  virtual bool isChannelRenderable(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isRenderable(); }
+  virtual bool isChannelAllowingLossyCompression(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isAllowLossyCompression(); }
+  virtual bool isChannelUseZipForLosslessCompression(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isUseZipForLosslessCompression(); }
 
   // REMOVE ?
-  virtual VolumeDataMapping GetChannelMapping(int32_t iChannel) const;
+  virtual VolumeDataMapping getChannelMapping(int32_t channel) const;
 
 // These convenience functions provide access to the individual elements of the axis descriptors
-  virtual int   GetDimensionNumSamples(int32_t iDimension) const;
+  virtual int getDimensionNumSamples(int32_t dimension) const;
 
-  virtual const std::string &GetDimensionName(int32_t iDimension) const;
+  virtual const std::string &GetDimensionName(int32_t dimension) const;
 
-  virtual const std::string &GetDimensionUnit(int32_t iDimension) const;
+  virtual const std::string &GetDimensionUnit(int32_t dimension) const;
 
-  virtual float GetDimensionMin(int32_t iDimension) const { return GetDimensionRange(iDimension).min; }
-  virtual float GetDimensionMax(int32_t iDimension) const { return GetDimensionRange(iDimension).max; }
+  virtual float getDimensionMin(int32_t dimension) const { return getDimensionRange(dimension).min; }
+  virtual float getDimensionMax(int32_t dimension) const { return getDimensionRange(dimension).max; }
 
-  virtual bool  IsChannelUseNoValue(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].IsUseNoValue(); }
+  virtual bool  isChannelUseNoValue(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isUseNoValue(); }
 
-  virtual float GetChannelNoValue(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].GetNoValue(); }
+  virtual float getChannelNoValue(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getNoValue(); }
 
-  virtual float GetChannelIntegerScale(int32_t iChannel) const  { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].GetIntegerScale(); }
-  virtual float GetChannelIntegerOffset(int32_t iChannel) const { assert(iChannel >= 0 && iChannel < GetChannelCount()); return m_volumeDataChannelDescriptor[iChannel].GetIntegerOffset(); }
+  virtual float getChannelIntegerScale(int32_t channel) const  { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getIntegerScale(); }
+  virtual float getChannelIntegerOffset(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getIntegerOffset(); }
 
 // Mutators
-  void          SetContentsHash(VolumeDataHash const &contentsHash);
-  void          SetActualValueRange(int32_t actualValueRangeChannel, Range<float> const &actualValueRange); // This should probably be implemented with VDSMetadata
+  void setContentsHash(VolumeDataHash const &contentsHash);
+  void setActualValueRange(int32_t actualValueRangeChannel, Range<float> const &actualValueRange); // This should probably be implemented with VDSMetadata
 
-  void          CreateRenderLayers(DimensionGroup dimensions, int32_t nBrickSize, int32_t nPhysicalLODLevels); //-> TODO: rename at some point
+  void createRenderLayers(DimensionGroup dimensions, int32_t brickSize, int32_t physicalLodLevels); //-> TODO: rename at some point
 
-  bool          IsDimensionLODDecimated(int32_t iDimension) const { return iDimension != m_fullResolutionDimension; }
-  int32_t       GetFullResolutionDimension() const { return m_fullResolutionDimension; }
+  bool isDimensionLodDecimated(int32_t dimension) const { return dimension != m_fullResolutionDimension; }
+  int32_t getFullResolutionDimension() const { return m_fullResolutionDimension; }
 };
 }
 #endif //VOLUMEDATALAYOUT_H
