@@ -15,11 +15,13 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#include "IO/File.h"
 #include "SEGYFileInfo.h"
 #include "cxxopts.hpp"
 
 #include <cstdlib>
 #include <json/json.h>
+#include <assert.h>
 
 Json::Value
 serializeSEGYBinInfo(SEGYBinInfo const &binInfo)
@@ -52,11 +54,29 @@ serializeSEGYSegmentInfo(SEGYSegmentInfo const &segmentInfo)
   return jsonSegmentInfo;
 }
 
+std::string
+to_string(SEGY::Endianness endiannness)
+{
+  switch(endiannness)
+  {
+  case SEGY::Endianness::BigEndian:    return "BigEndian";
+  case SEGY::Endianness::LittleEndian: return "LittleEndian";
+  default:
+    assert(0); return "";
+  }
+}
+
 Json::Value
 serializeSEGYFileInfo(SEGYFileInfo const &fileInfo)
 {
   Json::Value
     jsonFileInfo;
+
+  jsonFileInfo["headerEndianness"]     = to_string(fileInfo.m_headerEndianness);
+  jsonFileInfo["dataSampleFormatCode"] = (int)fileInfo.m_dataSampleFormatCode;
+  jsonFileInfo["sampleCount"]          = fileInfo.m_sampleCount;
+  jsonFileInfo["sampleInterval"]       = fileInfo.m_sampleIntervalMilliseconds;
+  jsonFileInfo["traceCount"]           = fileInfo.m_traceCount;
 
   Json::Value
     jsonSegmentInfoArray(Json::ValueType::arrayValue);
@@ -71,7 +91,7 @@ serializeSEGYFileInfo(SEGYFileInfo const &fileInfo)
   return jsonFileInfo;
 }
 
-std::map<std::string, HeaderField>
+std::map<std::string, SEGY::HeaderField>
 g_traceHeaderFields = 
 {
   { "TraceSequenceNumber"          , SEGY::TraceHeader::TraceSequenceNumberHeaderField },
@@ -130,7 +150,7 @@ resolveAlias(std::string &fieldName)
   }
 }
 
-Endianness
+SEGY::Endianness
 endiannessFromJson(Json::Value const &jsonEndianness)
 {
   std::string
@@ -138,17 +158,17 @@ endiannessFromJson(Json::Value const &jsonEndianness)
 
   if(endiannessString == "BigEndian")
   {
-    return Endianness::BigEndian;
+    return SEGY::Endianness::BigEndian;
   }
   else if(endiannessString == "LittleEndian")
   {
-    return Endianness::LittleEndian;
+    return SEGY::Endianness::LittleEndian;
   }
 
   throw Json::Exception("Illegal endianness");
 }
 
-FieldWidth
+SEGY::FieldWidth
 fieldWidthFromJson(Json::Value const &jsonFieldWidth)
 {
   std::string
@@ -156,35 +176,35 @@ fieldWidthFromJson(Json::Value const &jsonFieldWidth)
 
   if(fieldWidthString == "TwoByte")
   {
-    return FieldWidth::TwoByte;
+    return SEGY::FieldWidth::TwoByte;
   }
   else if(fieldWidthString == "FourByte")
   {
-    return FieldWidth::FourByte;
+    return SEGY::FieldWidth::FourByte;
   }
 
   throw Json::Exception("Illegal field width");
 }
 
-HeaderField
+SEGY::HeaderField
 headerFieldFromJson(Json::Value const &jsonHeaderField)
 {
   int
     bytePosition = jsonHeaderField[0].asInt();
 
-  FieldWidth
+  SEGY::FieldWidth
     fieldWidth = fieldWidthFromJson(jsonHeaderField[1]);
 
-  if(bytePosition < 1 || bytePosition > SEGY::TraceHeaderSize - ((fieldWidth == FieldWidth::TwoByte) ? 2 : 4))
+  if(bytePosition < 1 || bytePosition > SEGY::TraceHeaderSize - ((fieldWidth == SEGY::FieldWidth::TwoByte) ? 2 : 4))
   {
     throw Json::Exception(std::string("Illegal field definition: ") + jsonHeaderField.toStyledString());
   }
 
-  return HeaderField(bytePosition, fieldWidth);
+  return SEGY::HeaderField(bytePosition, fieldWidth);
 }
 
 bool
-parseHeaderFormatFile(OpenVDS::File const &file, std::map<std::string, HeaderField> &traceHeaderFields, Endianness &headerEndianness)
+parseHeaderFormatFile(OpenVDS::File const &file, std::map<std::string, SEGY::HeaderField> &traceHeaderFields, SEGY::Endianness &headerEndianness)
 {
   OpenVDS::IOError error;
 
@@ -306,7 +326,7 @@ main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  Endianness headerEndianness = (littleEndian ? Endianness::LittleEndian : Endianness::BigEndian);
+  SEGY::Endianness headerEndianness = (littleEndian ? SEGY::Endianness::LittleEndian : SEGY::Endianness::BigEndian);
 
   if(!headerFormatFileName.empty())
   {
@@ -330,7 +350,7 @@ main(int argc, char *argv[])
   // get the canonical field name for the primary key
   resolveAlias(primaryKey);
 
-  HeaderField
+  SEGY::HeaderField
     primaryKeyHeaderField;
 
   if(g_traceHeaderFields.find(primaryKey) != g_traceHeaderFields.end())

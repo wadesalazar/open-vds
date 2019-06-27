@@ -23,6 +23,7 @@
 #include <cassert>
 
 using namespace OpenVDS;
+using namespace SEGY;
 
 static int
 readFieldFromHeader(const char *header, HeaderField const &headerField, Endianness endianness)
@@ -78,7 +79,7 @@ readBinInfoFromHeader(const char *header, SEGYBinInfoHeaderFields const &headerF
 
   if(headerFields.m_scaleOverride == 0.0)
   {
-    int scale = readFieldFromHeader(header, SEGY::TraceHeader::CoordinateScaleHeaderField, endianness);
+    int scale = readFieldFromHeader(header, TraceHeader::CoordinateScaleHeaderField, endianness);
     if(scale < 0)
     {
       scaleFactor = 1.0 / float(scale);
@@ -105,57 +106,57 @@ SEGYFileInfo::traceByteSize()
   {
   default:
     return false;
-  case SEGY::BinaryHeader::DataSampleFormatCode::Int8:
-  case SEGY::BinaryHeader::DataSampleFormatCode::UInt8:
+  case BinaryHeader::DataSampleFormatCode::Int8:
+  case BinaryHeader::DataSampleFormatCode::UInt8:
     formatSize = 1; break;
-  case SEGY::BinaryHeader::DataSampleFormatCode::Int16:
-  case SEGY::BinaryHeader::DataSampleFormatCode::UInt16:
+  case BinaryHeader::DataSampleFormatCode::Int16:
+  case BinaryHeader::DataSampleFormatCode::UInt16:
     formatSize = 2; break;
-  case SEGY::BinaryHeader::DataSampleFormatCode::Int24:
-  case SEGY::BinaryHeader::DataSampleFormatCode::UInt24:
+  case BinaryHeader::DataSampleFormatCode::Int24:
+  case BinaryHeader::DataSampleFormatCode::UInt24:
     formatSize = 3; break;
-  case SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat:
-  case SEGY::BinaryHeader::DataSampleFormatCode::Int32:
-  case SEGY::BinaryHeader::DataSampleFormatCode::FixedPoint:
-  case SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat:
-  case SEGY::BinaryHeader::DataSampleFormatCode::UInt32:
+  case BinaryHeader::DataSampleFormatCode::IBMFloat:
+  case BinaryHeader::DataSampleFormatCode::Int32:
+  case BinaryHeader::DataSampleFormatCode::FixedPoint:
+  case BinaryHeader::DataSampleFormatCode::IEEEFloat:
+  case BinaryHeader::DataSampleFormatCode::UInt32:
     formatSize = 4; break;
-  case SEGY::BinaryHeader::DataSampleFormatCode::IEEEDouble:
-  case SEGY::BinaryHeader::DataSampleFormatCode::Int64:
-  case SEGY::BinaryHeader::DataSampleFormatCode::UInt64:
+  case BinaryHeader::DataSampleFormatCode::IEEEDouble:
+  case BinaryHeader::DataSampleFormatCode::Int64:
+  case BinaryHeader::DataSampleFormatCode::UInt64:
     formatSize = 8; break;
   }
 
-  return SEGY::TraceHeaderSize + m_sampleCount * formatSize;
+  return TraceHeaderSize + m_sampleCount * formatSize;
 }
 
 bool
-SEGYFileInfo::readTraceHeader(OpenVDS::File const &file, int64_t trace, char (&header)[SEGY::TraceHeaderSize], OpenVDS::IOError &error)
+SEGYFileInfo::readTraceHeader(OpenVDS::File const &file, int64_t trace, char (&header)[TraceHeaderSize], OpenVDS::IOError &error)
 {
   int64_t
-    offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + trace * traceByteSize();
+    offset = TextualFileHeaderSize + BinaryFileHeaderSize + trace * traceByteSize();
 
-  return file.read(header, offset, SEGY::TraceHeaderSize, error);
+  return file.read(header, offset, TraceHeaderSize, error);
 }
 
 bool
 SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
 {
-  char textualFileHeader[SEGY::TextualFileHeaderSize];
-  char binaryFileHeader[SEGY::BinaryFileHeaderSize];
-  char traceHeader[SEGY::TraceHeaderSize];
+  char textualFileHeader[TextualFileHeaderSize];
+  char binaryFileHeader[BinaryFileHeaderSize];
+  char traceHeader[TraceHeaderSize];
 
   OpenVDS::IOError error;
 
-  file.read(textualFileHeader,                          0, SEGY::TextualFileHeaderSize, error) &&
-  file.read(binaryFileHeader, SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize,  error);
+  file.read(textualFileHeader,                          0, TextualFileHeaderSize, error) &&
+  file.read(binaryFileHeader, TextualFileHeaderSize, BinaryFileHeaderSize,  error);
 
   if(error.code != 0)
   {
     return false;
   }
 
-  m_dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(readFieldFromHeader(binaryFileHeader, SEGY::BinaryHeader::DataSampleFormatCodeHeaderField, m_headerEndianness));
+  m_dataSampleFormatCode = BinaryHeader::DataSampleFormatCode(readFieldFromHeader(binaryFileHeader, BinaryHeader::DataSampleFormatCodeHeaderField, m_headerEndianness));
 
   int64_t fileSize = file.size(error);
 
@@ -164,13 +165,21 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
     return false;
   }
 
-  m_sampleCount = readFieldFromHeader(binaryFileHeader, SEGY::BinaryHeader::NumSamplesHeaderField, m_headerEndianness);
+  m_sampleCount = readFieldFromHeader(binaryFileHeader, BinaryHeader::NumSamplesHeaderField, m_headerEndianness);
+
+  m_sampleIntervalMilliseconds = readFieldFromHeader(binaryFileHeader, BinaryHeader::SampleIntervalHeaderField, m_headerEndianness) / 1000.0;
   
   // If the sample count is not set in the binary header we try to read the first trace header and find the sample count there
   if(m_sampleCount == 0)
   {
     readTraceHeader(file, 0, traceHeader, error);
-    m_sampleCount = readFieldFromHeader(traceHeader, SEGY::TraceHeader::NumSamplesHeaderField, m_headerEndianness);
+    m_sampleCount = readFieldFromHeader(traceHeader, TraceHeader::NumSamplesHeaderField, m_headerEndianness);
+  }
+
+  if(m_sampleIntervalMilliseconds == 0.0)
+  {
+    readTraceHeader(file, 0, traceHeader, error);
+    m_sampleIntervalMilliseconds = readFieldFromHeader(traceHeader, TraceHeader::SampleIntervalHeaderField, m_headerEndianness) / 1000.0;
   }
 
   if(m_sampleCount == 0)
@@ -178,7 +187,7 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
     return false;
   }
 
-  int64_t traceDataSize = (fileSize - SEGY::TextualFileHeaderSize - SEGY::BinaryFileHeaderSize);
+  int64_t traceDataSize = (fileSize - TextualFileHeaderSize - BinaryFileHeaderSize);
 
   m_traceCount = traceDataSize / traceByteSize();
 

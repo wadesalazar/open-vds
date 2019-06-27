@@ -20,6 +20,8 @@
 
 #include <gtest/gtest.h>
 
+using namespace SEGY;
+
 TEST(SEGYScanTest, scan)
 {
   OpenVDS::File

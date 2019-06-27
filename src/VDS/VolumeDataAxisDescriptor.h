@@ -19,6 +19,7 @@
 #define VOLUMEDATAAXISDESCRIPTOR_H
 
 #include <cmath>
+#include <string>
 
 namespace OpenVDS
 {

@@ -1,21 +1,29 @@
 include (${PROJECT_SOURCE_DIR}/CMake/CopyDllForTarget.cmake)
 
-set(SOURCE_FILES
+add_executable(SEGYScan
+    SEGY.h
+    SEGY.cpp
+    SEGYFileInfo.h
     SEGYFileInfo.cpp
     SEGYScan.cpp)
 
-set(PRIVATE_HEADER_FILES
-    SEGYFileInfo.h)
-
-add_executable(SEGYScan
-    ${PRIVATE_HEADER_FILES}
-    ${SOURCE_FILES}
+add_executable(SEGYUpload
+    SEGY.h
+    SEGY.cpp
+    SEGYFileInfo.h
+  	SEGYFileInfo.cpp
+    SEGYUpload.cpp
     )
-
+	
 target_include_directories(SEGYScan PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(SEGYScan PUBLIC Threads::Threads openvds jsoncpp_lib_static)
 
 copyDllForTarget(SEGYScan)
+
+target_include_directories(SEGYUpload PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_link_libraries(SEGYUpload PUBLIC Threads::Threads openvds jsoncpp_lib_static)
+
+copyDllForTarget(SEGYUpload)
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/Dist/OpenVDS CACHE STRING "" FORCE)
@@ -25,7 +33,7 @@ if (${MSVC_TOOLSET_VERSION})
     set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION}")
 endif()
 
-install(TARGETS SEGYScan
+install(TARGETS SEGYScan SEGYUpload
     RUNTIME
         DESTINATION bin${LIB_TOOLSET_DIR}
 )
