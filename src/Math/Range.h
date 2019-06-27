@@ -33,6 +33,10 @@ T rangeSize(const Range<T> &r)
   return r.max - r.min;
 }
 
+using IntRange    = Range<int>;
+using FloatRange  = Range<float>;
+using DoubleRange = Range<double>;
+
 }
 
 #endif //RANGE_H
