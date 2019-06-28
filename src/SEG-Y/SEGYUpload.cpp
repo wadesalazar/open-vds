@@ -29,61 +29,7 @@
 #include <cstdlib>
 #include <json/json.h>
 
-template<typename T>
-void
-heapInsert(std::vector<float> heap, int heapSizeMax, float element, T predicate)
-{
-  assert(heapSizeMax > 0);
-  assert((int)heap.size() <= heapSizeMax);
-
-  int
-    heapSize = (int)heap.size();
-
-  // Grow heap until we reach heapSize
-  if(heapSize < heapSizeMax)
-  {
-    heap.push_back(element);
-
-    for(int index = heapSize; index > 0; )
-    {
-      int parent = index / 2;
-
-      if(predicate(heap[index], heap[parent]))
-      {
-        std::swap(heap[index], heap[parent]);
-        index = parent;
-      }
-      else
-      {
-        break;
-      }
-    }
-  }
-  else if(predicate(element, heap[0]))
-  {
-    heap[0] = element;
-
-    for(int index = 0; index < heapSize;)
-    {
-      int left = index * 2, right = left + 1;
-
-      if(left < heapSize && predicate(heap[left], heap[index]))
-      {
-        std::swap(heap[left], heap[index]);
-        index = left;
-      }
-      else if(right < heapSize && predicate(heap[right], heap[index]))
-      {
-        std::swap(heap[right], heap[index]);
-        index = right;
-      }
-      else
-      {
-        break;
-      }
-    }
-  }
-}
+#include <algorithm>
 
 SEGY::Endianness
 endiannessFromJson(Json::Value const &jsonEndianness)
@@ -124,6 +70,125 @@ segmentInfoFromJson(Json::Value const &jsonSegmentInfo)
   SEGYBinInfo binInfoStop  = binInfoFromJson(jsonSegmentInfo["binInfoStop"]);
 
   return SEGYSegmentInfo(primaryKey, traceStart, traceStop, binInfoStart, binInfoStop);
+}
+
+SEGYSegmentInfo const &
+findRepresentativeSegment(SEGYFileInfo const &fileInfo)
+{
+  float
+    bestScore = 0.0f;
+
+  int
+    bestIndex = 0;
+
+  for(int i = 0; i < fileInfo.m_segmentInfo.size(); i++)
+  {
+    int64_t
+      numTraces = (fileInfo.m_segmentInfo[i].m_traceStop - fileInfo.m_segmentInfo[i].m_traceStart);
+
+    float
+      multiplier = 1.5f - abs(i - (float)fileInfo.m_segmentInfo.size() / 2) / (float)fileInfo.m_segmentInfo.size(); // give 50% more importance to a segment in the middle of the dataset
+
+    float
+      score = float(numTraces) * multiplier;
+
+    if(score > bestScore)
+    {
+      bestScore = score;
+      bestIndex = i;
+    }
+  }
+
+  return fileInfo.m_segmentInfo[bestIndex];
+}
+
+bool
+analyzeSegment(OpenVDS::File const &file, SEGYFileInfo const &fileInfo, SEGYSegmentInfo const &segmentInfo, float valueRangePercentile, OpenVDS::FloatRange &valueRange, OpenVDS::IOError &error)
+{
+  int traceByteSize = fileInfo.traceByteSize();
+
+  int64_t offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + segmentInfo.m_traceStart * traceByteSize;
+
+  int traceCount = int(segmentInfo.m_traceStop - segmentInfo.m_traceStart);
+
+  std::unique_ptr<char[]> buffer(new char[(segmentInfo.m_traceStop - segmentInfo.m_traceStart) * traceByteSize]);
+
+  file.read(buffer.get(), offset, traceCount * traceByteSize, error);
+
+  if(error.code != 0)
+  {
+    return false;
+  }
+
+  if(fileInfo.m_sampleCount == 0 || traceCount == 0)
+  {
+    valueRange = OpenVDS::FloatRange(0.0f, 0.0f);
+  }
+  else if(fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
+  {
+    std::unique_ptr<float[]> samples(new float[fileInfo.m_sampleCount]);
+
+    int heapSizeMax = (int)(((100.0f - valueRangePercentile) / 100.0f) * traceCount * fileInfo.m_sampleCount / 2);
+
+    std::vector<float> minHeap, maxHeap;
+
+    minHeap.reserve(heapSizeMax + 1);
+    maxHeap.reserve(heapSizeMax + 1);
+
+    for(int trace = 0; trace < traceCount; trace++)
+    {
+      SEGY::ibm2ieee(samples.get(), buffer.get() + traceByteSize * trace + SEGY::TraceHeaderSize, fileInfo.m_sampleCount);
+
+      if(trace == 0)
+      {
+        minHeap.push_back(samples[0]);
+        maxHeap.push_back(samples[0]);
+      }
+
+      for(int sample = 0; sample < fileInfo.m_sampleCount; sample++)
+      {
+        if(samples[sample] < minHeap[0])
+        {
+          minHeap.push_back(samples[sample]);
+          if(minHeap.size() <= heapSizeMax)
+          {
+            std::push_heap(minHeap.begin(), minHeap.end(), std::less<float>());
+          }
+          else
+          {
+            std::pop_heap(minHeap.begin(), minHeap.end(), std::less<float>());
+            minHeap.pop_back();
+          }
+        }
+        
+        if(samples[sample] > maxHeap[0])
+        {
+          maxHeap.push_back(samples[sample]);
+
+          if(maxHeap.size() <= heapSizeMax)
+          {
+            std::push_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
+          }
+          else
+          {
+            std::pop_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
+            maxHeap.pop_back();
+          }
+        }
+      }
+    }
+
+    if(minHeap[0] != maxHeap[0])
+    {
+      valueRange = OpenVDS::FloatRange(minHeap[0], maxHeap[0]);
+    }
+    else
+    {
+      valueRange = OpenVDS::FloatRange(minHeap[0], minHeap[0] + 1.0f);
+    }
+  }
+
+  return true;
 }
 
 bool
@@ -348,6 +413,14 @@ main(int argc, char *argv[])
   // Determine value range
   OpenVDS::FloatRange
     valueRange;
+
+  analyzeSegment(file, fileInfo, findRepresentativeSegment(fileInfo), 99.9f, valueRange, error);
+
+  if(error.code != 0)
+  {
+    std::cerr << error.string;
+    return EXIT_FAILURE;
+  }
 
   // Create layout descriptor
 
