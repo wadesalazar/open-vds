@@ -84,7 +84,7 @@ struct SEGYFileInfo
 
   SEGYFileInfo(SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo() {}
 
-  int  traceByteSize();
-  bool readTraceHeader(OpenVDS::File const &file, int64_t trace, char (&header)[SEGY::TraceHeaderSize], OpenVDS::IOError &error);
+  int  traceByteSize() const;
+
   bool scan(OpenVDS::File const &file, SEGY::HeaderField const &primaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::standardHeaderFields());
 };

@@ -25,47 +25,6 @@
 using namespace OpenVDS;
 using namespace SEGY;
 
-static int
-readFieldFromHeader(const char *header, HeaderField const &headerField, Endianness endianness)
-{
-  if(!headerField.defined())
-  {
-    return 0;
-  }
-
-  // NOTE: SEG-Y byte locations start at 1
-  int index = headerField.m_byteLocation - 1;
-
-  auto signed_header   = reinterpret_cast<const signed   char *>(header);
-  auto unsigned_header = reinterpret_cast<const unsigned char *>(header);
-
-  if(headerField.m_fieldWidth == FieldWidth::FourByte)
-  {
-    if(endianness == Endianness::BigEndian)
-    {
-      return (int32_t)(signed_header[index + 0] << 24 | unsigned_header[index + 1] << 16 | unsigned_header[index + 2] << 8 | unsigned_header[index + 3]);
-    }
-    else
-    {
-      assert(endianness == Endianness::LittleEndian);
-      return (int32_t)(signed_header[index + 3] << 24 | unsigned_header[index + 2] << 16 | unsigned_header[index + 1] << 8 | unsigned_header[index + 0]);
-    }
-  }
-  else
-  {
-    assert(headerField.m_fieldWidth == FieldWidth::TwoByte);
-    if(endianness == Endianness::BigEndian)
-    {
-      return (int16_t)(signed_header[index + 0] << 8 | unsigned_header[index + 1]);
-    }
-    else
-    {
-      assert(endianness == Endianness::LittleEndian);
-      return (int16_t)(signed_header[index + 1] << 8 | unsigned_header[index + 0]);
-    }
-  }
-}
-
 static SEGYBinInfo
 readBinInfoFromHeader(const char *header, SEGYBinInfoHeaderFields const &headerFields, Endianness endianness)
 {
@@ -98,7 +57,7 @@ readBinInfoFromHeader(const char *header, SEGYBinInfoHeaderFields const &headerF
 }
 
 int
-SEGYFileInfo::traceByteSize()
+SEGYFileInfo::traceByteSize() const
 {
   int formatSize;
 
@@ -131,15 +90,6 @@ SEGYFileInfo::traceByteSize()
 }
 
 bool
-SEGYFileInfo::readTraceHeader(OpenVDS::File const &file, int64_t trace, char (&header)[TraceHeaderSize], OpenVDS::IOError &error)
-{
-  int64_t
-    offset = TextualFileHeaderSize + BinaryFileHeaderSize + trace * traceByteSize();
-
-  return file.read(header, offset, TraceHeaderSize, error);
-}
-
-bool
 SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
 {
   char textualFileHeader[TextualFileHeaderSize];
@@ -165,26 +115,33 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
     return false;
   }
 
+  if(fileSize == TextualFileHeaderSize + BinaryFileHeaderSize)
+  {
+    return true;
+  }
+
+  // Read first trace header
+  file.read(traceHeader, TextualFileHeaderSize + BinaryFileHeaderSize, TraceHeaderSize, error);
+
+  if(error.code != 0)
+  {
+    return false;
+  }
+
   m_sampleCount = readFieldFromHeader(binaryFileHeader, BinaryHeader::NumSamplesHeaderField, m_headerEndianness);
 
   m_sampleIntervalMilliseconds = readFieldFromHeader(binaryFileHeader, BinaryHeader::SampleIntervalHeaderField, m_headerEndianness) / 1000.0;
   
-  // If the sample count is not set in the binary header we try to read the first trace header and find the sample count there
+  // If the sample count is not set in the binary header we try to find it from the first trace header
   if(m_sampleCount == 0)
   {
-    readTraceHeader(file, 0, traceHeader, error);
     m_sampleCount = readFieldFromHeader(traceHeader, TraceHeader::NumSamplesHeaderField, m_headerEndianness);
   }
 
+  // If the sample interval is not set in the binary header we try to find it from the first trace header
   if(m_sampleIntervalMilliseconds == 0.0)
   {
-    readTraceHeader(file, 0, traceHeader, error);
     m_sampleIntervalMilliseconds = readFieldFromHeader(traceHeader, TraceHeader::SampleIntervalHeaderField, m_headerEndianness) / 1000.0;
-  }
-
-  if(m_sampleCount == 0)
-  {
-    return false;
   }
 
   int64_t traceDataSize = (fileSize - TextualFileHeaderSize - BinaryFileHeaderSize);
@@ -208,17 +165,18 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
 
   SEGYBinInfo outsideBinInfo;
 
-  SEGYSegmentInfo segmentInfo;
+  int primaryKey = readFieldFromHeader(traceHeader, primaryKeyHeaderField, m_headerEndianness), nextPrimaryKey = 0;
 
-  int64_t trace = 0;
+  SEGYSegmentInfo segmentInfo(primaryKey, 0, readBinInfoFromHeader(traceHeader, binInfoHeaderFields, m_headerEndianness));
 
-  int nextPrimaryKey = 0;
+  int64_t trace = 1;
 
-  int readCount = 0;
+  int readCount = 1;
 
   while(segmentInfo.m_traceStop != lastTrace)
   {
-    readTraceHeader(file, trace, traceHeader, error);
+    file.read(traceHeader, TextualFileHeaderSize + BinaryFileHeaderSize + trace * traceByteSize(), TraceHeaderSize, error);
+
     if(error.code != 0)
     {
       return false;
@@ -227,11 +185,7 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
 
     int primaryKey = readFieldFromHeader(traceHeader, primaryKeyHeaderField, m_headerEndianness);
 
-    if(trace == 0) // start the first segment of the file
-    {
-      segmentInfo = SEGYSegmentInfo(primaryKey, trace, readBinInfoFromHeader(traceHeader, binInfoHeaderFields, m_headerEndianness));
-    }
-    else if(primaryKey == segmentInfo.m_primaryKey) // expand current segment if the primary key matches
+    if(primaryKey == segmentInfo.m_primaryKey) // expand current segment if the primary key matches
     {
       assert(trace > segmentInfo.m_traceStop);
       segmentInfo.m_traceStop = trace;

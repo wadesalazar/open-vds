@@ -41,13 +41,13 @@ enum class Endianness
 
 struct HeaderField
 {
-  int        m_byteLocation;
-  FieldWidth m_fieldWidth;
+  int        byteLocation;
+  FieldWidth fieldWidth;
 
-  HeaderField() : m_byteLocation(), m_fieldWidth() {}
-  HeaderField(int byteLocation, FieldWidth fieldWidth) : m_byteLocation(byteLocation), m_fieldWidth(fieldWidth) {}
+  HeaderField() = default;
+  HeaderField(int byteLocation, FieldWidth fieldWidth) : byteLocation(byteLocation), fieldWidth(fieldWidth) {}
 
-  bool       defined() const { return m_byteLocation != 0; }
+  bool       defined() const { return byteLocation != 0; }
 };
 
 namespace BinaryHeader
@@ -192,5 +192,9 @@ static const HeaderField CrosslineNumberHeaderField(193, FieldWidth::FourByte);
 
 void ibm2ieee(void *to, const void *from, size_t len);
 void ieee2ibm(void *to, const void *from, size_t len);
+
+// Read field from header
+
+int readFieldFromHeader(const char *header, HeaderField const &headerField, Endianness endianness);
 
 } // end namespace SEGY

@@ -19,6 +19,10 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <assert.h>
+
+namespace SEGY
+{
 
 /////////////////////////////////////////////////////////////////////////////
 // ibm2ieee
@@ -224,3 +228,46 @@ ieee2ibm(void *to, const void *from, size_t len)
     *(unsigned *)to = fr;
   }
 }
+
+int
+readFieldFromHeader(const char *header, HeaderField const &headerField, Endianness endianness)
+{
+  if(!headerField.defined())
+  {
+    return 0;
+  }
+
+  // NOTE: SEG-Y byte locations start at 1
+  int index = headerField.byteLocation - 1;
+
+  auto signed_header   = reinterpret_cast<const signed   char *>(header);
+  auto unsigned_header = reinterpret_cast<const unsigned char *>(header);
+
+  if(headerField.fieldWidth == FieldWidth::FourByte)
+  {
+    if(endianness == Endianness::BigEndian)
+    {
+      return (int32_t)(signed_header[index + 0] << 24 | unsigned_header[index + 1] << 16 | unsigned_header[index + 2] << 8 | unsigned_header[index + 3]);
+    }
+    else
+    {
+      assert(endianness == Endianness::LittleEndian);
+      return (int32_t)(signed_header[index + 3] << 24 | unsigned_header[index + 2] << 16 | unsigned_header[index + 1] << 8 | unsigned_header[index + 0]);
+    }
+  }
+  else
+  {
+    assert(headerField.fieldWidth == FieldWidth::TwoByte);
+    if(endianness == Endianness::BigEndian)
+    {
+      return (int16_t)(signed_header[index + 0] << 8 | unsigned_header[index + 1]);
+    }
+    else
+    {
+      assert(endianness == Endianness::LittleEndian);
+      return (int16_t)(signed_header[index + 1] << 8 | unsigned_header[index + 0]);
+    }
+  }
+}
+
+} // end namespace SEGY
