@@ -266,9 +266,6 @@ bool isDimensionInGroup(DimensionGroup dimensionGroup, int32_t dimension)
   }
 }
 
-/////////////////////////////////////////////////////////////////////////////
-// DimensionGroup::GetDimensionality
-
 int32_t getDimensionality(DimensionGroup dimensionGroup)
 {
   switch(dimensionGroup)
@@ -353,9 +350,6 @@ int32_t getDimensionality(DimensionGroup dimensionGroup)
     return 0;
   }
 }
-
-/////////////////////////////////////////////////////////////////////////////
-// DimensionGroup::GetDimension
 
 int32_t getDimension(DimensionGroup dimensionGroup, int32_t indexInGroup)
 {

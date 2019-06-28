@@ -110,7 +110,7 @@ public:
   }
 
   // Methods
-  uint64_t GetCombinedHash() const { return m_combinedHash; }
+  uint64_t getCombinedHash() const { return m_combinedHash; }
 
   template<typename T>
   HashCombiner& add(const T& tValue)

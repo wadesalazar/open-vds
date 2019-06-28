@@ -154,7 +154,7 @@ VolumeDataLayer *VolumeDataLayout::getTopLayer(DimensionGroup dimensionGroup, in
   return volumeDataLayer;
 }
 
-bool VolumeDataLayout::isChannelAvailable(const std::string &channelName) const
+bool VolumeDataLayout::isChannelAvailable(const char *channelName) const
 {
   int32_t nChannels = getChannelCount();
 
@@ -166,7 +166,7 @@ bool VolumeDataLayout::isChannelAvailable(const std::string &channelName) const
   return false;
 }
 
-int32_t VolumeDataLayout::getChannelIndex(const std::string& channelName) const
+int32_t VolumeDataLayout::getChannelIndex(const char *channelName) const
 {
   int32_t  nChannels = getChannelCount();
 
@@ -224,10 +224,9 @@ VolumeDataAxisDescriptor VolumeDataLayout::getAxisDescriptor(int32_t dimension) 
 {
   assert(dimension >= 0 && dimension < m_dimensionality);
   return VolumeDataAxisDescriptor(getDimensionNumSamples(dimension),
-                                       GetDimensionName(dimension),
-                                       GetDimensionUnit(dimension),
-                                       getDimensionRange(dimension).min,
-                                       getDimensionRange(dimension).max);
+                                       getDimensionName(dimension),
+                                       getDimensionUnit(dimension),
+                                       getDimensionRange(dimension));
 }
 
 VolumeDataMapping VolumeDataLayout::getChannelMapping(int32_t channel) const
@@ -258,13 +257,13 @@ int VolumeDataLayout::getDimensionNumSamples(int32_t dimension) const
   return m_dimensionNumSamples[dimension];
 }
 
-const std::string& VolumeDataLayout::GetDimensionName(int32_t dimension) const
+const char *VolumeDataLayout::getDimensionName(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < array_size(m_dimensionName));
   return m_dimensionName[dimension];
 }
 
-const std::string& VolumeDataLayout::GetDimensionUnit(int32_t dimension) const
+const char *VolumeDataLayout::getDimensionUnit(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < array_size(m_dimensionUnit));
   return m_dimensionUnit[dimension];

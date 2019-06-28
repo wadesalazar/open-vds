@@ -51,8 +51,8 @@ private:
   bool  m_isZipLosslessChannels;
   int32_t m_waveletAdaptiveLoadLevel;
   IndexArray m_dimensionNumSamples;
-  std::string m_dimensionName[Dimensionality_Max];
-  std::string m_dimensionUnit[Dimensionality_Max];
+  const char *m_dimensionName[Dimensionality_Max];
+  const char *m_dimensionUnit[Dimensionality_Max];
   Range<float> m_dimensionRange[Dimensionality_Max];
   int32_t m_fullResolutionDimension;
 
@@ -102,10 +102,10 @@ public:
   const VolumeDataChannelDescriptor &getVolumeDataChannelDescriptor(int32_t channel) const { return m_volumeDataChannelDescriptor[channel]; }
 
   //REMOVE VIRTUAL?
-//  // Implementation of VolumeDataLayout interface
+  // Implementation of VolumeDataLayout interface
   virtual int32_t getChannelCount() const { return int32_t(m_volumeDataChannelDescriptor.size()); }
-  virtual bool isChannelAvailable(const std::string &channelName) const;
-  virtual int32_t getChannelIndex(const std::string &channelName) const;
+  virtual bool isChannelAvailable(const char *channelName) const;
+  virtual int32_t getChannelIndex(const char *channelName) const;
   virtual VolumeDataChannelDescriptor getChannelDescriptor(int32_t channel) const;
   virtual int32_t getDimensionality() const { return m_dimensionality; }
 
@@ -116,12 +116,12 @@ public:
 
   virtual VolumeDataChannelDescriptor::Components getChannelComponents(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getComponents(); }
 
-  virtual const std::string &getChannelName(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getName(); }
+  virtual const const char *getChannelName(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getName(); }
 
   virtual float getChannelValueRangeMin(int32_t channel) const { return getChannelValueRange(channel).min; }
   virtual float getChannelValueRangeMax(int32_t channel) const { return getChannelValueRange(channel).max; }
 
-  virtual const std::string &getChannelUnit(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getUnit(); }
+  virtual const const char *getChannelUnit(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getUnit(); }
 
   virtual bool isChannelDiscrete(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isDiscrete(); }
   virtual bool isChannelRenderable(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isRenderable(); }
@@ -134,9 +134,9 @@ public:
 // These convenience functions provide access to the individual elements of the axis descriptors
   virtual int getDimensionNumSamples(int32_t dimension) const;
 
-  virtual const std::string &GetDimensionName(int32_t dimension) const;
+  virtual const char *getDimensionName(int32_t dimension) const;
 
-  virtual const std::string &GetDimensionUnit(int32_t dimension) const;
+  virtual const char *getDimensionUnit(int32_t dimension) const;
 
   virtual float getDimensionMin(int32_t dimension) const { return getDimensionRange(dimension).min; }
   virtual float getDimensionMax(int32_t dimension) const { return getDimensionRange(dimension).max; }

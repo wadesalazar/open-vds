@@ -89,13 +89,13 @@ int32_t VolumeDataLayer::getMappedValueCount() const
 
 void VolumeDataLayer::getChunkIndexArrayFromVoxel(const IndexArray& voxel, IndexArray& chunk) const
 {
-  //const VolumeDataChannelMapping *volumeDataChannelMapping = m_volumeDataLayout->GetVolumeDataChannelMapping(GetChannelIndex());
+  //const VolumeDataChannelMapping *volumeDataChannelMapping = m_volumeDataLayout->getVolumeDataChannelMapping(getChannelIndex());
 
   for(int32_t iDimension = 0; iDimension < array_size(chunk); iDimension++)
   {
     //if(volumeDataChannelMapping)
     //{
-    //  chunk[iDimension] = volumeDataChannelMapping->GetMappedChunkIndexFromVoxel(GetPrimaryChannelLayer(), voxel[iDimension], iDimension);
+    //  chunk[iDimension] = volumeDataChannelMapping->getMappedChunkIndexFromVoxel(getPrimaryChannelLayer(), voxel[iDimension], iDimension);
     //}
     //else
     //{
@@ -107,7 +107,7 @@ void VolumeDataLayer::getChunkIndexArrayFromVoxel(const IndexArray& voxel, Index
 int64_t
 VolumeDataLayer::getChunkIndexFromNDPos(const NDPos &ndPos) const
 {
-  //const VolumeDataChannelMapping *volumeDataChannelMapping = m_volumeDataLayout->GetVolumeDataChannelMapping(GetChannelIndex());
+  //const VolumeDataChannelMapping *volumeDataChannelMapping = m_volumeDataLayout->getVolumeDataChannelMapping(getChannelIndex());
 
   IndexArray chunk;
 
@@ -115,7 +115,7 @@ VolumeDataLayer::getChunkIndexFromNDPos(const NDPos &ndPos) const
   {
     //if(volumeDataChannelMapping)
     //{
-    //  chunk[iDimension] = volumeDataChannelMapping->GetMappedChunkIndexFromVoxel(GetPrimaryChannelLayer(), (int32_t)floorf(ndPos.data[iDimension]), iDimension);
+    //  chunk[iDimension] = volumeDataChannelMapping->getMappedChunkIndexFromVoxel(getPrimaryChannelLayer(), (int32_t)floorf(ndPos.data[iDimension]), iDimension);
     //}
     //else
     //{
@@ -148,7 +148,7 @@ const VolumeDataLayer * VolumeDataLayer::getLayerToRemapFrom() const
   return m_remapFromLayer;
 }
 
-//VolumeDataLayer::ProduceMethod VolumeDataLayer::GetProduceMethod() const
+//VolumeDataLayer::ProduceMethod VolumeDataLayer::getProduceMethod() const
 //{
 //  if(m_channel != 0)
 //  {
@@ -230,7 +230,7 @@ uint64_t VolumeDataLayer::getFormatHash(VolumeDataChannelDescriptor::Format actu
     hashCombiner.add(replacementNoValue);
   }
 
-  return hashCombiner.GetCombinedHash();
+  return hashCombiner.getCombinedHash();
 }
 
 bool VolumeDataLayer::isUseNoValue() const
@@ -285,7 +285,7 @@ CompressionMethod VolumeDataLayer::getEffectiveCompressionMethod() const
 float VolumeDataLayer::getEffectiveCompressionTolerance() const
 { 
   auto &channelDescriptor = m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel);
-  //return m_volumeDataLayout->GetVolumeDataChannelDescriptor(m_channel).GetEffectiveCompressionTolerance(m_volumeDataLayout->m_compressionTolerance, GetLod());
+  //return m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel).getEffectiveCompressionTolerance(m_volumeDataLayout->m_compressionTolerance, getLod());
   if(!channelDescriptor.isAllowLossyCompression())
   {
     return 0.0f;

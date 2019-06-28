@@ -172,8 +172,8 @@ public:
   /// \param noValue the No Value for this channel
   /// \param integerScale the scale to use for integer types
   /// \param integerOffset the offset to use for integer types
-  VolumeDataChannelDescriptor(Format format, Components components, const char *pName, const char *pUnit, float valueRangeMin, float valueRangeMax, enum VolumeDataMapping mapping, int mappedValueCount, enum Flags flags, float noValue, float integerScale, float integerOffset)
-    : m_format(format), m_components(components), m_name(pName), m_unit(pUnit), m_valueRange({valueRangeMin, valueRangeMax}), m_mapping(mapping), m_mappedValueCount(mappedValueCount), m_flags(flags), m_useNoValue(true), m_noValue(noValue), m_integerScale(integerScale), m_integerOffset(integerOffset) {}
+  VolumeDataChannelDescriptor(Format format, Components components, const char *name, const char *unit, float valueRangeMin, float valueRangeMax, enum VolumeDataMapping mapping, int mappedValueCount, enum Flags flags, float noValue, float integerScale, float integerOffset)
+    : m_format(format), m_components(components), m_name(name), m_unit(unit), m_valueRange({valueRangeMin, valueRangeMax}), m_mapping(mapping), m_mappedValueCount(mappedValueCount), m_flags(flags), m_useNoValue(true), m_noValue(noValue), m_integerScale(integerScale), m_integerOffset(integerOffset) {}
 
   Format      getFormat()                       const { return m_format; }
   Components  getComponents()                   const { return m_components; }
@@ -181,13 +181,13 @@ public:
   bool        isRenderable()                    const { return !(m_flags & NotRenderable); }
   bool        isAllowLossyCompression()         const { return !(m_flags & NoLossyCompression) && !isDiscrete(); }
   bool        isUseZipForLosslessCompression()  const { return (m_flags & NoLossyCompressionUseZip) == NoLossyCompressionUseZip; }
-  const char *getName()                   const { return m_name; }
-  const char *getUnit()                   const { return m_unit; }
+  const char *getName()                         const { return m_name; }
+  const char *getUnit()                         const { return m_unit; }
   const Range<float> &getValueRange()           const { return m_valueRange; }
   float       getValueRangeMin()                const { return m_valueRange.min; }
   float       getValueRangeMax()                const { return m_valueRange.max; }
 
-  VolumeDataMapping getMapping()                      const { return m_mapping; }
+  VolumeDataMapping getMapping()                const { return m_mapping; }
   int         getMappedValueCount()             const { return m_mappedValueCount; }
 
   bool        isUseNoValue()                    const { return m_useNoValue; }
