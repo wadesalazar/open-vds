@@ -25,6 +25,9 @@ struct Range
 {
   T min;
   T max;
+
+  Range() = default;
+  Range(T min, T max) : min(min), max(max) {}
 };
 
 template<typename T>
