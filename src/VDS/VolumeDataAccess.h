@@ -18,7 +18,7 @@
 #ifndef VOLUMEDATAACCESS_H
 #define VOLUMEDATAACCESS_H
 
-#include "VolumeData.h"
+#include <OpenVDS/VolumeData.h>
 #include "DimensionGroup.h"
 #include "VolumeDataChannelDescriptor.h"
 #include <Math/Vector.h>
@@ -27,7 +27,7 @@ namespace OpenVDS {
 
 class VolumeDataPageAccessor;
 class VolumeDataLayout;
-class VDSHandle;
+struct VDSHandle;
 
 template <typename INDEX, typename T> class VolumeDataReadAccessor;
 template <typename INDEX, typename T> class VolumeDataReadWriteAccessor;

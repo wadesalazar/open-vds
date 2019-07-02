@@ -18,7 +18,7 @@
 #ifndef DIMENSIONGROUP_H
 #define DIMENSIONGROUP_H
 
-#include "VolumeData.h"
+#include <OpenVDS/VolumeData.h>
 #include <cstdint>
 #include <cstring>
 

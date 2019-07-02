@@ -21,7 +21,7 @@
 #include <string>
 #include <Math/Range.h>
 
-#include "VolumeData.h"
+#include <OpenVDS/VolumeData.h>
 
 namespace OpenVDS
 {

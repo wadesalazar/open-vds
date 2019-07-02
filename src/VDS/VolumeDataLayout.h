@@ -41,7 +41,7 @@ private:
   int32_t        m_negativeRenderMargin;
   int32_t        m_positiveRenderMargin;
   int32_t        m_actualValueRangeChannel;
-  Range<float>   m_actualValueRange;
+  FloatRange   m_actualValueRange;
 
   VolumeDataLayer *m_primaryBaseLayers[DimensionGroup_3D_Max];
   VolumeDataLayer *m_primaryTopLayers[DimensionGroup_3D_Max];

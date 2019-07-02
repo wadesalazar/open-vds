@@ -23,6 +23,10 @@
 #include <VDS/ParseVDSJson.h>
 
 #include <memory>
+
+#include "VDS/VolumeDataLayout.h"
+#include "VDS/VolumeDataAccess.h"
+
 namespace OpenVDS
 {
 VDSHandle *open(const OpenOptions &options, Error &error)
@@ -50,4 +54,8 @@ void destroy(VDSHandle *handle)
   delete handle;
 }
 
+VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout *layout, DimensionsND dimension, int lod, int channel, int maxPages)
+{
+  return nullptr;
+}
 }

@@ -15,7 +15,6 @@ set(SOURCE_FILES
 set (PRIVATE_HEADER_FILES
   IO/File.h
   IO/S3_Downloader.h
-  VDS/VolumeData.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataLayer.h
   VDS/VolumeDataLayout.h
@@ -35,6 +34,7 @@ set (PRIVATE_HEADER_FILES
 set (EXPORTED_HEADER_FILES
   OpenVDS/OpenVDS.h
   OpenVDS/KnownMetadata.h
+  OpenVDS/VolumeData.h
   OpenVDS/openvds_export.h)
 
 add_library(openvds SHARED
