@@ -17,13 +17,19 @@
 
 #include <OpenVDS/OpenVDS.h>
 
+#include <cstdlib>
+
 #include <gtest/gtest.h>
 
 GTEST_TEST(DownloadJson, OpenVDS_integration)
 {
   OpenVDS::Error error;
   OpenVDS::OpenOptions options;
+  options.region = getenv("OPENVDS_TEST_AWS_REGION");
+  options.bucket = getenv("OPENVDS_TEST_AWS_BUCKET");
+  options.key = getenv("OPENVDS_TEST_AWS_OBJECTID");
+  ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
   OpenVDS::VDSHandle *handle = OpenVDS::open(options, error);
-  EXPECT_TRUE(handle);
+  ASSERT_TRUE(handle);
   OpenVDS::destroy(handle);
 }
