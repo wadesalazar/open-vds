@@ -18,6 +18,7 @@
 #include "SEGYFileInfo.h"
 #include "IO/File.h"
 
+#include "OpenVDS/OpenVDS.h"
 #include "OpenVDS/KnownMetadata.h"
 #include "Math/Range.h"
 #include "VDS/VolumeDataLayoutDescriptor.h"
@@ -124,9 +125,17 @@ analyzeSegment(OpenVDS::File const &file, SEGYFileInfo const &fileInfo, SEGYSegm
   {
     valueRange = OpenVDS::FloatRange(0.0f, 0.0f);
   }
-  else if(fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
+  else if(fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat || fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat)
   {
-    std::unique_ptr<float[]> samples(new float[fileInfo.m_sampleCount]);
+    std::unique_ptr<float[]> sampleBuffer;
+
+    float *samples = nullptr;
+
+    if(fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
+    {
+      sampleBuffer.reset(new float[fileInfo.m_sampleCount]);
+      samples = sampleBuffer.get();
+    }
 
     int heapSizeMax = (int)(((100.0f - valueRangePercentile) / 100.0f) * traceCount * fileInfo.m_sampleCount / 2);
 
@@ -137,7 +146,15 @@ analyzeSegment(OpenVDS::File const &file, SEGYFileInfo const &fileInfo, SEGYSegm
 
     for(int trace = 0; trace < traceCount; trace++)
     {
-      SEGY::ibm2ieee(samples.get(), buffer.get() + traceByteSize * trace + SEGY::TraceHeaderSize, fileInfo.m_sampleCount);
+      if(fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
+      {
+        SEGY::ibm2ieee(sampleBuffer.get(), buffer.get() + traceByteSize * trace + SEGY::TraceHeaderSize, fileInfo.m_sampleCount);
+      }
+      else
+      {
+        assert(fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat);
+        samples = reinterpret_cast<float *>(buffer.get() + traceByteSize * trace + SEGY::TraceHeaderSize);
+      }
 
       if(trace == 0)
       {
@@ -292,7 +309,6 @@ createAxisDescriptors(SEGYFileInfo const &fileInfo)
     maxCrossline = std::max(maxCrossline, segmentInfo.m_binInfoStop.m_crosslineNumber);
   }
 
-  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE,   "ms", 0.0f, (fileInfo.m_sampleCount - 1) * (float)fileInfo.m_sampleIntervalMilliseconds));
   axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE,  "", (float)minCrossline, (float)maxCrossline));
   axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,     "", (float)minInline,    (float)maxInline));
 
@@ -304,6 +320,15 @@ createChannelDescriptors(SEGYFileInfo const &fileInfo, OpenVDS::FloatRange const
 {
   std::vector<OpenVDS::VolumeDataChannelDescriptor>
     channelDescriptors;
+
+  // Primary channel
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format::FormatR32, OpenVDS::VolumeDataChannelDescriptor::Components::Components_1, "Amplitude", "", valueRange.min, valueRange.max));
+
+  // Trace defined flag
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format::FormatU8, OpenVDS::VolumeDataChannelDescriptor::Components::Components_1, "Trace", "", 0, 1, OpenVDS::VolumeDataMapping::PerTrace));
+
+  // SEG-Y trace headers
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format::FormatU8, OpenVDS::VolumeDataChannelDescriptor::Components::Components_1, "SEGYTraceHeaders", "", 0, 255, OpenVDS::VolumeDataMapping::PerTrace, SEGY::TraceHeaderSize, OpenVDS::VolumeDataChannelDescriptor::Flags::Default, 1.0f, 0.0f));
 
   return channelDescriptors;
 }
@@ -454,6 +479,11 @@ main(int argc, char *argv[])
   // Create channel descriptors
 
   std::vector<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors = createChannelDescriptors(fileInfo, valueRange);
+
+  OpenVDS::Error
+    createError;
+
+  auto vds = OpenVDS::create(OpenVDS::OpenOptions(), layoutDescriptor, axisDescriptors, channelDescriptors, createError);
 
   return EXIT_SUCCESS;
 }
