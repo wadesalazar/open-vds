@@ -47,7 +47,7 @@ class Base64Table
   }
 
 public:
-  static int Decode(char a) { return table[a]; }
+  static int decode(char a) { return table[a]; }
 };
 
 Base64Table
@@ -72,18 +72,18 @@ Base64Decode(const char *data, int len, std::vector<unsigned char> &result)
 
   while(len != 0 && !isspace(*data))
   {
-    int a = Base64Table::Decode(*data++); len--; if(a == -1) { error = true; break; }
+    int a = Base64Table::decode(*data++); len--; if(a == -1) { error = true; break; }
 
     if(len == 0 || isspace(*data)) { error = true; break; }
-    int b = Base64Table::Decode(*data++); len--; if(b == -1) { error = true; break; }
+    int b = Base64Table::decode(*data++); len--; if(b == -1) { error = true; break; }
     result.push_back((a << 2) | (b >> 4));
 
     if(len == 0 || isspace(*data)) break; if(*data == '=') { data++; len--; if(len==0 || *data++ != '=') { error = true; break; } len--; break; }
-    int c = Base64Table::Decode(*data++); len--; if(c == -1) { error = true; break; }
+    int c = Base64Table::decode(*data++); len--; if(c == -1) { error = true; break; }
     result.push_back(((b & 0xf) << 4) | (c >> 2));
 
     if(len == 0 || isspace(*data)) break; if(*data == '=') { data++; len--; break; }
-    int d = Base64Table::Decode(*data++); len--; if(d == -1) { error = true; break; }
+    int d = Base64Table::decode(*data++); len--; if(d == -1) { error = true; break; }
     result.push_back(((c & 0x3) << 6) | d);
   }
 
@@ -94,7 +94,7 @@ Base64Decode(const char *data, int len, std::vector<unsigned char> &result)
   return !error;
 }
 
-static enum VolumeDataLayoutDescriptor::BrickSize ConvertToBrickSize(Json::Value const &jsonBrickSize)
+static enum VolumeDataLayoutDescriptor::BrickSize convertToBrickSize(Json::Value const &jsonBrickSize)
 {
   std::string brickSizeString = jsonBrickSize.asString();
 
@@ -134,7 +134,7 @@ static enum VolumeDataLayoutDescriptor::BrickSize ConvertToBrickSize(Json::Value
   throw Json::Exception("Illegal brick size");
 }
 
-static enum VolumeDataLayoutDescriptor::LodLevels ConvertToLodLevel(Json::Value const &jsonLodLevels)
+static enum VolumeDataLayoutDescriptor::LodLevels convertToLodLevel(Json::Value const &jsonLodLevels)
 {
   std::string lodLevelString = jsonLodLevels.asString();
 
@@ -193,7 +193,7 @@ static enum VolumeDataLayoutDescriptor::LodLevels ConvertToLodLevel(Json::Value 
   throw Json::Exception("Illegal lod levels");
 }
 
-static int ConvertToDimensionality(Json::Value const &jsonDimensionlaity)
+static int convertToDimensionality(Json::Value const &jsonDimensionlaity)
 {
   std::string dimensionalityString = jsonDimensionlaity.asString();
   if(dimensionalityString == "HUEDIMENSION_1")
@@ -223,16 +223,16 @@ static int ConvertToDimensionality(Json::Value const &jsonDimensionlaity)
   throw Json::Exception("Illegal dimensionality");
 }
 
-const char *AddDescriptorString(std::string const &descriptorString, VDSHandle &handle)
+const char *addDescriptorString(std::string const &descriptorString, VDSHandle &handle)
 {
   char *data = new char[descriptorString.size() + 1];
   memcpy(data, descriptorString.data(), descriptorString.size());
-  data[descriptorString.size() - 1] = 0;
+  data[descriptorString.size()] = 0;
   handle.descriptorStrings.emplace_back(data);
-  return data;
+  return nullptr;
 }
 
-static VolumeDataChannelDescriptor::Format ConvertToVoxelFormat(Json::Value const &jsonVoxelFormat)
+static VolumeDataChannelDescriptor::Format convertToVoxelFormat(Json::Value const &jsonVoxelFormat)
 {
   std::string voxelFormatString = jsonVoxelFormat.asString();
 
@@ -267,7 +267,7 @@ static VolumeDataChannelDescriptor::Format ConvertToVoxelFormat(Json::Value cons
   throw Json::Exception("Illegal voxel format");
 }
 
-static VolumeDataChannelDescriptor::Components ConvertToVoxelComponents(Json::Value const &jsonVoxelComponents)
+static VolumeDataChannelDescriptor::Components convertToVoxelComponents(Json::Value const &jsonVoxelComponents)
 {
   std::string voxelComponentsString = jsonVoxelComponents.asString();
 
@@ -286,7 +286,7 @@ static VolumeDataChannelDescriptor::Components ConvertToVoxelComponents(Json::Va
   throw Json::Exception("Illegal voxel components");
 }
 
-static VolumeDataMapping ConvertToChannelMapping(Json::Value const &jsonChannelMapping)
+static VolumeDataMapping convertToChannelMapping(Json::Value const &jsonChannelMapping)
 {
   if(VolumeDataMapping(jsonChannelMapping.asUInt64()) == VolumeDataMapping::PerTrace)
   {
@@ -299,7 +299,7 @@ static VolumeDataMapping ConvertToChannelMapping(Json::Value const &jsonChannelM
   throw Json::Exception("Illegal channel mapping");
 }
 
-static bool ParseJSONFromBuffer(const std::string &json, Json::Value &root, Error &error)
+static bool parseJSONFromBuffer(const std::string &json, Json::Value &root, Error &error)
 {
   try
   {
@@ -322,10 +322,10 @@ static bool ParseJSONFromBuffer(const std::string &json, Json::Value &root, Erro
   return false;
 }
 
-static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &error)
+static bool parseVDSObject(const std::string &json, VDSHandle &handle, Error &error)
 {
   Json::Value root;
-  if (!ParseJSONFromBuffer(json, root, error))
+  if (!parseJSONFromBuffer(json, root, error))
   {
     return false;
   }
@@ -334,8 +334,8 @@ static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &er
     return true;
   
 
-  enum VolumeDataLayoutDescriptor::BrickSize brickSize = ConvertToBrickSize(root["FullVCSize"]);
-  enum VolumeDataLayoutDescriptor::LodLevels lodLevel = ConvertToLodLevel(root["LODLevels"]);
+  enum VolumeDataLayoutDescriptor::BrickSize brickSize = convertToBrickSize(root["FullVCSize"]);
+  enum VolumeDataLayoutDescriptor::LodLevels lodLevel = convertToLodLevel(root["LODLevels"]);
   Internal::BitMask<enum VolumeDataLayoutDescriptor::Options> options(root["Create2DLODs"].asBool() ? VolumeDataLayoutDescriptor::Options_Create2DLods : VolumeDataLayoutDescriptor::Options_None);
   options |= root["ForceFullResolutionDimension"].asBool() ? VolumeDataLayoutDescriptor::Options_ForceFullResolutionDimension : VolumeDataLayoutDescriptor::Options_None;
   int brickSizeMultiplier2D = root.isMember("2DBrickSizeMultiplier") ? root["2DBrickSizeMultiplier"].asInt() : 4;
@@ -347,7 +347,7 @@ static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &er
                                                   options.to_enum(),
                                                   root["FullResolutionDimension"].asInt());
 
-  int dimensionality = ConvertToDimensionality(root["Dimensions"]);
+  int dimensionality = convertToDimensionality(root["Dimensions"]);
 
   for (int dimension = 0; dimension < dimensionality; dimension++)
   {
@@ -355,8 +355,8 @@ static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &er
       prefix = std::string("Dimension") + std::to_string(dimension);
 
     handle.axisDescriptors.emplace_back(root[prefix + "Size"].asInt(),
-                                       AddDescriptorString(root[prefix + "Name"].asString(), handle),
-                                       AddDescriptorString(root[prefix + "Unit"].asString(), handle),
+                                       addDescriptorString(root[prefix + "Name"].asString(), handle),
+                                       addDescriptorString(root[prefix + "Unit"].asString(), handle),
                                        root[prefix + "Coordinate"][0].asFloat(),
                                        root[prefix + "Coordinate"][1].asFloat());
 
@@ -364,16 +364,16 @@ static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &er
 
   VolumeDataChannelDescriptor primaryChannel;
 
-  VolumeDataChannelDescriptor::Format format = ConvertToVoxelFormat(root["VoxelFormat"]);
-  VolumeDataChannelDescriptor::Components components = ConvertToVoxelComponents(root["VoxelComponents"]);
+  VolumeDataChannelDescriptor::Format format = convertToVoxelFormat(root["VoxelFormat"]);
+  VolumeDataChannelDescriptor::Components components = convertToVoxelComponents(root["VoxelComponents"]);
 
   if (root["UseNoValue"].asBool())
   {
     primaryChannel = VolumeDataChannelDescriptor(
       format,
       components,
-      AddDescriptorString(root["ValueName"].asString(), handle),
-      AddDescriptorString(root["ValueUnit"].asString(), handle),
+      addDescriptorString(root["ValueName"].asString(), handle),
+      addDescriptorString(root["ValueUnit"].asString(), handle),
       root["ValueRange"][0].asFloat(),
       root["ValueRange"][1].asFloat(),
       VolumeDataMapping::Direct, 1,
@@ -387,8 +387,8 @@ static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &er
     primaryChannel = VolumeDataChannelDescriptor(
       format,
       components,
-      AddDescriptorString(root["ValueName"].asCString(), handle),
-      AddDescriptorString(root["ValueUnit"].asCString(), handle),
+      addDescriptorString(root["ValueName"].asCString(), handle),
+      addDescriptorString(root["ValueUnit"].asCString(), handle),
       root["ValueRange"][0].asFloat(),
       root["ValueRange"][1].asFloat(),
       VolumeDataMapping::Direct, 1,
@@ -403,9 +403,9 @@ static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &er
   {
     VolumeDataChannelDescriptor additionalChannel;
 
-    format = ConvertToVoxelFormat(channelDescriptor["Format"]);
-    components = ConvertToVoxelComponents(channelDescriptor["Components"]);
-    VolumeDataMapping  mapping = ConvertToChannelMapping(channelDescriptor["ChannelMapping"]);
+    format = convertToVoxelFormat(channelDescriptor["Format"]);
+    components = convertToVoxelComponents(channelDescriptor["Components"]);
+    VolumeDataMapping  mapping = convertToChannelMapping(channelDescriptor["ChannelMapping"]);
     Internal::BitMask<VolumeDataChannelDescriptor::Flags> flags(channelDescriptor["DiscreteData"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default);
     flags |= (channelDescriptor["Renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable);
     flags |= (channelDescriptor["AllowLossyCompression"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NoLossyCompression);
@@ -415,8 +415,8 @@ static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &er
       additionalChannel = VolumeDataChannelDescriptor(
         format,
         components,
-        AddDescriptorString(channelDescriptor["Name"].asString(), handle),
-        AddDescriptorString(channelDescriptor["Unit"].asString(), handle),
+        addDescriptorString(channelDescriptor["Name"].asString(), handle),
+        addDescriptorString(channelDescriptor["Unit"].asString(), handle),
         channelDescriptor["ValueRange"][0].asFloat(),
         channelDescriptor["ValueRange"][1].asFloat(),
         mapping,
@@ -431,8 +431,8 @@ static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &er
       additionalChannel = VolumeDataChannelDescriptor(
         format,
         components,
-        AddDescriptorString(channelDescriptor["Name"].asString(), handle),
-        AddDescriptorString(channelDescriptor["Unit"].asString(), handle),
+        addDescriptorString(channelDescriptor["Name"].asString(), handle),
+        addDescriptorString(channelDescriptor["Unit"].asString(), handle),
         channelDescriptor["ValueRange"][0].asFloat(),
         channelDescriptor["ValueRange"][1].asFloat(),
         mapping,
@@ -523,7 +523,7 @@ static bool ParseVDSObject(const std::string &json, VDSHandle &handle, Error &er
   return true;
 }
 
-static VolumeDataLayer::ProduceStatus ProduceStatusFromJSON(Json::Value const &jsonProduceStatus)
+static VolumeDataLayer::ProduceStatus produceStatusFromJSON(Json::Value const &jsonProduceStatus)
 {
   std::string produceStatusString = jsonProduceStatus.asString();
 
@@ -543,59 +543,61 @@ static VolumeDataLayer::ProduceStatus ProduceStatusFromJSON(Json::Value const &j
   throw Json::Exception("Illegal produce status");
 }
 
-static bool ParseProduceStatus(const std::string &json, VDSHandle &handle, Error &error)
+static bool parseProduceStatus(const std::string &json, VDSHandle &handle, Error &error)
 {
   handle.produceStatuses.clear();
   handle.produceStatuses.resize(int(DimensionsND::Group45) + 1, VolumeDataLayer::ProduceStatusUnavailable);
   Json::Value root;
-  if (!ParseJSONFromBuffer(json, root, error))
+  if (!parseJSONFromBuffer(json, root, error))
   {
     return false;
   }
 
+  fprintf(stderr, "HELLO NEW WORLD!!!\n");
+
   if (root.empty())
     return true;
 
-  handle.produceStatuses[int32_t(DimensionsND::Group012)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_012"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group013)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_013"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group014)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_014"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group015)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_015"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group023)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_023"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group024)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_024"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group025)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_025"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group034)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_034"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group035)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_035"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group045)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_045"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group123)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_123"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group124)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_124"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group125)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_125"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group134)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_134"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group135)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_135"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group145)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_145"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group234)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_234"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group235)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_235"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group245)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_245"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group345)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_345"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group01)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_01"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group02)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_02"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group03)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_03"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group04)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_04"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group05)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_05"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group12)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_12"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group13)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_13"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group14)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_14"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group15)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_15"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group23)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_23"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group24)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_24"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group25)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_25"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group34)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_34"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group35)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_35"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group45)] = ProduceStatusFromJSON(root["ProduceStatusDimensions_45"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group012)] = produceStatusFromJSON(root["ProduceStatusDimensions_012"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group013)] = produceStatusFromJSON(root["ProduceStatusDimensions_013"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group014)] = produceStatusFromJSON(root["ProduceStatusDimensions_014"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group015)] = produceStatusFromJSON(root["ProduceStatusDimensions_015"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group023)] = produceStatusFromJSON(root["ProduceStatusDimensions_023"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group024)] = produceStatusFromJSON(root["ProduceStatusDimensions_024"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group025)] = produceStatusFromJSON(root["ProduceStatusDimensions_025"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group034)] = produceStatusFromJSON(root["ProduceStatusDimensions_034"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group035)] = produceStatusFromJSON(root["ProduceStatusDimensions_035"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group045)] = produceStatusFromJSON(root["ProduceStatusDimensions_045"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group123)] = produceStatusFromJSON(root["ProduceStatusDimensions_123"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group124)] = produceStatusFromJSON(root["ProduceStatusDimensions_124"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group125)] = produceStatusFromJSON(root["ProduceStatusDimensions_125"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group134)] = produceStatusFromJSON(root["ProduceStatusDimensions_134"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group135)] = produceStatusFromJSON(root["ProduceStatusDimensions_135"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group145)] = produceStatusFromJSON(root["ProduceStatusDimensions_145"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group234)] = produceStatusFromJSON(root["ProduceStatusDimensions_234"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group235)] = produceStatusFromJSON(root["ProduceStatusDimensions_235"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group245)] = produceStatusFromJSON(root["ProduceStatusDimensions_245"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group345)] = produceStatusFromJSON(root["ProduceStatusDimensions_345"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group01)] = produceStatusFromJSON(root["ProduceStatusDimensions_01"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group02)] = produceStatusFromJSON(root["ProduceStatusDimensions_02"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group03)] = produceStatusFromJSON(root["ProduceStatusDimensions_03"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group04)] = produceStatusFromJSON(root["ProduceStatusDimensions_04"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group05)] = produceStatusFromJSON(root["ProduceStatusDimensions_05"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group12)] = produceStatusFromJSON(root["ProduceStatusDimensions_12"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group13)] = produceStatusFromJSON(root["ProduceStatusDimensions_13"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group14)] = produceStatusFromJSON(root["ProduceStatusDimensions_14"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group15)] = produceStatusFromJSON(root["ProduceStatusDimensions_15"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group23)] = produceStatusFromJSON(root["ProduceStatusDimensions_23"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group24)] = produceStatusFromJSON(root["ProduceStatusDimensions_24"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group25)] = produceStatusFromJSON(root["ProduceStatusDimensions_25"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group34)] = produceStatusFromJSON(root["ProduceStatusDimensions_34"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group35)] = produceStatusFromJSON(root["ProduceStatusDimensions_35"]);
+  handle.produceStatuses[int32_t(DimensionsND::Group45)] = produceStatusFromJSON(root["ProduceStatusDimensions_45"]);
 
   return true;
 }
 
-static bool ParseMetaDataStatus(const std::string &json, VDSHandle &handle, Error &error)
+static bool parseMetaDataStatus(const std::string &json, VDSHandle &handle, Error &error)
 {
   return true;
 }
@@ -687,11 +689,11 @@ bool downloadAndParseVDSJson(const OpenOptions& options, VDSHandle& handle, Erro
 
   try
   {
-    if (!ParseVDSObject(vdsobject_json, handle, error))
+    if (!parseVDSObject(vdsobject_json, handle, error))
       return false;
-    if (!ParseProduceStatus(producestatus_json, handle, error))
+    if (!parseProduceStatus(producestatus_json, handle, error))
       return false;
-    if (!ParseMetaDataStatus(metadatastatus_json, handle, error))
+    if (!parseMetaDataStatus(metadatastatus_json, handle, error))
       return false;
   }
   catch (Json::Exception& e)

@@ -171,12 +171,12 @@ const VolumeDataChannelDescriptor & VolumeDataLayer::getVolumeDataChannelDescrip
   return m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel);
 }
 
-Range<float> const &VolumeDataLayer::getValueRange() const
+FloatRange const &VolumeDataLayer::getValueRange() const
 {
   return m_volumeDataLayout->getChannelValueRange(m_channel);
 }
 
-Range<float> const &VolumeDataLayer::getActualValueRange() const
+FloatRange const &VolumeDataLayer::getActualValueRange() const
 {
   return m_volumeDataLayout->getChannelActualValueRange(m_channel);
 }
@@ -382,7 +382,7 @@ FloatVec2 VolumeDataLayer::getTextureScaleOffset(VolumeDataChannelDescriptor::Fo
   return staticGetTextureScaleOffset(getValueRange(), getIntegerScale(), getIntegerOffset(), isUseNoValue(), getFormat(), eDataBlockFormat);
 }
 
-FloatVec2 VolumeDataLayer::staticGetTextureScaleOffset(const Range<float> &valueRange, float integerScale, float integerOffset, bool isUseNoValue, VolumeDataChannelDescriptor::Format originalFormat, VolumeDataChannelDescriptor::Format dataBlockFormat)
+FloatVec2 VolumeDataLayer::staticGetTextureScaleOffset(const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, VolumeDataChannelDescriptor::Format originalFormat, VolumeDataChannelDescriptor::Format dataBlockFormat)
 {
   FloatVec2 scaleAndOffset=  {1.0f, 0.0f};
 

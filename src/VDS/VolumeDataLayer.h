@@ -179,9 +179,9 @@ public:
 
   const VolumeDataChannelDescriptor& getVolumeDataChannelDescriptor() const;
 
-  Range<float> const& getValueRange() const;
+  FloatRange const& getValueRange() const;
 
-  Range<float> const& getActualValueRange() const;
+  FloatRange const& getActualValueRange() const;
 
   VolumeDataChannelDescriptor::Format getFormat() const;
 
@@ -222,7 +222,7 @@ public:
 
   void setProduceStatus(ProduceStatus produceStatus);
 
-  static FloatVec2 staticGetTextureScaleOffset(const Range<float> &valueRange, float integerScale, float integerOffset, bool isUseNoValue, VolumeDataChannelDescriptor::Format originalFormat, VolumeDataChannelDescriptor::Format dataBlockFormat);
+  static FloatVec2 staticGetTextureScaleOffset(const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, VolumeDataChannelDescriptor::Format originalFormat, VolumeDataChannelDescriptor::Format dataBlockFormat);
 };
 }
 #endif //VOLUMEDATALAYER_H

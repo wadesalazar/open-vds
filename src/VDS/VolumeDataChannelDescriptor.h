@@ -66,7 +66,7 @@ private:
   Components m_components;
   const char *m_name;
   const char *m_unit;
-  Range<float> m_valueRange;
+  FloatRange m_valueRange;
 
   VolumeDataMapping m_mapping;
   int         m_mappedValueCount;
@@ -183,7 +183,7 @@ public:
   bool        isUseZipForLosslessCompression()  const { return (m_flags & NoLossyCompressionUseZip) == NoLossyCompressionUseZip; }
   const char *getName()                         const { return m_name; }
   const char *getUnit()                         const { return m_unit; }
-  const Range<float> &getValueRange()           const { return m_valueRange; }
+  const FloatRange &getValueRange()           const { return m_valueRange; }
   float       getValueRangeMin()                const { return m_valueRange.min; }
   float       getValueRangeMax()                const { return m_valueRange.max; }
 

@@ -53,7 +53,7 @@ private:
   IndexArray m_dimensionNumSamples;
   const char *m_dimensionName[Dimensionality_Max];
   const char *m_dimensionUnit[Dimensionality_Max];
-  Range<float> m_dimensionRange[Dimensionality_Max];
+  FloatRange m_dimensionRange[Dimensionality_Max];
   int32_t m_fullResolutionDimension;
 
 public:
@@ -61,7 +61,7 @@ public:
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
                    const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
                    int32_t actualValueRangeChannel, 
-                   Range<float> const &actualValueRange, 
+                   FloatRange const &actualValueRange, 
                    VolumeDataHash const &volumeDataHash, 
                    CompressionMethod compressionMethod, 
                    float compressionTolerance, 
@@ -71,14 +71,14 @@ public:
   uint64_t getContentsHash() const { return m_contentsHash; }
   VolumeDataLayer::VolumeDataLayerID addDataLayer(VolumeDataLayer *layer);
 
-  Range<float> const &getChannelValueRange(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getValueRange(); }
+  FloatRange const &getChannelValueRange(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getValueRange(); }
 
-  Range<float> const &getChannelActualValueRange(int32_t channel) const;
+  FloatRange const &getChannelActualValueRange(int32_t channel) const;
 
   //TODO SHOULD THIS BE REMOVED
   int32_t getMappedValueCount(int32_t channel) const;
 
-  Range<float> const &getDimensionRange(int32_t dimension) const;
+  FloatRange const &getDimensionRange(int32_t dimension) const;
 
   VolumeDataLayer *getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const; 
   VolumeDataLayer *getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayout *>(this)->getVolumeDataLayerFromID(volumeDataLayerID)); }
@@ -116,12 +116,12 @@ public:
 
   virtual VolumeDataChannelDescriptor::Components getChannelComponents(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getComponents(); }
 
-  virtual const const char *getChannelName(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getName(); }
+  virtual const char *getChannelName(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getName(); }
 
   virtual float getChannelValueRangeMin(int32_t channel) const { return getChannelValueRange(channel).min; }
   virtual float getChannelValueRangeMax(int32_t channel) const { return getChannelValueRange(channel).max; }
 
-  virtual const const char *getChannelUnit(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getUnit(); }
+  virtual const char *getChannelUnit(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getUnit(); }
 
   virtual bool isChannelDiscrete(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isDiscrete(); }
   virtual bool isChannelRenderable(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isRenderable(); }
@@ -150,7 +150,7 @@ public:
 
 // Mutators
   void setContentsHash(VolumeDataHash const &contentsHash);
-  void setActualValueRange(int32_t actualValueRangeChannel, Range<float> const &actualValueRange); // This should probably be implemented with VDSMetadata
+  void setActualValueRange(int32_t actualValueRangeChannel, FloatRange const &actualValueRange); // This should probably be implemented with VDSMetadata
 
   void createRenderLayers(DimensionGroup dimensions, int32_t brickSize, int32_t physicalLodLevels); //-> TODO: rename at some point
 

@@ -166,6 +166,13 @@ void test_function()
 }
 bool DownloadJson(const std::string &region, const std::string& bucket, const std::string &key, std::string &json, Error &error)
 {
+
+  if (bucket.empty() || key.empty())
+  {
+    error.code = -1;
+    error.string = "AWS Config error. Empty bucket or key";
+    return false;
+  }
   initializeAWSSDK();
   Aws::Client::ClientConfiguration config;
   config.region = region.c_str();

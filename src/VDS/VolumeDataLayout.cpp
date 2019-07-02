@@ -29,7 +29,7 @@ VolumeDataLayout::VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescr
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
                    const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
                    int32_t actualValueRangeChannel,
-                   Range<float> const &actualValueRange,
+                   FloatRange const &actualValueRange,
                    VolumeDataHash const &volumeDataHash,
                    CompressionMethod compressionMethod,
                    float compressionTolerance,
@@ -90,7 +90,7 @@ VolumeDataLayer* VolumeDataLayout::getBaseLayer(DimensionGroup dimensionGroup, i
   return volumeDataLayer;
 }
 
-Range<float> const& VolumeDataLayout::getChannelActualValueRange(int32_t channel) const
+FloatRange const& VolumeDataLayout::getChannelActualValueRange(int32_t channel) const
 {
   return (channel == m_actualValueRangeChannel) ? m_actualValueRange : m_volumeDataChannelDescriptor[channel].getValueRange();
 }
@@ -100,7 +100,7 @@ int32_t VolumeDataLayout::getMappedValueCount(int32_t channel) const
   return m_volumeDataChannelDescriptor[channel].getMappedValueCount();
 }
 
-Range<float> const& VolumeDataLayout::getDimensionRange(int32_t dimension) const
+FloatRange const& VolumeDataLayout::getDimensionRange(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < m_dimensionality);
   return m_dimensionRange[dimension];
@@ -274,7 +274,7 @@ void VolumeDataLayout::setContentsHash(VolumeDataHash const &contentsHash)
   m_contentsHash = contentsHash;
 }
 
-void VolumeDataLayout::setActualValueRange(int32_t actualValueRangeChannel, Range<float> const& actualValueRange)
+void VolumeDataLayout::setActualValueRange(int32_t actualValueRangeChannel, FloatRange const& actualValueRange)
 {
   m_actualValueRangeChannel = actualValueRangeChannel;
   m_actualValueRange = actualValueRange;

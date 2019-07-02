@@ -30,7 +30,7 @@ class VolumeDataAxisDescriptor
   int         m_numSamples;
   const char *m_name;
   const char *m_unit;
-  Range<float> m_coordinateRange;
+  FloatRange m_coordinateRange;
 
 public:
   VolumeDataAxisDescriptor() : m_numSamples(-1), m_name(nullptr), m_unit(nullptr), m_coordinateRange({0.0f, 0.0f}) {}
@@ -43,14 +43,14 @@ public:
   VolumeDataAxisDescriptor(int numSamples, const char *name, const char *unit, float coordinateMin, float coordinateMax)
     : m_numSamples(numSamples), m_name(name), m_unit(unit), m_coordinateRange({coordinateMin, coordinateMax}) {}
 
-  VolumeDataAxisDescriptor(int numSamples, const char *name, const char *unit, const Range<float> &coordinateRange)
+  VolumeDataAxisDescriptor(int numSamples, const char *name, const char *unit, const FloatRange &coordinateRange)
     : m_numSamples(numSamples), m_name(name), m_unit(unit), m_coordinateRange(coordinateRange) {}
   int getNumSamples()    const { return m_numSamples; }
   const char *getName()          const { return m_name; }
   const char *getUnit()          const { return m_unit; }
   float getCoordinateMin() const { return m_coordinateRange.min; }
   float getCoordinateMax() const { return m_coordinateRange.max; }
-  const Range<float> &getCoordinateRange() const { return m_coordinateRange; }
+  const FloatRange &getCoordinateRange() const { return m_coordinateRange; }
   float getCoordinateStep() const { return (m_numSamples > 1) ? ((m_coordinateRange.max - m_coordinateRange.min) / (m_numSamples - 1)) : 0; }
 
   /// Convert a sample index on this axis to a coordinate value

@@ -36,10 +36,10 @@ template <typename T>
 struct IndexRegion
 {
     T min;
-    T Max;
+    T max;
 
     IndexRegion() {}
-    IndexRegion(T min, T max) : Min(min), Max(max) {}
+    IndexRegion(T min, T max) : min(min), max(max) {}
 };
 
 class VolumeDataAccessor
