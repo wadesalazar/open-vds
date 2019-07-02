@@ -480,10 +480,15 @@ main(int argc, char *argv[])
 
   std::vector<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors = createChannelDescriptors(fileInfo, valueRange);
 
+  // Create metadata
+
+  OpenVDS::MetadataContainer
+    metadataContainer;
+
   OpenVDS::Error
     createError;
 
-  auto vds = OpenVDS::create(OpenVDS::OpenOptions(), layoutDescriptor, axisDescriptors, channelDescriptors, createError);
+  auto vds = OpenVDS::create(OpenVDS::OpenOptions(), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
 
   return EXIT_SUCCESS;
 }

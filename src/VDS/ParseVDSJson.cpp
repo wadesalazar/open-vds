@@ -30,14 +30,13 @@ namespace OpenVDS
 
 class Base64Table
 {
-  static unsigned char  table[256];
+  static const char alphabet[65];
+  static unsigned char table[256];
 
   static Base64Table    instance;
 
   Base64Table()
   {
-    static const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
     memset(table, -1, sizeof(table));
 
     for(int i = 0; i < sizeof(alphabet) - 1; i++)
@@ -47,11 +46,15 @@ class Base64Table
   }
 
 public:
-  static int decode(char a) { return table[a]; }
+  static int  decode(char a) { return table[(unsigned char)a]; }
+  static char encode(unsigned char u) { return alphabet[u]; }
 };
 
 Base64Table
 Base64Table::instance;
+
+const char
+Base64Table::alphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 unsigned char
 Base64Table::table[256];
@@ -447,7 +450,7 @@ static bool parseVDSObject(const std::string &json, VDSHandle &handle, Error &er
 
   for (const Json::Value &metadata : root["MetadataList"])
   {
-    VDSMetaDataKey key = { metadata["Category"].asString(), metadata["Name"].asString() };
+    MetadataKey key = { metadata["Category"].asString(), metadata["Name"].asString() };
 
     if (metadata["Type"].asString() == "Int")
     {

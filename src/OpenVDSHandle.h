@@ -18,6 +18,7 @@
 #ifndef OPENVDSHANDLE_H
 #define OPENVDSHANDLE_H
 
+#include <OpenVDS/Metadata.h>
 #include <VDS/VolumeDataLayoutDescriptor.h>
 #include <VDS/VolumeDataAxisDescriptor.h>
 #include <VDS/VolumeDataChannelDescriptor.h>
@@ -32,64 +33,32 @@
 
 namespace OpenVDS
 {
-struct VDSMetaDataKey
-{
-  std::string category;
-  std::string name;
-};
-inline bool operator==(const VDSMetaDataKey& a, const VDSMetaDataKey& b)
-{
-  return a.category == b.category
-    && a.name == b.name;
-}
-}
-
-namespace std
-{
-template<>
-struct hash<OpenVDS::VDSMetaDataKey>
-{
-  std::size_t operator()(const OpenVDS::VDSMetaDataKey &k) const
-  { 
-    size_t const h1= std::hash<std::string>()(k.category);
-    size_t const h2= std::hash<std::string>()(k.name);
-    return h1 ^ (h2 << 1);
-  }
-};
-}
-
-namespace OpenVDS
-{
-struct VDSMetaContainer
-{
-  std::unordered_map<VDSMetaDataKey, int> intData;
-  std::unordered_map<VDSMetaDataKey, IntVec2> intVec2Data;
-  std::unordered_map<VDSMetaDataKey, IntVec3> intVec3Data;
-  std::unordered_map<VDSMetaDataKey, IntVec4> intVec4Data;
-  std::unordered_map<VDSMetaDataKey, float> floatData;
-  std::unordered_map<VDSMetaDataKey, FloatVec2> floatVec2Data;
-  std::unordered_map<VDSMetaDataKey, FloatVec3> floatVec3Data;
-  std::unordered_map<VDSMetaDataKey, FloatVec4> floatVec4Data;
-  std::unordered_map<VDSMetaDataKey, double> doubleData;
-  std::unordered_map<VDSMetaDataKey, DoubleVec2> doubleVec2Data;
-  std::unordered_map<VDSMetaDataKey, DoubleVec3> doubleVec3Data;
-  std::unordered_map<VDSMetaDataKey, DoubleVec4> doubleVec4Data;
-  std::unordered_map<VDSMetaDataKey, std::string> stringData;
-  std::unordered_map<VDSMetaDataKey, std::vector<uint8_t>> blobData;
-};
 
 struct VDSHandle
 {
-  std::string url;
-  VolumeDataLayoutDescriptor layoutDescriptor;
-  std::vector<VolumeDataAxisDescriptor> axisDescriptors;
-  std::vector<VolumeDataChannelDescriptor> channelDescriptors;
-  std::vector<std::unique_ptr<char[]>> descriptorStrings;
-  std::vector<VolumeDataLayer::ProduceStatus> produceStatuses;
-  VDSMetaContainer metaDataContainer;
+  std::string       url;
 
-  std::unique_ptr<VolumeDataLayout> volumeDataLayout;
+  VolumeDataLayoutDescriptor
+                    layoutDescriptor;
+
+  std::vector<VolumeDataAxisDescriptor>
+                    axisDescriptors;
+
+  std::vector<VolumeDataChannelDescriptor>
+                    channelDescriptors;
+
+  std::vector<std::unique_ptr<char[]>>
+                    descriptorStrings;
+
+  std::vector<VolumeDataLayer::ProduceStatus>
+                    produceStatuses;
+
+  MetadataContainer metaDataContainer;
+
+  std::unique_ptr<VolumeDataLayout>
+                    volumeDataLayout;
 };
+
 }
 
 #endif //OPENVDSHANDLE_H

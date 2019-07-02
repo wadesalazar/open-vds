@@ -19,6 +19,7 @@
 #define OPENVDS_H
 
 #include "openvds_export.h"
+#include "Metadata.h"
 #include "VolumeData.h"
 
 #include <cstdint>
@@ -49,8 +50,8 @@ class VolumeDataLayout;
 class VolumeDataPageAccessor;
 
 OPENVDS_EXPORT VDSHandle* open(const OpenOptions& options, Error &error);
-OPENVDS_EXPORT VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, Error &error);
-OPENVDS_EXPORT void destroy(VDSHandle *handle);
+OPENVDS_EXPORT VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
+OPENVDS_EXPORT void       destroy(VDSHandle *handle);
 
 OPENVDS_EXPORT VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout *layout, DimensionsND dimension, int lod, int channel, int maxPages);
 }
