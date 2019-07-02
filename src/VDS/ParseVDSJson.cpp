@@ -664,7 +664,7 @@ static void createVolumeDataLayout(VDSHandle &handle)
   }
 }
 
-bool DownloadAndParseVDSJson(const OpenOptions& options, VDSHandle& handle, Error& error)
+bool downloadAndParseVDSJson(const OpenOptions& options, VDSHandle& handle, Error& error)
 {
   std::string vdsobject_json;
   if (!S3::DownloadJson(options.region, options.bucket, options.key, vdsobject_json, error))
@@ -703,6 +703,11 @@ bool DownloadAndParseVDSJson(const OpenOptions& options, VDSHandle& handle, Erro
 
   createVolumeDataLayout(handle);
 
+  return true;
+}
+
+bool serializeAndUploadVDSJson(const OpenOptions& options, VDSHandle& handle, Error& error)
+{
   return true;
 }
 

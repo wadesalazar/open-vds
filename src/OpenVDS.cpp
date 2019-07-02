@@ -28,7 +28,17 @@ namespace OpenVDS
 VDSHandle *open(const OpenOptions &options, Error &error)
 {
   std::unique_ptr<VDSHandle> ret(new VDSHandle());
-  if (!DownloadAndParseVDSJson(options, *ret.get(), error))
+  if (!downloadAndParseVDSJson(options, *ret.get(), error))
+  {
+    return nullptr;
+  }
+  return ret.release();
+}
+
+VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, Error &error)
+{
+  std::unique_ptr<VDSHandle> ret(new VDSHandle());
+  if (!serializeAndUploadVDSJson(options, *ret.get(), error))
   {
     return nullptr;
   }

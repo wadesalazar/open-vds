@@ -23,7 +23,8 @@
 
 namespace OpenVDS
 {
-  bool DownloadAndParseVDSJson(const OpenOptions &options, VDSHandle &handle, Error &error);
+  bool downloadAndParseVDSJson(const OpenOptions &options, VDSHandle &handle, Error &error);
+  bool serializeAndUploadVDSJson(const OpenOptions &options, VDSHandle &handle, Error &error);
 }
 
 #endif //PARSEVDSJSON_H

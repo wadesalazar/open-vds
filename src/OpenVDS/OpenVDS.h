@@ -21,9 +21,14 @@
 #include "openvds_export.h"
 
 #include <string>
+#include <vector>
 
 namespace OpenVDS
 {
+class VolumeDataLayoutDescriptor;
+class VolumeDataAxisDescriptor;
+class VolumeDataChannelDescriptor;
+
 struct OpenOptions
 {
   std::string bucket;
@@ -38,7 +43,9 @@ struct Error
 };
 
 struct VDSHandle;
+
 OPENVDS_EXPORT VDSHandle* open(const OpenOptions& options, Error &error);
+OPENVDS_EXPORT VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, Error &error);
 OPENVDS_EXPORT void destroy(VDSHandle *handle);
 }
 
