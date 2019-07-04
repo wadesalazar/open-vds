@@ -488,7 +488,7 @@ main(int argc, char *argv[])
   OpenVDS::Error
     createError;
 
-  auto vds = OpenVDS::create(OpenVDS::OpenOptions(), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
+  auto vds = OpenVDS::create(OpenVDS::AWSOpenOptions(), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
 
   return EXIT_SUCCESS;
 }

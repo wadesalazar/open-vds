@@ -24,7 +24,7 @@
 GTEST_TEST(DownloadJson, OpenVDS_integration)
 {
   OpenVDS::Error error;
-  OpenVDS::OpenOptions options;
+  OpenVDS::AWSOpenOptions options;
   options.region = getenv("OPENVDS_TEST_AWS_REGION");
   options.bucket = getenv("OPENVDS_TEST_AWS_BUCKET");
   options.key = getenv("OPENVDS_TEST_AWS_OBJECTID");

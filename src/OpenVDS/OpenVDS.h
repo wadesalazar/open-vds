@@ -34,9 +34,27 @@ class VolumeDataChannelDescriptor;
 
 struct OpenOptions
 {
+  enum ConnectionType
+  {
+    AWS,
+    Azure,
+    File
+  };
+
+  ConnectionType connectionType;
+
+protected:
+  OpenOptions(ConnectionType connectionType) : connectionType(connectionType) {}
+};
+
+struct AWSOpenOptions : OpenOptions
+{
   std::string bucket;
   std::string key;
   std::string region;
+
+  AWSOpenOptions() : OpenOptions(AWS) {}
+  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), bucket(bucket), key(key), region(region) {}
 };
 
 struct Error
