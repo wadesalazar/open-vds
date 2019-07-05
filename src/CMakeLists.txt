@@ -9,6 +9,8 @@ set(SOURCE_FILES
   VDS/VolumeDataLayout.cpp
   VDS/VolumeDataRegion.cpp
   VDS/VolumeDataHash.cpp
+  VDS/VolumeDataPageAccessorImpl.cpp
+  VDS/VolumeDataPageImpl.cpp
   VDS/DimensionGroup.cpp
   VDS/ParseVDSJson.cpp)
 
@@ -21,6 +23,8 @@ set (PRIVATE_HEADER_FILES
   VDS/VolumeDataChunk.h
   VDS/VolumeDataRegion.h
   VDS/VolumeDataHash.h
+  VDS/VolumeDataPageAccessorImpl.h
+  VDS/VolumeDataPageImpl.h
   VDS/DimensionGroup.h
   VDS/Hash.h
   Math/Vector.h

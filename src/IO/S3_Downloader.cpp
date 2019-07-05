@@ -198,5 +198,11 @@ bool DownloadJson(const std::string &region, const std::string& bucket, const st
   }
   return true;
 }
+
+bool downloadChunk(VDSHandle &handle, std::vector<uint8_t> &blob, int32_t (&pitch)[Dimensionality_Max], Error &error)
+{
+  assert(false && "TODO: IMPLEMENT");
+  return false;
+}
 }
 }

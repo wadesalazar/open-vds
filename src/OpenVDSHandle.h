@@ -58,6 +58,8 @@ struct VDSHandle
 
   std::unique_ptr<VolumeDataLayout>
                     volumeDataLayout;
+  std::vector<VolumeDataPageAccessor *>
+                    pageAccessors;
 };
 
 }

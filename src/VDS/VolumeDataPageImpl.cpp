@@ -16,20 +16,24 @@
 ****************************************************************************/
 
 
-//void s3_function();
-#include <OpenVDS/openvds_export.h>
-#include <OpenVDS/OpenVDS.h>
-
-#include <VDS/DimensionGroup.h>
-
 namespace OpenVDS
 {
-namespace S3
-{
-OPENVDS_EXPORT void test_function();
-
-bool DownloadJson(const std::string &region, const std::string& bucket, const std::string &key, std::string &json, Error &error);
-
-bool downloadChunk(VDSHandle &handle, std::vector<uint8_t> &blob, int32_t (&pitch)[Dimensionality_Max]);
-}
+//VolumeDataPageImpl::VolumeDataPageImpl(VolumeDataPageAccessor* volumeDataPageAccessor, int64_t chunk)
+//  : m_volumeDataPageAccessor(volumeDataPageAccessor)
+//  , m_chunk(chunk)
+//  , m_blob()
+//  , m_pins(1)
+//  , m_buffer(nullptr)
+//  , m_isDirty(false)
+//  , m_chunksCopiedTo(0)
+//{
+//  for (int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
+//  {
+//    m_pitch[iDimension] = 0;
+//    m_writtenMin[iDimension] = 0;
+//    m_writtenMax[iDimension] = 0;
+//  }
+//
+//  memset(m_copiedToChunkIndexes, 0, sizeof(m_copiedToChunkIndexes));
+//}
 }

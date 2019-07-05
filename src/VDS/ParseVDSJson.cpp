@@ -556,8 +556,6 @@ static bool parseProduceStatus(const std::string &json, VDSHandle &handle, Error
     return false;
   }
 
-  fprintf(stderr, "HELLO NEW WORLD!!!\n");
-
   if (root.empty())
     return true;
 

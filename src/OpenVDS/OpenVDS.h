@@ -63,6 +63,11 @@ struct Error
   std::string string;
 };
 
+enum class Access
+{
+  Read = 1 << 0,
+  Write = 1 << 1
+};
 struct VDSHandle;
 class VolumeDataLayout;
 class VolumeDataPageAccessor;
@@ -71,7 +76,7 @@ OPENVDS_EXPORT VDSHandle* open(const OpenOptions& options, Error &error);
 OPENVDS_EXPORT VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
 OPENVDS_EXPORT void       destroy(VDSHandle *handle);
 
-OPENVDS_EXPORT VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout *layout, DimensionsND dimension, int lod, int channel, int maxPages);
+OPENVDS_EXPORT VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout *layout, DimensionsND dimension, int lod, int channel, int maxPages, Access access);
 }
 
 #endif //OPENVDS_H

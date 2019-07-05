@@ -24,8 +24,10 @@
 
 #include <memory>
 
-#include "VDS/VolumeDataLayout.h"
 #include <OpenVDS/VolumeDataAccess.h>
+
+#include "VDS/VolumeDataLayout.h"
+#include "VDS/VolumeDataPageAccessorImpl.h"
 
 namespace OpenVDS
 {
@@ -72,8 +74,48 @@ void destroy(VDSHandle *handle)
   delete handle;
 }
 
-VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout *layout, DimensionsND dimension, int lod, int channel, int maxPages)
+static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayout *layout, DimensionsND dimension, int channel, int lod, bool isAllowFailure)
 {
-  return nullptr;
+  if(!layout)
+  {
+    fprintf(stderr, "Volume data layout is NULL, this is usually because the VDS setup is invalid");
+    return nullptr;
+  }
+
+  if(channel > layout->getChannelCount())
+  {
+    fprintf(stderr, "Specified channel doesn't exist");
+    return nullptr;
+  }
+
+  VolumeDataLayer *layer = layout->getBaseLayer(DimensionGroupUtil::getDimensionGroupFromDimensionsND(dimension), channel);
+
+  if(!layer && !isAllowFailure)
+  {
+    fprintf(stderr, "Specified dimension group doesn't exist");
+    return nullptr;
+  }
+
+  while(layer && layer->getLod() < lod)
+  {
+    layer = layer->getParentLayer();
+  }
+
+  if((!layer || layer->getLayerType() == VolumeDataLayer::Virtual) && !isAllowFailure)
+  {
+    fprintf(stderr, "Specified LOD doesn't exist");
+  }
+
+  assert(layer || isAllowFailure);
+  return (layer->getLayerType() != VolumeDataLayer::Virtual) ? layer : nullptr;
+}
+
+VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout *layout, DimensionsND dimension, int lod, int channel, int maxPages, Access access)
+{
+  VolumeDataLayer* layer = getVolumeDataLayer(layout, dimension, channel, lod, true);
+
+  if (!layer) return NULL;
+
+  return new VolumeDataPageAccessorImpl(layer, maxPages, access == Access::Write);
 }
 }
