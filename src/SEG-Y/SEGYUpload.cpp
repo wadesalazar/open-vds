@@ -18,12 +18,13 @@
 #include "SEGYFileInfo.h"
 #include "IO/File.h"
 
-#include "OpenVDS/OpenVDS.h"
-#include "OpenVDS/KnownMetadata.h"
-#include "Math/Range.h"
-#include "VDS/VolumeDataLayoutDescriptor.h"
-#include "VDS/VolumeDataAxisDescriptor.h"
-#include "VDS/VolumeDataChannelDescriptor.h"
+#include <OpenVDS/OpenVDS.h>
+#include <OpenVDS/KnownMetadata.h>
+#include <OpenVDS/VolumeDataLayoutDescriptor.h>
+#include <OpenVDS/VolumeDataAxisDescriptor.h>
+#include <OpenVDS/VolumeDataChannelDescriptor.h>
+#include <Math/Range.h>
+
 #include "VDS/VolumeDataLayout.h"
 #include "cxxopts.hpp"
 

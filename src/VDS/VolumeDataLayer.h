@@ -18,9 +18,10 @@
 #ifndef VOLUMEDATALAYER_H
 #define VOLUMEDATALAYER_H
 
+#include <OpenVDS/VolumeDataChannelDescriptor.h>
+
 #include "VolumeDataPartition.h"
 #include "VolumeDataChunk.h"
-#include "VolumeDataChannelDescriptor.h"
 
 #include <Math/Range.h>
 #include <Math/Vector.h>

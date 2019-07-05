@@ -21,10 +21,6 @@ set (PRIVATE_HEADER_FILES
   VDS/VolumeDataChunk.h
   VDS/VolumeDataRegion.h
   VDS/VolumeDataHash.h
-  VDS/VolumeDataLayoutDescriptor.h
-  VDS/VolumeDataChannelDescriptor.h
-  VDS/VolumeDataAxisDescriptor.h
-  VDS/VolumeDataAccess.h
   VDS/DimensionGroup.h
   VDS/Hash.h
   Math/Vector.h
@@ -34,7 +30,13 @@ set (PRIVATE_HEADER_FILES
 set (EXPORTED_HEADER_FILES
   OpenVDS/OpenVDS.h
   OpenVDS/KnownMetadata.h
+  OpenVDS/Metadata.h
   OpenVDS/VolumeData.h
+  OpenVDS/VolumeDataLayoutDescriptor.h
+  OpenVDS/VolumeDataChannelMapping.h
+  OpenVDS/VolumeDataChannelDescriptor.h
+  OpenVDS/VolumeDataAxisDescriptor.h
+  OpenVDS/VolumeDataAccess.h
   OpenVDS/openvds_export.h)
 
 add_library(openvds SHARED

@@ -18,14 +18,15 @@
 #ifndef OPENVDSHANDLE_H
 #define OPENVDSHANDLE_H
 
+#include <OpenVDS/VolumeDataLayoutDescriptor.h>
+#include <OpenVDS/VolumeDataAxisDescriptor.h>
+#include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/Metadata.h>
-#include <VDS/VolumeDataLayoutDescriptor.h>
-#include <VDS/VolumeDataAxisDescriptor.h>
-#include <VDS/VolumeDataChannelDescriptor.h>
-#include <VDS/VolumeDataLayer.h>
-#include <VDS/VolumeDataLayout.h>
 
 #include <Math/Vector.h>
+
+#include "VDS/VolumeDataLayer.h"
+#include "VDS/VolumeDataLayout.h"
 
 #include <vector>
 #include <memory>

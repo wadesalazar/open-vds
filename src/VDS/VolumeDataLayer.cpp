@@ -23,8 +23,7 @@
 #include "VolumeDataLayout.h"
 #include "VolumeDataRegion.h"
 
-#include "VolumeDataAccess.h"
-
+#include <OpenVDS/VolumeDataAccess.h>
 
 #include "Hash.h"
 

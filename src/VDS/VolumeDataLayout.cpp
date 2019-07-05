@@ -15,10 +15,10 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "VolumeDataLayout.h"
+#include <OpenVDS/VolumeDataLayoutDescriptor.h>
 
+#include "VolumeDataLayout.h"
 #include "DimensionGroup.h"
-#include "VolumeDataLayoutDescriptor.h"
 
 #include "Bitmask.h"
 

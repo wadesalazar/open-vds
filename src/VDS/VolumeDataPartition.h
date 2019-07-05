@@ -17,8 +17,8 @@
 
 #include <OpenVDS/openvds_export.h>
 #include <OpenVDS/VolumeData.h>
+#include <OpenVDS/VolumeDataChannelMapping.h>
 #include "DimensionGroup.h"
-#include "VolumeDataChannelMapping.h"
 
 #include <assert.h>
 #include <cstddef>

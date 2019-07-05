@@ -25,7 +25,7 @@
 #include <memory>
 
 #include "VDS/VolumeDataLayout.h"
-#include "VDS/VolumeDataAccess.h"
+#include <OpenVDS/VolumeDataAccess.h>
 
 namespace OpenVDS
 {

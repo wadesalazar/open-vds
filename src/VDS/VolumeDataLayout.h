@@ -18,9 +18,10 @@
 #ifndef VOLUMEDATALAYOUT_H
 #define VOLUMEDATALAYOUT_H
 
+#include <OpenVDS/VolumeDataAxisDescriptor.h>
+
 #include "VolumeDataLayer.h"
 #include "VolumeDataHash.h"
-#include "VolumeDataAxisDescriptor.h"
 
 #include <vector>
 #include <mutex>

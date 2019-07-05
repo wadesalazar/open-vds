@@ -19,8 +19,7 @@
 #define VOLUMEDATAACCESS_H
 
 #include <OpenVDS/VolumeData.h>
-#include "DimensionGroup.h"
-#include "VolumeDataChannelDescriptor.h"
+#include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <Math/Vector.h>
 
 namespace OpenVDS {
