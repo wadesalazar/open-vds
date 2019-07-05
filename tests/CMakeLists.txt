@@ -12,35 +12,30 @@ set_target_properties(gtest_main PROPERTIES
 
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/src)
 
-add_executable(io_tests
+macro(add_test_executable name)
+  add_executable(${name} ${ARGN})
+  target_link_libraries(${name} openvds_objects gtest gtest_main)
+  target_compile_definitions(${name} PRIVATE openvds_EXPORTS)
+  copyDllForTarget(${name})
+  gtest_discover_tests(${name})
+  set_target_properties(${name} PROPERTIES FOLDER tests)
+endmacro()
+
+add_test_executable(io_tests
   io/filetest.cpp
   io/s3test.cpp)
-target_link_libraries(io_tests openvds Threads::Threads gtest gtest_main)
-copyDllForTarget(io_tests)
-gtest_discover_tests(io_tests)
-set_target_properties(io_tests PROPERTIES FOLDER tests)
 
-add_executable(jsoncpp_tests
+add_test_executable(jsoncpp_tests
   jsoncpp/jsoncpp_parse.cpp
   jsoncpp/jsoncpp_serialize.cpp)
-target_link_libraries(jsoncpp_tests openvds Threads::Threads gtest gtest_main jsoncpp_lib_static)
-set_target_properties(jsoncpp_tests PROPERTIES FOLDER tests)
 
-add_executable(segy_tests
+add_test_executable(segy_tests
   SEG-Y/SEGYScanTest.cpp
   ../src/SEG-Y/SEGY.cpp
   ../src/SEG-Y/SEGYFileInfo.cpp
   ../src/SEG-Y/SEGYFileInfo.h)
 target_compile_definitions(segy_tests PRIVATE -DTEST_DATA_PATH="${TEST_DATA_PATH}")
-target_link_libraries(segy_tests openvds Threads::Threads gtest gtest_main)
 target_include_directories(segy_tests PRIVATE ../src/SEG-Y)
-copyDllForTarget(segy_tests)
-gtest_discover_tests(segy_tests)
-set_target_properties(segy_tests PROPERTIES FOLDER tests)
 
-add_executable(vds_integration_tests
+add_test_executable(vds_integration_tests
   VDS/VDSIntegrationTest.cpp)
-target_link_libraries(vds_integration_tests openvds Threads::Threads gtest gtest_main)
-copyDllForTarget(vds_integration_tests)
-gtest_discover_tests(vds_integration_tests)
-set_target_properties(vds_integration_tests PROPERTIES FOLDER tests)

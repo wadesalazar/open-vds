@@ -39,17 +39,19 @@ set (EXPORTED_HEADER_FILES
   OpenVDS/VolumeDataAccess.h
   OpenVDS/openvds_export.h)
 
-add_library(openvds SHARED
+add_library(openvds_objects OBJECT
   ${PRIVATE_HEADER_FILES}
   ${EXPORTED_HEADER_FILES}
   ${SOURCE_FILES})
 
-add_dependencies(openvds aws-cpp-sdk)
-target_include_directories(openvds PRIVATE "${aws-cpp-sdk_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
-target_compile_definitions(openvds PRIVATE openvds_EXPORTS)
-target_link_libraries(openvds Threads::Threads)
-target_link_libraries(openvds jsoncpp_lib_static)
-target_link_libraries(openvds ${aws-cpp-sdk_EXTERNAL_LIBS} ${aws-cpp-sdk_LIBS})
+
+add_dependencies(openvds_objects aws-cpp-sdk)
+target_include_directories(openvds_objects PRIVATE "${aws-cpp-sdk_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
+target_compile_definitions(openvds_objects PRIVATE openvds_EXPORTS)
+
+target_link_libraries(openvds_objects Threads::Threads)
+target_link_libraries(openvds_objects jsoncpp_lib_static)
+target_link_libraries(openvds_objects ${aws-cpp-sdk_EXTERNAL_LIBS} ${aws-cpp-sdk_LIBS})
 
 if (WIN32)
   set_source_files_properties(IO/Linux_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -61,6 +63,8 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/Dist/OpenVDS CACHE STRING "" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
+add_library(openvds SHARED $<TARGET_OBJECTS:openvds_objects>)
+target_link_libraries(openvds openvds_objects)
 set_target_properties(openvds
   PROPERTIES
   FRAMEWORK ON
