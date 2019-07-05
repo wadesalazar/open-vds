@@ -622,7 +622,7 @@ protected:
 public:
   virtual VolumeDataLayout const *getLayout() const = 0;
 
-  virtual int   getLOD() const = 0;
+  virtual int   getLod() const = 0;
   virtual int   getChannelIndex() const = 0;
   virtual VolumeDataChannelDescriptor const &getChannelDescriptor() const = 0;
   virtual void  getNumSamples(int (&numSamples)[Dimensionality_Max]) const = 0;
@@ -630,7 +630,7 @@ public:
   virtual int64_t getChunkCount() const = 0;
   virtual void  getChunkMinMax(int64_t chunk, int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const = 0;
   virtual void  getChunkMinMaxExcludingMargin(int64_t iChunk, int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const = 0;
-  virtual int64_t getChunkIndex(int (&position)[Dimensionality_Max]) const = 0;
+  virtual int64_t getChunkIndex(const int (&position)[Dimensionality_Max]) const = 0;
 
   virtual int   addReference() = 0;
   virtual int   removeReference() = 0;
