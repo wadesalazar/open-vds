@@ -217,13 +217,13 @@ public:
   float getIntegerOffset() const;
 
   // in cases where we have an integer data block for a non-integer layer, use this scale/offset to get back to the original values
-  FloatVec2 getQuantizingScaleOffset(VolumeDataChannelDescriptor::Format dataBlockFormat) const;
+  FloatVector2 getQuantizingScaleOffset(VolumeDataChannelDescriptor::Format dataBlockFormat) const;
 
-  FloatVec2 getTextureScaleOffset(VolumeDataChannelDescriptor::Format dataBlockFormat) const;
+  FloatVector2 getTextureScaleOffset(VolumeDataChannelDescriptor::Format dataBlockFormat) const;
 
   void setProduceStatus(ProduceStatus produceStatus);
 
-  static FloatVec2 staticGetTextureScaleOffset(const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, VolumeDataChannelDescriptor::Format originalFormat, VolumeDataChannelDescriptor::Format dataBlockFormat);
+  static FloatVector2 staticGetTextureScaleOffset(const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, VolumeDataChannelDescriptor::Format originalFormat, VolumeDataChannelDescriptor::Format dataBlockFormat);
 };
 }
 #endif //VOLUMEDATALAYER_H

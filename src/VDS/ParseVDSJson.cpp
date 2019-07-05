@@ -458,15 +458,15 @@ static bool parseVDSObject(const std::string &json, VDSHandle &handle, Error &er
     }
     else if (metadata["Type"].asString() == "IntVector2")
     {
-      handle.metaDataContainer.intVec2Data[key] = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt()};
+      handle.metaDataContainer.intVector2Data[key] = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt()};
     }
     else if (metadata["Type"].asString() == "IntVector3")
     {
-      handle.metaDataContainer.intVec3Data[key]  = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt(), metadata["Value"][2].asInt() };
+      handle.metaDataContainer.intVector3Data[key]  = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt(), metadata["Value"][2].asInt() };
     }
     else if (metadata["Type"].asString() == "IntVector4")
     {
-      handle.metaDataContainer.intVec4Data[key] = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt(), metadata["Value"][2].asInt(), metadata["Value"][3].asInt() };
+      handle.metaDataContainer.intVector4Data[key] = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt(), metadata["Value"][2].asInt(), metadata["Value"][3].asInt() };
     }
     else if (metadata["Type"].asString() == "Float")
     {
@@ -474,15 +474,15 @@ static bool parseVDSObject(const std::string &json, VDSHandle &handle, Error &er
     }
     else if (metadata["Type"].asString() == "FloatVector2")
     {
-      handle.metaDataContainer.floatVec2Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat() };
+      handle.metaDataContainer.floatVector2Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat() };
     }
     else if (metadata["Type"].asString() == "FloatVector3")
     {
-      handle.metaDataContainer.floatVec3Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat(), metadata["Value"][2].asFloat() };
+      handle.metaDataContainer.floatVector3Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat(), metadata["Value"][2].asFloat() };
     }
     else if (metadata["Type"].asString() == "FloatVector4")
     {
-      handle.metaDataContainer.floatVec4Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat(), metadata["Value"][2].asFloat(), metadata["Value"][3].asFloat() };
+      handle.metaDataContainer.floatVector4Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat(), metadata["Value"][2].asFloat(), metadata["Value"][3].asFloat() };
     }
     else if (metadata["Type"].asString() == "Double")
     {
@@ -490,15 +490,15 @@ static bool parseVDSObject(const std::string &json, VDSHandle &handle, Error &er
     }
     else if (metadata["Type"].asString() == "DoubleVector2")
     {
-      handle.metaDataContainer.doubleVec2Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble() };
+      handle.metaDataContainer.doubleVector2Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble() };
     }
     else if (metadata["Type"].asString() == "DoubleVector3")
     {
-      handle.metaDataContainer.doubleVec3Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble(), metadata["Value"][2].asDouble() };
+      handle.metaDataContainer.doubleVector3Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble(), metadata["Value"][2].asDouble() };
     }
     else if (metadata["Type"].asString() == "DoubleVector4")
     {
-      handle.metaDataContainer.doubleVec4Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble(), metadata["Value"][2].asDouble(), metadata["Value"][3].asDouble() };
+      handle.metaDataContainer.doubleVector4Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble(), metadata["Value"][2].asDouble(), metadata["Value"][3].asDouble() };
     }
     else if (metadata["Type"].asString() == "String")
     {

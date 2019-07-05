@@ -51,23 +51,24 @@ namespace OpenVDS
 {
 struct MetadataContainer
 {
-  std::unordered_map<MetadataKey, int>     intData;
-  std::unordered_map<MetadataKey, IntVec2> intVec2Data;
-  std::unordered_map<MetadataKey, IntVec3> intVec3Data;
-  std::unordered_map<MetadataKey, IntVec4> intVec4Data;
+  std::unordered_map<MetadataKey, int>        intData;
+  std::unordered_map<MetadataKey, IntVector2> intVector2Data;
+  std::unordered_map<MetadataKey, IntVector3> intVector3Data;
+  std::unordered_map<MetadataKey, IntVector4> intVector4Data;
 
-  std::unordered_map<MetadataKey, float>     floatData;
-  std::unordered_map<MetadataKey, FloatVec2> floatVec2Data;
-  std::unordered_map<MetadataKey, FloatVec3> floatVec3Data;
-  std::unordered_map<MetadataKey, FloatVec4> floatVec4Data;
+  std::unordered_map<MetadataKey, float>        floatData;
+  std::unordered_map<MetadataKey, FloatVector2> floatVector2Data;
+  std::unordered_map<MetadataKey, FloatVector3> floatVector3Data;
+  std::unordered_map<MetadataKey, FloatVector4> floatVector4Data;
 
-  std::unordered_map<MetadataKey, double>     doubleData;
-  std::unordered_map<MetadataKey, DoubleVec2> doubleVec2Data;
-  std::unordered_map<MetadataKey, DoubleVec3> doubleVec3Data;
-  std::unordered_map<MetadataKey, DoubleVec4> doubleVec4Data;
+  std::unordered_map<MetadataKey, double>        doubleData;
+  std::unordered_map<MetadataKey, DoubleVector2> doubleVector2Data;
+  std::unordered_map<MetadataKey, DoubleVector3> doubleVector3Data;
+  std::unordered_map<MetadataKey, DoubleVector4> doubleVector4Data;
 
  
   std::unordered_map<MetadataKey, std::string> stringData;
+
   std::unordered_map<MetadataKey, std::vector<uint8_t>> blobData;
 };
 } // end namespace OpenVDS

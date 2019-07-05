@@ -350,11 +350,11 @@ float VolumeDataLayer::getIntegerOffset() const
   return m_volumeDataLayout->getChannelIntegerOffset(m_channel);
 }
 
-FloatVec2 VolumeDataLayer::getQuantizingScaleOffset(VolumeDataChannelDescriptor::Format format) const
+FloatVector2 VolumeDataLayer::getQuantizingScaleOffset(VolumeDataChannelDescriptor::Format format) const
 {
   VolumeDataChannelDescriptor::Format layerFormat = getFormat();
 
-  FloatVec2 scaleAndOffset = {getIntegerScale(), getIntegerOffset()};
+  FloatVector2 scaleAndOffset = {getIntegerScale(), getIntegerOffset()};
 
   if (format == VolumeDataChannelDescriptor::FormatU8 || format == VolumeDataChannelDescriptor::FormatU16)
   {
@@ -376,14 +376,14 @@ FloatVec2 VolumeDataLayer::getQuantizingScaleOffset(VolumeDataChannelDescriptor:
   return scaleAndOffset;
 }
 
-FloatVec2 VolumeDataLayer::getTextureScaleOffset(VolumeDataChannelDescriptor::Format eDataBlockFormat) const
+FloatVector2 VolumeDataLayer::getTextureScaleOffset(VolumeDataChannelDescriptor::Format eDataBlockFormat) const
 {
   return staticGetTextureScaleOffset(getValueRange(), getIntegerScale(), getIntegerOffset(), isUseNoValue(), getFormat(), eDataBlockFormat);
 }
 
-FloatVec2 VolumeDataLayer::staticGetTextureScaleOffset(const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, VolumeDataChannelDescriptor::Format originalFormat, VolumeDataChannelDescriptor::Format dataBlockFormat)
+FloatVector2 VolumeDataLayer::staticGetTextureScaleOffset(const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, VolumeDataChannelDescriptor::Format originalFormat, VolumeDataChannelDescriptor::Format dataBlockFormat)
 {
-  FloatVec2 scaleAndOffset=  {1.0f, 0.0f};
+  FloatVector2 scaleAndOffset=  {1.0f, 0.0f};
 
   if (dataBlockFormat == VolumeDataChannelDescriptor::FormatU8 || dataBlockFormat == VolumeDataChannelDescriptor::FormatU16)
   {

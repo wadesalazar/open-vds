@@ -75,23 +75,23 @@ bool operator!=(const Vector<T, N> &a, const Vector<T, N> &b)
 }
 
 template<typename T>
-using Vec2 = Vector<T, 2>;
+using Vector2 = Vector<T, 2>;
 template<typename T>
-using Vec3 = Vector<T, 3>;
+using Vector3 = Vector<T, 3>;
 template<typename T>
-using Vec4 = Vector<T, 4>;
+using Vector4 = Vector<T, 4>;
 
-using IntVec2 = Vec2<int>;
-using IntVec3 = Vec3<int>;
-using IntVec4 = Vec4<int>;
+using IntVector2 = Vector2<int>;
+using IntVector3 = Vector3<int>;
+using IntVector4 = Vector4<int>;
 
-using FloatVec2 = Vec2<float>;
-using FloatVec3 = Vec3<float>;
-using FloatVec4 = Vec4<float>;
+using FloatVector2 = Vector2<float>;
+using FloatVector3 = Vector3<float>;
+using FloatVector4 = Vector4<float>;
 
-using DoubleVec2 = Vec2<double>;
-using DoubleVec3 = Vec3<double>;
-using DoubleVec4 = Vec4<double>;
+using DoubleVector2 = Vector2<double>;
+using DoubleVector3 = Vector3<double>;
+using DoubleVector4 = Vector4<double>;
 
 }
 
