@@ -33,18 +33,13 @@ namespace OpenVDS
 {
 VDSHandle *open(const OpenOptions &options, Error &error)
 {
-  std::unique_ptr<VDSHandle> ret(new VDSHandle());
+  error = Error();
+  std::unique_ptr<VDSHandle> ret(new VDSHandle(options, error));
+  if (error.code)
+    return nullptr;
 
-  switch(options.connectionType)
+  if (!downloadAndParseVDSJson(*ret.get(), error))
   {
-  case OpenOptions::AWS:
-    {
-      if (!downloadAndParseVDSJson(static_cast<const AWSOpenOptions &>(options), *ret.get(), error))
-      {
-        return nullptr;
-      }
-    }
-  default:
     return nullptr;
   }
   return ret.release();
@@ -52,20 +47,14 @@ VDSHandle *open(const OpenOptions &options, Error &error)
 
 VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error)
 {
-  std::unique_ptr<VDSHandle> ret(new VDSHandle());
-
-  switch(options.connectionType)
-  {
-  case OpenOptions::AWS:
-    {
-      if (!serializeAndUploadVDSJson(static_cast<const AWSOpenOptions &>(options), *ret.get(), error))
-      {
-        return nullptr;
-      }
-    }
-  default:
+  error = Error();
+  std::unique_ptr<VDSHandle> ret(new VDSHandle(options, error));
+  if (error.code)
     return nullptr;
-  }
+
+  if (!serializeAndUploadVDSJson(*ret.get(), error))
+    return nullptr;
+  
   return ret.release();
 }
 

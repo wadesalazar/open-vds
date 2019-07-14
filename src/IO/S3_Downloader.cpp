@@ -19,6 +19,8 @@
 #include "OpenVDS/openvds_export.h"
 #include <vector>
 
+#include "OpenVDSHandle.h"
+
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/Bucket.h>
@@ -163,46 +165,6 @@ void test_function()
     }
   }
 
-}
-bool DownloadJson(const std::string &region, const std::string& bucket, const std::string &key, std::string &json, Error &error)
-{
-
-  if (bucket.empty() || key.empty())
-  {
-    error.code = -1;
-    error.string = "AWS Config error. Empty bucket or key";
-    return false;
-  }
-  initializeAWSSDK();
-  Aws::Client::ClientConfiguration config;
-  config.region = region.c_str();
-  Aws::S3::S3Client s3_client(config);
-  Aws::S3::Model::GetObjectRequest object_request;
-  object_request.SetBucket(bucket.c_str());
-  object_request.SetKey(key.c_str());
-  auto get_object_outcome = s3_client.GetObject(object_request);
-  if (!get_object_outcome.IsSuccess())
-  {
-    auto s3error = get_object_outcome.GetError();
-    error.code = int(s3error.GetResponseCode());
-    error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
-    return false;
-  }
-  auto result = get_object_outcome.GetResultWithOwnership();
-  auto& retrieved_object = result.GetBody();
-  auto content_length = result.GetContentLength();
-  if (content_length > 0)
-  {
-    json.resize(content_length);
-    retrieved_object.read(&json[0], content_length);
-  }
-  return true;
-}
-
-bool downloadChunk(VDSHandle &handle, std::vector<uint8_t> &blob, int32_t (&pitch)[Dimensionality_Max], Error &error)
-{
-  assert(false && "TODO: IMPLEMENT");
-  return false;
 }
 }
 }

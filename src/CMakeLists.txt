@@ -4,6 +4,8 @@ set(SOURCE_FILES
   IO/Linux_File.cpp
   IO/Win_File.cpp
   IO/S3_Downloader.cpp
+  IO/IOManager.cpp
+  IO/IOManagerAWS.cpp
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataLayer.cpp
   VDS/VolumeDataLayout.cpp
@@ -12,11 +14,14 @@ set(SOURCE_FILES
   VDS/VolumeDataPageAccessorImpl.cpp
   VDS/VolumeDataPageImpl.cpp
   VDS/DimensionGroup.cpp
-  VDS/ParseVDSJson.cpp)
+  VDS/ParseVDSJson.cpp
+  VDS/MetaDataManager.cpp)
 
 set (PRIVATE_HEADER_FILES
   IO/File.h
   IO/S3_Downloader.h
+  IO/IOManager.h
+  IO/IOManagerAWS.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataLayer.h
   VDS/VolumeDataLayout.h
@@ -29,7 +34,8 @@ set (PRIVATE_HEADER_FILES
   VDS/Hash.h
   Math/Vector.h
   VDS/Bitmask.h
-  VDS/ParseVDSJson.h)
+  VDS/ParseVDSJson.h
+  VDS/MetaDataManager.h)
 
 set (EXPORTED_HEADER_FILES
   OpenVDS/OpenVDS.h

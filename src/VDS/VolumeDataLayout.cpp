@@ -24,8 +24,22 @@
 
 namespace OpenVDS
 {
-  
-VolumeDataLayout::VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescriptor,
+
+static std::mutex &staticGetPendingRequestCountMutex()
+{
+  static std::mutex pendingRequestCountMutex;
+  return pendingRequestCountMutex;
+}
+
+static std::condition_variable &staticGetPendingRequestCountChangedCondition()
+{
+  static std::condition_variable pendingRequestCountChangedCondition;
+
+  return pendingRequestCountChangedCondition;
+}
+
+VolumeDataLayout::VolumeDataLayout(const VDSHandle &handle,
+                   const VolumeDataLayoutDescriptor &layoutDescriptor,
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
                    const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
                    int32_t actualValueRangeChannel,
@@ -35,7 +49,8 @@ VolumeDataLayout::VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescr
                    float compressionTolerance,
                    bool isZipLosslessChannels,
                    int32_t waveletAdaptiveLoadLevel)
-  : m_dimensionality(int32_t(axisDescriptor.size()))
+  : m_handle(handle)
+  , m_dimensionality(int32_t(axisDescriptor.size()))
   , m_baseBrickSize(int32_t(1) << layoutDescriptor.getBrickSize())
   , m_negativeRenderMargin(layoutDescriptor.getNegativeMargin())
   , m_positiveRenderMargin(layoutDescriptor.getPositiveMargin())
@@ -152,6 +167,34 @@ VolumeDataLayer *VolumeDataLayout::getTopLayer(DimensionGroup dimensionGroup, in
     volumeDataLayer = volumeDataLayer->getNextChannelLayer();
   }
   return volumeDataLayer;
+}
+
+int32_t VolumeDataLayout::changePendingWriteRequestCount(int32_t difference)
+{
+  std::unique_lock<std::mutex> pendingRequestCountMutexLock(staticGetPendingRequestCountMutex());
+
+  assert(m_pendingWriteRequests + difference >= 0);
+  m_pendingWriteRequests += difference;
+  int32_t ret = m_pendingWriteRequests;
+  if(difference)
+  {
+    pendingRequestCountMutexLock.unlock();
+    staticGetPendingRequestCountChangedCondition().notify_all();
+  }
+  return ret;
+}
+void VolumeDataLayout::completePendingWriteChunkRequests(int32_t maxPendingWriteRequests) const
+{
+  std::unique_lock<std::mutex> pendingRequestCountMutexLock(staticGetPendingRequestCountMutex());
+
+  bool
+    isFirstTime = true;
+
+  while (m_pendingWriteRequests > maxPendingWriteRequests)
+  {
+    staticGetPendingRequestCountChangedCondition().wait_for(pendingRequestCountMutexLock, std::chrono::milliseconds(10));
+  }
+
 }
 
 bool VolumeDataLayout::isChannelAvailable(const char *channelName) const

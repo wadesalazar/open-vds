@@ -302,7 +302,7 @@ static VolumeDataMapping convertToChannelMapping(Json::Value const &jsonChannelM
   throw Json::Exception("Illegal channel mapping");
 }
 
-static bool parseJSONFromBuffer(const std::string &json, Json::Value &root, Error &error)
+static bool parseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error)
 {
   try
   {
@@ -312,7 +312,8 @@ static bool parseJSONFromBuffer(const std::string &json, Json::Value &root, Erro
     std::string errs;
 
     std::unique_ptr<Json::CharReader> reader(rbuilder.newCharReader());
-    reader->parse(json.data(), json.data() + json.size(), &root, &error.string);
+    const char *json_begin = reinterpret_cast<const char *>(json.data());
+    reader->parse(json_begin, json_begin + json.size(), &root, &error.string);
 
     return true;
   }
@@ -325,7 +326,7 @@ static bool parseJSONFromBuffer(const std::string &json, Json::Value &root, Erro
   return false;
 }
 
-static bool parseVDSObject(const std::string &json, VDSHandle &handle, Error &error)
+static bool parseVDSObject(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
 {
   Json::Value root;
   if (!parseJSONFromBuffer(json, root, error))
@@ -546,7 +547,7 @@ static VolumeDataLayer::ProduceStatus produceStatusFromJSON(Json::Value const &j
   throw Json::Exception("Illegal produce status");
 }
 
-static bool parseProduceStatus(const std::string &json, VDSHandle &handle, Error &error)
+static bool parseProduceStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
 {
   handle.produceStatuses.clear();
   handle.produceStatuses.resize(int(DimensionsND::Group45) + 1, VolumeDataLayer::ProduceStatusUnavailable);
@@ -598,7 +599,7 @@ static bool parseProduceStatus(const std::string &json, VDSHandle &handle, Error
   return true;
 }
 
-static bool parseMetaDataStatus(const std::string &json, VDSHandle &handle, Error &error)
+static bool parseMetaDataStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
 {
   return true;
 }
@@ -634,6 +635,7 @@ static void createVolumeDataLayout(VDSHandle &handle)
 
   handle.volumeDataLayout.reset(
     new VolumeDataLayout(
+      handle,
       handle.layoutDescriptor,
       handle.axisDescriptors,
       handle.channelDescriptors,
@@ -667,24 +669,51 @@ static void createVolumeDataLayout(VDSHandle &handle)
   }
 }
 
-bool downloadAndParseVDSJson(const AWSOpenOptions& options, VDSHandle& handle, Error& error)
+class SyncTransferHandler : public TransferHandler
 {
-  std::string vdsobject_json;
-  if (!S3::DownloadJson(options.region, options.bucket, options.key, vdsobject_json, error))
+public:
+    void handleData(std::vector<uint8_t> &&data) override
+    {
+      *(this->data) = data;
+    }
+    void handleError(Error &error) override
+    {
+      *(this->error) = error;
+    }
+
+  std::vector<uint8_t> *data;
+  Error *error;
+};
+
+bool downloadAndParseVDSJson(VDSHandle& handle, Error& error)
+{
+  std::vector<uint8_t> vdsobject_json;
+  std::shared_ptr<SyncTransferHandler> syncTransferHandler = std::make_shared<SyncTransferHandler>();
+  syncTransferHandler->error = &error;
+  syncTransferHandler->data = &vdsobject_json;
+  auto req = handle.ioManager->requestObject("", syncTransferHandler);
+  req->waitForFinish();
+  if (!req->isSuccess(error) || vdsobject_json.empty())
   {
-    error.string = "S3 Error on downloading file " + options.key + " : " + error.string;
+    error.string = "S3 Error on downloading root object: " + error.string;
     return false;
   }
-  std::string producestatus_json;
-  if (!S3::DownloadJson(options.region, options.bucket, options.key + "/ProduceStatus", producestatus_json, error))
+  std::vector<uint8_t> producestatus_json;
+  syncTransferHandler->data = &producestatus_json;
+  req = handle.ioManager->requestObject("ProduceStatus", syncTransferHandler);
+  req->waitForFinish();
+  if (!req->isSuccess(error) || producestatus_json.empty())
   {
-    error.string = "S3 Error on downloading file " + options.key + "/ProduceStatus  : " + error.string;
+    error.string = "S3 Error on downloading file ProduceStatus: " + error.string;
     return false;
   }
-  std::string metadatastatus_json;
-  if (!S3::DownloadJson(options.region, options.bucket, options.key + "/MetadataStatus", metadatastatus_json, error))
+  std::vector<uint8_t> metadatastatus_json;
+  syncTransferHandler->data = &metadatastatus_json;
+  req = handle.ioManager->requestObject("MetadataStatus", syncTransferHandler);
+  req->waitForFinish();
+  if (!req->isSuccess(error) || metadatastatus_json.empty())
   {
-    error.string = "S3 Error on downloading file " + options.key + "/MetadataStatus : " + error.string;
+    error.string = "S3 Error on downloading file MetadataStatus: " + error.string;
     return false;
   }
 
@@ -709,7 +738,7 @@ bool downloadAndParseVDSJson(const AWSOpenOptions& options, VDSHandle& handle, E
   return true;
 }
 
-bool serializeAndUploadVDSJson(const AWSOpenOptions& options, VDSHandle& handle, Error& error)
+bool serializeAndUploadVDSJson(VDSHandle& handle, Error& error)
 {
   return true;
 }

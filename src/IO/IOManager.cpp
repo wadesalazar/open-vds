@@ -15,16 +15,28 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#ifndef PARSEVDSJSON_H
-#define PARSEVDSJSON_H
+#include "IOManager.h"
 
-#include <OpenVDS/OpenVDS.h>
-#include <OpenVDSHandle.h>
+#include "IOManagerAWS.h"
 
 namespace OpenVDS
 {
-  bool downloadAndParseVDSJson(VDSHandle &handle, Error &error);
-  bool serializeAndUploadVDSJson(VDSHandle &handle, Error &error);
+ObjectRequester::~ObjectRequester()
+{}
+TransferHandler::~TransferHandler()
+{}
+IOManager::~IOManager()
+{}
+IOManager* IOManager::createIOManager(const OpenOptions& options, Error &error)
+{
+  switch(options.connectionType)
+  {
+  case OpenOptions::AWS:
+    return new IOManagerAWS(static_cast<const AWSOpenOptions &>(options), error);
+  default:
+    error.code = -1;
+    error.string = "Unknwon type for OpenOptions";
+    return nullptr;
+  }
 }
-
-#endif //PARSEVDSJSON_H
+}

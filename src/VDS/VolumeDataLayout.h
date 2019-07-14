@@ -28,11 +28,12 @@
 
 namespace OpenVDS
 {
-
+struct VDSHandle;
 class VolumeDataLayoutDescriptor;
 class VolumeDataLayout
 {
 private:
+  const VDSHandle &m_handle;
   std::vector<VolumeDataLayer *> m_volumeDataLayers;
   std::vector<VolumeDataChannelDescriptor> m_volumeDataChannelDescriptor;
   bool          m_isReadOnly;
@@ -41,8 +42,9 @@ private:
   int32_t        m_baseBrickSize;
   int32_t        m_negativeRenderMargin;
   int32_t        m_positiveRenderMargin;
+  int32_t        m_pendingWriteRequests;
   int32_t        m_actualValueRangeChannel;
-  FloatRange   m_actualValueRange;
+  FloatRange     m_actualValueRange;
 
   VolumeDataLayer *m_primaryBaseLayers[DimensionGroup_3D_Max];
   VolumeDataLayer *m_primaryTopLayers[DimensionGroup_3D_Max];
@@ -58,7 +60,8 @@ private:
   int32_t m_fullResolutionDimension;
 
 public:
-  VolumeDataLayout(const VolumeDataLayoutDescriptor &layoutDescriptor,
+  VolumeDataLayout(const VDSHandle &handle,
+                   const VolumeDataLayoutDescriptor &layoutDescriptor,
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
                    const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
                    int32_t actualValueRangeChannel, 
@@ -68,6 +71,8 @@ public:
                    float compressionTolerance, 
                    bool isZipLosslessChannels, 
                    int32_t waveletAdaptiveLoadLevel);
+
+  const VDSHandle &getHandle() { return m_handle;}
 
   uint64_t getContentsHash() const { return m_contentsHash; }
   VolumeDataLayer::VolumeDataLayerID addDataLayer(VolumeDataLayer *layer);
@@ -101,6 +106,9 @@ public:
   int32_t getWaveletAdaptiveLoadLevel() const { return m_waveletAdaptiveLoadLevel; }
 
   const VolumeDataChannelDescriptor &getVolumeDataChannelDescriptor(int32_t channel) const { return m_volumeDataChannelDescriptor[channel]; }
+
+  int32_t changePendingWriteRequestCount(int32_t nDifference);
+  void completePendingWriteChunkRequests(int32_t nMaxPendingWriteChunkRequests) const;
 
   //REMOVE VIRTUAL?
   // Implementation of VolumeDataLayout interface

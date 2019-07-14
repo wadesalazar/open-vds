@@ -117,6 +117,16 @@ VolumeDataPartition::operator==(VolumeDataPartition const &volumeDataPartion) co
          m_fullResolutionDimension == volumeDataPartion.m_fullResolutionDimension;
 }
 
+int32_t VolumeDataPartition::getChunkDimensionality() const
+{
+  return DimensionGroupUtil::getDimensionality(getChunkDimensionGroup());
+}
+
+int32_t VolumeDataPartition::getChunkDimension(int chunkDimension) const
+{
+  return DimensionGroupUtil::getDimension(getChunkDimensionGroup(), chunkDimension);
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // StaticMapPartition
 

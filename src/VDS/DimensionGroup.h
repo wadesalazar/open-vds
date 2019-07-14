@@ -106,16 +106,6 @@ enum DimensionGroup
   DimensionGroup_6D_Max = DimensionGroup_012345 + 1
 };
 
-enum Dimensionality
-{
-  Dimensionality_1 = 1,
-  Dimensionality_2,
-  Dimensionality_3,
-  Dimensionality_4,
-  Dimensionality_5,
-  Dimensionality_6,
-  Dimensionality_Max = Dimensionality_6
-};
 using IndexArray = int32_t[Dimensionality_Max];
 
 struct NDPos
@@ -153,6 +143,8 @@ namespace DimensionGroupUtil
   const char *getDimensionGroupShortName(DimensionGroup dimensionGroup);
 
   const char *getDimensionGroupName(DimensionGroup dimensionGroup);
+
+  const char *getDimensionsGroupString(DimensionsND dimensions);
 
   bool isRemappingPossible(DimensionGroup dimensionGroupA, DimensionGroup dimensionGroupB);
 

@@ -90,7 +90,7 @@ public:
 
   int32_t getChunkDimensionality() const;
 
-  int getChunkDimension(int chunkDimension) const;
+  int32_t getChunkDimension(int chunkDimension) const;
 
   int32_t voxelToIndex(int32_t voxel, int32_t dimension) const;
 

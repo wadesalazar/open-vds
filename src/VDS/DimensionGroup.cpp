@@ -1358,6 +1358,51 @@ const char * getDimensionGroupName(DimensionGroup dimensionGroup)
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_Max);
   return apzDimensionNames[dimensionGroup];
 }
+const char* getDimensionsGroupString(DimensionsND dimensions)
+{
+  switch(dimensions)
+  {
+  case DimensionsND::Group012: return "012";
+  case DimensionsND::Group013: return "013";
+  case DimensionsND::Group014: return "014";
+  case DimensionsND::Group015: return "015";
+  case DimensionsND::Group023: return "023";
+  case DimensionsND::Group024: return "024";
+  case DimensionsND::Group025: return "025";
+  case DimensionsND::Group034: return "034";
+  case DimensionsND::Group035: return "035";
+  case DimensionsND::Group045: return "045";
+  case DimensionsND::Group123: return "123";
+  case DimensionsND::Group124: return "124";
+  case DimensionsND::Group125: return "125";
+  case DimensionsND::Group134: return "134";
+  case DimensionsND::Group135: return "135";
+  case DimensionsND::Group145: return "145";
+  case DimensionsND::Group234: return "234";
+  case DimensionsND::Group235: return "235";
+  case DimensionsND::Group245: return "245";
+  case DimensionsND::Group345: return "345";
+
+  case DimensionsND::Group01: return "01";
+  case DimensionsND::Group02: return "02";
+  case DimensionsND::Group03: return "03";
+  case DimensionsND::Group04: return "04";
+  case DimensionsND::Group05: return "05";
+  case DimensionsND::Group12: return "12";
+  case DimensionsND::Group13: return "13";
+  case DimensionsND::Group14: return "14";
+  case DimensionsND::Group15: return "15";
+  case DimensionsND::Group23: return "23";
+  case DimensionsND::Group24: return "24";
+  case DimensionsND::Group25: return "25";
+  case DimensionsND::Group34: return "34";
+  case DimensionsND::Group35: return "35";
+  case DimensionsND::Group45: return "45";
+  default:
+    ;
+  }
+  return "";
+}
 
 bool isRemappingPossible(DimensionGroup dimensionGroupA, DimensionGroup dimensionGroupB)
 {

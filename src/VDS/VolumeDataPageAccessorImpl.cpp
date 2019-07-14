@@ -16,15 +16,22 @@
 ****************************************************************************/
 
 #include "VolumeDataPageAccessorImpl.h"
+#include "VolumeDataLayout.h"
 #include "VolumeDataLayer.h"
 #include "VolumeDataPageImpl.h"
 
-#include <IO/S3_Downloader.h>
+#include <IO/IOManager.h>
+
+#include "OpenVDSHandle.h"
+
+#include "DimensionGroup.h"
+
+#include <chrono>
 
 namespace OpenVDS
 {
 
-static bool readChunkData(VDSHandle &handle, std::vector<uint8_t> &blob, int32_t (&pitch)[Dimensionality_Max])
+static std::shared_ptr<ObjectRequester> readChunkData(const VDSHandle &handle, const VolumeDataChunk &chunk, std::vector<uint8_t> &blob, int32_t (&pitch)[Dimensionality_Max], Error &error)
 {
   blob.clear();
 
@@ -34,7 +41,14 @@ static bool readChunkData(VDSHandle &handle, std::vector<uint8_t> &blob, int32_t
   for(auto &p : pitch)
     p = 0;
 
-  return S3::downloadChunk(handle, blob, pitch);
+  int32_t channel = chunk.layer->getChannelIndex();
+  const char *channelName = channel > 0 ? chunk.layer->getLayout()->getChannelName(chunk.layer->getChannelIndex()) : "";
+  int32_t lod = chunk.layer->getLod();
+  const char *dimensions_string = DimensionGroupUtil::getDimensionsGroupString(DimensionGroupUtil::getDimensionsNDFromDimensionGroup(chunk.layer->getChunkDimensionGroup()));
+  char layerURL[1000];
+  snprintf(layerURL, sizeof(layerURL), "/%sDimensions_%sLOD%d", channelName, dimensions_string, lod);
+  //return handle.ioManager->requestObject()
+  return {};
 }
 
 
@@ -110,129 +124,273 @@ int VolumeDataPageAccessorImpl::removeReference()
 
 VolumeDataPage* VolumeDataPageAccessorImpl::readPageAtPosition(const int(&position)[Dimensionality_Max])
 {
-//  std::lock_guard<std::mutex> pageMutexLocker(m_pagesMutex);
-//
-//  if(!m_layer)
+  std::unique_lock<std::mutex> pageMutexLocker(m_pagesMutex);
+
+  if(!m_layer)
+  {
+    return NULL;
+  }
+
+  if (m_layer->getProduceStatus() == VolumeDataLayer::ProduceStatusUnavailable)
+  {
+    fprintf(stderr, "The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)");
+    return nullptr;
+  }
+
+  int32_t indexArray[Dimensionality_Max];
+
+  for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
+  {
+    if(position[iDimension] < 0 || position[iDimension] >= m_layer->getDimensionNumSamples(iDimension))
+    {
+      return nullptr;
+    }
+    indexArray[iDimension] = m_layer->voxelToIndex(position[iDimension], iDimension);
+  }
+
+  int64_t chunk = m_layer->indexArrayToChunkIndex(indexArray);
+
+  for(auto page_it = m_pages.begin(); page_it != m_pages.end(); ++page_it)
+  {
+    if((*page_it)->getChunkIndex() == chunk)
+    {
+      if (page_it != m_pages.begin())
+      {
+        m_pages.splice(m_pages.begin(), m_pages, page_it, std::next(page_it));
+      }
+      (*page_it)->pin();
+
+      while((*page_it)->isEmpty())
+      {
+        m_pageReadCondition.wait_for(pageMutexLocker, std::chrono::milliseconds(1000));
+
+        if(!m_layer)
+        {
+          (*page_it)->unPin();
+          return nullptr;
+        }
+      }
+
+      m_pagesFound++;
+      return *page_it;
+    }
+  }
+
+  // Wait for commit to finish before inserting a new page
+  while(m_isCommitInProgress)
+  {
+    m_commitFinishedCondition.wait_for(pageMutexLocker, std::chrono::milliseconds(1000));
+  }
+
+  if(!m_layer)
+  {
+    return nullptr;
+  }
+
+  // Not found, we need to create a new page
+  VolumeDataPageImpl *page = new VolumeDataPageImpl(this, chunk);
+
+  m_pages.push_front(page);
+  m_currentPages++;
+
+  assert(page->isPinned());
+
+  std::vector<uint8_t> blob;
+
+  int32_t pitch[Dimensionality_Max];
+
+  Error error;
+  auto request = readChunkData(m_layer->getLayout()->getHandle(), m_layer->getChunkFromIndex(chunk), blob, pitch, error);
+  if (!request)
+  {
+    fprintf(stderr, "Failed to download chunk: %s\n", error.string.c_str());
+    return nullptr;
+  }
+
+  pageMutexLocker.unlock();
+
+  std::vector<uint8_t> page_data;
+//  if (request->getData(page_data, error))
 //  {
-//    return NULL;
-//  }
-//
-//  if (m_layer->getProduceStatus() == VolumeDataLayer::ProduceStatusUnavailable)
-//  {
-//    fprintf(stderr, "The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)");
+//    fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
 //    return nullptr;
 //  }
-//
-//  int32_t indexArray[Dimensionality_Max];
-//
-//  for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
-//  {
-//    if(position[iDimension] < 0 || position[iDimension] >= m_layer->getDimensionNumSamples(iDimension))
-//    {
-//      return nullptr;
-//    }
-//    indexArray[iDimension] = m_layer->voxelToIndex(anPosition[iDimension], iDimension);
-//  }
-//
-//  int64_t chunk = m_layer->indexArrayToChunkIndex(aiIndexArray);
-//
-//  for(auto page_it = m_pages.begin(); page_it != m_pages.end(); ++page_it)
-//  {
-//    if(page_it->getChunkIndex() == chunk)
-//    {
-//      if (page_it !- m_pages.begin())
-//      {
-//        list.splice(m_pages.begin(), m_pages, page_it, std::next(page_it));
-//      }
-//      page_it->pin();
-//
-//      while(page->isEmpty())
-//      {
-//        m_pageReadCondition.timedWait(1000);
-//
-//        if(!m_volumeDataLayer)
-//        {
-//          page_it->unPin();
-//          return nullptr;
-//        }
-//      }
-//
-//      m_pagesFound++;
-//      return *page_it;
-//    }
-//  }
-//
-//  // Wait for commit to finish before inserting a new page
-//  while(m_isCommitInProgress)
-//  {
-//    m_commitFinishedCondition.TimedWait(1000);
-//  }
-//
-//  if(!m_volumeDataLayer)
-//  {
-//    return nullptr;
-//  }
-//
-//  // Not found, we need to create a new page
-//  VolumeDataPageImpl *page = new VolumeDataPageImpl(this, chunk);
-//
-//  m_pages.push_front(page);
-//  m_currentPages++;
-//
-//  assert(page->isPinned());
-//
-//  std::vector<uint8_t> blob;
-//
-//  int32_t pitch[Dimensionality_Max];
-//
-//  Error error;
-//  if (!readChunkData(_pcHueVolumeDataLayer->GetChunkFromIndex(iChunk), &cHueBLOB, anPitch, error))
-//  {
-//    fprintf(stderr, "Failed to download chunk: %s\n", error.string.c_str());
-//    return nullptr;
-//  }
-//
-//  pageMutexLocker = std::lock_guard<std::mutex>();
-//
-//  HueJobStatus_e
-//    eHueJobStatus;
-//
-//  // Run until job is complete (or cancelled)
-//  do
-//  {
-//    eHueJobStatus = HueJobIDList_c::StaticInstance().WaitForJob(iHueJobID, 10);
-//
-//    if (eHueJobStatus == HUEJOBSTATUS_UNKNOWN && HueRootObj_c::StaticGetInstanceExists())
-//    {
-//      HueRootObj_c::StaticRun();
-//    }
-//  } while (eHueJobStatus == HUEJOBSTATUS_UNKNOWN);
-//
-//  cPageListMutexLock.Lock(__FILE__, __LINE__);
-//
-//  if (eHueJobStatus == HUEJOBSTATUS_COMPLETE)
-//  {
-//    HUEDEBUG_ASSERT(!cHueBLOB.IsEmpty());
-//    pcPage->SetBufferData(cHueBLOB, anPitch);
-//
-//    _nPagesRead++;
-//  }
-//
-//  _cPageReadCondition.Broadcast();
-//
-//  if(!_pcHueVolumeDataLayer)
-//  {
-//    pcPage->UnPin();
-//    pcPage = NULL;
-//  }
-//
-//  LimitPageListSize(_nMaxPages, cPageListMutexLock);
-//
-//  return pcPage;
-return nullptr;
+
+  pageMutexLocker.lock();
+  page->setBufferData(std::move(page_data), pitch);
+  m_pagesRead++;
+
+  m_pageReadCondition.notify_all();
+
+  if(!m_layer)
+  {
+    page->unPin();
+    page = NULL;
+  }
+
+  limitPageListSize(m_maxPages, pageMutexLocker);
+
+  return page;
 }
+
+void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_lock<std::mutex>& pageListMutexLock)
+{
+  while(m_currentPages > m_maxPages)
+  {
+    // Wait for commit to finish before deleting a page
+    while(m_isCommitInProgress)
+    {
+      m_commitFinishedCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
+    }
+
+    // Find a page to evict
+    auto page = m_pages.end();
+
+    for (auto r_it = m_pages.rbegin(); r_it != m_pages.rend(); ++r_it)
+    {
+      if (!(*r_it)->isPinned())
+      {
+        page = ++r_it.base();
+        break;
+      }
+    }
+
+    if(page == m_pages.end())
+    {
+      return;
+    }
+
+    if((*page)->isWritten())
+    {
+      // Finish reading all pages currently being read
+      while(1)
+      {
+        bool isReadInProgress = false;
+
+        for(VolumeDataPageImpl *targetPage : m_pages)
+        {
+          if((*page)->isCopyMarginNeeded(targetPage))
+          {
+            if(targetPage->isEmpty())
+            {
+              isReadInProgress = true;
+              break;
+            }
+          }
+        }
+
+        if(!isReadInProgress)
+        {
+          break;
+        }
+
+        (*page)->pin(); // Make sure this page isn't deleted by LimitPageListSize!
+
+        // Wait for the page getting read
+        m_pageReadCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
+
+        (*page)->unPin();
+
+        // Check if the page was pinned while we released the mutex, we have to abort evicting this page
+        if((*page)->isPinned())
+        {
+          break;
+        }
+      }
+
+      // Check if the page was pinned while we released the mutex, we have to abort evicting this page
+      if((*page)->isPinned())
+      {
+        continue;
+      }
+
+      // Copy margins
+      if((*page)->isWritten())
+      {
+        for(VolumeDataPage *targetPage : m_pages)
+        {
+          if((*page)->isCopyMarginNeeded(targetPage))
+          {
+            (*page)->copyMargin(targetPage);
+          }
+        }
+      }
+    }
+
+    auto page_v = *page;
+    m_pages.erase(page);
+    m_currentPages--;
+
+    if(page_v->isDirty())
+    {
+      (*page)->writeBack(m_layer, pageListMutexLock);
+      m_pagesWritten++;
+    }
+
+    delete page_v;
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// Commit
 
 void VolumeDataPageAccessorImpl::commit()
 {
+  std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
+
+  if(m_isCommitInProgress)
+  {
+    return;
+  }
+
+  // Make sure we don't start reading any new pages while we're finishing up the current waiting reads
+  m_isCommitInProgress = true;
+
+  // Finish reading all pages currently being read
+  for(VolumeDataPageImpl *page : m_pages)
+  {
+    while(page->isEmpty())
+    {
+      // Wait for the page getting read
+      m_pageReadCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
+    }
+  }
+
+  // Copy all margins
+  for(VolumeDataPageImpl *page : m_pages)
+  {
+    if(page->isWritten())
+    {
+      for(VolumeDataPageImpl *targetPage : m_pages)
+      {
+        if(page->isCopyMarginNeeded(targetPage))
+        {
+          page->copyMargin(targetPage);
+        }
+      }
+    }
+  }
+
+  for(VolumeDataPageImpl *page : m_pages)
+  {
+    if(page->isDirty() && m_layer)
+    {
+      page->writeBack(m_layer, pageListMutexLock);
+      m_pagesWritten++;
+    }
+  }
+
+  m_isCommitInProgress = false;
+  m_commitFinishedCondition.notify_all();
+
+  // Only access the layout if there has been any write requests.
+  // This allows for deleting read and interpolating accessors after their VDS has been deleted,
+  // which can happen during project unload in Headwave.
+  if (m_isReadWrite && m_pagesWritten > 0 && m_layer)
+  {
+    // FIXME: Make sure *all* invalidates are received, this is just a stop-gap measure.
+    pageListMutexLock.unlock();
+    m_layer->getLayout()->completePendingWriteChunkRequests(0);
+  }
 }
 }

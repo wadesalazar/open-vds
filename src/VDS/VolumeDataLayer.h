@@ -174,7 +174,7 @@ public:
 
   void          getChunksOverlappingChunk(VolumeDataChunk const& cVolumeDataChunk, std::vector<VolumeDataChunk>* volumeDataChunk, bool isAppend = false) const;
 
-  VolumeDataChunk getChunkFromIndex(int64_t iChunk) const;
+  VolumeDataChunk getChunkFromIndex(int64_t chunk) const { assert(chunk >= 0 && chunk < getTotalChunkCount()); return {this, chunk}; }
 
   ProduceStatus getProduceStatus() const;
 

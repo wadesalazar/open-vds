@@ -18,10 +18,11 @@
 #ifndef VOLUMEDATAPAGEACCESSORIMPL_H
 #define VOLUMEDATAPAGEACCESSORIMPL_H
 
-#include "VolumeDataAccess.h"
+#include <OpenVDS/VolumeDataAccess.h>
 
 #include <list>
 #include <mutex>
+#include <condition_variable>
 
 namespace OpenVDS
 {
@@ -32,11 +33,21 @@ class VolumeDataPageAccessorImpl : public VolumeDataPageAccessor
 {
 private:
   VolumeDataLayer *m_layer;
+  int m_pagesFound;
+  int m_pagesRead;
+  int m_pagesWritten;
+  int m_currentPages;
   int m_maxPages;
   int m_references;
   bool m_isReadWrite;
+  bool m_isCommitInProgress;
   std::list<VolumeDataPageImpl *> m_pages;
   std::mutex m_pagesMutex;
+  std::condition_variable m_pageReadCondition;
+  std::condition_variable m_commitFinishedCondition;
+
+  void limitPageListSize(int maxPages, std::unique_lock<std::mutex> &pageListMutexLock);
+  void commitPage(VolumeDataPage *page, std::unique_lock<std::mutex> &pageListMutexLock);
 public:
   VolumeDataPageAccessorImpl(VolumeDataLayer* layer, int maxPages, bool isReadWrite);
 

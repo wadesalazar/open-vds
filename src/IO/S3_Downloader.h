@@ -27,9 +27,5 @@ namespace OpenVDS
 namespace S3
 {
 OPENVDS_EXPORT void test_function();
-
-bool DownloadJson(const std::string &region, const std::string& bucket, const std::string &key, std::string &json, Error &error);
-
-bool downloadChunk(VDSHandle &handle, std::vector<uint8_t> &blob, int32_t (&pitch)[Dimensionality_Max]);
 }
 }

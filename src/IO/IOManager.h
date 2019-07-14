@@ -15,16 +15,42 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#ifndef PARSEVDSJSON_H
-#define PARSEVDSJSON_H
+#ifndef IOMANAGER_H
+#define IOMANAGER_H
+
+#include <memory>
 
 #include <OpenVDS/OpenVDS.h>
-#include <OpenVDSHandle.h>
 
 namespace OpenVDS
 {
-  bool downloadAndParseVDSJson(VDSHandle &handle, Error &error);
-  bool serializeAndUploadVDSJson(VDSHandle &handle, Error &error);
+  class TransferHandler
+  {
+  public:
+    virtual ~TransferHandler();
+    virtual void handleData(std::vector<uint8_t> &&data) = 0;
+    virtual void handleError(Error &error) = 0;
+  };
+
+  class ObjectRequester
+  {
+  public:
+    virtual ~ObjectRequester();
+    virtual void waitForFinish() = 0;
+    virtual bool isDone() const = 0;
+    virtual bool isSuccess(Error &error) const = 0;
+    virtual void cancel() = 0;
+  };
+
+  class IOManager
+  {
+  public:
+    virtual ~IOManager();
+    virtual std::shared_ptr<ObjectRequester> requestObject(const std::string objectName, std::shared_ptr<TransferHandler> handler) = 0;
+
+    static IOManager *createIOManager(const OpenOptions &options, Error &error);
+  };
+
 }
 
-#endif //PARSEVDSJSON_H
+#endif

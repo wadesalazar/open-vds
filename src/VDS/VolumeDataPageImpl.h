@@ -18,10 +18,15 @@
 #ifndef VOLUMEDATAPAGEIMPL_H
 #define VOLUMEDATAPAGEIMPL_H
 
-#include "VolumeDataPageAccessorImpl.h"
+#include <OpenVDS/VolumeDataAccess.h>
+
+#include <mutex>
+#include <vector>
 
 namespace OpenVDS
 {
+class VolumeDataLayer;
+class VolumeDataPageAccessorImpl;
 class VolumeDataPageImpl : public VolumeDataPage
 {
 private:
@@ -48,26 +53,27 @@ private:
 
 public:
   VolumeDataPageImpl(VolumeDataPageImpl const &) = delete;
-  VolumeDataPageImpl(VolumeDataPageAccessor *volumeDataPageAccessor, int64_t chunk);
+
+  VolumeDataPageImpl(VolumeDataPageAccessorImpl *volumeDataPageAccessor, int64_t chunk);
   ~VolumeDataPageImpl();
 
   int64_t getChunkIndex() const { return m_chunk; }
 
   // All these methods require the caller to hold a lock
-  bool          IsPinned();
-  void          Pin();
-  void          UnPin();
+  bool          isPinned();
+  void          pin();
+  void          unPin();
 
-  bool          IsEmpty();
-  bool          IsDirty();
-  bool          IsWritten();
-  void          MakeDirty();
+  bool          isEmpty();
+  bool          isDirty();
+  bool          isWritten();
+  void          makeDirty();
 
-  void          SetBufferData(std::vector<uint8_t> const &blob, const int (&pitch)[Dimensionality_Max]);
-  //void          WriteBack(VolumeDataLayer *volumeDataLayer, HueMutexLock_c &cPageListMutexLock);
-  void *        GetBufferInternal(int (&anPitch)[Dimensionality_Max], bool isReadWrite);
-  bool          IsCopyMarginNeeded(VolumeDataPage *targetPage);
-  void          CopyMargin(VolumeDataPage *targetPage);
+  void          setBufferData(std::vector<uint8_t> &&blob, const int (&pitch)[Dimensionality_Max]);
+  void          writeBack(VolumeDataLayer *volumeDataLayer, std::unique_lock<std::mutex> &pageListMutexLock);
+  void *        getBufferInternal(int (&anPitch)[Dimensionality_Max], bool isReadWrite);
+  bool          isCopyMarginNeeded(VolumeDataPage *targetPage);
+  void          copyMargin(VolumeDataPage *targetPage);
 
   // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)
   void  getMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const override;

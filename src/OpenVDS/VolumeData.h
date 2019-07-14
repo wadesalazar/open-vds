@@ -91,6 +91,18 @@ enum class CompressionMethod
   WaveletNormalizeBlockLossless,
   Max
 };
+
+enum Dimensionality
+{
+  Dimensionality_1 = 1,
+  Dimensionality_2,
+  Dimensionality_3,
+  Dimensionality_4,
+  Dimensionality_5,
+  Dimensionality_6,
+  Dimensionality_Max = Dimensionality_6
+};
+
 } /* namespace OpenVDS */
 
 #endif //VOLUMEDATA_H_INCLUDED

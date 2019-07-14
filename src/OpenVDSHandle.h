@@ -27,6 +27,7 @@
 
 #include "VDS/VolumeDataLayer.h"
 #include "VDS/VolumeDataLayout.h"
+#include "IO/IOManager.h"
 
 #include <vector>
 #include <memory>
@@ -37,8 +38,10 @@ namespace OpenVDS
 
 struct VDSHandle
 {
-  std::string       url;
-
+  VDSHandle(const OpenOptions &openOptions, Error &error)
+    : ioManager(IOManager::createIOManager(openOptions, error))
+  {
+  }
   VolumeDataLayoutDescriptor
                     layoutDescriptor;
 
@@ -60,6 +63,8 @@ struct VDSHandle
                     volumeDataLayout;
   std::vector<VolumeDataPageAccessor *>
                     pageAccessors;
+  std::unique_ptr<IOManager>
+                    ioManager;
 };
 
 }
