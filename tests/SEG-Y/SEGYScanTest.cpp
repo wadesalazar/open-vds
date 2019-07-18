@@ -39,7 +39,7 @@ TEST(SEGYScanTest, scan)
     GTEST_SKIP();
 #else
     return;
-#endif|
+#endif
   }
 
   file.open(fileName, false, false, false, error);

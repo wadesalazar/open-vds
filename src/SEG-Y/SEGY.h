@@ -15,6 +15,8 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#include <cstddef>
+
 namespace SEGY
 {
 

@@ -21,6 +21,8 @@
 #include <unordered_map>
 #include <Math/Vector.h>
 
+#include <string>
+
 namespace OpenVDS
 {
 struct MetadataKey
@@ -39,7 +41,7 @@ template<>
 struct hash<OpenVDS::MetadataKey>
 {
   std::size_t operator()(const OpenVDS::MetadataKey &k) const
-  { 
+  {
     size_t const h1= std::hash<std::string>()(k.category);
     size_t const h2= std::hash<std::string>()(k.name);
     return h1 ^ (h2 << 1);

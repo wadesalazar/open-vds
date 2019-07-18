@@ -17,7 +17,7 @@
 
 #include <cstdint>
 #include <OpenVDS/openvds_export.h>
-#include "DimensionGroup.h"
+#include <VDS/DimensionGroup.h>
 
 namespace OpenVDS
 {

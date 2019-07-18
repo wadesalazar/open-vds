@@ -129,7 +129,9 @@ public:
 
     if (isPopulate)
     {
+#ifdef LINUX
       iFlags |= MAP_POPULATE;
+#endif
     }
 
     m_pxBaseAddress = mmap(NULL, m_nNumberOfBytes, PROT_READ, iFlags, iFD, nAdjustedOffset);
@@ -310,8 +312,13 @@ bool File::write(const void* pxData, int64_t nOffset, int32_t nLength, IOError &
 
 bool File::flush()
 {
+#ifdef LINUX
 	int fd  = (int)(intptr_t)_pxPlatformHandle;
 	return syncfs(fd) == 0;
+#else
+        sync();
+        return true;
+#endif
 }
 
 FileView *File::createFileView(int64_t nPos, int64_t nSize, bool isPopulate, IOError &error)

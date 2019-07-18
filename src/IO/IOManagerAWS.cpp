@@ -80,18 +80,18 @@ namespace OpenVDS
   static void callback(const Aws::S3::S3Client *client, const Aws::S3::Model::GetObjectRequest& objreq, const Aws::S3::Model::GetObjectOutcome &getObjectOutcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&awsContext, std::shared_ptr<AsyncCallerContext> context)
   {
     std::unique_lock<std::mutex> lock(context->mutex);
-    auto or =  context->back;
-    if (!or)
+    auto objReq =  context->back;
+    if (!objReq)
       return;
 
-    NotifyAll notify(or->m_waitForFinish);
-    or->m_done = true;
+    NotifyAll notify(objReq->m_waitForFinish);
+    objReq->m_done = true;
     if (!getObjectOutcome.IsSuccess())
     {
       auto s3error = getObjectOutcome.GetError();
-      or->m_error.code = int(s3error.GetResponseCode());
-      or->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
-      or->m_handler->handleError(or->m_error);
+      objReq->m_error.code = int(s3error.GetResponseCode());
+      objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
+      objReq->m_handler->handleError(objReq->m_error);
       return;
     }
 
@@ -103,7 +103,7 @@ namespace OpenVDS
       std::vector<uint8_t> data;
       data.resize(content_length);
       retrieved_object.read((char *)&data[0], content_length);
-      or->m_handler->handleData(std::move(data));
+      objReq->m_handler->handleData(std::move(data));
     }
   }
 
