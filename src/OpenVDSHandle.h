@@ -27,14 +27,22 @@
 
 #include "VDS/VolumeDataLayer.h"
 #include "VDS/VolumeDataLayout.h"
+#include "VDS/MetaDataManager.h"
 #include "IO/IOManager.h"
 
 #include <vector>
+#include <map>
 #include <memory>
 #include <unordered_map>
 
 namespace OpenVDS
 {
+
+struct LayerMetaDataContainer
+{
+  std::mutex mutex;
+  std::map<std::string, std::unique_ptr<MetaDataManager>> managers;
+};
 
 struct VDSHandle
 {
@@ -65,6 +73,8 @@ struct VDSHandle
                     pageAccessors;
   std::unique_ptr<IOManager>
                     ioManager;
+  LayerMetaDataContainer
+                    layerMetaDataContainer;
 };
 
 }

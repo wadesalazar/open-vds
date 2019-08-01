@@ -21,14 +21,18 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <mutex>
+#include <list>
+
 
 #include <OpenVDS/VolumeData.h>
 
 #include "VolumeDataChunk.h"
 
+
 namespace OpenVDS
-{               
-  struct MetadataStatus
+{
+  struct MetaDataStatus
   {
     enum
     {
@@ -36,33 +40,35 @@ namespace OpenVDS
     };
 
     int                 m_chunkIndexCount;
-    int                 m_chunkMetadataPageSize;
-    int                 m_chunkMetadataByteSize;
+    int                 m_chunkMetaDataPageSize;
+    int                 m_chunkMetaDataByteSize;
     float               m_compressionTolerance;
     CompressionMethod   m_compressionMethod;
     int64_t             m_uncompressedSize;
     int64_t             m_adaptiveLevelSizes[WAVELET_ADAPTIVE_LEVELS];
   };
 
-  class MetadataPage
+  class ObjectRequester;
+  class MetaDataManager;
+  class MetaDataPage
   {
-    friend MetadataManager;
+    friend MetaDataManager;
 
-    MetadataManager *m_manager;
+    MetaDataManager *m_manager;
 
     int m_pageIndex;
     bool m_valid;
     int m_lockCount;
-    
-    MetadataPageTransfer *m_activeTransfer;
 
-    std::vector<unsigned char> m_data;
+    std::shared_ptr<ObjectRequester> m_activeTransfer;
+
+    std::vector<uint8_t> m_data;
   public:
-    MetadataManager *GetManager() { return m_manager; }
+    MetaDataManager *GetManager() { return m_manager; }
     int PageIndex() const { return m_pageIndex; }
     bool IsValid()   const { return m_valid; }
 
-    MetadataPage(MetadataManager *manager, int pageIndex)
+    MetaDataPage(MetaDataManager *manager, int pageIndex)
       : m_manager(manager)
       , m_pageIndex(pageIndex)
       , m_valid(false)
@@ -70,60 +76,47 @@ namespace OpenVDS
       , m_activeTransfer(nullptr)
     {}
   };
+  typedef std::list<MetaDataPage> MetaDataPageList;
 
-  class MetadataManager
+  class IOManager;
+  class MetaDataManager
   {
-    std::string m_layerURL;
+    IOManager *m_iomanager;
+    std::string m_layerUrl;
 
-    std::vector<VDSRemotePlugin *> m_references;
-
-    MetadataStatus m_metadataStatus;
+    MetaDataStatus m_metaDataStatus;
 
     std::mutex m_mutex;
 
     int m_pageLimit;
 
-    class PendingReadChunk
-    {
-    public:
-      VolumeDataChunk   m_volumeDataChunk;
-      VDSRemotePlugin  *m_pluginInstance;
+    typedef std::unordered_map<int, MetaDataPageList::iterator> MetaDataPageMap;
 
-      PendingReadChunk();
-      PendingReadChunk(VolumeDataChunk const &volumeDataChunk, VDSRemotePlugin *pluginInstance);
-    };
-
-    typedef std::unordered_map<int, MetadataPageList::iterator> MetadataPageMap;
-
-    MetadataPageMap m_pageMap;
-    MetadataPageList m_pageList;
-
-    typedef std::unordered_map<VolumeDataChunk, std::vector<PendingReadChunk>> PendingReadChunkMap;
-
-    PendingReadChunkMap m_pendingReadChunkMap;
+    MetaDataPageMap m_pageMap;
+    MetaDataPageList m_pageList;
 
     void limitPages();
   public:
-    MetadataManager(std::string const &layerURL, VDSRemotePlugin::MetadataStatus const &metadataStatus, int pageLimit);
-    ~MetadataManager();
+    MetaDataManager(IOManager *iomanager, std::string const &layerURL, MetaDataStatus const &metadataStatus, int pageLimit);
+    ~MetaDataManager();
 
-    const char *layerURL() const { return m_layerURL.c_str(); }
+    const char *layerUrl() const { return m_layerUrl.c_str(); }
+    const std::string &layerUrlStr() const { return m_layerUrl; }
 
-    metadataPage *lockPage(int pageIndex, bool *initiateTransfer);
+    MetaDataPage *lockPage(int pageIndex, bool *initiateTransfer);
 
-    void pageTransferError(VDSRemotePlugin::MetadataPage *page, const char *msg);
+    void pageTransferError(MetaDataPage *page, const char *msg);
 
-    void pageTransferCompleted(MetadataPage *page);
+    void pageTransferCompleted(MetaDataPage *page);
 
-    void initiateTransfer(MetadataPage *page, std::string const &url, bool verbose, const std::vector<std::string>& headers);
+    void initiateTransfer(MetaDataPage *page, std::string const &url, bool verbose, const std::vector<std::string>& headers);
 
-    uint8_t const *GetPageEntry(VDSRemotePlugin::MetadataPage *page, int entry) const;
+    uint8_t const *GetPageEntry(MetaDataPage *page, int entry) const;
 
-    void unlockPage(MetadataPage *page);
+    void unlockPage(MetaDataPage *page);
 
-    MetadataStatus const &metadataStatus() const { return m_metadataStatus; }
-
+    MetaDataStatus const &metadataStatus() const { return m_metaDataStatus; }
   };
-
 }
+
 #endif //METADATAMANAGER_H

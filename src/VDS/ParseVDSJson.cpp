@@ -19,6 +19,7 @@
 #include "VolumeDataLayer.h"
 #include "VolumeDataLayout.h"
 #include "VolumeDataHash.h"
+#include "MetaDataManager.h"
 #include <IO/S3_Downloader.h>
 
 #include <json/json.h>
@@ -599,8 +600,121 @@ static bool parseProduceStatus(const std::vector<uint8_t> &json, VDSHandle &hand
   return true;
 }
 
+static void fixUrl(char * url)
+{
+  while (*url)
+  {
+    if (isspace(*url)) *url = '+';
+    url++;
+  }
+}
+
+static MetaDataStatus MetadataStatusFromJSON(Json::Value const &jsonMetadataStatus)
+{
+  if(jsonMetadataStatus.empty())
+  {
+    return MetaDataStatus();
+  }
+
+  MetaDataStatus metadataStatus = MetaDataStatus();
+
+  metadataStatus.m_chunkIndexCount       = jsonMetadataStatus["chunkCount"].asInt();
+  metadataStatus.m_chunkMetaDataPageSize = jsonMetadataStatus["chunkMetadataPageSize"].asInt();
+  metadataStatus.m_chunkMetaDataByteSize = jsonMetadataStatus["chunkMetadataByteSize"].asInt();
+  metadataStatus.m_compressionTolerance  = jsonMetadataStatus["compressionTolerance"].asFloat();
+
+  std::string compressionMethodString = jsonMetadataStatus["compressionMethod"].asString();
+
+  if(compressionMethodString == "NONE")
+  {
+    metadataStatus.m_compressionMethod = CompressionMethod::None;
+  }
+  else if(compressionMethodString == "Wavelet")
+  {
+    metadataStatus.m_compressionMethod = CompressionMethod::Wavelet;
+  }
+  else if(compressionMethodString == "RLE")
+  {
+    metadataStatus.m_compressionMethod = CompressionMethod::Rle;
+  }
+  else if(compressionMethodString == "Zip")
+  {
+    metadataStatus.m_compressionMethod = CompressionMethod::Zip;
+  }
+  else if(compressionMethodString == "WaveletNormalizeBlockExperimental")
+  {
+    metadataStatus.m_compressionMethod = CompressionMethod::WaveletNormalizeBlock;
+  }
+  else if(compressionMethodString == "WaveletLossless")
+  {
+    metadataStatus.m_compressionMethod = CompressionMethod::WaveletLossless;
+  }
+  else if(compressionMethodString == "WaveletNormalizeBlockExperimentalLossless")
+  {
+    metadataStatus.m_compressionMethod = CompressionMethod::WaveletNormalizeBlockLossless;
+  }
+  else
+  {
+    throw Json::Exception("Illegal compression method");
+  }
+
+  metadataStatus.m_uncompressedSize = jsonMetadataStatus["uncompressedSize"].asInt64();
+
+  Json::Value
+    adaptiveLevelSizesJSON = jsonMetadataStatus["adaptiveLevelSizes"];
+
+  if(!adaptiveLevelSizesJSON.empty())
+  {
+    for(int i = 0; i < MetaDataStatus::WAVELET_ADAPTIVE_LEVELS; i++)
+    {
+      metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJSON[i].asInt64();
+    }
+  }
+
+  return metadataStatus;
+}
+
 static bool parseMetaDataStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
 {
+  Json::Value root;
+  if (!parseJSONFromBuffer(json, root, error))
+  {
+    return false;
+  }
+  if (root.empty())
+      return true;
+
+  std::vector<char> fileNames;
+
+  try
+  {
+    Json::Value bdsFiles = root["bdsFiles"];
+
+    for (std::string fileName : bdsFiles.getMemberNames())
+    {
+      fileNames.insert(fileNames.end(), fileName.c_str(), fileName.c_str() + fileName.length() + 1);
+
+      fixUrl(&fileName[0]);
+
+      std::unique_lock<std::mutex> metadataManagersMutexLock(handle.layerMetaDataContainer.mutex);
+      auto &managers = handle.layerMetaDataContainer.managers;
+
+      if (managers.find(fileName) == handle.layerMetaDataContainer.managers.end())
+      {
+        int pageLimit = handle.axisDescriptors.size() <= 3 ? 64 : 1024;
+
+        handle.layerMetaDataContainer.managers.insert(std::make_pair(fileName, std::unique_ptr<MetaDataManager>(new MetaDataManager(handle.ioManager.get(), fileName, MetadataStatusFromJSON(bdsFiles[fileName]), pageLimit))));
+      }
+    }
+  }
+  catch(Json::Exception e)
+  {
+    error.string = e.what();
+    error.code = -1;
+    return false;
+  }
+
+
   return true;
 }
 
