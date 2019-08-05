@@ -19,7 +19,7 @@
 #include "VolumeDataLayer.h"
 #include "VolumeDataLayout.h"
 #include "VolumeDataHash.h"
-#include "MetaDataManager.h"
+#include "MetadataManager.h"
 #include <IO/S3_Downloader.h>
 
 #include <json/json.h>
@@ -456,55 +456,55 @@ static bool parseVDSObject(const std::vector<uint8_t> &json, VDSHandle &handle, 
 
     if (metadata["Type"].asString() == "Int")
     {
-      handle.metaDataContainer.intData[key] = metadata["Value"].asInt();
+      handle.metadataContainer.intData[key] = metadata["Value"].asInt();
     }
     else if (metadata["Type"].asString() == "IntVector2")
     {
-      handle.metaDataContainer.intVector2Data[key] = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt()};
+      handle.metadataContainer.intVector2Data[key] = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt()};
     }
     else if (metadata["Type"].asString() == "IntVector3")
     {
-      handle.metaDataContainer.intVector3Data[key]  = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt(), metadata["Value"][2].asInt() };
+      handle.metadataContainer.intVector3Data[key]  = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt(), metadata["Value"][2].asInt() };
     }
     else if (metadata["Type"].asString() == "IntVector4")
     {
-      handle.metaDataContainer.intVector4Data[key] = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt(), metadata["Value"][2].asInt(), metadata["Value"][3].asInt() };
+      handle.metadataContainer.intVector4Data[key] = { metadata["Value"][0].asInt(), metadata["Value"][1].asInt(), metadata["Value"][2].asInt(), metadata["Value"][3].asInt() };
     }
     else if (metadata["Type"].asString() == "Float")
     {
-      handle.metaDataContainer.floatData[key] = metadata["Value"].asFloat();
+      handle.metadataContainer.floatData[key] = metadata["Value"].asFloat();
     }
     else if (metadata["Type"].asString() == "FloatVector2")
     {
-      handle.metaDataContainer.floatVector2Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat() };
+      handle.metadataContainer.floatVector2Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat() };
     }
     else if (metadata["Type"].asString() == "FloatVector3")
     {
-      handle.metaDataContainer.floatVector3Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat(), metadata["Value"][2].asFloat() };
+      handle.metadataContainer.floatVector3Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat(), metadata["Value"][2].asFloat() };
     }
     else if (metadata["Type"].asString() == "FloatVector4")
     {
-      handle.metaDataContainer.floatVector4Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat(), metadata["Value"][2].asFloat(), metadata["Value"][3].asFloat() };
+      handle.metadataContainer.floatVector4Data[key] = { metadata["Value"][0].asFloat(), metadata["Value"][1].asFloat(), metadata["Value"][2].asFloat(), metadata["Value"][3].asFloat() };
     }
     else if (metadata["Type"].asString() == "Double")
     {
-      handle.metaDataContainer.doubleData[key] = metadata["Value"].asDouble();
+      handle.metadataContainer.doubleData[key] = metadata["Value"].asDouble();
     }
     else if (metadata["Type"].asString() == "DoubleVector2")
     {
-      handle.metaDataContainer.doubleVector2Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble() };
+      handle.metadataContainer.doubleVector2Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble() };
     }
     else if (metadata["Type"].asString() == "DoubleVector3")
     {
-      handle.metaDataContainer.doubleVector3Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble(), metadata["Value"][2].asDouble() };
+      handle.metadataContainer.doubleVector3Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble(), metadata["Value"][2].asDouble() };
     }
     else if (metadata["Type"].asString() == "DoubleVector4")
     {
-      handle.metaDataContainer.doubleVector4Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble(), metadata["Value"][2].asDouble(), metadata["Value"][3].asDouble() };
+      handle.metadataContainer.doubleVector4Data[key] = { metadata["Value"][0].asDouble(), metadata["Value"][1].asDouble(), metadata["Value"][2].asDouble(), metadata["Value"][3].asDouble() };
     }
     else if (metadata["Type"].asString() == "String")
     {
-      handle.metaDataContainer.stringData[key] = metadata["Value"].asString();
+      handle.metadataContainer.stringData[key] = metadata["Value"].asString();
     }
     else if (metadata["Type"].asString() == "BLOB")
     {
@@ -512,7 +512,7 @@ static bool parseVDSObject(const std::vector<uint8_t> &json, VDSHandle &handle, 
 
       int len = (int)strlen(value);
 
-      std::vector<uint8_t> &data = handle.metaDataContainer.blobData[key];
+      std::vector<uint8_t> &data = handle.metadataContainer.blobData[key];
       data.clear();
 
       bool success = Base64Decode(value, len, data);
@@ -609,18 +609,18 @@ static void fixUrl(char * url)
   }
 }
 
-static MetaDataStatus MetadataStatusFromJSON(Json::Value const &jsonMetadataStatus)
+static MetadataStatus MetadataStatusFromJSON(Json::Value const &jsonMetadataStatus)
 {
   if(jsonMetadataStatus.empty())
   {
-    return MetaDataStatus();
+    return MetadataStatus();
   }
 
-  MetaDataStatus metadataStatus = MetaDataStatus();
+  MetadataStatus metadataStatus = MetadataStatus();
 
   metadataStatus.m_chunkIndexCount       = jsonMetadataStatus["chunkCount"].asInt();
-  metadataStatus.m_chunkMetaDataPageSize = jsonMetadataStatus["chunkMetadataPageSize"].asInt();
-  metadataStatus.m_chunkMetaDataByteSize = jsonMetadataStatus["chunkMetadataByteSize"].asInt();
+  metadataStatus.m_chunkMetadataPageSize = jsonMetadataStatus["chunkMetadataPageSize"].asInt();
+  metadataStatus.m_chunkMetadataByteSize = jsonMetadataStatus["chunkMetadataByteSize"].asInt();
   metadataStatus.m_compressionTolerance  = jsonMetadataStatus["compressionTolerance"].asFloat();
 
   std::string compressionMethodString = jsonMetadataStatus["compressionMethod"].asString();
@@ -665,7 +665,7 @@ static MetaDataStatus MetadataStatusFromJSON(Json::Value const &jsonMetadataStat
 
   if(!adaptiveLevelSizesJSON.empty())
   {
-    for(int i = 0; i < MetaDataStatus::WAVELET_ADAPTIVE_LEVELS; i++)
+    for(int i = 0; i < MetadataStatus::WAVELET_ADAPTIVE_LEVELS; i++)
     {
       metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJSON[i].asInt64();
     }
@@ -674,7 +674,7 @@ static MetaDataStatus MetadataStatusFromJSON(Json::Value const &jsonMetadataStat
   return metadataStatus;
 }
 
-static bool parseMetaDataStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
+static bool parseMetadataStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
 {
   Json::Value root;
   if (!parseJSONFromBuffer(json, root, error))
@@ -696,14 +696,14 @@ static bool parseMetaDataStatus(const std::vector<uint8_t> &json, VDSHandle &han
 
       fixUrl(&fileName[0]);
 
-      std::unique_lock<std::mutex> metadataManagersMutexLock(handle.layerMetaDataContainer.mutex);
-      auto &managers = handle.layerMetaDataContainer.managers;
+      std::unique_lock<std::mutex> metadataManagersMutexLock(handle.layerMetadataContainer.mutex);
+      auto &managers = handle.layerMetadataContainer.managers;
 
-      if (managers.find(fileName) == handle.layerMetaDataContainer.managers.end())
+      if (managers.find(fileName) == handle.layerMetadataContainer.managers.end())
       {
         int pageLimit = handle.axisDescriptors.size() <= 3 ? 64 : 1024;
 
-        handle.layerMetaDataContainer.managers.insert(std::make_pair(fileName, std::unique_ptr<MetaDataManager>(new MetaDataManager(handle.ioManager.get(), fileName, MetadataStatusFromJSON(bdsFiles[fileName]), pageLimit))));
+        handle.layerMetadataContainer.managers.insert(std::make_pair(fileName, std::unique_ptr<MetadataManager>(new MetadataManager(handle.ioManager.get(), fileName, MetadataStatusFromJSON(bdsFiles[fileName]), pageLimit))));
       }
     }
   }
@@ -837,7 +837,7 @@ bool downloadAndParseVDSJson(VDSHandle& handle, Error& error)
       return false;
     if (!parseProduceStatus(producestatus_json, handle, error))
       return false;
-    if (!parseMetaDataStatus(metadatastatus_json, handle, error))
+    if (!parseMetadataStatus(metadatastatus_json, handle, error))
       return false;
   }
   catch (Json::Exception& e)

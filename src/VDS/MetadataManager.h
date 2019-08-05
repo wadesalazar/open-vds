@@ -32,7 +32,7 @@
 
 namespace OpenVDS
 {
-  struct MetaDataStatus
+  struct MetadataStatus
   {
     enum
     {
@@ -40,8 +40,8 @@ namespace OpenVDS
     };
 
     int                 m_chunkIndexCount;
-    int                 m_chunkMetaDataPageSize;
-    int                 m_chunkMetaDataByteSize;
+    int                 m_chunkMetadataPageSize;
+    int                 m_chunkMetadataByteSize;
     float               m_compressionTolerance;
     CompressionMethod   m_compressionMethod;
     int64_t             m_uncompressedSize;
@@ -49,12 +49,12 @@ namespace OpenVDS
   };
 
   class ObjectRequester;
-  class MetaDataManager;
-  class MetaDataPage
+  class MetadataManager;
+  class MetadataPage
   {
-    friend MetaDataManager;
+    friend MetadataManager;
 
-    MetaDataManager *m_manager;
+    MetadataManager *m_manager;
 
     int m_pageIndex;
     bool m_valid;
@@ -64,11 +64,11 @@ namespace OpenVDS
 
     std::vector<uint8_t> m_data;
   public:
-    MetaDataManager *GetManager() { return m_manager; }
+    MetadataManager *GetManager() { return m_manager; }
     int PageIndex() const { return m_pageIndex; }
     bool IsValid()   const { return m_valid; }
 
-    MetaDataPage(MetaDataManager *manager, int pageIndex)
+    MetadataPage(MetadataManager *manager, int pageIndex)
       : m_manager(manager)
       , m_pageIndex(pageIndex)
       , m_valid(false)
@@ -76,46 +76,46 @@ namespace OpenVDS
       , m_activeTransfer(nullptr)
     {}
   };
-  typedef std::list<MetaDataPage> MetaDataPageList;
+  typedef std::list<MetadataPage> MetadataPageList;
 
   class IOManager;
-  class MetaDataManager
+  class MetadataManager
   {
     IOManager *m_iomanager;
     std::string m_layerUrl;
 
-    MetaDataStatus m_metaDataStatus;
+    MetadataStatus m_metadataStatus;
 
     std::mutex m_mutex;
 
     int m_pageLimit;
 
-    typedef std::unordered_map<int, MetaDataPageList::iterator> MetaDataPageMap;
+    typedef std::unordered_map<int, MetadataPageList::iterator> MetadataPageMap;
 
-    MetaDataPageMap m_pageMap;
-    MetaDataPageList m_pageList;
+    MetadataPageMap m_pageMap;
+    MetadataPageList m_pageList;
 
     void limitPages();
   public:
-    MetaDataManager(IOManager *iomanager, std::string const &layerURL, MetaDataStatus const &metadataStatus, int pageLimit);
-    ~MetaDataManager();
+    MetadataManager(IOManager *iomanager, std::string const &layerURL, MetadataStatus const &metadataStatus, int pageLimit);
+    ~MetadataManager();
 
     const char *layerUrl() const { return m_layerUrl.c_str(); }
     const std::string &layerUrlStr() const { return m_layerUrl; }
 
-    MetaDataPage *lockPage(int pageIndex, bool *initiateTransfer);
+    MetadataPage *lockPage(int pageIndex, bool *initiateTransfer);
 
-    void pageTransferError(MetaDataPage *page, const char *msg);
+    void pageTransferError(MetadataPage *page, const char *msg);
 
-    void pageTransferCompleted(MetaDataPage *page);
+    void pageTransferCompleted(MetadataPage *page);
 
-    void initiateTransfer(MetaDataPage *page, std::string const &url, bool verbose, const std::vector<std::string>& headers);
+    void initiateTransfer(MetadataPage *page, std::string const &url, bool verbose, const std::vector<std::string>& headers);
 
-    uint8_t const *GetPageEntry(MetaDataPage *page, int entry) const;
+    uint8_t const *GetPageEntry(MetadataPage *page, int entry) const;
 
-    void unlockPage(MetaDataPage *page);
+    void unlockPage(MetadataPage *page);
 
-    MetaDataStatus const &metadataStatus() const { return m_metaDataStatus; }
+    MetadataStatus const &metadataStatus() const { return m_metadataStatus; }
   };
 }
 

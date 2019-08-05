@@ -27,7 +27,7 @@
 
 #include "VDS/VolumeDataLayer.h"
 #include "VDS/VolumeDataLayout.h"
-#include "VDS/MetaDataManager.h"
+#include "VDS/MetadataManager.h"
 #include "IO/IOManager.h"
 
 #include <vector>
@@ -38,10 +38,10 @@
 namespace OpenVDS
 {
 
-struct LayerMetaDataContainer
+struct LayerMetadataContainer
 {
   std::mutex mutex;
-  std::map<std::string, std::unique_ptr<MetaDataManager>> managers;
+  std::map<std::string, std::unique_ptr<MetadataManager>> managers;
 };
 
 struct VDSHandle
@@ -65,7 +65,7 @@ struct VDSHandle
   std::vector<VolumeDataLayer::ProduceStatus>
                     produceStatuses;
 
-  MetadataContainer metaDataContainer;
+  MetadataContainer metadataContainer;
 
   std::unique_ptr<VolumeDataLayout>
                     volumeDataLayout;
@@ -73,8 +73,8 @@ struct VDSHandle
                     pageAccessors;
   std::unique_ptr<IOManager>
                     ioManager;
-  LayerMetaDataContainer
-                    layerMetaDataContainer;
+  LayerMetadataContainer
+                    layerMetadataContainer;
 };
 
 }

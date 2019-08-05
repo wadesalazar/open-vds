@@ -15,7 +15,7 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "MetaDataManager.h"
+#include "MetadataManager.h"
 
 #include <IO/IOManager.h>
 
@@ -24,10 +24,10 @@
 namespace OpenVDS
 {
 
-class MetaDataPageTransfer : public TransferHandler
+class MetadataPageTransfer : public TransferHandler
 {
 public:
-MetaDataPageTransfer(std::vector<uint8_t> &targetData)
+MetadataPageTransfer(std::vector<uint8_t> &targetData)
     : m_targetData(targetData)
 { }
 
@@ -44,17 +44,17 @@ void handleError(Error &error) override
 
 };
 
-MetaDataManager::MetaDataManager(IOManager *iomanager, std::string const &layerUrl, MetaDataStatus const &metaDataStatus, int pageLimit)
+MetadataManager::MetadataManager(IOManager *iomanager, std::string const &layerUrl, MetadataStatus const &metadataStatus, int pageLimit)
     : m_iomanager(iomanager)
     , m_layerUrl(layerUrl)
-    , m_metaDataStatus(metaDataStatus)
+    , m_metadataStatus(metadataStatus)
     , m_pageLimit(pageLimit)
 {}
 
-MetaDataManager::~MetaDataManager()
+MetadataManager::~MetadataManager()
 {}
 
-void MetaDataManager::limitPages()
+void MetadataManager::limitPages()
 {
   assert(m_pageMap.size() == m_pageList.size());
 
@@ -67,8 +67,8 @@ void MetaDataManager::limitPages()
   assert(m_pageMap.size() == m_pageList.size());
 }
 
-MetaDataPage *
-MetaDataManager::lockPage(int pageIndex, bool *initiateTransfer)
+MetadataPage *
+MetadataManager::lockPage(int pageIndex, bool *initiateTransfer)
 {
   assert(initiateTransfer);
 
@@ -77,7 +77,7 @@ MetaDataManager::lockPage(int pageIndex, bool *initiateTransfer)
 
   assert(m_pageMap.size() == m_pageList.size());
 
-  MetaDataPageMap::iterator
+  MetadataPageMap::iterator
     mi = m_pageMap.find(pageIndex);
 
   if(mi != m_pageMap.end())
@@ -96,7 +96,7 @@ MetaDataManager::lockPage(int pageIndex, bool *initiateTransfer)
     *initiateTransfer = true;
   }
 
-  MetaDataPage *page = std::addressof(*m_pageList.begin());
+  MetadataPage *page = std::addressof(*m_pageList.begin());
 
   page->m_lockCount++;
 
@@ -109,14 +109,14 @@ MetaDataManager::lockPage(int pageIndex, bool *initiateTransfer)
   return page;
 }
 
-void MetaDataManager::initiateTransfer(MetaDataPage *page, std::string const &url, bool verbose, const std::vector<std::string>& headers)
+void MetadataManager::initiateTransfer(MetadataPage *page, std::string const &url, bool verbose, const std::vector<std::string>& headers)
 {
   std::unique_lock<std::mutex>
     lock(m_mutex);
 
   assert(!page->m_valid && !page->m_activeTransfer);
 
-  page->m_activeTransfer = m_iomanager->requestObject(url, std::make_shared<MetaDataPageTransfer>(page->m_data));
+  page->m_activeTransfer = m_iomanager->requestObject(url, std::make_shared<MetadataPageTransfer>(page->m_data));
 
 }
 }
