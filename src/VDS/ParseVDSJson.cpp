@@ -242,31 +242,31 @@ static VolumeDataChannelDescriptor::Format convertToVoxelFormat(Json::Value cons
 
   if(voxelFormatString == "HUEVOXELFORMAT_R32")
   {
-    return VolumeDataChannelDescriptor::FormatR32;
+    return VolumeDataChannelDescriptor::Format_R32;
   }
   else if(voxelFormatString == "HUEVOXELFORMAT_R64")
   {
-    return VolumeDataChannelDescriptor::FormatR64;
+    return VolumeDataChannelDescriptor::Format_R64;
   }
   else if(voxelFormatString == "HUEVOXELFORMAT_U8")
   {
-    return VolumeDataChannelDescriptor::FormatU8;
+    return VolumeDataChannelDescriptor::Format_U8;
   }
   else if(voxelFormatString == "HUEVOXELFORMAT_U16")
   {
-    return VolumeDataChannelDescriptor::FormatU16;
+    return VolumeDataChannelDescriptor::Format_U16;
   }
   else if(voxelFormatString == "HUEVOXELFORMAT_U32")
   {
-    return VolumeDataChannelDescriptor::FormatU32;
+    return VolumeDataChannelDescriptor::Format_U32;
   }
   else if(voxelFormatString == "HUEVOXELFORMAT_U64")
   {
-    return VolumeDataChannelDescriptor::FormatU64;
+    return VolumeDataChannelDescriptor::Format_U64;
   }
   else if(voxelFormatString == "HUEVOXELFORMAT_1BIT")
   {
-    return VolumeDataChannelDescriptor::Format1Bit;
+    return VolumeDataChannelDescriptor::Format_1Bit;
   }
   throw Json::Exception("Illegal voxel format");
 }

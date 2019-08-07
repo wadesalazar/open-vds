@@ -190,7 +190,7 @@ public:
 
   bool isDiscrete() const;
 
-  uint64_t getFormatHash(VolumeDataChannelDescriptor::Format actualFormat = VolumeDataChannelDescriptor::FormatAny) const
+  uint64_t getFormatHash(VolumeDataChannelDescriptor::Format actualFormat = VolumeDataChannelDescriptor::Format_Any) const
   {
     return getFormatHash(actualFormat, false, 0);
   }

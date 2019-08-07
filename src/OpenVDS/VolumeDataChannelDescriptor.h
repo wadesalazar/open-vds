@@ -42,24 +42,22 @@ public:
   
   enum Format
   {
-    FormatAny = -1, ///< The DataBlock can be in any format
-    Format1Bit,     ///< data is in packed 1-bit format
-    FormatU8,       ///< data is in unsigned 8 bit
-    FormatU16,      ///< data is in unsigned 16 bit
-    FormatR32,      ///< data is in 32 bit float
-    FormatU32,      ///< data is in unsigned 32 bit
-    FormatR64,      ///< data is in 64 bit double
-    FormatU64       ///< data is in unsigned 64 bit
+    Format_Any = -1, ///< The DataBlock can be in any format
+    Format_1Bit,     ///< data is in packed 1-bit format
+    Format_U8,       ///< data is in unsigned 8 bit
+    Format_U16,      ///< data is in unsigned 16 bit
+    Format_R32,      ///< data is in 32 bit float
+    Format_U32,      ///< data is in unsigned 32 bit
+    Format_R64,      ///< data is in 64 bit double
+    Format_U64       ///< data is in unsigned 64 bit
   };
 
   enum Components
   {
     Components_1 = 1,
     Components_2 = 2,
-    Components_4 = 4,
-    ComponentsMax = Components_4
+    Components_4 = 4
   };
-
 
 private:
   Format m_format;
@@ -81,7 +79,7 @@ private:
 
 public:
   VolumeDataChannelDescriptor()
-    : m_format(FormatAny), m_components(Components_1), m_name(nullptr), m_unit(nullptr), m_valueRange({0.0f,0.0f}), m_mapping(VolumeDataMapping::Direct), m_mappedValueCount(1), m_flags(Default), m_useNoValue(false), m_noValue(0.0f), m_integerScale(1.0f), m_integerOffset(0.0f) {}
+    : m_format(Format_Any), m_components(Components_1), m_name(nullptr), m_unit(nullptr), m_valueRange({0.0f,0.0f}), m_mapping(VolumeDataMapping::Direct), m_mappedValueCount(1), m_flags(Default), m_useNoValue(false), m_noValue(0.0f), m_integerScale(1.0f), m_integerOffset(0.0f) {}
 
   /// The minimum constructor for a VolumeDataChannelDescriptor. This will use direct mapping, default flags, and no No Value
   /// \param format the data format for this channel
@@ -177,7 +175,7 @@ public:
 
   Format      getFormat()                       const { return m_format; }
   Components  getComponents()                   const { return m_components; }
-  bool        isDiscrete()                      const { return (m_flags & DiscreteData) || m_format == Format1Bit; }
+  bool        isDiscrete()                      const { return (m_flags & DiscreteData) || m_format == Format_1Bit; }
   bool        isRenderable()                    const { return !(m_flags & NotRenderable); }
   bool        isAllowLossyCompression()         const { return !(m_flags & NoLossyCompression) && !isDiscrete(); }
   bool        isUseZipForLosslessCompression()  const { return (m_flags & NoLossyCompressionUseZip) == NoLossyCompressionUseZip; }

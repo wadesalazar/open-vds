@@ -323,13 +323,13 @@ createChannelDescriptors(SEGYFileInfo const &fileInfo, OpenVDS::FloatRange const
     channelDescriptors;
 
   // Primary channel
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format::FormatR32, OpenVDS::VolumeDataChannelDescriptor::Components::Components_1, "Amplitude", "", valueRange.min, valueRange.max));
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Amplitude", "", valueRange.min, valueRange.max));
 
   // Trace defined flag
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format::FormatU8, OpenVDS::VolumeDataChannelDescriptor::Components::Components_1, "Trace", "", 0, 1, OpenVDS::VolumeDataMapping::PerTrace));
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Trace", "", 0, 1, OpenVDS::VolumeDataMapping::PerTrace));
 
   // SEG-Y trace headers
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format::FormatU8, OpenVDS::VolumeDataChannelDescriptor::Components::Components_1, "SEGYTraceHeaders", "", 0, 255, OpenVDS::VolumeDataMapping::PerTrace, SEGY::TraceHeaderSize, OpenVDS::VolumeDataChannelDescriptor::Flags::Default, 1.0f, 0.0f));
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "SEGYTraceHeaders", "", 0, 255, OpenVDS::VolumeDataMapping::PerTrace, SEGY::TraceHeaderSize, OpenVDS::VolumeDataChannelDescriptor::Flags::Default, 1.0f, 0.0f));
 
   return channelDescriptors;
 }
