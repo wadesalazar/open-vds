@@ -28,6 +28,7 @@
 
 #include "VDS/VolumeDataLayout.h"
 #include "VDS/VolumeDataPageAccessorImpl.h"
+#include "VDS/VolumeDataAccessManagerImpl.h"
 
 namespace OpenVDS
 {
@@ -42,7 +43,15 @@ VDSHandle *open(const OpenOptions &options, Error &error)
   {
     return nullptr;
   }
+  ret->dataAccessManager.reset(new VolumeDataAccessManagerImpl(ret.get()));
   return ret.release();
+}
+
+VolumeDataLayout *layout(VDSHandle *handle)
+{
+  if (!handle)
+    return nullptr;
+  return handle->volumeDataLayout.get();
 }
 
 VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error)
@@ -63,48 +72,4 @@ void destroy(VDSHandle *handle)
   delete handle;
 }
 
-static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayout *layout, DimensionsND dimension, int channel, int lod, bool isAllowFailure)
-{
-  if(!layout)
-  {
-    fprintf(stderr, "Volume data layout is NULL, this is usually because the VDS setup is invalid");
-    return nullptr;
-  }
-
-  if(channel > layout->getChannelCount())
-  {
-    fprintf(stderr, "Specified channel doesn't exist");
-    return nullptr;
-  }
-
-  VolumeDataLayer *layer = layout->getBaseLayer(DimensionGroupUtil::getDimensionGroupFromDimensionsND(dimension), channel);
-
-  if(!layer && !isAllowFailure)
-  {
-    fprintf(stderr, "Specified dimension group doesn't exist");
-    return nullptr;
-  }
-
-  while(layer && layer->getLod() < lod)
-  {
-    layer = layer->getParentLayer();
-  }
-
-  if((!layer || layer->getLayerType() == VolumeDataLayer::Virtual) && !isAllowFailure)
-  {
-    fprintf(stderr, "Specified LOD doesn't exist");
-  }
-
-  assert(layer || isAllowFailure);
-  return (layer->getLayerType() != VolumeDataLayer::Virtual) ? layer : nullptr;
-}
-
-VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout *layout, DimensionsND dimension, int lod, int channel, int maxPages, Access access)
-{
-  VolumeDataLayer* layer = getVolumeDataLayer(layout, dimension, channel, lod, true);
-
-  if (!layer) return NULL;
-
-  return new VolumeDataPageAccessorImpl(layer, maxPages, access == Access::Write);
-}
 }

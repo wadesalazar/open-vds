@@ -28,6 +28,7 @@
 #include "VDS/VolumeDataLayer.h"
 #include "VDS/VolumeDataLayout.h"
 #include "VDS/MetadataManager.h"
+#include "VDS/VolumeDataAccessManagerImpl.h"
 #include "IO/IOManager.h"
 
 #include <vector>
@@ -69,8 +70,8 @@ struct VDSHandle
 
   std::unique_ptr<VolumeDataLayout>
                     volumeDataLayout;
-  std::vector<VolumeDataPageAccessor *>
-                    pageAccessors;
+  std::unique_ptr<VolumeDataAccessManagerImpl>
+                    dataAccessManager;
   std::unique_ptr<IOManager>
                     ioManager;
   LayerMetadataContainer

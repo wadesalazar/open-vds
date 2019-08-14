@@ -19,9 +19,9 @@
 #include "VolumeDataLayout.h"
 #include "VolumeDataLayer.h"
 #include "VolumeDataPageImpl.h"
+#include "MetadataManager.h"
 
 #include <IO/IOManager.h>
-
 #include "OpenVDSHandle.h"
 
 #include "DimensionGroup.h"
@@ -31,7 +31,22 @@
 namespace OpenVDS
 {
 
-static std::shared_ptr<ObjectRequester> readChunkData(const VDSHandle &handle, const VolumeDataChunk &chunk, std::vector<uint8_t> &blob, int32_t (&pitch)[Dimensionality_Max], Error &error)
+static MetadataManager *getMetadataMangerForLayer(LayerMetadataContainer &container, const std::string &layer)
+{
+  std::unique_lock<std::mutex> lock(container.mutex);
+
+  MetadataManager *metadataManager = nullptr;
+  auto metadataManagerIterator = container.managers.find(layer);
+
+  if(metadataManagerIterator != container.managers.end())
+  {
+    metadataManager = metadataManagerIterator->second.get();
+  }
+
+  return metadataManager;
+}
+
+static std::shared_ptr<ObjectRequester> readChunkData(VDSHandle &handle, const VolumeDataChunk &chunk, std::vector<uint8_t> &blob, int32_t (&pitch)[Dimensionality_Max], bool verbose, Error &error)
 {
   blob.clear();
 
@@ -46,14 +61,49 @@ static std::shared_ptr<ObjectRequester> readChunkData(const VDSHandle &handle, c
   int32_t lod = chunk.layer->getLod();
   const char *dimensions_string = DimensionGroupUtil::getDimensionsGroupString(DimensionGroupUtil::getDimensionsNDFromDimensionGroup(chunk.layer->getChunkDimensionGroup()));
   char layerURL[1000];
-  snprintf(layerURL, sizeof(layerURL), "/%sDimensions_%sLOD%d", channelName, dimensions_string, lod);
-  //return handle.ioManager->requestObject()
-  return {};
+  snprintf(layerURL, sizeof(layerURL), "%sDimensions_%sLOD%d", channelName, dimensions_string, lod);
+  auto metadataManager = getMetadataMangerForLayer(handle.layerMetadataContainer, layerURL);
+  //do fallback
+  if (!metadataManager)
+    return std::shared_ptr<ObjectRequester>();
+  
+  int pageIndex  = (int)(chunk.chunkIndex / metadataManager->metadataStatus().m_chunkMetadataPageSize);
+  int entryIndex = (int)(chunk.chunkIndex % metadataManager->metadataStatus().m_chunkMetadataPageSize);
+
+  bool initiateTransfer;
+
+  MetadataPage* metadataPage = metadataManager->lockPage(pageIndex, &initiateTransfer);
+
+  assert(pageIndex == metadataPage->PageIndex());
+
+  //std::unique_lock<std::mutex> lock(m_pendingRequestsMutex);
+
+  if (initiateTransfer)
+    {
+      char url[1000];
+      snprintf(url, sizeof(url), "%s/ChunkMetadata/%d", layerURL, pageIndex);
+
+//      metadataManager->initiateTransfer(metadataPage, url, verbose, headers);
+    }
+
+    // Check if the page is not valid and we need to add the request later when the metadata page transfer completes
+ //   if(!metadataPage->IsValid())
+ //   {
+ //     m_pendingRequests[volumeDataChunk] = PendingRequest(metadataPage);
+ //     return; // Keep the metadata page locked as long as the PendingRequest is alive
+ //   }
+
+ //   lock.unlock();
+
+
+ // if ()
 }
 
 
-VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataLayer* layer, int maxPages, bool isReadWrite)
-  : m_layer(layer)
+
+VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl* accessManager, VolumeDataLayer* layer, int maxPages, bool isReadWrite)
+  : m_accessManager(accessManager)
+  , m_layer(layer)
   , m_maxPages(maxPages)
   , m_isReadWrite(isReadWrite)
 {
@@ -200,8 +250,8 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPageAtPosition(const int(&positi
   int32_t pitch[Dimensionality_Max];
 
   Error error;
-  auto request = readChunkData(m_layer->getLayout()->getHandle(), m_layer->getChunkFromIndex(chunk), blob, pitch, error);
-  if (!request)
+  //auto request = readChunkData(m_layer->getLayout()->getHandle(), m_layer->getChunkFromIndex(chunk), blob, pitch, error);
+  //if (!request)
   {
     fprintf(stderr, "Failed to download chunk: %s\n", error.string.c_str());
     return nullptr;

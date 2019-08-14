@@ -19,6 +19,8 @@
 #define VOLUMEDATAPAGEACCESSORIMPL_H
 
 #include <OpenVDS/VolumeDataAccess.h>
+#include "IntrusiveList.h"
+#include "Hash.h"
 
 #include <list>
 #include <mutex>
@@ -28,10 +30,12 @@ namespace OpenVDS
 {
 class VolumeDataPageImpl;
 class VolumeDataLayer;
+class VolumeDataAccessManagerImpl;
 
 class VolumeDataPageAccessorImpl : public VolumeDataPageAccessor
 {
 private:
+  VolumeDataAccessManagerImpl *m_accessManager;
   VolumeDataLayer *m_layer;
   int m_pagesFound;
   int m_pagesRead;
@@ -46,10 +50,15 @@ private:
   std::condition_variable m_pageReadCondition;
   std::condition_variable m_commitFinishedCondition;
 
+  public:
+  IntrusiveListNode<VolumeDataPageAccessorImpl> m_volumeDataPageAccessorListNode;
+
+private:
   void limitPageListSize(int maxPages, std::unique_lock<std::mutex> &pageListMutexLock);
   void commitPage(VolumeDataPage *page, std::unique_lock<std::mutex> &pageListMutexLock);
+
 public:
-  VolumeDataPageAccessorImpl(VolumeDataLayer* layer, int maxPages, bool isReadWrite);
+  VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl *acccessManager, VolumeDataLayer* layer, int maxPages, bool isReadWrite);
 
   VolumeDataLayout const* getLayout() const override;
 

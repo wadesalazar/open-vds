@@ -109,9 +109,9 @@ namespace OpenVDS
 
     void pageTransferCompleted(MetadataPage *page);
 
-    void initiateTransfer(MetadataPage *page, std::string const &url, bool verbose, const std::vector<std::string>& headers);
+    void initiateTransfer(MetadataPage *page, std::string const &url, bool verbose);
 
-    uint8_t const *GetPageEntry(MetadataPage *page, int entry) const;
+    uint8_t const *getPageEntry(MetadataPage *page, int entry) const;
 
     void unlockPage(MetadataPage *page);
 

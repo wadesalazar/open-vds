@@ -72,13 +72,11 @@ MetadataManager::lockPage(int pageIndex, bool *initiateTransfer)
 {
   assert(initiateTransfer);
 
-  std::unique_lock<std::mutex>
-    lock(m_mutex);
+  std::unique_lock<std::mutex> lock(m_mutex);
 
   assert(m_pageMap.size() == m_pageList.size());
 
-  MetadataPageMap::iterator
-    mi = m_pageMap.find(pageIndex);
+  MetadataPageMap::iterator mi = m_pageMap.find(pageIndex);
 
   if(mi != m_pageMap.end())
   {
@@ -109,14 +107,80 @@ MetadataManager::lockPage(int pageIndex, bool *initiateTransfer)
   return page;
 }
 
-void MetadataManager::initiateTransfer(MetadataPage *page, std::string const &url, bool verbose, const std::vector<std::string>& headers)
+void MetadataManager::initiateTransfer(MetadataPage *page, std::string const &url, bool verbose)
 {
-  std::unique_lock<std::mutex>
-    lock(m_mutex);
+  std::unique_lock<std::mutex> lock(m_mutex);
 
   assert(!page->m_valid && !page->m_activeTransfer);
 
   page->m_activeTransfer = m_iomanager->requestObject(url, std::make_shared<MetadataPageTransfer>(page->m_data));
+}
 
+void MetadataManager::pageTransferError(MetadataPage *page, const char *msg)
+{
+  std::string
+    errorString = std::string("Failed to transfer metadata page: ") + std::string(msg);
+
+  fprintf(stderr, "OpenVDS: %s\n", errorString.c_str());
+
+// what to do
+//  std::unique_lock<std::mutex> metadataManagersMutexLock(VDSRemotePlugin::s_metadataManagersMutex);
+//
+//  for(auto pluginInstance : m_references)
+//  {
+//    pluginInstance->PageTransferCompleted(page);
+//  }
+
+  //TODO pendingrequestchangedcondition.notify_all
 }
+
+void MetadataManager::pageTransferCompleted(MetadataPage *page)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  page->m_valid = true;
+  page->m_activeTransfer = nullptr;
+
+  lock.unlock();
 }
+
+
+uint8_t const *MetadataManager::getPageEntry(MetadataPage *page, int entryIndex) const
+{
+  assert(page->IsValid());
+
+  return &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize];
+}
+
+void MetadataManager::unlockPage(MetadataPage *page)
+{
+  assert(page);
+  assert(page->m_lockCount > 0);
+
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  assert(m_pageMap.size() == m_pageList.size());
+  assert(m_pageMap.find(page->m_pageIndex) != m_pageMap.end());
+
+  page->m_lockCount--;
+
+  if(page->m_lockCount == 0 && !page->m_valid)
+  {
+    if(page->m_activeTransfer)
+    {
+      page->m_activeTransfer->cancel();
+      page->m_activeTransfer = nullptr;
+    }
+
+    MetadataPageMap::iterator pageMapIterator = m_pageMap.find(page->m_pageIndex);
+
+    MetadataPageList::iterator pageListIterator = pageMapIterator->second;
+
+    m_pageMap.erase(pageMapIterator);
+    m_pageList.erase(pageListIterator);
+  }
+
+  limitPages();
+}
+
+} 

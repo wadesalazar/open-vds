@@ -70,13 +70,15 @@ enum class Access
 };
 struct VDSHandle;
 class VolumeDataLayout;
+class VolumeDataAccessManager;
 class VolumeDataPageAccessor;
 
 OPENVDS_EXPORT VDSHandle* open(const OpenOptions& options, Error &error);
 OPENVDS_EXPORT VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
 OPENVDS_EXPORT void       destroy(VDSHandle *handle);
 
-OPENVDS_EXPORT VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout *layout, DimensionsND dimension, int lod, int channel, int maxPages, Access access);
+OPENVDS_EXPORT VolumeDataLayout *layout(VDSHandle *handle);
+OPENVDS_EXPORT VolumeDataAccessManager *dataAccessManager(VDSHandle *handle);
 }
 
 #endif //OPENVDS_H
