@@ -24,8 +24,101 @@
 #include "VolumeDataPageAccessorImpl.h"
 #include <IO/IOManager.h>
 
+#include "VolumeDataChunk.h"
+#include "VolumeDataLayer.h"
+
+#include <map>
+#include "Base64.h"
+
 namespace OpenVDS
 {
+class LayerMetadataContainer;
+class MetadataPage;
+
+class ReadChunkTransfer : public TransferHandler
+{
+public:
+  ReadChunkTransfer(CompressionMethod compressionMethod, int adaptiveLevel)
+    : m_compressionMethod(compressionMethod)
+    , m_adaptiveLevel(adaptiveLevel)
+  {}
+
+  ~ReadChunkTransfer()
+  {
+  }
+
+  void handleMetadata(const std::string& key, const std::string& header) override
+  {
+    if (key == "vds-chunk-metadata")
+    {
+      if (!Base64Decode(header.data(), header.size(), m_metadata))
+      {
+        m_error.code = -1;
+        m_error.string = "Failed to decode chunk metadata";
+      }
+    }
+  }
+
+  void handleData(std::vector<uint8_t>&& data) override
+  {
+    m_data = data;
+  }
+  void handleError(Error& error) override
+  {
+    m_error = error;
+  }
+  
+  CompressionMethod m_compressionMethod;
+
+  int m_adaptiveLevel;
+
+  Error m_error;
+
+  std::vector<uint8_t> m_data;
+  std::vector<uint8_t> m_metadata;
+};
+struct PendingRequest
+{
+  MetadataPage* m_lockedMetadataPage;
+
+  std::shared_ptr<ObjectRequester> m_activeTransfer;
+  std::shared_ptr<ReadChunkTransfer> m_transferHandle;
+
+  PendingRequest() : m_lockedMetadataPage(nullptr)
+  {
+  }
+
+  explicit PendingRequest(MetadataPage* lockedMetadataPage) : m_lockedMetadataPage(lockedMetadataPage), m_activeTransfer(nullptr)
+  {
+  }
+  explicit PendingRequest(std::shared_ptr<ObjectRequester> activeTransfer, std::shared_ptr<ReadChunkTransfer> handler) : m_lockedMetadataPage(nullptr), m_activeTransfer(activeTransfer), m_transferHandle(handler)
+  {
+  }
+};
+
+static bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
+{
+  if (a.layer->getChunkDimensionGroup() == b.layer->getChunkDimensionGroup())
+  {
+    if (a.layer->getLod() == b.layer->getLod())
+    {
+      if (a.layer->getChannelIndex() == b.layer->getChannelIndex())
+      {
+        return a.chunkIndex < b.chunkIndex;
+      }
+      else
+      {
+        return a.layer->getChannelIndex() < b.layer->getChannelIndex();
+      }
+    }
+    else
+    {
+      return a.layer->getLod() < b.layer->getLod();
+    }
+  }
+  return DimensionGroupUtil::getDimensionsNDFromDimensionGroup(a.layer->getChunkDimensionGroup()) < DimensionGroupUtil::getDimensionsNDFromDimensionGroup(b.layer->getChunkDimensionGroup());
+}
+
 class VolumeDataAccessManagerImpl : public VolumeDataAccessManager
 {
 public:
@@ -83,11 +176,17 @@ public:
   int64_t requestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int iTraceDimension) override;
   int64_t requestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int nTraceCount, InterpolationMethod eInterpolationMethod, int iTraceDimension, float rReplacementNoValue) override;
   int64_t prefetchVolumeChunk(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk) override;
+
+  bool prepareReadChunkData(const VolumeDataChunk& chunk, std::vector<uint8_t>& blob, int32_t(&pitch)[Dimensionality_Max], bool verbose, Error& error);
+  bool readChunk(std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, const VolumeDataChunk& chunk, CompressionInfo& compressionInfo, Error& error);
 private:
   VolumeDataLayout *m_layout;
   IOManager *m_ioManager;
+  LayerMetadataContainer *m_layerMetadataContainer;
   IntrusiveList<VolumeDataPageAccessorImpl, &VolumeDataPageAccessorImpl::m_volumeDataPageAccessorListNode> m_volumeDataPageAccessorList;
   std::mutex m_mutex;
+  std::condition_variable m_pendingRequestChangedCondition;
+  std::map<VolumeDataChunk, PendingRequest> m_pendingRequests;
 };
 }
 #endif //VOLUMEDATAACCESSMANAGERIMPL_H

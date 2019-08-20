@@ -32,6 +32,13 @@
 
 namespace OpenVDS
 {
+  enum AdaptiveMode
+  {
+    AdaptiveMode_BestQuality,
+    AdaptiveMode_Tolerance,
+    AdaptiveMode_Ratio
+  };
+
   struct MetadataStatus
   {
     enum

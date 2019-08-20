@@ -25,6 +25,8 @@ ObjectRequester::~ObjectRequester()
 {}
 TransferHandler::~TransferHandler()
 {}
+void TransferHandler::handleMetadata(const std::string& key, const std::string& header)
+{}
 IOManager::~IOManager()
 {}
 IOManager* IOManager::createIOManager(const OpenOptions& options, Error &error)

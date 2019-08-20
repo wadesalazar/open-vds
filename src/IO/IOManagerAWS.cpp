@@ -35,6 +35,11 @@ namespace OpenVDS
   static std::mutex initialize_sdk_mutex;
   static Aws::SDKOptions initialize_sdk_options;
 
+  static std::string convertAwsString(const Aws::String &s)
+  {
+    return std::string(s.begin(), s.end());
+  }
+
   static void initializeAWSSDK()
   {
     std::unique_lock<std::mutex> lock(initialize_sdk_mutex);
@@ -96,18 +101,23 @@ namespace OpenVDS
     }
 
     Aws::S3::Model::GetObjectResult result = const_cast<Aws::S3::Model::GetObjectOutcome &>(getObjectOutcome).GetResultWithOwnership();
+    for (auto it : result.GetMetadata())
+    {
+      objReq->m_handler->handleMetadata(convertAwsString(it.first), convertAwsString(it.second));
+    }
     auto &retrieved_object = result.GetBody();
     auto content_length = result.GetContentLength();
+    std::vector<uint8_t> data;
+
     if (content_length > 0)
     {
-      std::vector<uint8_t> data;
       data.resize(content_length);
       retrieved_object.read((char *)&data[0], content_length);
       objReq->m_handler->handleData(std::move(data));
     }
   }
 
-  ObjectRequesterAWS::ObjectRequesterAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, const std::shared_ptr<TransferHandler>& handler)
+  ObjectRequesterAWS::ObjectRequesterAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, const std::shared_ptr<TransferHandler>& handler, const IORange &range)
     : m_handler(handler)
     , m_context(std::make_shared<AsyncCallerContext>(this))
     , m_done(false)
@@ -115,7 +125,12 @@ namespace OpenVDS
     Aws::S3::Model::GetObjectRequest object_request;
     object_request.SetBucket(bucket.c_str());
     object_request.SetKey(id.c_str());
-
+    if (range.end)
+    {
+      char rangeHeaderBuffer[100];
+      snprintf(rangeHeaderBuffer, sizeof(rangeHeaderBuffer), "bytes=%d-%d", range.start, range.end);
+      object_request.SetRange(rangeHeaderBuffer);
+    }
     using namespace std::placeholders;
     auto bounded_callback = std::bind(&callback, _1, _2, _3, _4, m_context);
     client.GetObjectAsync(object_request, bounded_callback);
@@ -177,9 +192,9 @@ namespace OpenVDS
     deinitizlieAWSSDK();
   }
 
-  std::shared_ptr<ObjectRequester> IOManagerAWS::requestObject(const std::string objectName, std::shared_ptr<TransferHandler> handler)
+  std::shared_ptr<ObjectRequester> IOManagerAWS::requestObject(const std::string objectName, std::shared_ptr<TransferHandler> handler, const IORange &range)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    return std::make_shared<ObjectRequesterAWS>(*m_s3Client.get(), m_bucket, id, handler);
+    return std::make_shared<ObjectRequesterAWS>(*m_s3Client.get(), m_bucket, id, handler, range);
   }
 }

@@ -16,7 +16,8 @@ set(SOURCE_FILES
   VDS/VolumeDataPageImpl.cpp
   VDS/DimensionGroup.cpp
   VDS/ParseVDSJson.cpp
-  VDS/MetadataManager.cpp)
+  VDS/MetadataManager.cpp
+  VDS/Base64.cpp)
 
 set (PRIVATE_HEADER_FILES
   IO/File.h
@@ -38,7 +39,8 @@ set (PRIVATE_HEADER_FILES
   VDS/Bitmask.h
   VDS/ParseVDSJson.h
   VDS/MetadataManager.h
-  VDS/IntrusiveList.h)
+  VDS/IntrusiveList.h
+  VDS/Base64.h)
 
 set (EXPORTED_HEADER_FILES
   OpenVDS/OpenVDS.h

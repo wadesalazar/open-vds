@@ -15,21 +15,13 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#ifndef VOLUMEDATACHUNK_H
-#define VOLUMEDATACHUNK_H
+#ifndef BASE64_H
+#define BASE64_H
 
-#include <cstdint>
-
-#include "DimensionGroup.h"
+#include <vector>
 
 namespace OpenVDS
 {
-class VolumeDataLayer;
-struct VolumeDataChunk
-{
-  const VolumeDataLayer *layer;
-  int64_t chunkIndex;
-};
+bool Base64Decode(const char* data, int len, std::vector<unsigned char>& result);
 }
-
-#endif //VOLUMEDATACHUNK_H
+#endif

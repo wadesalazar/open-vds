@@ -15,13 +15,162 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#define _USE_MATH_DEFINES
 #include "VolumeDataAccessManagerImpl.h"
 
 #include <OpenVDSHandle.h>
 #include "VolumeDataPageAccessorImpl.h"
 
+#include <cmath>
+#include <algorithm>
+#include <inttypes.h>
+
 namespace OpenVDS
 {
+
+struct ParsedMetadata
+{
+  ParsedMetadata()
+    : m_chunkHash(0)
+    , m_chunkSize(0)
+  {}
+
+  uint64_t m_chunkHash;
+  
+  int32_t m_chunkSize;
+
+  std::vector<uint8_t> m_adaptiveLevels;
+};
+
+
+static ParsedMetadata parseMetadata(int metadataByteSize, unsigned char const *metadata)
+{
+  ParsedMetadata parsedMetadata;
+
+  if (metadataByteSize == 4 + 24)
+  {
+    parsedMetadata.m_chunkSize = *reinterpret_cast<int32_t const *>(metadata);
+
+    parsedMetadata.m_chunkHash = *reinterpret_cast<uint64_t const *>(metadata + 4);
+
+    parsedMetadata.m_adaptiveLevels.resize(MetadataStatus::WAVELET_ADAPTIVE_LEVELS);
+
+    memcpy(parsedMetadata.m_adaptiveLevels.data(), metadata + 4 + 8, MetadataStatus::WAVELET_ADAPTIVE_LEVELS);
+  }
+  else if (metadataByteSize == 8)
+  {
+    parsedMetadata.m_chunkHash = *reinterpret_cast<uint64_t const *>(metadata);
+  }
+  else
+  {
+    fprintf(stderr, "%s%s\n", std::string(" Unsupported chunkMetadataByteSize: ").c_str(), std::to_string(metadataByteSize).c_str());
+  }
+
+  return parsedMetadata;
+}
+
+static bool isConstantChunkHash(uint64_t chunkHash)
+{
+  const uint64_t unknownHash = 0;
+  const uint64_t noValueHash = ~0ULL;
+  const uint64_t constantHash = 0x01010101;
+
+  if (chunkHash == unknownHash || chunkHash == noValueHash || (chunkHash >> 32) == constantHash)
+  {
+    return true;
+  }
+  return false;
+}
+
+static int getEffectiveAdaptiveLoadLevel(float effectiveCompressionTolerance, float compressionTolerance)
+{
+//  assert(effectiveCompressionTolerance >= adaptiveToleranceMin);
+//  assert(compressionTolerance >= adaptiveToleranceMin);
+
+  int adaptiveLoadLevel = (int)(log(effectiveCompressionTolerance / compressionTolerance) / M_LN2);
+
+  return std::max(0, adaptiveLoadLevel);
+}
+
+static int getEffectiveAdaptiveLevel(AdaptiveMode adaptiveMode, float desiredTolerance, float desiredRatio, float remoteTolerance, int64_t const adaptiveLevelSizes[MetadataStatus::WAVELET_ADAPTIVE_LEVELS], int64_t uncompressedSize)
+{
+  if (adaptiveMode == AdaptiveMode_BestQuality)
+  {
+    return -1;
+  }
+  else if (adaptiveMode == AdaptiveMode_Ratio && desiredRatio <= 1.0f)
+  {
+    return 0;
+  }
+
+  int level = 0;
+
+  if (adaptiveMode == AdaptiveMode_Tolerance)
+  {
+    level = getEffectiveAdaptiveLoadLevel(desiredTolerance, remoteTolerance);
+  }
+  else if (adaptiveMode == AdaptiveMode_Ratio)
+  {
+    // Matches HueVolumeDataStoreVersion4_c::GetEffectiveAdaptiveLevel
+    while (level + 1 < MetadataStatus::WAVELET_ADAPTIVE_LEVELS)
+    {
+      if (adaptiveLevelSizes[level + 1] == 0 || ((float)uncompressedSize / (float)adaptiveLevelSizes[level + 1]) > desiredRatio)
+      {
+        break;
+      }
+
+      level++;
+    }
+  }
+  else
+  {
+    assert(0 && "Unknown compression mode");
+  }
+
+  return level;
+}
+
+static int waveletAdaptiveLevelsMetadataDecode(uint64_t totalSize, int targetLevel, uint8_t const *levels)
+{
+  assert(targetLevel >= -1 && targetLevel < MetadataStatus::WAVELET_ADAPTIVE_LEVELS);
+
+  int remainingSize = (int)totalSize;
+
+  for (int level = 0; level <= targetLevel; level++)
+  {
+    if (levels[level] == 0)
+    {
+      break;
+    }
+    remainingSize = (int)((uint64_t)remainingSize * levels[level] / 255);
+  }
+
+  return remainingSize;
+}
+
+static IORange calculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, const MetadataStatus &metadataStatus, int * const adaptiveLevel)
+{
+  if (isConstantChunkHash(parsedMetadata.m_chunkHash))
+  {
+    *adaptiveLevel = -1;
+  }
+  else if (parsedMetadata.m_adaptiveLevels.empty())
+  {
+    *adaptiveLevel = -1;
+  }
+  else
+  {   
+    *adaptiveLevel = getEffectiveAdaptiveLevel(AdaptiveMode_BestQuality, 0.01f, 1.0f , metadataStatus.m_compressionTolerance, metadataStatus.m_adaptiveLevelSizes, metadataStatus.m_uncompressedSize);
+
+    int range = waveletAdaptiveLevelsMetadataDecode(parsedMetadata.m_chunkSize, *adaptiveLevel, parsedMetadata.m_adaptiveLevels.data());
+    if (range && range != parsedMetadata.m_chunkSize)
+    {
+    return {0 , size_t(range - 1)};
+    }
+  }
+
+  return IORange();
+}
 
 static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayout const *layout, DimensionsND dimension, int channel, int lod, bool isAllowFailure)
 {
@@ -62,6 +211,7 @@ static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayout const *layout, Dimen
 VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDSHandle* handle)
   : m_layout(handle->volumeDataLayout.get())
   , m_ioManager(handle->ioManager.get())
+  , m_layerMetadataContainer(&handle->layerMetadataContainer)
 {
 }
 
@@ -267,4 +417,151 @@ int64_t VolumeDataAccessManagerImpl::prefetchVolumeChunk(VolumeDataLayout const*
 {
   return int64_t(0);
 }
+
+static MetadataManager *getMetadataMangerForLayer(LayerMetadataContainer *container, const std::string &layer)
+{
+  std::unique_lock<std::mutex> lock(container->mutex);
+
+  MetadataManager *metadataManager = nullptr;
+  auto metadataManagerIterator = container->managers.find(layer);
+
+  if(metadataManagerIterator != container->managers.end())
+  {
+    metadataManager = metadataManagerIterator->second.get();
+  }
+
+  return metadataManager;
+}
+
+static std::string makeURLForChunk(const std::string &layerUrl, uint64_t chunk)
+{
+  char url[1000];
+
+  snprintf(url, sizeof(url), "%s/%" PRIu64, layerUrl.c_str(), (long long)chunk);
+
+  return std::string(url);
+}
+
+bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &chunk, std::vector<uint8_t> &blob, int32_t (&pitch)[Dimensionality_Max], bool verbose, Error &error)
+{
+  blob.clear();
+
+  // This can probably be improved by looking up the data directly in the cache and not requesting it if it's valid,
+  // similar to the VolumeSamples code
+
+  for(auto &p : pitch)
+    p = 0;
+
+  int32_t channel = chunk.layer->getChannelIndex();
+  const char *channelName = channel > 0 ? chunk.layer->getLayout()->getChannelName(chunk.layer->getChannelIndex()) : "";
+  int32_t lod = chunk.layer->getLod();
+  const char *dimensions_string = DimensionGroupUtil::getDimensionsGroupString(DimensionGroupUtil::getDimensionsNDFromDimensionGroup(chunk.layer->getChunkDimensionGroup()));
+  char layerURL[1000];
+  snprintf(layerURL, sizeof(layerURL), "%sDimensions_%sLOD%d", channelName, dimensions_string, lod);
+  auto metadataManager = getMetadataMangerForLayer(m_layerMetadataContainer, layerURL);
+  //do fallback
+  if (!metadataManager)
+  {
+    error.code =- 1;
+    error.string = "No metdadataManager";
+    return false;
+  }
+  
+  int pageIndex  = (int)(chunk.chunkIndex / metadataManager->metadataStatus().m_chunkMetadataPageSize);
+  int entryIndex = (int)(chunk.chunkIndex % metadataManager->metadataStatus().m_chunkMetadataPageSize);
+
+  bool initiateTransfer;
+
+  MetadataPage* metadataPage = metadataManager->lockPage(pageIndex, &initiateTransfer);
+
+  assert(pageIndex == metadataPage->PageIndex());
+
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  if (initiateTransfer)
+  {
+    char url[1000];
+    snprintf(url, sizeof(url), "%s/ChunkMetadata/%d", layerURL, pageIndex);
+
+    metadataManager->initiateTransfer(metadataPage, url, verbose);
+  }
+
+  // Check if the page is not valid and we need to add the request later when the metadata page transfer completes
+  if (!metadataPage->IsValid())
+  {
+    m_pendingRequests[chunk] = PendingRequest(metadataPage);
+    return true;
+  }
+
+  lock.unlock();
+
+  unsigned char const* metadata = metadataManager->getPageEntry(metadataPage, entryIndex);
+
+  ParsedMetadata parsedMetadata = parseMetadata(metadataManager->metadataStatus().m_chunkMetadataByteSize, metadata);
+    
+  metadataManager->unlockPage(metadataPage);
+
+  int adaptiveLevel;
+
+  IORange ioRange = calculateRangeHeaderImpl(parsedMetadata, metadataManager->metadataStatus(), &adaptiveLevel);
+
+  std::string url = makeURLForChunk(layerURL, chunk.chunkIndex);
+
+  lock.lock();
+  auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
+  m_pendingRequests[chunk] = PendingRequest(m_ioManager->requestObject(url, transferHandler, ioRange), transferHandler);
+
+  return true;
+}
+  
+bool VolumeDataAccessManagerImpl::readChunk(std::vector<uint8_t> &serializedData, std::vector<uint8_t> &metadata, const VolumeDataChunk &chunk, CompressionInfo &compressionInfo, Error &error)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  auto pendingRequestIterator = m_pendingRequests.find(chunk);
+
+  if(pendingRequestIterator == m_pendingRequests.end())
+  {
+    error.code = -1;
+    error.string = "Missing request for chunk: " + std::to_string(chunk.chunkIndex);
+    return false;
+  }
+  PendingRequest& pendingRequest = pendingRequestIterator->second;
+
+  if (!pendingRequest.m_activeTransfer)
+  {
+    while (pendingRequest.m_lockedMetadataPage)
+    {
+      m_pendingRequestChangedCondition.wait(lock);
+    }
+  }
+
+  auto activeTransfer = pendingRequest.m_activeTransfer;
+  auto transferHandler = pendingRequest.m_transferHandle;
+
+  m_pendingRequests.erase(pendingRequestIterator);
+
+  lock.unlock();
+
+  activeTransfer->waitForFinish();
+  if (transferHandler->m_error.code)
+  {
+    error = transferHandler->m_error;
+    return false;
+  }
+
+  if (transferHandler->m_data.size())
+  {
+    serializedData = std::move(transferHandler->m_data);
+  }
+
+  if (transferHandler->m_metadata.size())
+  {
+    metadata = std::move(transferHandler->m_metadata);
+  }
+
+  compressionInfo = CompressionInfo(transferHandler->m_compressionMethod, transferHandler->m_adaptiveLevel);
+  return true;
+}
+
 }

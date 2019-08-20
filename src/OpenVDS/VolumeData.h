@@ -91,6 +91,28 @@ enum class CompressionMethod
   WaveletNormalizeBlockLossless,
   Max
 };
+ 
+class CompressionInfo
+{
+  CompressionMethod   compressionMethod;
+  int                 adaptiveLevel;
+public:
+  CompressionInfo() : compressionMethod(CompressionMethod::None), adaptiveLevel(0)
+  {
+  }
+  CompressionInfo(CompressionMethod compressionMethod, int adaptiveLevel) : compressionMethod(compressionMethod), adaptiveLevel(adaptiveLevel)
+  {
+  }
+
+  CompressionMethod   GetCompressionMethod() const
+  {
+    return compressionMethod;
+  }
+  int                 GetAdaptiveLevel()     const
+  {
+    return adaptiveLevel;
+  }
+};
 
 enum Dimensionality
 {

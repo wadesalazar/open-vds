@@ -19,7 +19,6 @@
 #define IOMANAGER_H
 
 #include <memory>
-
 #include <OpenVDS/OpenVDS.h>
 
 namespace OpenVDS
@@ -28,6 +27,7 @@ namespace OpenVDS
   {
   public:
     virtual ~TransferHandler();
+    virtual void handleMetadata(const std::string &key, const std::string &header);
     virtual void handleData(std::vector<uint8_t> &&data) = 0;
     virtual void handleError(Error &error) = 0;
   };
@@ -42,11 +42,17 @@ namespace OpenVDS
     virtual void cancel() = 0;
   };
 
+  struct IORange
+  {
+    size_t start = 0;
+    size_t end = 0;
+  };
+
   class IOManager
   {
   public:
     virtual ~IOManager();
-    virtual std::shared_ptr<ObjectRequester> requestObject(const std::string objectName, std::shared_ptr<TransferHandler> handler) = 0;
+    virtual std::shared_ptr<ObjectRequester> requestObject(const std::string objectName, std::shared_ptr<TransferHandler> handler, const IORange &range = IORange()) = 0;
 
     static IOManager *createIOManager(const OpenOptions &options, Error &error);
   };

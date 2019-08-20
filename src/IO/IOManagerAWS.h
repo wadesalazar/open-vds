@@ -29,7 +29,7 @@ namespace OpenVDS
   class ObjectRequesterAWS : public ObjectRequester
   {
   public:
-    ObjectRequesterAWS(Aws::S3::S3Client &client, const std::string &bucket, const std::string &id, const std::shared_ptr<TransferHandler> &handler);
+    ObjectRequesterAWS(Aws::S3::S3Client &client, const std::string &bucket, const std::string &id, const std::shared_ptr<TransferHandler> &handler, const IORange &range);
     ~ObjectRequesterAWS();
  
     void waitForFinish() override;
@@ -50,7 +50,7 @@ namespace OpenVDS
       IOManagerAWS(const AWSOpenOptions &openOptions, Error &error);
       ~IOManagerAWS();
 
-      std::shared_ptr<ObjectRequester> requestObject(const std::string objectName, std::shared_ptr<TransferHandler> handler) override;
+      std::shared_ptr<ObjectRequester> requestObject(const std::string objectName, std::shared_ptr<TransferHandler> handler, const IORange &range = IORange()) override;
     private:
       std::string m_region;
       std::string m_bucket;
