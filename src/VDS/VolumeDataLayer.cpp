@@ -326,15 +326,15 @@ int32_t VolumeDataLayer::getEffectiveWaveletAdaptiveLoadLevel() const
 
     int lodAdaptiveDifference = getEffectiveWaveletAdaptiveLoadLevel(effectiveCompressionTolerance, m_volumeDataLayout->getCompressionTolerance());
 
-    int adaptiveLodLevel = (m_volumeDataLayout->getWaveletAdaptiveLoadLevel() - lodAdaptiveDifference);
+    int adaptiveLODLevel = (m_volumeDataLayout->getWaveletAdaptiveLoadLevel() - lodAdaptiveDifference);
 
     // make sure lod adaptiveness stops at same as max level of lod0
-    adaptiveLodLevel = std::min(WAVELET_ADAPTIVE_LEVELS - 1 - lodAdaptiveDifference, adaptiveLodLevel);
+    adaptiveLODLevel = std::min(WAVELET_ADAPTIVE_LEVELS - 1 - lodAdaptiveDifference, adaptiveLODLevel);
 
     // for now clamp adaptive lod level to 4, looks so crap otherwise
-    adaptiveLodLevel = std::min(4, adaptiveLodLevel);
+    adaptiveLODLevel = std::min(4, adaptiveLODLevel);
 
-    return std::max(0, adaptiveLodLevel);
+    return std::max(0, adaptiveLODLevel);
   }
 
   return m_volumeDataLayout->getWaveletAdaptiveLoadLevel();

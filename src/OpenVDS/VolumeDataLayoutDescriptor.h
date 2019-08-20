@@ -35,21 +35,21 @@ public:
     BrickSize_4096 = 12
   };
 
-  enum LodLevels
+  enum LODLevels
   {
-    LodLevelNone =  0,
-    LodLevel1    =  1,
-    LodLevel2    =  2,
-    LodLevel3    =  3,
-    LodLevel4    =  4,
-    LodLevel5    =  5,
-    LodLevel6    =  6,
-    LodLevel7    =  7,
-    LodLevel8    =  8,
-    LodLevel9    =  9,
-    LodLevel10   = 10,
-    LodLevel11   = 11,
-    LodLevel12   = 12
+    LODLevels_None =  0,
+    LODLevels_1    =  1,
+    LODLevels_2    =  2,
+    LODLevels_3    =  3,
+    LODLevels_4    =  4,
+    LODLevels_5    =  5,
+    LODLevels_6    =  6,
+    LODLevels_7    =  7,
+    LODLevels_8    =  8,
+    LODLevels_9    =  9,
+    LODLevels_10   = 10,
+    LODLevels_11   = 11,
+    LODLevels_12   = 12
   };
 
   enum Options
@@ -66,7 +66,7 @@ private:
   int                 m_positiveMargin;
   int                 m_brickSizeMultiplier2D;
 
-  LodLevels           m_lodLevels;
+  LODLevels           m_lodLevels;
 
   Options             m_options;
 
@@ -74,7 +74,7 @@ private:
 
 public:
   VolumeDataLayoutDescriptor() : m_brickSize(), m_negativeMargin(), m_positiveMargin(), m_brickSizeMultiplier2D(), m_lodLevels(), m_options(), m_fullResolutionDimension() {}
-  VolumeDataLayoutDescriptor(BrickSize brickSize, int negativeMargin, int positiveMargin, int brickSizeMultiplier2D, LodLevels lodLevels, Options options, int fullResolutionDimension = 0) : m_brickSize(brickSize), m_negativeMargin(negativeMargin), m_positiveMargin(positiveMargin), m_brickSizeMultiplier2D(brickSizeMultiplier2D), m_lodLevels(lodLevels), m_options(options), m_fullResolutionDimension(fullResolutionDimension) {}
+  VolumeDataLayoutDescriptor(BrickSize brickSize, int negativeMargin, int positiveMargin, int brickSizeMultiplier2D, LODLevels lodLevels, Options options, int fullResolutionDimension = 0) : m_brickSize(brickSize), m_negativeMargin(negativeMargin), m_positiveMargin(positiveMargin), m_brickSizeMultiplier2D(brickSizeMultiplier2D), m_lodLevels(lodLevels), m_options(options), m_fullResolutionDimension(fullResolutionDimension) {}
 
   bool                isValid()        const { return m_brickSize != 0; }
 
@@ -82,7 +82,7 @@ public:
   int                 getNegativeMargin() const { return m_negativeMargin; }
   int                 getPositiveMargin() const { return m_positiveMargin; }
   int                 getBrickSizeMultiplier2D() const { return m_brickSizeMultiplier2D; }
-  LodLevels           getLodLevels()      const { return m_lodLevels; }
+  LODLevels           getLODLevels()      const { return m_lodLevels; }
 
   bool                isCreate2DLods()                 const { return (m_options & Options_Create2DLods) != 0; }
   bool                isForceFullResolutionDimension() const { return (m_options & Options_ForceFullResolutionDimension) != 0; }

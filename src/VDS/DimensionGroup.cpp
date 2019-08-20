@@ -1051,75 +1051,75 @@ DimensionGroup getDimensionGroupFromDimensionsND(DimensionsND dimensionsND)
   {
   default:
     assert(false && ("Illegal dimensions ND"));
-  case DimensionsND::Group012:
+  case Dimensions_012:
     return DimensionGroup_012;
-  case DimensionsND::Group013:
+  case Dimensions_013:
     return DimensionGroup_013;
-  case DimensionsND::Group014:
+  case Dimensions_014:
     return DimensionGroup_014;
-  case DimensionsND::Group015:
+  case Dimensions_015:
     return DimensionGroup_015;
-  case DimensionsND::Group023:
+  case Dimensions_023:
     return DimensionGroup_023;
-  case DimensionsND::Group024:
+  case Dimensions_024:
     return DimensionGroup_024;
-  case DimensionsND::Group025:
+  case Dimensions_025:
     return DimensionGroup_025;
-  case DimensionsND::Group034:
+  case Dimensions_034:
     return DimensionGroup_034;
-  case DimensionsND::Group035:
+  case Dimensions_035:
     return DimensionGroup_035;
-  case DimensionsND::Group045:
+  case Dimensions_045:
     return DimensionGroup_045;
-  case DimensionsND::Group123:
+  case Dimensions_123:
     return DimensionGroup_123;
-  case DimensionsND::Group124:
+  case Dimensions_124:
     return DimensionGroup_124;
-  case DimensionsND::Group125:
+  case Dimensions_125:
     return DimensionGroup_125;
-  case DimensionsND::Group134:
+  case Dimensions_134:
     return DimensionGroup_134;
-  case DimensionsND::Group135:
+  case Dimensions_135:
     return DimensionGroup_135;
-  case DimensionsND::Group145:
+  case Dimensions_145:
     return DimensionGroup_145;
-  case DimensionsND::Group234:
+  case Dimensions_234:
     return DimensionGroup_234;
-  case DimensionsND::Group235:
+  case Dimensions_235:
     return DimensionGroup_235;
-  case DimensionsND::Group245:
+  case Dimensions_245:
     return DimensionGroup_245;
-  case DimensionsND::Group345:
+  case Dimensions_345:
     return DimensionGroup_345;
-  case DimensionsND::Group01:
+  case Dimensions_01:
     return DimensionGroup_01;
-  case DimensionsND::Group02:
+  case Dimensions_02:
     return DimensionGroup_02;
-  case DimensionsND::Group03:
+  case Dimensions_03:
     return DimensionGroup_03;
-  case DimensionsND::Group04:
+  case Dimensions_04:
     return DimensionGroup_04;
-  case DimensionsND::Group05:
+  case Dimensions_05:
     return DimensionGroup_05;
-  case DimensionsND::Group12:
+  case Dimensions_12:
     return DimensionGroup_12;
-  case DimensionsND::Group13:
+  case Dimensions_13:
     return DimensionGroup_13;
-  case DimensionsND::Group14:
+  case Dimensions_14:
     return DimensionGroup_14;
-  case DimensionsND::Group15:
+  case Dimensions_15:
     return DimensionGroup_15;
-  case DimensionsND::Group23:
+  case Dimensions_23:
     return DimensionGroup_23;
-  case DimensionsND::Group24:
+  case Dimensions_24:
     return DimensionGroup_24;
-  case DimensionsND::Group25:
+  case Dimensions_25:
     return DimensionGroup_25;
-  case DimensionsND::Group34:
+  case Dimensions_34:
     return DimensionGroup_34;
-  case DimensionsND::Group35:
+  case Dimensions_35:
     return DimensionGroup_35;
-  case DimensionsND::Group45:
+  case Dimensions_45:
     return DimensionGroup_45;
   }
 }
@@ -1131,75 +1131,75 @@ DimensionsND getDimensionsNDFromDimensionGroup(DimensionGroup dimensionGroup)
   default:
     assert(false && ("Illegal dimensiongroup"));
   case DimensionGroup_012:
-    return DimensionsND::Group012;
+    return Dimensions_012;
   case DimensionGroup_013:
-    return DimensionsND::Group013;
+    return Dimensions_013;
   case DimensionGroup_014:
-    return DimensionsND::Group014;
+    return Dimensions_014;
   case DimensionGroup_015:
-    return DimensionsND::Group015;
+    return Dimensions_015;
   case DimensionGroup_023:
-    return DimensionsND::Group023;
+    return Dimensions_023;
   case DimensionGroup_024:
-    return DimensionsND::Group024;
+    return Dimensions_024;
   case DimensionGroup_025:
-    return DimensionsND::Group025;
+    return Dimensions_025;
   case DimensionGroup_034:
-    return DimensionsND::Group034;
+    return Dimensions_034;
   case DimensionGroup_035:
-    return DimensionsND::Group035;
+    return Dimensions_035;
   case DimensionGroup_045:
-    return DimensionsND::Group045;
+    return Dimensions_045;
   case DimensionGroup_123:
-    return DimensionsND::Group123;
+    return Dimensions_123;
   case DimensionGroup_124:
-    return DimensionsND::Group124;
+    return Dimensions_124;
   case DimensionGroup_125:
-    return DimensionsND::Group125;
+    return Dimensions_125;
   case DimensionGroup_134:
-    return DimensionsND::Group134;
+    return Dimensions_134;
   case DimensionGroup_135:
-    return DimensionsND::Group135;
+    return Dimensions_135;
   case DimensionGroup_145:
-    return DimensionsND::Group145;
+    return Dimensions_145;
   case DimensionGroup_234:
-    return DimensionsND::Group234;
+    return Dimensions_234;
   case DimensionGroup_235:
-    return DimensionsND::Group235;
+    return Dimensions_235;
   case DimensionGroup_245:
-    return DimensionsND::Group245;
+    return Dimensions_245;
   case DimensionGroup_345:
-    return DimensionsND::Group345;
+    return Dimensions_345;
   case DimensionGroup_01:
-    return DimensionsND::Group01;
+    return Dimensions_01;
   case DimensionGroup_02:
-    return DimensionsND::Group02;
+    return Dimensions_02;
   case DimensionGroup_03:
-    return DimensionsND::Group03;
+    return Dimensions_03;
   case DimensionGroup_04:
-    return DimensionsND::Group04;
+    return Dimensions_04;
   case DimensionGroup_05:
-    return DimensionsND::Group05;
+    return Dimensions_05;
   case DimensionGroup_12:
-    return DimensionsND::Group12;
+    return Dimensions_12;
   case DimensionGroup_13:
-    return DimensionsND::Group13;
+    return Dimensions_13;
   case DimensionGroup_14:
-    return DimensionsND::Group14;
+    return Dimensions_14;
   case DimensionGroup_15:
-    return DimensionsND::Group15;
+    return Dimensions_15;
   case DimensionGroup_23:
-    return DimensionsND::Group23;
+    return Dimensions_23;
   case DimensionGroup_24:
-    return DimensionsND::Group24;
+    return Dimensions_24;
   case DimensionGroup_25:
-    return DimensionsND::Group25;
+    return Dimensions_25;
   case DimensionGroup_34:
-    return DimensionsND::Group34;
+    return Dimensions_34;
   case DimensionGroup_35:
-    return DimensionsND::Group35;
+    return Dimensions_35;
   case DimensionGroup_45:
-    return DimensionsND::Group45;
+    return Dimensions_45;
   }
 }
 
@@ -1362,42 +1362,42 @@ const char* getDimensionsGroupString(DimensionsND dimensions)
 {
   switch(dimensions)
   {
-  case DimensionsND::Group012: return "012";
-  case DimensionsND::Group013: return "013";
-  case DimensionsND::Group014: return "014";
-  case DimensionsND::Group015: return "015";
-  case DimensionsND::Group023: return "023";
-  case DimensionsND::Group024: return "024";
-  case DimensionsND::Group025: return "025";
-  case DimensionsND::Group034: return "034";
-  case DimensionsND::Group035: return "035";
-  case DimensionsND::Group045: return "045";
-  case DimensionsND::Group123: return "123";
-  case DimensionsND::Group124: return "124";
-  case DimensionsND::Group125: return "125";
-  case DimensionsND::Group134: return "134";
-  case DimensionsND::Group135: return "135";
-  case DimensionsND::Group145: return "145";
-  case DimensionsND::Group234: return "234";
-  case DimensionsND::Group235: return "235";
-  case DimensionsND::Group245: return "245";
-  case DimensionsND::Group345: return "345";
+  case Dimensions_012: return "012";
+  case Dimensions_013: return "013";
+  case Dimensions_014: return "014";
+  case Dimensions_015: return "015";
+  case Dimensions_023: return "023";
+  case Dimensions_024: return "024";
+  case Dimensions_025: return "025";
+  case Dimensions_034: return "034";
+  case Dimensions_035: return "035";
+  case Dimensions_045: return "045";
+  case Dimensions_123: return "123";
+  case Dimensions_124: return "124";
+  case Dimensions_125: return "125";
+  case Dimensions_134: return "134";
+  case Dimensions_135: return "135";
+  case Dimensions_145: return "145";
+  case Dimensions_234: return "234";
+  case Dimensions_235: return "235";
+  case Dimensions_245: return "245";
+  case Dimensions_345: return "345";
 
-  case DimensionsND::Group01: return "01";
-  case DimensionsND::Group02: return "02";
-  case DimensionsND::Group03: return "03";
-  case DimensionsND::Group04: return "04";
-  case DimensionsND::Group05: return "05";
-  case DimensionsND::Group12: return "12";
-  case DimensionsND::Group13: return "13";
-  case DimensionsND::Group14: return "14";
-  case DimensionsND::Group15: return "15";
-  case DimensionsND::Group23: return "23";
-  case DimensionsND::Group24: return "24";
-  case DimensionsND::Group25: return "25";
-  case DimensionsND::Group34: return "34";
-  case DimensionsND::Group35: return "35";
-  case DimensionsND::Group45: return "45";
+  case Dimensions_01: return "01";
+  case Dimensions_02: return "02";
+  case Dimensions_03: return "03";
+  case Dimensions_04: return "04";
+  case Dimensions_05: return "05";
+  case Dimensions_12: return "12";
+  case Dimensions_13: return "13";
+  case Dimensions_14: return "14";
+  case Dimensions_15: return "15";
+  case Dimensions_23: return "23";
+  case Dimensions_24: return "24";
+  case Dimensions_25: return "25";
+  case Dimensions_34: return "34";
+  case Dimensions_35: return "35";
+  case Dimensions_45: return "45";
   default:
     ;
   }

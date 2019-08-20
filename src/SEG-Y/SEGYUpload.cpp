@@ -465,7 +465,7 @@ main(int argc, char *argv[])
   }
 
   OpenVDS::VolumeDataLayoutDescriptor::Options layoutOptions = OpenVDS::VolumeDataLayoutDescriptor::Options_None;
-  OpenVDS::VolumeDataLayoutDescriptor::LodLevels lodLevels = OpenVDS::VolumeDataLayoutDescriptor::LodLevelNone;
+  OpenVDS::VolumeDataLayoutDescriptor::LODLevels lodLevels = OpenVDS::VolumeDataLayoutDescriptor::LODLevels_None;
 
   int negativeMargin = 0;
   int positiveMargin = 0;

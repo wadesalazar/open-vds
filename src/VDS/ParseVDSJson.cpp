@@ -138,61 +138,61 @@ static enum VolumeDataLayoutDescriptor::BrickSize convertToBrickSize(Json::Value
   throw Json::Exception("Illegal brick size");
 }
 
-static enum VolumeDataLayoutDescriptor::LodLevels convertToLodLevel(Json::Value const &jsonLodLevels)
+static enum VolumeDataLayoutDescriptor::LODLevels convertToLODLevel(Json::Value const &jsonLODLevels)
 {
-  std::string lodLevelString = jsonLodLevels.asString();
+  std::string lodLevelString = jsonLODLevels.asString();
 
   if(lodLevelString == "LODLevelNone")
   {
-    return VolumeDataLayoutDescriptor::LodLevelNone;
+    return VolumeDataLayoutDescriptor::LODLevels_None;
   }
   else if(lodLevelString == "LODLevel1")
   {
-    return VolumeDataLayoutDescriptor::LodLevel1;
+    return VolumeDataLayoutDescriptor::LODLevels_1;
   }
   else if(lodLevelString == "LODLevel2")
   {
-    return VolumeDataLayoutDescriptor::LodLevel2;
+    return VolumeDataLayoutDescriptor::LODLevels_2;
   }
   else if(lodLevelString == "LODLevel3")
   {
-    return VolumeDataLayoutDescriptor::LodLevel3;
+    return VolumeDataLayoutDescriptor::LODLevels_3;
   }
   else if(lodLevelString == "LODLevel4")
   {
-    return VolumeDataLayoutDescriptor::LodLevel4;
+    return VolumeDataLayoutDescriptor::LODLevels_4;
   }
   else if(lodLevelString == "LODLevel5")
   {
-    return VolumeDataLayoutDescriptor::LodLevel5;
+    return VolumeDataLayoutDescriptor::LODLevels_5;
   }
   else if(lodLevelString == "LODLevel6")
   {
-    return VolumeDataLayoutDescriptor::LodLevel6;
+    return VolumeDataLayoutDescriptor::LODLevels_6;
   }
   else if(lodLevelString == "LODLevel7")
   {
-    return VolumeDataLayoutDescriptor::LodLevel7;
+    return VolumeDataLayoutDescriptor::LODLevels_7;
   }
   else if(lodLevelString == "LODLevel8")
   {
-    return VolumeDataLayoutDescriptor::LodLevel8;
+    return VolumeDataLayoutDescriptor::LODLevels_8;
   }
   else if(lodLevelString == "LODLevel9")
   {
-    return VolumeDataLayoutDescriptor::LodLevel9;
+    return VolumeDataLayoutDescriptor::LODLevels_9;
   }
   else if(lodLevelString == "LODLevel10")
   {
-    return VolumeDataLayoutDescriptor::LodLevel10;
+    return VolumeDataLayoutDescriptor::LODLevels_10;
   }
   else if(lodLevelString == "LODLevel11")
   {
-    return VolumeDataLayoutDescriptor::LodLevel11;
+    return VolumeDataLayoutDescriptor::LODLevels_11;
   }
   else if(lodLevelString == "LODLevel12")
   {
-    return VolumeDataLayoutDescriptor::LodLevel12;
+    return VolumeDataLayoutDescriptor::LODLevels_12;
   }
   throw Json::Exception("Illegal lod levels");
 }
@@ -340,7 +340,7 @@ static bool parseVDSObject(const std::vector<uint8_t> &json, VDSHandle &handle, 
   
 
   enum VolumeDataLayoutDescriptor::BrickSize brickSize = convertToBrickSize(root["FullVCSize"]);
-  enum VolumeDataLayoutDescriptor::LodLevels lodLevel = convertToLodLevel(root["LODLevels"]);
+  enum VolumeDataLayoutDescriptor::LODLevels lodLevel = convertToLODLevel(root["LODLevels"]);
   Internal::BitMask<enum VolumeDataLayoutDescriptor::Options> options(root["Create2DLODs"].asBool() ? VolumeDataLayoutDescriptor::Options_Create2DLods : VolumeDataLayoutDescriptor::Options_None);
   options |= root["ForceFullResolutionDimension"].asBool() ? VolumeDataLayoutDescriptor::Options_ForceFullResolutionDimension : VolumeDataLayoutDescriptor::Options_None;
   int brickSizeMultiplier2D = root.isMember("2DBrickSizeMultiplier") ? root["2DBrickSizeMultiplier"].asInt() : 4;
@@ -551,7 +551,7 @@ static VolumeDataLayer::ProduceStatus produceStatusFromJSON(Json::Value const &j
 static bool parseProduceStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
 {
   handle.produceStatuses.clear();
-  handle.produceStatuses.resize(int(DimensionsND::Group45) + 1, VolumeDataLayer::ProduceStatusUnavailable);
+  handle.produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatusUnavailable);
   Json::Value root;
   if (!parseJSONFromBuffer(json, root, error))
   {
@@ -561,41 +561,41 @@ static bool parseProduceStatus(const std::vector<uint8_t> &json, VDSHandle &hand
   if (root.empty())
     return true;
 
-  handle.produceStatuses[int32_t(DimensionsND::Group012)] = produceStatusFromJSON(root["ProduceStatusDimensions_012"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group013)] = produceStatusFromJSON(root["ProduceStatusDimensions_013"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group014)] = produceStatusFromJSON(root["ProduceStatusDimensions_014"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group015)] = produceStatusFromJSON(root["ProduceStatusDimensions_015"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group023)] = produceStatusFromJSON(root["ProduceStatusDimensions_023"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group024)] = produceStatusFromJSON(root["ProduceStatusDimensions_024"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group025)] = produceStatusFromJSON(root["ProduceStatusDimensions_025"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group034)] = produceStatusFromJSON(root["ProduceStatusDimensions_034"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group035)] = produceStatusFromJSON(root["ProduceStatusDimensions_035"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group045)] = produceStatusFromJSON(root["ProduceStatusDimensions_045"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group123)] = produceStatusFromJSON(root["ProduceStatusDimensions_123"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group124)] = produceStatusFromJSON(root["ProduceStatusDimensions_124"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group125)] = produceStatusFromJSON(root["ProduceStatusDimensions_125"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group134)] = produceStatusFromJSON(root["ProduceStatusDimensions_134"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group135)] = produceStatusFromJSON(root["ProduceStatusDimensions_135"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group145)] = produceStatusFromJSON(root["ProduceStatusDimensions_145"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group234)] = produceStatusFromJSON(root["ProduceStatusDimensions_234"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group235)] = produceStatusFromJSON(root["ProduceStatusDimensions_235"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group245)] = produceStatusFromJSON(root["ProduceStatusDimensions_245"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group345)] = produceStatusFromJSON(root["ProduceStatusDimensions_345"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group01)] = produceStatusFromJSON(root["ProduceStatusDimensions_01"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group02)] = produceStatusFromJSON(root["ProduceStatusDimensions_02"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group03)] = produceStatusFromJSON(root["ProduceStatusDimensions_03"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group04)] = produceStatusFromJSON(root["ProduceStatusDimensions_04"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group05)] = produceStatusFromJSON(root["ProduceStatusDimensions_05"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group12)] = produceStatusFromJSON(root["ProduceStatusDimensions_12"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group13)] = produceStatusFromJSON(root["ProduceStatusDimensions_13"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group14)] = produceStatusFromJSON(root["ProduceStatusDimensions_14"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group15)] = produceStatusFromJSON(root["ProduceStatusDimensions_15"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group23)] = produceStatusFromJSON(root["ProduceStatusDimensions_23"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group24)] = produceStatusFromJSON(root["ProduceStatusDimensions_24"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group25)] = produceStatusFromJSON(root["ProduceStatusDimensions_25"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group34)] = produceStatusFromJSON(root["ProduceStatusDimensions_34"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group35)] = produceStatusFromJSON(root["ProduceStatusDimensions_35"]);
-  handle.produceStatuses[int32_t(DimensionsND::Group45)] = produceStatusFromJSON(root["ProduceStatusDimensions_45"]);
+  handle.produceStatuses[int32_t(Dimensions_012)] = produceStatusFromJSON(root["ProduceStatusDimensions_012"]);
+  handle.produceStatuses[int32_t(Dimensions_013)] = produceStatusFromJSON(root["ProduceStatusDimensions_013"]);
+  handle.produceStatuses[int32_t(Dimensions_014)] = produceStatusFromJSON(root["ProduceStatusDimensions_014"]);
+  handle.produceStatuses[int32_t(Dimensions_015)] = produceStatusFromJSON(root["ProduceStatusDimensions_015"]);
+  handle.produceStatuses[int32_t(Dimensions_023)] = produceStatusFromJSON(root["ProduceStatusDimensions_023"]);
+  handle.produceStatuses[int32_t(Dimensions_024)] = produceStatusFromJSON(root["ProduceStatusDimensions_024"]);
+  handle.produceStatuses[int32_t(Dimensions_025)] = produceStatusFromJSON(root["ProduceStatusDimensions_025"]);
+  handle.produceStatuses[int32_t(Dimensions_034)] = produceStatusFromJSON(root["ProduceStatusDimensions_034"]);
+  handle.produceStatuses[int32_t(Dimensions_035)] = produceStatusFromJSON(root["ProduceStatusDimensions_035"]);
+  handle.produceStatuses[int32_t(Dimensions_045)] = produceStatusFromJSON(root["ProduceStatusDimensions_045"]);
+  handle.produceStatuses[int32_t(Dimensions_123)] = produceStatusFromJSON(root["ProduceStatusDimensions_123"]);
+  handle.produceStatuses[int32_t(Dimensions_124)] = produceStatusFromJSON(root["ProduceStatusDimensions_124"]);
+  handle.produceStatuses[int32_t(Dimensions_125)] = produceStatusFromJSON(root["ProduceStatusDimensions_125"]);
+  handle.produceStatuses[int32_t(Dimensions_134)] = produceStatusFromJSON(root["ProduceStatusDimensions_134"]);
+  handle.produceStatuses[int32_t(Dimensions_135)] = produceStatusFromJSON(root["ProduceStatusDimensions_135"]);
+  handle.produceStatuses[int32_t(Dimensions_145)] = produceStatusFromJSON(root["ProduceStatusDimensions_145"]);
+  handle.produceStatuses[int32_t(Dimensions_234)] = produceStatusFromJSON(root["ProduceStatusDimensions_234"]);
+  handle.produceStatuses[int32_t(Dimensions_235)] = produceStatusFromJSON(root["ProduceStatusDimensions_235"]);
+  handle.produceStatuses[int32_t(Dimensions_245)] = produceStatusFromJSON(root["ProduceStatusDimensions_245"]);
+  handle.produceStatuses[int32_t(Dimensions_345)] = produceStatusFromJSON(root["ProduceStatusDimensions_345"]);
+  handle.produceStatuses[int32_t(Dimensions_01)] = produceStatusFromJSON(root["ProduceStatusDimensions_01"]);
+  handle.produceStatuses[int32_t(Dimensions_02)] = produceStatusFromJSON(root["ProduceStatusDimensions_02"]);
+  handle.produceStatuses[int32_t(Dimensions_03)] = produceStatusFromJSON(root["ProduceStatusDimensions_03"]);
+  handle.produceStatuses[int32_t(Dimensions_04)] = produceStatusFromJSON(root["ProduceStatusDimensions_04"]);
+  handle.produceStatuses[int32_t(Dimensions_05)] = produceStatusFromJSON(root["ProduceStatusDimensions_05"]);
+  handle.produceStatuses[int32_t(Dimensions_12)] = produceStatusFromJSON(root["ProduceStatusDimensions_12"]);
+  handle.produceStatuses[int32_t(Dimensions_13)] = produceStatusFromJSON(root["ProduceStatusDimensions_13"]);
+  handle.produceStatuses[int32_t(Dimensions_14)] = produceStatusFromJSON(root["ProduceStatusDimensions_14"]);
+  handle.produceStatuses[int32_t(Dimensions_15)] = produceStatusFromJSON(root["ProduceStatusDimensions_15"]);
+  handle.produceStatuses[int32_t(Dimensions_23)] = produceStatusFromJSON(root["ProduceStatusDimensions_23"]);
+  handle.produceStatuses[int32_t(Dimensions_24)] = produceStatusFromJSON(root["ProduceStatusDimensions_24"]);
+  handle.produceStatuses[int32_t(Dimensions_25)] = produceStatusFromJSON(root["ProduceStatusDimensions_25"]);
+  handle.produceStatuses[int32_t(Dimensions_34)] = produceStatusFromJSON(root["ProduceStatusDimensions_34"]);
+  handle.produceStatuses[int32_t(Dimensions_35)] = produceStatusFromJSON(root["ProduceStatusDimensions_35"]);
+  handle.produceStatuses[int32_t(Dimensions_45)] = produceStatusFromJSON(root["ProduceStatusDimensions_45"]);
 
   return true;
 }
@@ -732,7 +732,7 @@ static int32_t getInternalCubeSizeLod0(const VolumeDataLayoutDescriptor &desc)
 
 static int32_t getLodCount(const VolumeDataLayoutDescriptor &desc)
 {
-  return desc.getLodLevels() + 1;
+  return desc.getLODLevels() + 1;
 }
 
 static void createVolumeDataLayout(VDSHandle &handle)

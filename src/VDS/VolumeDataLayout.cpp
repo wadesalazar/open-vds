@@ -324,9 +324,9 @@ void VolumeDataLayout::setActualValueRange(int32_t actualValueRangeChannel, Floa
 }
 
 
-void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLodLevels)
+void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels)
 {
-  assert(physicalLodLevels > 0);
+  assert(physicalLODLevels > 0);
 
   int32_t channels = getChannelCount();
 
@@ -342,7 +342,7 @@ void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t
 
   for(int32_t lod = 0; isCreateMoreLods; lod++)
   {
-    isCreateMoreLods = (lod < physicalLodLevels - 1); // Always create all physical lods even if we get only one cube before the top level;
+    isCreateMoreLods = (lod < physicalLODLevels - 1); // Always create all physical lods even if we get only one cube before the top level;
 
     for(int32_t dimension = 0; dimension < array_size(brickSizeArray); dimension++)
     {
@@ -360,7 +360,7 @@ void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t
         continue;
       }
 
-      VolumeDataLayer::LayerType layerType = (lod < physicalLodLevels) ? VolumeDataLayer::Renderable : VolumeDataLayer::Virtual;
+      VolumeDataLayer::LayerType layerType = (lod < physicalLODLevels) ? VolumeDataLayer::Renderable : VolumeDataLayer::Virtual;
 
       if(!isChannelRenderable(channel))
       {
@@ -399,8 +399,8 @@ void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t
     }
 
     //// Default physical layers to NEVER_REMAP
-    //if(lod < physicalLodLevels) _apcPrimaryTopLayers[eDimensionGroup]->SetProduceMethod(VolumeDataLayer_c::NEVER_REMAP, 0);
-    if(lod < physicalLodLevels) m_primaryTopLayers[dimensionGroup]->setProduceStatus(VolumeDataLayer::ProduceStatusNormal);
+    //if(lod < physicalLODLevels) _apcPrimaryTopLayers[eDimensionGroup]->SetProduceMethod(VolumeDataLayer_c::NEVER_REMAP, 0);
+    if(lod < physicalLODLevels) m_primaryTopLayers[dimensionGroup]->setProduceStatus(VolumeDataLayer::ProduceStatusNormal);
   }
 }
 
