@@ -19,6 +19,7 @@
 #include "VolumeDataLayout.h"
 #include "VolumeDataLayer.h"
 #include "VolumeDataPageImpl.h"
+#include "VolumeDataStore.h"
 #include "MetadataManager.h"
 
 #include <IO/IOManager.h>
@@ -180,9 +181,10 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPageAtPosition(const int(&positi
   int32_t pitch[Dimensionality_Max];
 
   Error error;
-  //auto request = readChunkData(m_layer->getLayout()->getHandle(), m_layer->getChunkFromIndex(chunk), blob, pitch, error);
-  //if (!request)
+  VolumeDataChunk volumeDataChunk = m_layer->getChunkFromIndex(chunk);
+  if (!m_accessManager->prepareReadChunkData(volumeDataChunk, pitch, true, error))
   {
+    page->unPin();
     fprintf(stderr, "Failed to download chunk: %s\n", error.string.c_str());
     return nullptr;
   }
@@ -190,11 +192,23 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPageAtPosition(const int(&positi
   pageMutexLocker.unlock();
 
   std::vector<uint8_t> page_data;
-//  if (request->getData(page_data, error))
-//  {
-//    fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
-//    return nullptr;
-//  }
+  std::vector<uint8_t> metadata;
+  CompressionInfo compressionInfo;
+  if (!m_accessManager->readChunk(volumeDataChunk, page_data, metadata, compressionInfo, error))
+  {
+    pageMutexLocker.lock();
+    page->unPin();
+    fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
+    return nullptr;
+  }
+
+  if (!VolumeDataStore::deserializeVolumeData(volumeDataChunk, page_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->getFormat(), page_data, error))
+  {
+    pageMutexLocker.lock();
+    page->unPin();
+    fprintf(stderr, "Failed when deserializing chunk: %s\n", error.string.c_str());
+    return nullptr;
+  }
 
   pageMutexLocker.lock();
   page->setBufferData(std::move(page_data), pitch);

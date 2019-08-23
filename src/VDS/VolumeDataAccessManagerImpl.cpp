@@ -442,10 +442,8 @@ static std::string makeURLForChunk(const std::string &layerUrl, uint64_t chunk)
   return std::string(url);
 }
 
-bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &chunk, std::vector<uint8_t> &blob, int32_t (&pitch)[Dimensionality_Max], bool verbose, Error &error)
+bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &chunk, int32_t (&pitch)[Dimensionality_Max], bool verbose, Error &error)
 {
-  blob.clear();
-
   // This can probably be improved by looking up the data directly in the cache and not requesting it if it's valid,
   // similar to the VolumeSamples code
 
@@ -514,7 +512,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
   return true;
 }
   
-bool VolumeDataAccessManagerImpl::readChunk(std::vector<uint8_t> &serializedData, std::vector<uint8_t> &metadata, const VolumeDataChunk &chunk, CompressionInfo &compressionInfo, Error &error)
+bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::vector<uint8_t> &serializedData, std::vector<uint8_t> &metadata, CompressionInfo &compressionInfo, Error &error)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 

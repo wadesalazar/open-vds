@@ -59,7 +59,7 @@ void VolumeDataRegion::getChunksInRegion(std::vector<VolumeDataChunk>* volumeDat
 
   for(int32_t iChunkInRegion = 0; iChunkInRegion < nChunksInRegion; iChunkInRegion++)
   {
-    volumeDataChunk->push_back({m_volumeDataLayer, int64_t(getChunkIndexInRegion(iChunkInRegion))});
+    volumeDataChunk->push_back(m_volumeDataLayer->getChunkFromIndex(getChunkIndexInRegion(iChunkInRegion)));
   }
 }
 

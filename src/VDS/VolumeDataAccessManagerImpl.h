@@ -177,8 +177,8 @@ public:
   int64_t requestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int nTraceCount, InterpolationMethod eInterpolationMethod, int iTraceDimension, float rReplacementNoValue) override;
   int64_t prefetchVolumeChunk(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk) override;
 
-  bool prepareReadChunkData(const VolumeDataChunk& chunk, std::vector<uint8_t>& blob, int32_t(&pitch)[Dimensionality_Max], bool verbose, Error& error);
-  bool readChunk(std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, const VolumeDataChunk& chunk, CompressionInfo& compressionInfo, Error& error);
+  bool prepareReadChunkData(const VolumeDataChunk& chunk, int32_t(&pitch)[Dimensionality_Max], bool verbose, Error& error);
+  bool readChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
 private:
   VolumeDataLayout *m_layout;
   IOManager *m_ioManager;
