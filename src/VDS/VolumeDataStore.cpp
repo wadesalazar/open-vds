@@ -385,13 +385,11 @@ bool VolumeDataStore::deserializeVolumeData(const VolumeDataChunk &chunk, const 
 
   if (volumeDataHash.isConstant())
   {
-    //pcTargetCacheItem->SetConstant(cHueVolumeDataHash, eLoadFormat, eNewStatus);
   }
   else
   {
     volumeDataHash = volumeDataHash ^ (adaptiveLevel + 1) * 0x4068934683409867ULL;
 
-    //if(!pcTargetCacheItem->LookupDataBlock(eLoadFormat, cHueVolumeDataHash, eNewStatus))
     {
       //create a value range from scale and offset so that conversion to 8 or 16 bit is done correctly inside deserialization
       FloatRange deserializeValueRange = volumeDataLayer->getValueRange();
@@ -413,7 +411,6 @@ bool VolumeDataStore::deserializeVolumeData(const VolumeDataChunk &chunk, const 
       if (!deserialize(serializedData, loadFormat, compressionMethod, false, deserializeValueRange, volumeDataLayer->getIntegerScale(), volumeDataLayer->getIntegerOffset(), volumeDataLayer->isUseNoValue(), volumeDataLayer->getNoValue(), adaptiveLevel, target, error))
         return false;
 
-      //pcTargetCacheItem->SetDataBlock(pcHueDataBlock, eLoadFormat, NULL, cHueVolumeDataHash, eNewStatus);
     }
   }
 

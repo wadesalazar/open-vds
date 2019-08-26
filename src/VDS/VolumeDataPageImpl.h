@@ -30,17 +30,17 @@ class VolumeDataPageAccessorImpl;
 class VolumeDataPageImpl : public VolumeDataPage
 {
 private:
-  const VolumeDataPageAccessor * m_volumeDataPageAccessor;
+  const VolumeDataPageAccessorImpl * m_volumeDataPageAccessor;
 
   int64_t m_chunk;
 
   std::vector<uint8_t> m_blob;
 
-  int32_t _nPins;
+  int32_t m_pins;
 
   void *m_buffer;
 
-  bool _isDirty;
+  bool m_isDirty;
 
   int32_t m_pitch[Dimensionality_Max];
 

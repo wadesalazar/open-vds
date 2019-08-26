@@ -46,11 +46,11 @@ private:
   bool m_isReadWrite;
   bool m_isCommitInProgress;
   std::list<VolumeDataPageImpl *> m_pages;
-  std::mutex m_pagesMutex;
   std::condition_variable m_pageReadCondition;
   std::condition_variable m_commitFinishedCondition;
 
   public:
+  std::mutex m_pagesMutex;
   IntrusiveListNode<VolumeDataPageAccessorImpl> m_volumeDataPageAccessorListNode;
 
 private:
@@ -61,6 +61,7 @@ public:
   VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl *acccessManager, VolumeDataLayer* layer, int maxPages, bool isReadWrite);
 
   VolumeDataLayout const* getLayout() const override;
+  VolumeDataLayer const * getLayer() const { return m_layer; }
 
   int   getLod() const override;
   int   getChannelIndex() const override;
@@ -78,6 +79,8 @@ public:
   VolumeDataPage* readPageAtPosition(const int(&anPosition)[Dimensionality_Max]) override;
 
   void  commit() override;
+
+  bool isReadWrite() const { return false; }
 };
 
 }
