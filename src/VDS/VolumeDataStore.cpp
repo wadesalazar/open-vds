@@ -33,48 +33,6 @@ static bool compressionMethodIsWavelet(CompressionMethod compressionMethod)
          compressionMethod == CompressionMethod::WaveletLossless ||
          compressionMethod == CompressionMethod::WaveletNormalizeBlockLossless;
 }
-static uint32_t getElementSize(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components)
-{
-  switch(format)
-  {
-  default:
-    fprintf(stderr, "Illegal format");
-    abort();
-  case VolumeDataChannelDescriptor::Format_1Bit:
-    return 1;
-  case VolumeDataChannelDescriptor::Format_U8:
-    return 1 * components;
-  case VolumeDataChannelDescriptor::Format_U16:
-    return 2 * components;
-  case VolumeDataChannelDescriptor::Format_R32:
-  case VolumeDataChannelDescriptor::Format_U32:
-    return 4 * components;
-  case VolumeDataChannelDescriptor::Format_U64:
-  case VolumeDataChannelDescriptor::Format_R64:
-    return 8 * components;
-  }
-}
-static uint32_t getElementSize(const DataBlock &datablock)
-{
-  return getElementSize(datablock.format, datablock.components);
-}
-
-static uint32_t getByteSize(const int32_t (&size)[DataStoreDimensionality_Max], VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, bool isBitSize = true)
-{
-  int byteSize = size[0] * getElementSize(format, components);
-
-  if(format == VolumeDataChannelDescriptor::Format_1Bit && isBitSize)
-  {
-    byteSize = (byteSize + 7) / 8;
-  }
-
-  for (int i = 1; i < Dimensionality_Max; i++)
-  {
-    byteSize *= size[i];
-  }
-
-  return byteSize;
-}
 
 static uint32_t getByteSize(const DataBlockDescriptor &descriptor)
 {
@@ -86,68 +44,6 @@ static uint32_t getByteSize(const DataBlockDescriptor &descriptor)
   return getByteSize(size, descriptor.format, descriptor.components);
 }
 
-static bool createDataBlock(const DataBlockDescriptor &descriptor, DataBlock &dataBlock, Error &error)
-{
-  dataBlock.components = descriptor.components;
-  dataBlock.format = descriptor.format;
-
-  if (descriptor.dimensionality == 1)
-  {
-    dataBlock.dimensionality = Dimensionality_1;
-    dataBlock.size[0] = descriptor.sizeX;
-    dataBlock.size[1] = 1;
-    dataBlock.size[2] = 1;
-    dataBlock.size[3] = 1;
-  }
-  else if (descriptor.dimensionality == 2)
-  {
-    dataBlock.dimensionality = Dimensionality_2;
-    dataBlock.size[0] = descriptor.sizeX;
-    dataBlock.size[1] = descriptor.sizeY;
-    dataBlock.size[2] = 1;
-    dataBlock.size[3] = 1;
-  }
-  else if (descriptor.dimensionality == 3)
-  {
-    dataBlock.dimensionality = Dimensionality_3;
-    dataBlock.size[0] = descriptor.sizeX;
-    dataBlock.size[1] = descriptor.sizeY;
-    dataBlock.size[2] = descriptor.sizeZ;
-    dataBlock.size[3] = 1;
-  }
-  else
-  {
-    error.string = "Serialized datablock has illegal dimensionality";
-    error.code = -1;
-    return false;
-  }
-  dataBlock.allocatedSize[0] = (descriptor.format == VolumeDataChannelDescriptor::Format_1Bit) ? ((dataBlock.size[0] * descriptor.components) + 7) / 8 : dataBlock.size[0];
-  dataBlock.allocatedSize[1] = dataBlock.size[1];
-  dataBlock.allocatedSize[2] = dataBlock.size[2];
-  dataBlock.allocatedSize[3] = dataBlock.size[3];
-  dataBlock.pitch[0] = 1;
-  for (int i = 1; i < DataStoreDimensionality_Max; i++)
-  {
-    dataBlock.pitch[i] = dataBlock.pitch[i - 1] * dataBlock.allocatedSize[i - 1];
-  }
-
-  uint64_t allocatedByteSize = dataBlock.allocatedSize[0];
-
-  for (int i = 1; i < DataStoreDimensionality_Max; i++)
-  {
-    allocatedByteSize *= dataBlock.allocatedSize[i];
-  }
-
-  if (allocatedByteSize * getElementSize(dataBlock.format, dataBlock.components) > 0x7FFFFFFF)
-  {
-    char buffer[4096];
-    snprintf(buffer, sizeof(buffer), "Datablock is too big (%d x %d x %d x %d x %d bytes)", dataBlock.allocatedSize[0], dataBlock.allocatedSize[1], dataBlock.allocatedSize[2], dataBlock.allocatedSize[3], getElementSize(dataBlock.format, dataBlock.components));
-    error.string = buffer;
-    error.code = -1;
-    return false;
-  }
-  return true;
-}
 
 bool VolumeDataStore::verify(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t> &serializedData, CompressionMethod compressionMethod, bool isFullyRead)
 {
@@ -283,7 +179,7 @@ static bool deserialize(const std::vector<uint8_t> &serializedData, VolumeDataCh
       return false;
     }
 
-    if (!createDataBlock(*dataBlockDescriptor, dataBlock, error))
+    if (!initializeDataBlock(*dataBlockDescriptor, dataBlock, error))
       return false;
 
     void * source = dataBlockDescriptor + 1;
@@ -305,7 +201,7 @@ static bool deserialize(const std::vector<uint8_t> &serializedData, VolumeDataCh
       error.string = "Failed to decode DataBlockDescriptor";
       return false;
     }
-    if (!createDataBlock(*dataBlockDescriptor, dataBlock, error))
+    if (!initializeDataBlock(*dataBlockDescriptor, dataBlock, error))
       return false;
 
     void * source = dataBlockDescriptor + 1;
@@ -338,7 +234,7 @@ static bool deserialize(const std::vector<uint8_t> &serializedData, VolumeDataCh
       error.string = "Failed to decode DataBlockDescriptor";
       return false;
     }
-    if (!createDataBlock(*dataBlockDescriptor, dataBlock, error))
+    if (!initializeDataBlock(*dataBlockDescriptor, dataBlock, error))
       return false;
 
     void * source = dataBlockDescriptor + 1;

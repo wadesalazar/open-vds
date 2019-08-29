@@ -23,20 +23,12 @@
 #include <OpenVDS/OpenVDS.h>
 
 #include "MetadataManager.h"
+#include "DataBlock.h"
 
 #include <vector>
 
 namespace OpenVDS
 {
-
-enum DataStoreDimensionality
-{
-  DataStoreDimensionality_1 = 1,
-  DataStoreDimensionality_2 = 2,
-  DataStoreDimensionality_3 = 3,
-  DataStoreDimensionality_4 = 4,
-  DataStoreDimensionality_Max = DataStoreDimensionality_4 
-};
 
 class WaveletAdaptiveLevelsMetadata
 {
@@ -49,52 +41,6 @@ public:
   //void          dropLosslessData();
   //void          shift(int32_t nLevels);
   //void          clear() { memset(m_levels, 0x00, sizeof(m_levels)); }
-};
-
-struct DataBlock
-{
-  VolumeDataChannelDescriptor::Format format;
-  VolumeDataChannelDescriptor::Components components;
-  Dimensionality dimensionality;
-  int32_t size[DataStoreDimensionality_Max];
-  int32_t allocatedSize[DataStoreDimensionality_Max];
-  int32_t pitch[DataStoreDimensionality_Max];
-};
-
-class DataBlockDescriptor
-{
-public:
-  //This layout is fixed
-  int32_t dimensionality;
-
-  int32_t sizeX;
-  int32_t sizeY;
-  int32_t sizeZ;
-
-  VolumeDataChannelDescriptor::Format format;
-  VolumeDataChannelDescriptor::Components components;
-
-
-  bool isValid(const int32_t (&voxelSize)[DataStoreDimensionality_Max]) const
-  {
-    return dimensionality >= 1 &&
-           dimensionality <= 3 &&
-           (sizeX == voxelSize[0]                        ) &&
-           (sizeY == voxelSize[1] || dimensionality < 2) &&
-           (sizeZ == voxelSize[2] || dimensionality < 3) &&
-           (format == VolumeDataChannelDescriptor::Format_1Bit ||
-            format == VolumeDataChannelDescriptor::Format_U8   ||
-            format == VolumeDataChannelDescriptor::Format_U16  ||
-            format == VolumeDataChannelDescriptor::Format_U32  ||
-            format == VolumeDataChannelDescriptor::Format_U64  ||
-            format == VolumeDataChannelDescriptor::Format_R32  ||
-            format == VolumeDataChannelDescriptor::Format_R64) &&
-           (components == VolumeDataChannelDescriptor::Components_1 ||
-            components == VolumeDataChannelDescriptor::Components_2 ||
-            components == VolumeDataChannelDescriptor::Components_4);
-  }
-
-  bool isValid() const { int32_t voxelSize[DataStoreDimensionality_Max] = {sizeX, sizeY, sizeZ}; return isValid(voxelSize); }
 };
 
 struct VolumeDataStore
