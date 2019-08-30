@@ -205,7 +205,7 @@ void* VolumeDataPageImpl::getBufferInternal(int(&anPitch)[Dimensionality_Max], b
   return m_buffer;
 }
 
-bool VolumeDataPageImpl::isCopyMarginNeeded(VolumeDataPage* targetPage)
+bool VolumeDataPageImpl::isCopyMarginNeeded(VolumeDataPageImpl* targetPage)
 {
   if(targetPage == this) return false;
 
@@ -233,7 +233,7 @@ bool VolumeDataPageImpl::isCopyMarginNeeded(VolumeDataPage* targetPage)
   // Check if the margins have already been copied
   for(int32_t copiedToChunk = 0; copiedToChunk < m_chunksCopiedTo; copiedToChunk++)
   {
-    if(static_cast<VolumeDataPageImpl *>(targetPage)->getChunkIndex() == m_copiedToChunkIndexes[copiedToChunk])
+    if(targetPage->getChunkIndex() == m_copiedToChunkIndexes[copiedToChunk])
     {
       return false;
     }
@@ -242,11 +242,11 @@ bool VolumeDataPageImpl::isCopyMarginNeeded(VolumeDataPage* targetPage)
   return true;
 }
 
-void VolumeDataPageImpl::copyMargin(VolumeDataPage* targetPage)
+void VolumeDataPageImpl::copyMargin(VolumeDataPageImpl* targetPage)
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
   assert(isDirty());
-  assert(!static_cast<VolumeDataPage *>(targetPage)->isEmpty() && "The caller have to ensure the target page is finished reading");
+  assert(!targetPage->isEmpty() && "The caller have to ensure the target page is finished reading");
 
   int32_t sourceMin[Dimensionality_Max];
   int32_t sourceMax[Dimensionality_Max];
@@ -343,10 +343,10 @@ void VolumeDataPageImpl::copyMargin(VolumeDataPage* targetPage)
     break;
   }
 
-  static_cast<VolumeDataPageImpl *>(targetPage)->makeDirty();
+  targetPage->makeDirty();
 
   assert(m_chunksCopiedTo < array_size(m_copiedToChunkIndexes));
-  m_copiedToChunkIndexes[m_chunksCopiedTo++] = static_cast<VolumeDataPageImpl *>(targetPage)->getChunkIndex();
+  m_copiedToChunkIndexes[m_chunksCopiedTo++] = targetPage->getChunkIndex();
 }
 
 // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)

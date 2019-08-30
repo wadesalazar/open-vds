@@ -72,8 +72,8 @@ public:
   void          setBufferData(std::vector<uint8_t> &&blob, const int (&pitch)[Dimensionality_Max]);
   void          writeBack(VolumeDataLayer *volumeDataLayer, std::unique_lock<std::mutex> &pageListMutexLock);
   void *        getBufferInternal(int (&anPitch)[Dimensionality_Max], bool isReadWrite);
-  bool          isCopyMarginNeeded(VolumeDataPage *targetPage);
-  void          copyMargin(VolumeDataPage *targetPage);
+  bool          isCopyMarginNeeded(VolumeDataPageImpl *targetPage);
+  void          copyMargin(VolumeDataPageImpl *targetPage);
 
   // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)
   void  getMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const override;

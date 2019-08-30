@@ -301,7 +301,7 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
       // Copy margins
       if((*page)->isWritten())
       {
-        for(VolumeDataPage *targetPage : m_pages)
+        for(VolumeDataPageImpl *targetPage : m_pages)
         {
           if((*page)->isCopyMarginNeeded(targetPage))
           {
