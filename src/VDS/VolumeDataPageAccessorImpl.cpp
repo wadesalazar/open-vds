@@ -45,9 +45,9 @@ VolumeDataLayout const* VolumeDataPageAccessorImpl::getLayout() const
   return m_layer->getLayout();
 }
 
-int VolumeDataPageAccessorImpl::getLod() const
+int VolumeDataPageAccessorImpl::getLOD() const
 {
-  return m_layer->getLod();
+  return m_layer->getLOD();
 }
 
 int VolumeDataPageAccessorImpl::getChannelIndex() const
@@ -112,7 +112,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPageAtPosition(const int(&positi
     return NULL;
   }
 
-  if (m_layer->getProduceStatus() == VolumeDataLayer::ProduceStatusUnavailable)
+  if (m_layer->getProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
   {
     fprintf(stderr, "The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)");
     return nullptr;

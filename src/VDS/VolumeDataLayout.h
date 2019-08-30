@@ -163,7 +163,7 @@ public:
 
   void createRenderLayers(DimensionGroup dimensions, int32_t brickSize, int32_t physicalLODLevels); //-> TODO: rename at some point
 
-  bool isDimensionLodDecimated(int32_t dimension) const { return dimension != m_fullResolutionDimension; }
+  bool isDimensionLODDecimated(int32_t dimension) const { return dimension != m_fullResolutionDimension; }
   int32_t getFullResolutionDimension() const { return m_fullResolutionDimension; }
 };
 }

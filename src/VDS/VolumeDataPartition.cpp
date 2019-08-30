@@ -409,7 +409,7 @@ void VolumeDataPartition::getChunkVoxelSize(int64_t chunk, ChunkVoxelSize &size)
     {
       size[iDataBlockDimension] = 1;
     }
-    else if (isDimensionLodDecimated(iDimension))
+    else if (isDimensionLODDecimated(iDimension))
     {
       size[iDataBlockDimension] = (anMax[iDimension] - anMin[iDimension] + (1 << m_lod) - 1) >> m_lod;
     }
@@ -440,7 +440,7 @@ int64_t VolumeDataPartition::getTotalVoxels(bool isIncludeMargins) const
 {
   int64_t nTotalLayerSize = 1;
 
-  int32_t lod = getLod();
+  int32_t lod = getLOD();
 
   for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
   {

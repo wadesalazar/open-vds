@@ -37,7 +37,7 @@ namespace OpenVDS
 #define WAVELET_MIN_COMPRESSION_TOLERANCE    0.01f
 #define WAVELET_ADAPTIVE_LEVELS 16
 
-VolumeDataLayer::VolumeDataLayer(VolumeDataPartition const &volumeDataPartition, VolumeDataLayout *volumeDataLayout, int32_t channel, VolumeDataLayer *primaryChannelLayer, VolumeDataLayer *lowerLod, VolumeDataLayer::LayerType layerType, const VolumeDataChannelMapping *volumeDataChannelMapping)
+VolumeDataLayer::VolumeDataLayer(VolumeDataPartition const &volumeDataPartition, VolumeDataLayout *volumeDataLayout, int32_t channel, VolumeDataLayer *primaryChannelLayer, VolumeDataLayer *lowerLOD, VolumeDataLayer::LayerType layerType, const VolumeDataChannelMapping *volumeDataChannelMapping)
   : VolumeDataPartition(volumeDataPartition)
   , m_volumeDataLayout(volumeDataLayout)
   , m_layerID(volumeDataLayout->addDataLayer(this))
@@ -46,25 +46,25 @@ VolumeDataLayer::VolumeDataLayer(VolumeDataPartition const &volumeDataPartition,
   , m_layerType(layerType)
   , m_primaryChannelLayer(primaryChannelLayer)
   , m_nextChannelLayer(NULL)
-  , m_lowerLod(lowerLod)
-  , m_higherLod(NULL)
+  , m_lowerLOD(lowerLOD)
+  , m_higherLOD(NULL)
   , m_remapFromLayer(this)
-  , m_produceStatus(ProduceStatusUnavailable)
+  , m_produceStatus(ProduceStatus_Unavailable)
 {
   assert(volumeDataLayout);
   assert((channel == 0 && primaryChannelLayer == NULL) || (channel > 0 && primaryChannelLayer != NULL));
 
 
-  if(lowerLod)
+  if(lowerLOD)
   {
-    assert(!lowerLod->m_higherLod);
-    assert(lowerLod->getLod() + 1 == getLod());
-    lowerLod->m_higherLod = this;
+    assert(!lowerLOD->m_higherLOD);
+    assert(lowerLOD->getLOD() + 1 == getLOD());
+    lowerLOD->m_higherLOD = this;
   }
 
   if(primaryChannelLayer)
   {
-    assert(primaryChannelLayer->getLod() == getLod());
+    assert(primaryChannelLayer->getLOD() == getLOD());
 
     VolumeDataLayer *link = primaryChannelLayer;
 
@@ -267,7 +267,7 @@ CompressionMethod VolumeDataLayer::getEffectiveCompressionMethod() const
   }
  
   auto overallCompressionMethod = m_volumeDataLayout->getCompressionMethod();
-  if(getLod() > 0)
+  if(getLOD() > 0)
   {
     if(overallCompressionMethod  == CompressionMethod::WaveletLossless)
     {
@@ -284,7 +284,7 @@ CompressionMethod VolumeDataLayer::getEffectiveCompressionMethod() const
 float VolumeDataLayer::getEffectiveCompressionTolerance() const
 { 
   auto &channelDescriptor = m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel);
-  //return m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel).getEffectiveCompressionTolerance(m_volumeDataLayout->m_compressionTolerance, getLod());
+  //return m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel).getEffectiveCompressionTolerance(m_volumeDataLayout->m_compressionTolerance, getLOD());
   if(!channelDescriptor.isAllowLossyCompression())
   {
     return 0.0f;
@@ -292,10 +292,10 @@ float VolumeDataLayer::getEffectiveCompressionTolerance() const
 
   float effectiveCompressionTolerance = m_volumeDataLayout->getCompressionTolerance();
 
-  if(getLod() > 0)
+  if(getLOD() > 0)
   {
     effectiveCompressionTolerance = std::max(effectiveCompressionTolerance, 2.0f);// This means that lod 1 is never smaller than tolerance 4.0 and lod 2 8.0 ...... 0.5f);
-    effectiveCompressionTolerance *= 1 << (std::min(getLod(), 2));
+    effectiveCompressionTolerance *= 1 << (std::min(getLOD(), 2));
   }
 
   return effectiveCompressionTolerance;
@@ -316,7 +316,7 @@ int32_t VolumeDataLayer::getEffectiveWaveletAdaptiveLoadLevel() const
   if(!CompressionMethod_IsWavelet(getEffectiveCompressionMethod())) return -1;
 
   // If we have lower lods, this layer is not the base layer
-  if(m_lowerLod)
+  if(m_lowerLOD)
   {
     assert(getBaseLayer().getEffectiveCompressionTolerance() == m_volumeDataLayout->getCompressionTolerance());
 

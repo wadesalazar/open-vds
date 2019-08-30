@@ -194,7 +194,7 @@ static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayout const *layout, Dimen
     return nullptr;
   }
 
-  while(layer && layer->getLod() < lod)
+  while(layer && layer->getLOD() < lod)
   {
     layer = layer->getParentLayer();
   }
@@ -452,7 +452,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
 
   int32_t channel = chunk.layer->getChannelIndex();
   const char *channelName = channel > 0 ? chunk.layer->getLayout()->getChannelName(chunk.layer->getChannelIndex()) : "";
-  int32_t lod = chunk.layer->getLod();
+  int32_t lod = chunk.layer->getLOD();
   const char *dimensions_string = DimensionGroupUtil::getDimensionsGroupString(DimensionGroupUtil::getDimensionsNDFromDimensionGroup(chunk.layer->getChunkDimensionGroup()));
   char layerURL[1000];
   snprintf(layerURL, sizeof(layerURL), "%sDimensions_%sLOD%d", channelName, dimensions_string, lod);

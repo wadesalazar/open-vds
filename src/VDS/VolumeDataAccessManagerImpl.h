@@ -100,7 +100,7 @@ static bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
 {
   if (a.layer->getChunkDimensionGroup() == b.layer->getChunkDimensionGroup())
   {
-    if (a.layer->getLod() == b.layer->getLod())
+    if (a.layer->getLOD() == b.layer->getLOD())
     {
       if (a.layer->getChannelIndex() == b.layer->getChannelIndex())
       {
@@ -113,7 +113,7 @@ static bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
     }
     else
     {
-      return a.layer->getLod() < b.layer->getLod();
+      return a.layer->getLOD() < b.layer->getLOD();
     }
   }
   return DimensionGroupUtil::getDimensionsNDFromDimensionGroup(a.layer->getChunkDimensionGroup()) < DimensionGroupUtil::getDimensionsNDFromDimensionGroup(b.layer->getChunkDimensionGroup());

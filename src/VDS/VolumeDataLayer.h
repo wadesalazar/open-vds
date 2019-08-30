@@ -46,7 +46,6 @@ public:
   {
     Renderable,
     Auxiliary,
-    AuxiliaryNoRenderMargin, // This layer type is only used by the VirtualTextureViewContext! It doesn't have larger bricks at the start and end of the volume.
     Virtual
   };
 
@@ -61,9 +60,9 @@ public:
   enum ProduceStatus
   {
     // These are ordered, so greater values mean easier to produce
-    ProduceStatusUnavailable,
-    ProduceStatusRemapped,
-    ProduceStatusNormal
+    ProduceStatus_Unavailable,
+    ProduceStatus_Remapped,
+    ProduceStatus_Normal
   };
 
 private:
@@ -78,8 +77,8 @@ private:
 
   VolumeDataLayer * m_primaryChannelLayer;
   VolumeDataLayer * m_nextChannelLayer;
-  VolumeDataLayer * m_lowerLod;
-  VolumeDataLayer * m_higherLod;
+  VolumeDataLayer * m_lowerLOD;
+  VolumeDataLayer * m_higherLOD;
 
  mutable const VolumeDataLayer * m_remapFromLayer;
  //bool m_isAllowRemapFromRemap;
@@ -93,7 +92,7 @@ private:
   uint64_t getFormatHash(VolumeDataChannelDescriptor::Format actualFormat, bool isReplaceNoValue, float replacementNoValue) const;
 
 public:
-  VolumeDataLayer(VolumeDataPartition const& volumeDataPartition, VolumeDataLayout* volumeDataLayout, int32_t channel, VolumeDataLayer* primaryChannelLayer, VolumeDataLayer* lowerLod, LayerType layerType, const VolumeDataChannelMapping* volumeDataChannelMapping);
+  VolumeDataLayer(VolumeDataPartition const& volumeDataPartition, VolumeDataLayout* volumeDataLayout, int32_t channel, VolumeDataLayer* primaryChannelLayer, VolumeDataLayer* lowerLOD, LayerType layerType, const VolumeDataChannelMapping* volumeDataChannelMapping);
 
   VolumeDataLayout *getLayout() const
   {
@@ -126,12 +125,12 @@ public:
 
   VolumeDataLayer& getBaseLayer()
   {
-    VolumeDataLayer* baseLayer = this; while (baseLayer->m_lowerLod) baseLayer = baseLayer->m_lowerLod; return *baseLayer;
+    VolumeDataLayer* baseLayer = this; while (baseLayer->m_lowerLOD) baseLayer = baseLayer->m_lowerLOD; return *baseLayer;
   }
 
   const VolumeDataLayer& getBaseLayer() const
   {
-    VolumeDataLayer const* baseLayer = this; while (baseLayer->m_lowerLod) baseLayer = baseLayer->m_lowerLod; return *baseLayer;
+    VolumeDataLayer const* baseLayer = this; while (baseLayer->m_lowerLOD) baseLayer = baseLayer->m_lowerLOD; return *baseLayer;
   }
 
   VolumeDataLayer* getNextChannelLayer()
@@ -146,22 +145,22 @@ public:
 
   VolumeDataLayer* getParentLayer()
   {
-    return m_higherLod;
+    return m_higherLOD;
   }
 
   const VolumeDataLayer* getParentLayer() const
   {
-    return m_higherLod;
+    return m_higherLOD;
   }
 
   VolumeDataLayer* getChildLayer()
   {
-    return m_lowerLod;
+    return m_lowerLOD;
   }
 
   const VolumeDataLayer* getChildLayer() const
   {
-    return m_lowerLod;
+    return m_lowerLOD;
   }
 
   const VolumeDataLayer* getLayerToRemapFrom() const;

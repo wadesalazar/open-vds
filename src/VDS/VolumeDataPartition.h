@@ -97,12 +97,12 @@ public:
   void chunkIndexToIndexArray(int64_t chunkIndex, IndexArray &indexArray) const;
   int64_t indexArrayToChunkIndex(const IndexArray &indexArray) const;
 
-  int32_t getLod() const { return m_lod; }
+  int32_t getLOD() const { return m_lod; }
 
   BorderMode getBorderMode() const { return m_borderMode; }
 
   bool isDimensionChunked(int32_t dimension) const { return DimensionGroupUtil::isDimensionInGroup(m_chunkDimensionGroup, dimension); }
-  bool isDimensionLodDecimated(int32_t dimension) const { return DimensionGroupUtil::isDimensionInGroup(m_originalDimensionGroup, dimension) && dimension != m_fullResolutionDimension; }
+  bool isDimensionLODDecimated(int32_t dimension) const { return DimensionGroupUtil::isDimensionInGroup(m_originalDimensionGroup, dimension) && dimension != m_fullResolutionDimension; }
   int32_t getNumChunksInDimension(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_chunksInDimension[dimension]; }
   int64_t getTotalChunkCount() const { return m_totalChunks; }
 

@@ -334,15 +334,15 @@ void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t
 
   static IndexArray null;
 
-  VolumeDataLayer **lowerLod = (VolumeDataLayer **)alloca(channels * sizeof(VolumeDataLayer*));
+  VolumeDataLayer **lowerLOD = (VolumeDataLayer **)alloca(channels * sizeof(VolumeDataLayer*));
 
-  memset(lowerLod, 0, channels * sizeof(VolumeDataLayer*));
+  memset(lowerLOD, 0, channels * sizeof(VolumeDataLayer*));
 
-  bool isCreateMoreLods = true;
+  bool isCreateMoreLODs = true;
 
-  for(int32_t lod = 0; isCreateMoreLods; lod++)
+  for(int32_t lod = 0; isCreateMoreLODs; lod++)
   {
-    isCreateMoreLods = (lod < physicalLODLevels - 1); // Always create all physical lods even if we get only one cube before the top level;
+    isCreateMoreLODs = (lod < physicalLODLevels - 1); // Always create all physical lods even if we get only one cube before the top level;
 
     for(int32_t dimension = 0; dimension < array_size(brickSizeArray); dimension++)
     {
@@ -371,22 +371,22 @@ void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t
       VolumeDataChannelMapping const *volumeDataChannelMapping = nullptr;// = GetVolumeDataChannelMapping(channel);
 
       VolumeDataLayer *volumeDataLayer = new VolumeDataLayer(VolumeDataPartition::staticMapPartition(primaryPartition, volumeDataChannelMapping, getMappedValueCount(channel)),
-                                                            this, channel,primaryChannelLayer, lowerLod[channel], layerType, volumeDataChannelMapping);
+                                                            this, channel,primaryChannelLayer, lowerLOD[channel], layerType, volumeDataChannelMapping);
 
       if(channel == 0)
       {
         primaryChannelLayer = volumeDataLayer;
       }
 
-      assert(volumeDataLayer->getLod() == lod);
+      assert(volumeDataLayer->getLOD() == lod);
 
-      lowerLod[channel] = volumeDataLayer;
+      lowerLOD[channel] = volumeDataLayer;
 
       for(int32_t dimension = 0; dimension < Dimensionality_Max; dimension++)
       {
         if(volumeDataLayer->isDimensionChunked(dimension) && volumeDataLayer->getNumChunksInDimension(dimension) > 1 && dimension != m_fullResolutionDimension)
         {
-          isCreateMoreLods = true;
+          isCreateMoreLODs = true;
           break;
         }
       }
@@ -400,7 +400,7 @@ void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t
 
     //// Default physical layers to NEVER_REMAP
     //if(lod < physicalLODLevels) _apcPrimaryTopLayers[eDimensionGroup]->SetProduceMethod(VolumeDataLayer_c::NEVER_REMAP, 0);
-    if(lod < physicalLODLevels) m_primaryTopLayers[dimensionGroup]->setProduceStatus(VolumeDataLayer::ProduceStatusNormal);
+    if(lod < physicalLODLevels) m_primaryTopLayers[dimensionGroup]->setProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
   }
 }
 

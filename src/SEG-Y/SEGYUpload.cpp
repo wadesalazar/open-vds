@@ -469,9 +469,9 @@ main(int argc, char *argv[])
 
   int negativeMargin = 0;
   int positiveMargin = 0;
-  int brickSizeMultiplier2D = 4;
+  int brickSize2DMultiplier = 4;
 
-  OpenVDS::VolumeDataLayoutDescriptor layoutDescriptor(brickSizeEnum, negativeMargin, positiveMargin, brickSizeMultiplier2D, lodLevels, layoutOptions);
+  OpenVDS::VolumeDataLayoutDescriptor layoutDescriptor(brickSizeEnum, negativeMargin, positiveMargin, brickSize2DMultiplier, lodLevels, layoutOptions);
 
   // Create axis descriptors
 

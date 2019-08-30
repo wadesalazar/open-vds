@@ -624,7 +624,7 @@ protected:
 public:
   virtual VolumeDataLayout const *getLayout() const = 0;
 
-  virtual int   getLod() const = 0;
+  virtual int   getLOD() const = 0;
   virtual int   getChannelIndex() const = 0;
   virtual VolumeDataChannelDescriptor const &getChannelDescriptor() const = 0;
   virtual void  getNumSamples(int (&numSamples)[Dimensionality_Max]) const = 0;

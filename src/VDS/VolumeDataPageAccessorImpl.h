@@ -63,7 +63,7 @@ public:
   VolumeDataLayout const* getLayout() const override;
   VolumeDataLayer const * getLayer() const { return m_layer; }
 
-  int   getLod() const override;
+  int   getLOD() const override;
   int   getChannelIndex() const override;
   VolumeDataChannelDescriptor const& getChannelDescriptor() const override;
   void  getNumSamples(int(&numSamples)[Dimensionality_Max]) const override;

@@ -227,5 +227,8 @@ public:
     return VolumeDataChannelDescriptor(format, components, pName, pUnit, valueRangeMin, valueRangeMax, VolumeDataMapping::PerTrace, mappedValueCount, flags, noValue, 1.0f, 0.0f);
   }
 };
+
+inline VolumeDataChannelDescriptor::Flags operator|(VolumeDataChannelDescriptor::Flags lhs, VolumeDataChannelDescriptor::Flags rhs) { return (VolumeDataChannelDescriptor::Flags)((int)lhs | (int)rhs); }
+
 }
 #endif //VOLUMEDATACHANNELDESCRIPTOR_H
