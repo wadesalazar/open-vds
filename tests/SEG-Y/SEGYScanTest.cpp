@@ -31,7 +31,7 @@ TEST(SEGYScanTest, scan)
     error;
 
   std::string
-    fileName = TEST_DATA_PATH R"(\SEGY\TeapotDome\filt_mig.sgy)";
+    fileName = TEST_DATA_PATH R"(/SEGY/TeapotDome/filt_mig.sgy)";
 
   if(!OpenVDS::File::exists(fileName))
   {
