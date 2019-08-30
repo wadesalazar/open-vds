@@ -188,7 +188,7 @@ static bool deserialize(const std::vector<uint8_t> &serializedData, VolumeDataCh
     std::unique_ptr<uint8_t[]>buffer(new uint8_t[byteSize]);
 
     //int32_t decompressedSize = RleDecompress((uint8_t *)buffer, byteSize, (uint8_t *)source);
-    assert(decompressedSize == byteSize);
+    //assert(decompressedSize == byteSize);
     copyLinearBufferIntoDataBlock(buffer.get(), dataBlock, destination);
   }
   else if(compressionMethod == CompressionMethod::Zip)

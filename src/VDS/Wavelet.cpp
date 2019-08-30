@@ -527,7 +527,7 @@ void Wavelet::initCoder()
 
 bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompressSlice, int32_t decompressFlip, float* startThreshold, float* threshold, VolumeDataChannelDescriptor::Format dataBlockFormat, const FloatRange& valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, bool* isAnyNoValue, float* waveletNoValue, bool isNormalize, int decompressLevel, bool isLossless, int compressedAdaptiveDataSize, DataBlock& dataBlock, std::vector<uint8_t>& target, Error& error)
 {
-  assert(dataVersion == WAVELET_DATA_VERSION_1_4);
+  assert(m_dataVersion == WAVELET_DATA_VERSION_1_4);
   initCoder();
 
   int *startOfCompressedData = (int *)m_compressedData;
