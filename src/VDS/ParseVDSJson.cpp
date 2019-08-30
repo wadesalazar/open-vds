@@ -285,7 +285,7 @@ const char *addDescriptorString(std::string const &descriptorString, VDSHandle &
   memcpy(data, descriptorString.data(), descriptorString.size());
   data[descriptorString.size()] = 0;
   handle.descriptorStrings.emplace_back(data);
-  return nullptr;
+  return data;
 }
 
 static VolumeDataChannelDescriptor::Format voxelFormatFromJson(Json::Value const &jsonVoxelFormat)
@@ -381,7 +381,7 @@ static bool parseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &r
   return false;
 }
 
-static bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
+bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
 {
   Json::Value root;
 
@@ -408,7 +408,7 @@ static bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &h
   for (const Json::Value &axisDescriptor : root["axisDescriptors"])
   {
     VolumeDataAxisDescriptor
-      volumeDataAxisDescriptor(axisDescriptor["size"].asInt(),
+      volumeDataAxisDescriptor(axisDescriptor["numSamples"].asInt(),
                                addDescriptorString(axisDescriptor["name"].asString(), handle),
                                addDescriptorString(axisDescriptor["unit"].asString(), handle),
                                axisDescriptor["coordinateMin"].asFloat(),
@@ -623,7 +623,7 @@ static MetadataStatus MetadataStatusFromJSON(Json::Value const &jsonMetadataStat
   return metadataStatus;
 }
 
-static bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
+bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
 {
   handle.produceStatuses.clear();
   handle.produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
