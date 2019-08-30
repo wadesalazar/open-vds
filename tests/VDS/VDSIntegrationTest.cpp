@@ -21,7 +21,7 @@
 
 #include <gtest/gtest.h>
 
-GTEST_TEST(DownloadJson, OpenVDS_integration)
+GTEST_TEST(OpenVDS_integration, DownloadJson)
 {
   OpenVDS::Error error;
   OpenVDS::AWSOpenOptions options;

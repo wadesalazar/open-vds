@@ -1,0 +1,168 @@
+{
+    "axisDescriptors": [
+        {
+            "coordinateMax": 4500.0,
+            "coordinateMin": 0.0,
+            "name": "Sample",
+            "numSamples": 1126,
+            "unit": "ms"
+        },
+        {
+            "coordinateMax": 2536.0,
+            "coordinateMin": 1932.0,
+            "name": "Crossline",
+            "numSamples": 605,
+            "unit": "unitless"
+        },
+        {
+            "coordinateMax": 10369.0,
+            "coordinateMin": 9985.0,
+            "name": "Inline",
+            "numSamples": 385,
+            "unit": "unitless"
+        }
+    ],
+    "channelDescriptors": [
+        {
+            "allowLossyCompression": true,
+            "channelMapping": "Direct",
+            "components": "Components_1",
+            "discrete": false,
+            "format": "Format_R32",
+            "integerOffset": 0.0,
+            "integerScale": 1.0,
+            "mappedValues": 0,
+            "name": "Amplitude",
+            "noValue": 0.0,
+            "renderable": true,
+            "unit": "unitless",
+            "useNoValue": false,
+            "valueRange": [
+                -0.07938297837972641,
+                0.07938297837972641
+            ]
+        },
+        {
+            "allowLossyCompression": false,
+            "channelMapping": "PerTrace",
+            "components": "Components_1",
+            "discrete": false,
+            "format": "Format_U8",
+            "integerOffset": 0.0,
+            "integerScale": 1.0,
+            "mappedValues": 1,
+            "name": "Trace",
+            "noValue": 0.0,
+            "renderable": true,
+            "unit": "",
+            "useNoValue": false,
+            "valueRange": [
+                0.0,
+                256.0
+            ]
+        },
+        {
+            "allowLossyCompression": false,
+            "channelMapping": "PerTrace",
+            "components": "Components_1",
+            "discrete": false,
+            "format": "Format_U8",
+            "integerOffset": 0.0,
+            "integerScale": 1.0,
+            "mappedValues": 240,
+            "name": "SEGYTraceHeader",
+            "noValue": 0.0,
+            "renderable": true,
+            "unit": "",
+            "useNoValue": false,
+            "valueRange": [
+                0.0,
+                256.0
+            ]
+        }
+    ],
+    "layoutDescriptor": {
+        "brickSize": "BrickSize_128",
+        "brickSize2DMultiplier": 4,
+        "create2DLODs": true,
+        "forceFullResolutionDimension": false,
+        "fullResolutionDimension": -1,
+        "lodLevels": "LODLevels_2",
+        "negativeMargin": 4,
+        "positiveMargin": 4
+    },
+    "metadata": [
+        {
+            "category": "SurveyCoordinateSystem",
+            "name": "CRSWkt",
+            "type": "String",
+            "value": "PROJCS[\"ED50 / UTM zone 31N\",GEOGCS[\"ED50\",DATUM[\"European_Datum_1950\",SPHEROID[\"International 1924\",6378388,297,AUTHORITY[\"EPSG\",\"7022\"]],TOWGS84[-87,-98,-121,0,0,0,0],AUTHORITY[\"EPSG\",\"6230\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4230\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",3],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"23031\"]]"
+        },
+        {
+            "category": "SurveyCoordinateSystem",
+            "name": "Origin",
+            "type": "DoubleVector2",
+            "value": [
+                431953.90416783805,
+                6348552.886477016
+            ]
+        },
+        {
+            "category": "SurveyCoordinateSystem",
+            "name": "InlineSpacing",
+            "type": "DoubleVector2",
+            "value": [
+                3.0251294794220853,
+                12.129908201355414
+            ]
+        },
+        {
+            "category": "SurveyCoordinateSystem",
+            "name": "CrosslineSpacing",
+            "type": "DoubleVector2",
+            "value": [
+                -12.128725165562914,
+                3.024834437086093
+            ]
+        },
+        {
+            "category": "",
+            "name": "SEGYTextHeader",
+            "type": "BLOB",
+            "value": "QyAxIENMSUVOVD1TVEFUT0lMLCAgICAgIFBST0NFU1NFRCBCWT1XRVNURVJOR0VDTyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBDIDIgTElORSBTVDAyMDJEMDQtOTk4NSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEMgMyBTVVJWRVk6U1QwMjAyICwgICBBUkVBOiBWT0xWRSAxNS85ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgQyA0IERBVEFGT1JNQVQ6IFNFRy1ZLCAgICAgREFURTowMjAxMjAwOCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBDIDUgREFUQVRZUEU6IEZJTkFMIFBTIFBTRE0gU1RBQ0sgRlVMTCBPRkZTRVQgSU4gUFAgVElNRSAgICAgICAgICAgICAgICAgICAgICAgIEMgNiBEQVRBIFNIT1QgQlkvVkVTU0VMOkdFQ08gQU5HTEVSLCAgQ0FCTEUgTEVOR1RIOjYwMDAgTSAgTk8gT0YgR1JPVVBTOiAyNDB4NCAgQyA3IE5PIE9GIENBQkxFUyAyLCAgICAgIFNPVVJDRToyLCAgUE9QIElOVEVSVkFMIDI1LjAgTSAoRkxJUC1GTE9QKSAgICAgICAgICAgICBDIDggUkNWIExJTkUgU1BBQ0lORzogNDAwIE0sICAgIFNSQyBMSU5FIFNQQUNJTkc6IDEwMCBNLCBSRUNPUkQgTEVOR1RIOiAxMC4yIFMgIEMgOSBHRU9ERVRJQyBEQVRVTTogRUQtNTAsICAgICAgU1BIRVJPSUQ6IElOVEVSTkFULiwgUFJPSkVDVElPTjogVVRNICAgICAgICAgICAgQzEwIENFTlRSLiBNRVJJRC46IDAzLCAgICAgICAgICBVVE0gWk9ORTogMzEgTiwgRkFMU0UgRUFTVElORzogNTAwMDAwICAgICAgICAgICBDMTEgRklSU1QgU0FNUExFPSAwLCAgICAgICAgICAgIExBU1QgU0FNUExFPSA0NTAwLCBTQU1QTEUgSU5URVJWQUw9IDQgTVMgICAgICAgIEMxMiBESVNULiBCRVRXRUVOIElOTElORVM9MTIuNU0sIFhMSU5FUz0xMi41TSBCSU4gU0laRSAoSSB4IFgpOjEyLjVNIHggMTIuNU0gICAgQzEzIElOTElORSBESVJFQ1RJT04gKEdSSUQpOiAyODQuMDAwMDAwMCBERUdSRUVTIChDTE9DS1dJU0UgRlJPTSBOT1JUSCk7ICAgICAgICBDMTQgWC1MSU5FIERJUkVDVElPTiAoR1JJRCk6IDAxNC4wMDAwMDAwIERFR1JFRVMgKENMT0NLV0lTRSBGUk9NIE5PUlRIKTsgICAgICAgIEMxNSBPUklHTygxLjEpIFVUTVg6NDMxOTU1LjcwRTsgICAgVVRNWTo2MzQ4NTgyLjE1TiAgOyAgICAgICAgICAgICAgICAgICAgICAgICAgQzE2IERBVEEgUkFOR0UgSU5MSU5FUz05OTg1LTEwMzY5LCBYLUxJTkVTPTE5MzItMjUzNiAgICAgICAgICAgICAgICAgICAgICAgICAgICBDMTcgQ09STkVSMTozRCBJTkxJTkUgIDk5ODUsIDNEIFhMSU5FIDE5MzIsIFVUTS1YIDQzODcyNy4wLCBVVE0tWSA2NDc1NTE0LjQgICAgIEMxOCBDT1JORVIyOjNEIElOTElORSAgOTk4NSwgM0QgWExJTkUgMjUzNiwgVVRNLVggNDMxNDAxLjMsIFVUTS1ZIDY0NzczNDEuMCAgICAgQzE5IENPUk5FUjM6M0QgSU5MSU5FIDEwMzY5LCAzRCBYTElORSAyNTM2LCBVVE0tWCA0MzI1NjIuNSwgVVRNLVkgNjQ4MTk5OC40ICAgICBDMjAgQ09STkVSNDozRCBJTkxJTkUgMTAzNjksIDNEIFhMSU5FIDE5MzIsIFVUTS1YIDQzOTg4OC4zLCBVVE0tWSA2NDgwMTcxLjkgICAgIEMyMSBMSVZFIERBVEEgUE9MWUdPTjogKDk5ODUsMTkzMik7KDk5ODUsMjUzNik7KDEwMzY5LDI1MzYpOygxMDM2OSwxOTMyKTsgICAgICAgQzIyIE5BVklHQVRJT04gU09VUkNFOiBQMS85MCBVS09PQSBCSU4gQ0VOVEVSIENFTEwgR1JJRCwgICAgICAgICAgICAgICAgICAgICAgICBDMjMgUFJPQ0VTU0lORyBTRVFVRU5DRTogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEMyNCAxKSBSRUZPUk1BVCAyKSBOQVZJR0FUSU9OIE1FUkdFIDMpIFRSQUNFIEVESVRJTkcgNCkgREVTSUdOQVRVUkUvWkVST1BIQVNFICAgQzI1IDUpIFRJREFMIFNUQVRJQ1MgNikgUkVTQU1QTEUgNE1TIDcpIEdFT1BIT05FIE1BVENISU5HIENPUlJFQ1RJT04gICAgICAgICAgICBDMjYgOCkgR0VPUEhPTkUgT1JJRU5UQVRJT04gQ09SUkVDVElPTiA5KSBST1RBVElPTiBUTyBSQURJQUwgICAgICAgICAgICAgICAgICAgIEMyNyAxMCkgTk9JU0UgQkFORCBFRElUSU5HIDExKSBSRUNFSVZFUiBTSEVBUiBTVEFUSUMgQ09SUkVDVElPTiAgICAgICAgICAgICAgICAgQzI4IDEyKSBUQVVQIERFQ09OVk9MVVRJT04gMTMpIDNEIEtJUkNISE9GRiBERVBUSCBNSUdSQVRJT04gICAgICAgICAgICAgICAgICAgICBDMjkgMTQpIFZFTCBBTkFMWVNJUyBBTkQgUk1PIENPUlJFQ1RJT04gMjAwTSBYIDIwME0gMTUpIENPTlZFUlNJT04gVE8gUFAgVFdUICAgIEMzMCAxNikgUFJFLVJBRE9OIE1JTEQgRElQIEZJTFRFUiAxNykgUEFSQUJPTElDIFJBRE9OIFRSQU5TRk9STSBERU1VTFRJUExFICAgICAgQzMxIDE4KSAzLTM3IERFR1JFRSBBTkdMRSBNVVRFIDE5KSBTVEFDSyAyMCkgQ09OVkVSU0lPTiBUTyBQUyBUV1QgICAgICAgICAgICAgICBDMzIgMjEpIERFQ09OVk9MVVRJT04gQUZURVIgU1RBQ0sgMjIpIElOVEVSUE9MQVRJT04gVE8gMTIuNU0gWCAxMi41TSAgICAgICAgICAgIEMzMyAyMykgSC1NVUxUIERFTVVMVElQTEUgMjQpIElOVkVSU0UgUS1DT01QRU5TQVRJT04gMjUpIFRBVVAgRklMVEVSICAgICAgICAgICAgQzM0IDI2KSBDT05WRVJUIFRPIERFUFRIIDI3KSAyREIvUyBHQUlOIDI4KSBDT05WRVJUIFRPIFBQIFRJTUUgMjkpIE9VVFBVVCBTRUdZICBDMzUgSEVBREVSIFdPUkQgUE9TSVRJT05TOiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEMzNiBJTkxJTkU6IDE4OS0xOTIgICAgICAgICAgICAgOyAgWC1MSU5FOiAxOTMtMTk2OyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgQzM3IEJJTlggKENEUFgpOiAxODEtMTg0LCAgICAgICAgICBCSU5ZIChDRFBZKTogMTg1LTE4OCwgICAgICAgICAgICAgICAgICAgICAgICBDMzggTUVSSUQuOiAzLjBFLCBTUEhFUk9JRDogSU5ULjsgIFJPVEFUSU9OIChBTVMpOiAxMjQ1NjAwMDAwLCAgICAgICAgICAgICAgICAgIEMzOSBBIFBPU0lUSVZFIFNBTVBMRSBDT1JSRVNQT05EUyBUTyBBIElOQ1JFQVNFIElOIEFDT1VTVElDIElNUEVEQU5DRS4gICAgICAgICAgQzQwIEVORCBFQkNESUMuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA="
+        },
+        {
+            "category": "SurveyCoordinateSystem",
+            "name": "OriginalOrigin",
+            "type": "DoubleVector2",
+            "value": [
+                431953.90416783805,
+                6348552.886477016
+            ]
+        },
+        {
+            "category": "SurveyCoordinateSystem",
+            "name": "OriginalInlineSpacing",
+            "type": "DoubleVector2",
+            "value": [
+                3.0251294794220853,
+                12.129908201355414
+            ]
+        },
+        {
+            "category": "SurveyCoordinateSystem",
+            "name": "OriginalCrosslineSpacing",
+            "type": "DoubleVector2",
+            "value": [
+                -12.128725165562914,
+                3.024834437086093
+            ]
+        },
+        {
+            "category": "SurveyCoordinateSystem",
+            "name": "Unit",
+            "type": "String",
+            "value": "m"
+        }
+    ]
+}
