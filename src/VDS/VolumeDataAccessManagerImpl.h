@@ -51,7 +51,7 @@ public:
   {
     if (key == "vds-chunk-metadata")
     {
-      if (!Base64Decode(header.data(), header.size(), m_metadata))
+      if (!Base64Decode(header.data(), (int)header.size(), m_metadata))
       {
         m_error.code = -1;
         m_error.string = "Failed to decode chunk metadata";

@@ -39,8 +39,9 @@
 namespace OpenVDS
 {
 
-struct LayerMetadataContainer
+class LayerMetadataContainer
 {
+public:
   std::mutex mutex;
   std::map<std::string, std::unique_ptr<MetadataManager>> managers;
 };
