@@ -19,9 +19,11 @@
 #define BASE64_H
 
 #include <vector>
+#include <stdint.h>
 
 namespace OpenVDS
 {
-bool Base64Decode(const char* data, int len, std::vector<unsigned char>& result);
+bool Base64Decode(const char* data, int64_t len, std::vector<unsigned char> &result);
+void Base64Encode(const unsigned char *data, int64_t len, std::vector<char> &result);
 }
 #endif
