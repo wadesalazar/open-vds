@@ -262,7 +262,7 @@ CompressionMethod VolumeDataLayer::getEffectiveCompressionMethod() const
     }
     else
     {
-      return CompressionMethod::Rle;
+      return CompressionMethod::RLE;
     }
   }
  

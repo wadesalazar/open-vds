@@ -84,7 +84,7 @@ enum class CompressionMethod
 {
   None,
   Wavelet,
-  Rle,
+  RLE,
   Zip,
   WaveletNormalizeBlock,
   WaveletLossless,

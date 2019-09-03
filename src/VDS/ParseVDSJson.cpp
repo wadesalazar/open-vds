@@ -568,7 +568,7 @@ static CompressionMethod compressionMethodFromJson(Json::Value const &jsonCompre
   }
   else if(compressionMethodString == "RLE")
   {
-    return CompressionMethod::Rle;
+    return CompressionMethod::RLE;
   }
   else if(compressionMethodString == "Zip")
   {
