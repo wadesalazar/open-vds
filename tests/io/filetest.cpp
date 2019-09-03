@@ -122,7 +122,6 @@ TEST(FileTest, io_file)
   std::string filename("test.txt");
   {
     OpenVDS::File file;
-    OpenVDS::File::CloseGuard closer(file);
     if (!file.open(filename, true, true, true, error))
     {
       fprintf(stderr, "Could not open file for write %s\n", error.string.c_str());
@@ -136,7 +135,6 @@ TEST(FileTest, io_file)
   }
   {
     OpenVDS::File file;
-    OpenVDS::File::CloseGuard closer(file);
     if (!file.open(filename, false, false, false, error))
     {
       fprintf(stderr, "Could not open file read %s\n", error.string.c_str());

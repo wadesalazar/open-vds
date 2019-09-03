@@ -237,6 +237,7 @@ bool File::exists(const std::string& filename)
 
 bool File::open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError& error)
 {
+  assert(!isOpen());
   assert(!isDestroyExisting || isCreate);
   assert(!isCreate || isWriteAccess || !"it is meaningless to demand creation with RO access");
   assert(!_pxPlatformHandle || ("RawFileAccess_c::Open: file already open"));

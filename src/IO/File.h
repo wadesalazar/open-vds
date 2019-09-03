@@ -94,22 +94,6 @@ public:
 class File
 {
 public:
-  class CloseGuard
-  {
-  public:
-    CloseGuard(File& file) : _file(file)
-    {
-    }
-
-    ~CloseGuard()
-    {
-      if (_file.isOpen())
-        _file.close();
-    }
-  private:
-    File& _file;
-  };
-
   OPENVDS_EXPORT File();
   OPENVDS_EXPORT ~File();
 

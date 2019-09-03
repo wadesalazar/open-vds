@@ -55,6 +55,10 @@ File::File()
 
 File::~File()
 {
+  if (isOpen())
+  {
+    close();
+  }
 }
 
 bool File::isWriteable() const
