@@ -239,6 +239,8 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
 
     void * source = dataBlockDescriptor + 1;
 
+    int32_t byteSize = getByteSize(*dataBlockDescriptor);
+    destination.resize(byteSize);
     copyLinearBufferIntoDataBlock(source, dataBlock, destination);
   }
 

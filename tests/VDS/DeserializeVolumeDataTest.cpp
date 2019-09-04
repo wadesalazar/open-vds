@@ -28,7 +28,7 @@ namespace OpenVDS
   bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, bool isRenderable, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, std::vector<uint8_t> &destination, Error &error);
 }
 
-GTEST_TEST(OpenVDS_integration, DISABLED_DeSerializeVolumeData)
+GTEST_TEST(OpenVDS_integration, DeSerializeVolumeData)
 {
   std::vector<uint8_t> serializedData;
 
