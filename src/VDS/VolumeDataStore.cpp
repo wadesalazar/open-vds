@@ -70,9 +70,8 @@ bool VolumeDataStore::verify(const VolumeDataChunk &volumeDataChunk, const std::
       int32_t createSizeZ    = waveletHeader[4];
       int32_t dimensions     = waveletHeader[5];
 
-      isValid = dataVersion >= WAVELET_OLD_DATA_VERSION &&
-                dataVersion <= WAVELET_DATA_VERSION_1_4 &&
-                (compressedSize <= serializedData.size() || (dataVersion >= WAVELET_DATA_VERSION_1_4 && !isFullyRead)) &&
+      isValid = dataVersion == WAVELET_DATA_VERSION_1_4 &&
+                (compressedSize <= serializedData.size() || !isFullyRead) &&
                 (createSizeX == voxelSize[0]                  ) &&
                 (createSizeY == voxelSize[1] || dimensions < 2) &&
                 (createSizeZ == voxelSize[2] || dimensions < 3) &&
@@ -124,9 +123,8 @@ static void copyLinearBufferIntoDataBlock(const void *sourceBuffer, const DataBl
   }
 }
 
-bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, bool isRenderable, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, std::vector<uint8_t> &destination, Error &error)
+bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, bool isRenderable, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, DataBlock &dataBlock, std::vector<uint8_t> &destination, Error &error)
 {
-  DataBlock dataBlock;
   if(compressionMethodIsWavelet(compressionMethod))
   {
     assert(isRenderable);
@@ -136,8 +134,7 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
     int32_t dataVersion = ((int32_t *)data)[0];
     int32_t compressedSize = ((int32_t *)data)[1];
 
-    assert(dataVersion >= WAVELET_OLD_DATA_VERSION && dataVersion <= WAVELET_DATA_VERSION_1_4);
-    assert(compressedSize <= serializedData.size() || dataVersion >= WAVELET_DATA_VERSION_1_4);
+    assert(dataVersion == WAVELET_DATA_VERSION_1_4);
 
     bool isNormalize = false;
     bool isLossless = false;
@@ -166,7 +163,8 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
       adaptiveLevel = 0;
     }
 
-    //pcDataBlock = Wavelet_Decompress(const_cast<void_px>(pxData), (int)cBLOB.GetSize(), eFormat, cValueRange, rIntegerScale, rIntegerOffset, isUseNoValue, rNoValue, isNormalize, ConfigMemoryManagement_Get()->_cCurrent._eBypassCompressionMode, iAdaptiveLevel, isLossless);
+    if (!Wavelet_Decompress(data, serializedData.size(), format, valueRange, integerScale, integerOffset, isUseNoValue, noValue, isNormalize, adaptiveLevel, isLossless, dataBlock, destination, error))
+      return false;
   }
   else if(compressionMethod == CompressionMethod::RLE)
   {
@@ -306,7 +304,8 @@ bool VolumeDataStore::deserializeVolumeData(const VolumeDataChunk &volumeDataChu
         }
       }
 
-      if (!OpenVDS::deserializeVolumeData(serializedData, loadFormat, compressionMethod, false, deserializeValueRange, volumeDataLayer->getIntegerScale(), volumeDataLayer->getIntegerOffset(), volumeDataLayer->isUseNoValue(), volumeDataLayer->getNoValue(), adaptiveLevel, target, error))
+      DataBlock dataBlock;
+      if (!OpenVDS::deserializeVolumeData(serializedData, loadFormat, compressionMethod, false, deserializeValueRange, volumeDataLayer->getIntegerScale(), volumeDataLayer->getIntegerOffset(), volumeDataLayer->isUseNoValue(), volumeDataLayer->getNoValue(), adaptiveLevel, dataBlock, target, error))
         return false;
 
     }

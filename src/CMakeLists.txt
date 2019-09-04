@@ -20,7 +20,11 @@ set(SOURCE_FILES
   VDS/Base64.cpp
   VDS/VolumeDataStore.cpp
   VDS/Wavelet.cpp
-  VDS/DataBlock.cpp)
+  VDS/WaveletAdaptiveLL.cpp
+  VDS/DataBlock.cpp
+  VDS/FSE/entropy_common.cpp
+  VDS/FSE/fse_decompress.cpp
+  )
 
 set (PRIVATE_HEADER_FILES
   IO/File.h
@@ -45,7 +49,17 @@ set (PRIVATE_HEADER_FILES
   VDS/IntrusiveList.h
   VDS/Base64.h
   VDS/VolumeDataStore.h
-  VDS/DataBlock.h)
+  VDS/Wavelet.h
+  VDS/WaveletAdaptiveLL.h
+  VDS/WaveletTypes.h
+  VDS/DataBlock.h
+  VDS/WaveletSSETransform.h
+  VDS/FSE/bitstream.h
+  VDS/FSE/error_private.h
+  VDS/FSE/error_public.h
+  VDS/FSE/mem.h
+  VDS/FSE/fse.h
+  )
 
 set (EXPORTED_HEADER_FILES
   OpenVDS/OpenVDS.h
@@ -64,6 +78,7 @@ add_library(openvds_objects OBJECT
   ${EXPORTED_HEADER_FILES}
   ${SOURCE_FILES})
 
+find_package(OpenMP REQUIRED)
 
 add_dependencies(openvds_objects aws-cpp-sdk)
 target_include_directories(openvds_objects PRIVATE "${aws-cpp-sdk_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -72,6 +87,7 @@ target_compile_definitions(openvds_objects PRIVATE openvds_EXPORTS)
 target_link_libraries(openvds_objects Threads::Threads)
 target_link_libraries(openvds_objects jsoncpp_lib_static)
 target_link_libraries(openvds_objects ${aws-cpp-sdk_EXTERNAL_LIBS} ${aws-cpp-sdk_LIBS})
+target_link_libraries(openvds_objects OpenMP::OpenMP_CXX)
 
 if (WIN32)
   set_source_files_properties(IO/Linux_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)

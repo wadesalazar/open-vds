@@ -33,7 +33,7 @@ namespace OpenVDS
 class WaveletAdaptiveLevelsMetadata
 {
 public:
-  uint8_t m_levels[MetadataStatus::WAVELET_ADAPTIVE_LEVELS];
+  uint8_t m_levels[WAVELET_ADAPTIVE_LEVELS];
 
   //void          encode(int32_t totalSize, int32_t const (&adaptiveLevels)[MetadataStatus::WAVELET_ADAPTIVE_LEVELS]);
   //int32_t       decode(int32_t totalSize, int32_t targetLevel) const;

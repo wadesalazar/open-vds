@@ -28,7 +28,7 @@
 #include <OpenVDS/VolumeData.h>
 
 #include "VolumeDataChunk.h"
-
+#include "WaveletTypes.h"
 
 namespace OpenVDS
 {
@@ -41,11 +41,6 @@ namespace OpenVDS
 
   struct MetadataStatus
   {
-    enum
-    {
-      WAVELET_ADAPTIVE_LEVELS = 16
-    };
-
     int                 m_chunkIndexCount;
     int                 m_chunkMetadataPageSize;
     int                 m_chunkMetadataByteSize;

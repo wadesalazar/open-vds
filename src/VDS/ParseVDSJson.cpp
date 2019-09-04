@@ -614,7 +614,7 @@ static MetadataStatus MetadataStatusFromJSON(Json::Value const &jsonMetadataStat
 
   if(!adaptiveLevelSizesJSON.empty())
   {
-    for(int i = 0; i < MetadataStatus::WAVELET_ADAPTIVE_LEVELS; i++)
+    for(int i = 0; i < WAVELET_ADAPTIVE_LEVELS; i++)
     {
       metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJSON[i].asInt64();
     }
@@ -673,7 +673,7 @@ bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error
 
       if (!adaptiveLevelSizesJSON.empty())
       {
-        for (int i = 0; i < MetadataStatus::WAVELET_ADAPTIVE_LEVELS; i++)
+        for (int i = 0; i < WAVELET_ADAPTIVE_LEVELS; i++)
         {
           metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJSON[i].asInt64();
         }

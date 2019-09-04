@@ -53,9 +53,9 @@ static ParsedMetadata parseMetadata(int metadataByteSize, unsigned char const *m
 
     parsedMetadata.m_chunkHash = *reinterpret_cast<uint64_t const *>(metadata + 4);
 
-    parsedMetadata.m_adaptiveLevels.resize(MetadataStatus::WAVELET_ADAPTIVE_LEVELS);
+    parsedMetadata.m_adaptiveLevels.resize(WAVELET_ADAPTIVE_LEVELS);
 
-    memcpy(parsedMetadata.m_adaptiveLevels.data(), metadata + 4 + 8, MetadataStatus::WAVELET_ADAPTIVE_LEVELS);
+    memcpy(parsedMetadata.m_adaptiveLevels.data(), metadata + 4 + 8, WAVELET_ADAPTIVE_LEVELS);
   }
   else if (metadataByteSize == 8)
   {
@@ -92,7 +92,7 @@ static int getEffectiveAdaptiveLoadLevel(float effectiveCompressionTolerance, fl
   return std::max(0, adaptiveLoadLevel);
 }
 
-static int getEffectiveAdaptiveLevel(AdaptiveMode adaptiveMode, float desiredTolerance, float desiredRatio, float remoteTolerance, int64_t const adaptiveLevelSizes[MetadataStatus::WAVELET_ADAPTIVE_LEVELS], int64_t uncompressedSize)
+static int getEffectiveAdaptiveLevel(AdaptiveMode adaptiveMode, float desiredTolerance, float desiredRatio, float remoteTolerance, int64_t const adaptiveLevelSizes[WAVELET_ADAPTIVE_LEVELS], int64_t uncompressedSize)
 {
   if (adaptiveMode == AdaptiveMode_BestQuality)
   {
@@ -112,7 +112,7 @@ static int getEffectiveAdaptiveLevel(AdaptiveMode adaptiveMode, float desiredTol
   else if (adaptiveMode == AdaptiveMode_Ratio)
   {
     // Matches HueVolumeDataStoreVersion4_c::GetEffectiveAdaptiveLevel
-    while (level + 1 < MetadataStatus::WAVELET_ADAPTIVE_LEVELS)
+    while (level + 1 < WAVELET_ADAPTIVE_LEVELS)
     {
       if (adaptiveLevelSizes[level + 1] == 0 || ((float)uncompressedSize / (float)adaptiveLevelSizes[level + 1]) > desiredRatio)
       {
@@ -132,7 +132,7 @@ static int getEffectiveAdaptiveLevel(AdaptiveMode adaptiveMode, float desiredTol
 
 static int waveletAdaptiveLevelsMetadataDecode(uint64_t totalSize, int targetLevel, uint8_t const *levels)
 {
-  assert(targetLevel >= -1 && targetLevel < MetadataStatus::WAVELET_ADAPTIVE_LEVELS);
+  assert(targetLevel >= -1 && targetLevel < WAVELET_ADAPTIVE_LEVELS);
 
   int remainingSize = (int)totalSize;
 
