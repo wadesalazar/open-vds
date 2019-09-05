@@ -38,6 +38,7 @@ TEST(SEGYScanTest, scan)
 #ifdef GTEST_SKIP
     GTEST_SKIP();
 #else
+    SUCCEED() << "Skipped SEGYScanTest test -- Could not locate test data";
     return;
 #endif
   }

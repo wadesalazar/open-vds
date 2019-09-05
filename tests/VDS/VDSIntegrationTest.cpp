@@ -21,13 +21,31 @@
 
 #include <gtest/gtest.h>
 
+std::string getEnvironmentVariable(std::string variableName)
+{
+  const char *value = getenv(variableName.c_str());
+  return value ? value : "";
+}
+
 GTEST_TEST(OpenVDS_integration, DownloadJson)
 {
   OpenVDS::Error error;
   OpenVDS::AWSOpenOptions options;
-  options.region = getenv("OPENVDS_TEST_AWS_REGION");
-  options.bucket = getenv("OPENVDS_TEST_AWS_BUCKET");
-  options.key = getenv("OPENVDS_TEST_AWS_OBJECTID");
+
+  options.region = getEnvironmentVariable("OPENVDS_TEST_AWS_REGION");
+  options.bucket = getEnvironmentVariable("OPENVDS_TEST_AWS_BUCKET");
+  options.key = getEnvironmentVariable("OPENVDS_TEST_AWS_OBJECTID");
+
+  if(options.region.empty() || options.bucket.empty() || options.key.empty())
+  {
+#ifdef GTEST_SKIP
+    GTEST_SKIP();
+#else
+    SUCCEED() << "Skipped DownloadJson test -- Environment variables not set";
+    return;
+#endif
+  }
+
   ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
   OpenVDS::VDSHandle *handle = OpenVDS::open(options, error);
   ASSERT_TRUE(handle);
