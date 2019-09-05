@@ -20,6 +20,7 @@
 #include "VolumeDataLayout.h"
 #include "Wavelet.h"
 #include "VolumeDataHash.h"
+#include "Rle.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -185,8 +186,11 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
     int32_t byteSize = getByteSize(*dataBlockDescriptor);
     std::unique_ptr<uint8_t[]>buffer(new uint8_t[byteSize]);
 
-    //int32_t decompressedSize = RLEDecompress((uint8_t *)buffer, byteSize, (uint8_t *)source);
-    //assert(decompressedSize == byteSize);
+    int32_t decompressedSize = rle_Decompress((uint8_t *)buffer.get(), byteSize, (uint8_t *)source);
+    assert(decompressedSize == byteSize);
+
+    int allocatedSize = getAllocatedByteSize(dataBlock);
+    destination.resize(allocatedSize);
     copyLinearBufferIntoDataBlock(buffer.get(), dataBlock, destination);
   }
   else if(compressionMethod == CompressionMethod::Zip)
@@ -237,7 +241,7 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
 
     void * source = dataBlockDescriptor + 1;
 
-    int32_t byteSize = getByteSize(*dataBlockDescriptor);
+    int32_t byteSize = getAllocatedByteSize(dataBlock);
     destination.resize(byteSize);
     copyLinearBufferIntoDataBlock(source, dataBlock, destination);
   }

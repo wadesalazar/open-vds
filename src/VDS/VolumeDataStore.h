@@ -34,13 +34,6 @@ class WaveletAdaptiveLevelsMetadata
 {
 public:
   uint8_t m_levels[WAVELET_ADAPTIVE_LEVELS];
-
-  //void          encode(int32_t totalSize, int32_t const (&adaptiveLevels)[MetadataStatus::WAVELET_ADAPTIVE_LEVELS]);
-  //int32_t       decode(int32_t totalSize, int32_t targetLevel) const;
-  //void          accumulateSizes(int32_t totalSize, int64_t (&adaptiveLevelSizes)[MetadataStatus::WAVELET_ADAPTIVE_LEVELS], bool isSubtract) const;
-  //void          dropLosslessData();
-  //void          shift(int32_t nLevels);
-  //void          clear() { memset(m_levels, 0x00, sizeof(m_levels)); }
 };
 
 struct VolumeDataStore

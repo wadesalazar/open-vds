@@ -178,4 +178,13 @@ GTEST_TEST(OpenVDS_integration, DeSerializeVolumeData)
   double one_procent_range = (0.07883811742067337 + 0.07883811742067337) / 100;
   EXPECT_TRUE(avg_diff < one_procent_range * 2);
 
+  std::vector<uint8_t> serializedRLE = loadTestFile("/chunk.CompressionMethod_RLE");
+  std::vector<uint8_t> dataRLE;
+  OpenVDS::DataBlock dataBlockRLE;
+  OpenVDS::deserializeVolumeData(serializedRLE, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::RLE, true, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockRLE, dataRLE, error);
+  EXPECT_EQ(error.code, 0);
+
+  EXPECT_EQ(dataNone.size(), dataRLE.size());
+  int comp_rle = memcmp(dataNone.data(), dataRLE.data(), dataNone.size());
+  EXPECT_TRUE(comp_rle == 0);
 }

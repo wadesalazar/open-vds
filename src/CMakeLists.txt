@@ -24,6 +24,7 @@ set(SOURCE_FILES
   VDS/DataBlock.cpp
   VDS/FSE/entropy_common.cpp
   VDS/FSE/fse_decompress.cpp
+  VDS/Rle.cpp
   )
 
 set (PRIVATE_HEADER_FILES
@@ -59,6 +60,7 @@ set (PRIVATE_HEADER_FILES
   VDS/FSE/error_public.h
   VDS/FSE/mem.h
   VDS/FSE/fse.h
+  VDS/Rle.h
   )
 
 set (EXPORTED_HEADER_FILES
