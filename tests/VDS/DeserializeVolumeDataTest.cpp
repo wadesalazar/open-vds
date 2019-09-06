@@ -187,4 +187,14 @@ GTEST_TEST(OpenVDS_integration, DeSerializeVolumeData)
   EXPECT_EQ(dataNone.size(), dataRLE.size());
   int comp_rle = memcmp(dataNone.data(), dataRLE.data(), dataNone.size());
   EXPECT_TRUE(comp_rle == 0);
+  
+  std::vector<uint8_t> serializedZip = loadTestFile("/chunk.CompressionMethod_Zip");
+  std::vector<uint8_t> dataZip;
+  OpenVDS::DataBlock dataBlockZip;
+  OpenVDS::deserializeVolumeData(serializedZip, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::Zip, true, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockZip, dataZip, error);
+  EXPECT_EQ(error.code, 0);
+
+  EXPECT_EQ(dataNone.size(), dataZip.size());
+  int comp_zip = memcmp(dataNone.data(), dataZip.data(), dataNone.size());
+  EXPECT_TRUE(comp_zip == 0);
 }

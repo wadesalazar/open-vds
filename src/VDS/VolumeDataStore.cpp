@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <zlib.h>
+
 namespace OpenVDS
 {
 static bool compressionMethodIsWavelet(CompressionMethod compressionMethod)
@@ -209,22 +211,21 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
     void * source = dataBlockDescriptor + 1;
 
     int32_t byteSize = getByteSize(*dataBlockDescriptor);
-    void *buffer = malloc(byteSize);
+    std::unique_ptr<uint8_t[]> buffer(new uint8_t[byteSize]);
 
     unsigned long destLen = byteSize;
 
-    //int status = uncompress((U8_pu)pxBuffer, &uDestLen, (U8_pu)pxSource, (unsigned long)cBLOB.GetSize() - sizeof(DataBlockDescriptor_c));
+    int status = uncompress(buffer.get(), &destLen, (uint8_t *)source, serializedData.size() - sizeof(DataBlockDescriptor));
 
-    //if (status != Z_OK)
-    //{
-    //  Log_Printf(LOG_GROUP_ERROR, "Space", "zlib uncompress failed (status %d) in VolumeDataStore_c::DeSerialize\n", status);
-    //  delete pcDataBlock;
-    //  return NULL;
-    //}
+    if (status != Z_OK)
+    {
+      fprintf(stderr, "Space", "zlib uncompress failed (status %d) in VolumeDataStore_c::DeSerialize\n", status);
+      return NULL;
+    }
 
-    //assert(uDestLen == nByteSize);
-    copyLinearBufferIntoDataBlock(buffer, dataBlock, destination);
-    free(buffer);
+    int allocatedSize = getAllocatedByteSize(dataBlock);
+    destination.resize(allocatedSize);
+    copyLinearBufferIntoDataBlock(buffer.get(), dataBlock, destination);
   }
   else if(compressionMethod == CompressionMethod::None)
   {

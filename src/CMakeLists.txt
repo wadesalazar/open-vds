@@ -84,12 +84,15 @@ find_package(OpenMP REQUIRED)
 
 add_dependencies(openvds_objects aws-cpp-sdk)
 target_include_directories(openvds_objects PRIVATE "${aws-cpp-sdk_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
+add_dependencies(openvds_objects zlib)
+target_include_directories(openvds_objects PRIVATE "${zlib_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(openvds_objects PRIVATE openvds_EXPORTS)
 
 target_link_libraries(openvds_objects Threads::Threads)
 target_link_libraries(openvds_objects jsoncpp_lib_static)
 target_link_libraries(openvds_objects ${aws-cpp-sdk_EXTERNAL_LIBS} ${aws-cpp-sdk_LIBS})
 target_link_libraries(openvds_objects OpenMP::OpenMP_CXX)
+target_link_libraries(openvds_objects ${zlib_LIBS})
 
 if (WIN32)
   set_source_files_properties(IO/Linux_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -131,10 +134,10 @@ install(TARGETS openvds
   PRIVATE_HEADER
     DESTINATION include/OpenVDS/private)
 
-  install(FILES ${aws-cpp-sdk_LIBS}
+  install(FILES ${aws-cpp-sdk_LIBS} ${zlib_LIBS}
     DESTINATION lib${LIB_TOOLSET_DIR})
   if (aws-cpp-sdk_RUNTIME)
-    install(FILES ${aws-cpp-sdk_RUNTIME}
+    install(FILES ${aws-cpp-sdk_RUNTIME} ${zlib_RUNTIME}
       DESTINATION bin${LIB_TOOLSET_DIR})
   endif()
 

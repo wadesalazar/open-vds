@@ -1,8 +1,10 @@
 include(CMake/BuildExternal.cmake)
 include(CMake/BuildAWSSDK.cmake)
 include(CMake/BuildJsonCpp.cmake)
+include(CMake/BuildZlib.cmake)
 
 macro(Build3rdParty)
   BuildAWSSDK()
   BuildJsonCpp()
+  BuildZlib()
 endmacro()
