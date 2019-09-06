@@ -12,6 +12,14 @@ if (UNIX)
   add_compile_options(-fPIC)
 endif()
 
+if (WIN32)
+  set(DEFAULT_BUILD_ZLIB ON)
+else()
+  set(DEFAULT_BUILD_ZLIB OFF)
+endif()
+
+option(BUILD_ZLIB "Build zlib" ${DEFAULT_BUILD_ZLIB})
+
 include(CMake/Fetch3rdParty.cmake)
 Fetch3rdParty()
 
