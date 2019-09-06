@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <list>
+#include <memory>
 
 
 #include <OpenVDS/VolumeData.h>

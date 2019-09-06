@@ -128,7 +128,7 @@ namespace OpenVDS
     if (range.end)
     {
       char rangeHeaderBuffer[100];
-      snprintf(rangeHeaderBuffer, sizeof(rangeHeaderBuffer), "bytes=%d-%d", range.start, range.end);
+      snprintf(rangeHeaderBuffer, sizeof(rangeHeaderBuffer), "bytes=%zu-%zu", range.start, range.end);
       object_request.SetRange(rangeHeaderBuffer);
     }
     using namespace std::placeholders;

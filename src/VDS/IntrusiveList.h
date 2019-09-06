@@ -57,7 +57,7 @@ public:
   bool isEmpty() const
   {
     assert(!!m_firstItem == !!m_lastItem);
-    return mm_firstItem == NULL;
+    return m_firstItem == NULL;
   }
 
   Item *getFirstItem() const { return m_firstItem; }

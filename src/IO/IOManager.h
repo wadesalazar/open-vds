@@ -44,8 +44,8 @@ namespace OpenVDS
 
   struct IORange
   {
-    size_t start = 0;
-    size_t end = 0;
+    size_t start;
+    size_t end;
   };
 
   class IOManager

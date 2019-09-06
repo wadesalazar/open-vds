@@ -23,6 +23,7 @@
 #include <omp.h>
 
 #include <algorithm>
+#include <math.h>
 
 #include "FSE/fse.h"
 

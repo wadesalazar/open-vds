@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 namespace OpenVDS
 {
 template<typename T, size_t N>

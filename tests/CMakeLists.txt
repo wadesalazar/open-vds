@@ -40,6 +40,6 @@ target_include_directories(segy_tests PRIVATE ../src/SEG-Y)
 add_test_executable(vds_integration_tests
   VDS/VDSIntegrationTest.cpp
   VDS/ParseVDSJsonTest.cpp
-  VDS/DeSerializeVolumeDataTest.cpp
+  VDS/DeserializeVolumeDataTest.cpp
   )
 target_compile_definitions(vds_integration_tests PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")

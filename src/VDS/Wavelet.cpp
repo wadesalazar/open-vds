@@ -112,7 +112,6 @@ static int32_t findTransformMethod(IntVector3 (&bandSize)[TRANSFORM_MAX_ITERATIO
     bandSize[i] = {sizeX, sizeY, sizeZ};
 
     char mask = 0;
-    char and = 0;
 
     if  (sizeX >= WAVELET_BAND_MIN_SIZE) mask |= 1;
     if  (sizeY >= WAVELET_BAND_MIN_SIZE) mask |= 2;

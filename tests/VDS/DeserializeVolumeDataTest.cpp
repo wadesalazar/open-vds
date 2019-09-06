@@ -22,6 +22,7 @@
 #include <IO/File.h>
 
 #include <cstdlib>
+#include <cmath>
 
 #include <gtest/gtest.h>
 

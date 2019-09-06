@@ -22,6 +22,7 @@
 #include <Math/Vector.h>
 
 #include <string>
+#include <vector>
 
 namespace OpenVDS
 {

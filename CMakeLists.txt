@@ -9,6 +9,7 @@ find_package(Threads)
 
 if (UNIX)
   add_definitions(-Wreturn-type)
+  add_compile_options(-fPIC)
 endif()
 
 include(CMake/Fetch3rdParty.cmake)

@@ -23,6 +23,8 @@
 
 #include "Bitmask.h"
 
+#include <condition_variable>
+
 namespace OpenVDS
 {
 

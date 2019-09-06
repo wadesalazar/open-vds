@@ -18,6 +18,7 @@
 #include "Base64.h"
 
 #include <cctype>
+#include <cstring>
 
 namespace OpenVDS
 {

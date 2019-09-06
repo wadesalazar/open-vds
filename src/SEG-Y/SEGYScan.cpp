@@ -20,6 +20,7 @@
 #include "cxxopts.hpp"
 
 #include <cstdlib>
+#include <climits>
 #include <json/json.h>
 #include <assert.h>
 

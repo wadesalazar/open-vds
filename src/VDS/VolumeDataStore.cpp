@@ -219,7 +219,7 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
 
     if (status != Z_OK)
     {
-      fprintf(stderr, "Space", "zlib uncompress failed (status %d) in VolumeDataStore_c::DeSerialize\n", status);
+      fprintf(stderr, "zlib uncompress failed (status %d) in VolumeDataStore_c::DeSerialize\n", status);
       return NULL;
     }
 

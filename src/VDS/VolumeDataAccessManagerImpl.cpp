@@ -159,17 +159,17 @@ static IORange calculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, co
     *adaptiveLevel = -1;
   }
   else
-  {   
+  {
     *adaptiveLevel = getEffectiveAdaptiveLevel(AdaptiveMode_BestQuality, 0.01f, 1.0f , metadataStatus.m_compressionTolerance, metadataStatus.m_adaptiveLevelSizes, metadataStatus.m_uncompressedSize);
 
     int range = waveletAdaptiveLevelsMetadataDecode(parsedMetadata.m_chunkSize, *adaptiveLevel, parsedMetadata.m_adaptiveLevels.data());
     if (range && range != parsedMetadata.m_chunkSize)
     {
-    return {0 , size_t(range - 1)};
+    return { size_t(0) , size_t(range - 1 ) };
     }
   }
 
-  return IORange();
+  return { 0 , 0 };
 }
 
 static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayout const *layout, DimensionsND dimension, int channel, int lod, bool isAllowFailure)
@@ -437,7 +437,7 @@ static std::string makeURLForChunk(const std::string &layerUrl, uint64_t chunk)
 {
   char url[1000];
 
-  snprintf(url, sizeof(url), "%s/%" PRIu64, layerUrl.c_str(), (long long)chunk);
+  snprintf(url, sizeof(url), "%s/%" PRIu64, layerUrl.c_str(), chunk);
 
   return std::string(url);
 }
