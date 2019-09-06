@@ -16,6 +16,7 @@
 ****************************************************************************/
 
 #include "VolumeDataPartition.h"
+#include "VolumeDataChannelMapping.h"
 
 #include <algorithm>
 #include <cstring>

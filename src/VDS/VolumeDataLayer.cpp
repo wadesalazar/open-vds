@@ -83,7 +83,7 @@ const VolumeDataChannelMapping* VolumeDataLayer::getVolumeDataChannelMapping() c
 
 int32_t VolumeDataLayer::getMappedValueCount() const
 {
-  return m_volumeDataLayout->getMappedValueCount(m_channel);
+  return m_volumeDataLayout->getChannelMappedValueCount(m_channel);
 }
 
 void VolumeDataLayer::getChunkIndexArrayFromVoxel(const IndexArray& voxel, IndexArray& chunk) const

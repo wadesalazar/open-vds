@@ -7,6 +7,7 @@ set(SOURCE_FILES
   IO/IOManager.cpp
   IO/IOManagerAWS.cpp
   VDS/VolumeDataPartition.cpp
+  VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
   VDS/VolumeDataLayout.cpp
   VDS/VolumeDataRegion.cpp
@@ -33,6 +34,7 @@ set (PRIVATE_HEADER_FILES
   IO/IOManager.h
   IO/IOManagerAWS.h
   VDS/VolumeDataPartition.h
+  VDS/VolumeDataChannelMapping.h
   VDS/VolumeDataLayer.h
   VDS/VolumeDataLayout.h
   VDS/VolumeDataChunk.h
@@ -69,7 +71,6 @@ set (EXPORTED_HEADER_FILES
   OpenVDS/Metadata.h
   OpenVDS/VolumeData.h
   OpenVDS/VolumeDataLayoutDescriptor.h
-  OpenVDS/VolumeDataChannelMapping.h
   OpenVDS/VolumeDataChannelDescriptor.h
   OpenVDS/VolumeDataAxisDescriptor.h
   OpenVDS/VolumeDataAccess.h

@@ -15,20 +15,20 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#ifndef VOLUMEDATACHANNELMAPPING_H
+#define VOLUMEDATACHANNELMAPPING_H
+
+#include "VolumeDataPartition.h"
+
 #include <cstdint>
-#include <OpenVDS/openvds_export.h>
-#include <VDS/DimensionGroup.h>
 
 namespace OpenVDS
 {
-
-class VolumeDataPartition;
-
 class VolumeDataChannelMapping
 {
-public:
+protected:
   virtual      ~VolumeDataChannelMapping() {}
-
+public:
   virtual DimensionGroup getMappedChunkDimensionGroup(VolumeDataPartition const &primaryPartition, int32_t mappedValues) const = 0;
   virtual int32_t   getMappedPositiveMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const = 0;
   virtual int32_t   getMappedNegativeMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const = 0;
@@ -42,5 +42,12 @@ public:
   virtual int32_t   getMappedChunkIndexFromVoxel(VolumeDataPartition const &primaryPartition, int32_t voxel, int32_t dimension) const = 0;
   virtual void      getLayoutMinMax(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex, int32_t *min, int32_t *max, bool isIncludeMargin) const = 0;
   virtual int64_t   getPrimaryChunkIndex(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex) const = 0;
+
+  static  const VolumeDataChannelMapping *
+                    getVolumeDataChannelMapping(VolumeDataMapping volumeDataMapping);
+
+  static VolumeDataPartition
+                    staticMapPartition(VolumeDataPartition const &primaryPartition, const VolumeDataChannelMapping *volumeDataChannelMapping, int32_t mappedValues);
 };
 }
+#endif //VOLUMEDATACHANNELMAPPING_H

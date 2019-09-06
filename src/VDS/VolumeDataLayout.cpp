@@ -18,6 +18,7 @@
 #include <OpenVDS/VolumeDataLayoutDescriptor.h>
 
 #include "VolumeDataLayout.h"
+#include "VolumeDataChannelMapping.h"
 #include "DimensionGroup.h"
 
 #include "Bitmask.h"
@@ -107,11 +108,19 @@ VolumeDataLayer* VolumeDataLayout::getBaseLayer(DimensionGroup dimensionGroup, i
 
 FloatRange const& VolumeDataLayout::getChannelActualValueRange(int32_t channel) const
 {
+  assert(channel >= 0 && channel < getChannelCount());
   return (channel == m_actualValueRangeChannel) ? m_actualValueRange : m_volumeDataChannelDescriptor[channel].getValueRange();
 }
 
-int32_t VolumeDataLayout::getMappedValueCount(int32_t channel) const
+VolumeDataMapping VolumeDataLayout::getChannelMapping(int32_t channel) const
 {
+  assert(channel >= 0 && channel < getChannelCount());
+  return m_volumeDataChannelDescriptor[channel].getMapping();
+}
+
+int32_t VolumeDataLayout::getChannelMappedValueCount(int32_t channel) const
+{
+  assert(channel >= 0 && channel < getChannelCount());
   return m_volumeDataChannelDescriptor[channel].getMappedValueCount();
 }
 
@@ -121,26 +130,11 @@ FloatRange const& VolumeDataLayout::getDimensionRange(int32_t dimension) const
   return m_dimensionRange[dimension];
 }
 
-//const VolumeDataChannelMapping* VolumeDataLayout::GetVolumeDataChannelMapping(int32_t channel) const
-//{
-//  assert(channel >= 0 && channel < m_volumeDataChannelDescriptor.size());
-//
-//  VolumeDataChannelDescriptor *volumeDataChannelDescriptor = m_volumeDataChannelDescriptor[channel];
-//
-//  if(volumeDataChannelDescriptor->GetChannelMapping() == OBJ_NONE)
-//  {
-//    return NULL;
-//  }
-//  else if(pcVolumeDataChannelDescriptor->GetChannelMapping() == TraceVolumeDataChannelMapping_c::GetInstance().GetObjID())
-//  {
-//    return &TraceVolumeDataChannelMapping_c::GetInstance();
-//  }
-//  else
-//  {
-//    DEBUG_ERROR(("Unknown channel mapping"));
-//    return NULL;
-//  }
-//}
+const VolumeDataChannelMapping* VolumeDataLayout::getVolumeDataChannelMapping(int32_t channel) const
+{
+  assert(channel >= 0 && channel < m_volumeDataChannelDescriptor.size());
+  return VolumeDataChannelMapping::getVolumeDataChannelMapping(m_volumeDataChannelDescriptor[channel].getMapping());
+}
 
 VolumeDataLayer *VolumeDataLayout::getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const
 {
@@ -267,31 +261,9 @@ VolumeDataAxisDescriptor VolumeDataLayout::getAxisDescriptor(int32_t dimension) 
 {
   assert(dimension >= 0 && dimension < m_dimensionality);
   return VolumeDataAxisDescriptor(getDimensionNumSamples(dimension),
-                                       getDimensionName(dimension),
-                                       getDimensionUnit(dimension),
-                                       getDimensionRange(dimension));
-}
-
-VolumeDataMapping VolumeDataLayout::getChannelMapping(int32_t channel) const
-{
-  assert(channel >= 0 && channel < getChannelCount());
-  assert(0); 
-//  const VolumeDataChannelDescriptor &volumeDataChannelDescriptor = m_volumeDataChannelDescriptor[channel];
-//
-//  if (volumeDataChannelDescriptor.GetChannelMapping() == nullptr)
-//  {
-//    return VOLUMEDATAMAPPING_DIRECT;
-//  }
-//  else if (pcVolumeDataChannelDescriptor->GetChannelMapping() == TraceVolumeDataChannelMapping_c::GetInstance().GetObjID())
-//  {
-//    return VOLUMEDATAMAPPING_PER_TRACE;
-//  }
-//  else
-//  {
-//    DEBUG_ERROR(("Unknown channel mapping"));
-//    return ::SpaceLib::VOLUMEDATAMAPPING_DIRECT;
-//  }
-  return VolumeDataMapping::Direct;
+                                  getDimensionName(dimension),
+                                  getDimensionUnit(dimension),
+                                  getDimensionRange(dimension));
 }
 
 int VolumeDataLayout::getDimensionNumSamples(int32_t dimension) const
@@ -368,9 +340,9 @@ void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t
         layerType = VolumeDataLayer::Auxiliary;
       }
 
-      VolumeDataChannelMapping const *volumeDataChannelMapping = nullptr;// = GetVolumeDataChannelMapping(channel);
+      VolumeDataChannelMapping const *volumeDataChannelMapping = getVolumeDataChannelMapping(channel);
 
-      VolumeDataLayer *volumeDataLayer = new VolumeDataLayer(VolumeDataPartition::staticMapPartition(primaryPartition, volumeDataChannelMapping, getMappedValueCount(channel)),
+      VolumeDataLayer *volumeDataLayer = new VolumeDataLayer(VolumeDataPartition::staticMapPartition(primaryPartition, volumeDataChannelMapping, getChannelMappedValueCount(channel)),
                                                             this, channel,primaryChannelLayer, lowerLOD[channel], layerType, volumeDataChannelMapping);
 
       if(channel == 0)

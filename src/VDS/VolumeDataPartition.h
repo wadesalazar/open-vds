@@ -15,9 +15,12 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#ifndef VOLUMEDATAPARTITION
+#define VOLUMEDATAPARTITION
+
 #include <OpenVDS/openvds_export.h>
 #include <OpenVDS/VolumeData.h>
-#include <OpenVDS/VolumeDataChannelMapping.h>
+
 #include "DimensionGroup.h"
 
 #include <assert.h>
@@ -25,6 +28,7 @@
 
 namespace OpenVDS
 {
+class VolumeDataChannelMapping;
 
 template<typename T, size_t N>
 constexpr size_t array_size(const T (&)[N])
@@ -141,3 +145,4 @@ public:
   static VolumeDataPartition staticFindSuperPartition(VolumeDataPartition const &partitionA, VolumeDataPartition const &partitionB);
 };
 }
+#endif //VOLUMEDATAPARTITION

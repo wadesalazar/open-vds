@@ -81,8 +81,10 @@ public:
 
   FloatRange const &getChannelActualValueRange(int32_t channel) const;
 
-  //TODO SHOULD THIS BE REMOVED
-  int32_t getMappedValueCount(int32_t channel) const;
+  const VolumeDataChannelMapping *
+                   getVolumeDataChannelMapping(int32_t channel) const;
+
+  int32_t          getChannelMappedValueCount(int32_t channel) const;
 
   FloatRange const &getDimensionRange(int32_t dimension) const;
 
@@ -137,7 +139,6 @@ public:
   virtual bool isChannelAllowingLossyCompression(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isAllowLossyCompression(); }
   virtual bool isChannelUseZipForLosslessCompression(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isUseZipForLosslessCompression(); }
 
-  // REMOVE ?
   virtual VolumeDataMapping getChannelMapping(int32_t channel) const;
 
 // These convenience functions provide access to the individual elements of the axis descriptors
