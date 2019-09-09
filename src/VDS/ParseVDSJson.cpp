@@ -279,15 +279,6 @@ static enum VolumeDataLayoutDescriptor::LODLevels lodLevelsFromJson(Json::Value 
   throw Json::Exception("Illegal LOD levels");
 }
 
-const char *addDescriptorString(std::string const &descriptorString, VDSHandle &handle)
-{
-  char *data = new char[descriptorString.size() + 1];
-  memcpy(data, descriptorString.data(), descriptorString.size());
-  data[descriptorString.size()] = 0;
-  handle.descriptorStrings.emplace_back(data);
-  return data;
-}
-
 static VolumeDataChannelDescriptor::Format voxelFormatFromJson(Json::Value const &jsonVoxelFormat)
 {
   std::string voxelFormatString = jsonVoxelFormat.asString();
@@ -357,7 +348,71 @@ static VolumeDataMapping channelMappingFromJson(Json::Value const &jsonChannelMa
   throw Json::Exception("Illegal channel mapping");
 }
 
-static bool parseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error)
+static MetadataType metadataTypeFromJson(Json::Value const &jsonMetadataType)
+{
+  std::string metadataTypeString = jsonMetadataType.asString();
+
+  if(metadataTypeString == "Int")
+  {
+    return MetadataType::Int;
+  }
+  else if(metadataTypeString == "IntVector2")
+  {
+    return MetadataType::IntVector2;
+  }
+  else if(metadataTypeString == "IntVector3")
+  {
+    return MetadataType::IntVector3;
+  }
+  else if(metadataTypeString == "IntVector4")
+  {
+    return MetadataType::IntVector4;
+  }
+  else if(metadataTypeString == "Float")
+  {
+    return MetadataType::Float;
+  }
+  else if(metadataTypeString == "FloatVector2")
+  {
+    return MetadataType::FloatVector2;
+  }
+  else if(metadataTypeString == "FloatVector3")
+  {
+    return MetadataType::FloatVector3;
+  }
+  else if(metadataTypeString == "FloatVector4")
+  {
+    return MetadataType::FloatVector4;
+  }
+  else if(metadataTypeString == "Double")
+  {
+    return MetadataType::Double;
+  }
+  else if(metadataTypeString == "DoubleVector2")
+  {
+    return MetadataType::DoubleVector2;
+  }
+  else if(metadataTypeString == "DoubleVector3")
+  {
+    return MetadataType::DoubleVector3;
+  }
+  else if(metadataTypeString == "DoubleVector4")
+  {
+    return MetadataType::DoubleVector4;
+  }
+  else if(metadataTypeString == "String")
+  {
+    return MetadataType::String;
+  }
+  else if(metadataTypeString == "BLOB")
+  {
+    return MetadataType::BLOB;
+  }
+
+  throw Json::Exception("Illegal metadata type");
+}
+
+bool parseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error)
 {
   try
   {
@@ -458,7 +513,9 @@ bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, 
 
   for (const Json::Value &metadata : root["metadata"])
   {
-    MetadataKey key = { metadata["category"].asString(), metadata["name"].asString() };
+    MetadataKey key = { metadataTypeFromJson(metadata["type"]), metadata["category"].asString(), metadata["name"].asString() };
+
+    handle.metadataContainer.keys.push_back(key);
 
     if (metadata["type"].asString() == "Int")
     {
@@ -706,69 +763,255 @@ bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error
   return true;
 }
 
-static int32_t getInternalCubeSizeLOD0(const VolumeDataLayoutDescriptor &desc)
+Json::Value serializeAxisDescriptor(VolumeDataAxisDescriptor const &axisDescriptor)
 {
-  int32_t size = int32_t(1) << desc.getBrickSize();
+  Json::Value axisDescriptorJson;
 
-  size -= desc.getNegativeMargin();
-  size -= desc.getPositiveMargin();
+  axisDescriptorJson["numSamples"] = axisDescriptor.getNumSamples();
+  axisDescriptorJson["name"] = axisDescriptor.getName();
+  axisDescriptorJson["unit"] = axisDescriptor.getUnit();
+  axisDescriptorJson["coordinateMin"] = axisDescriptor.getCoordinateMin();
+  axisDescriptorJson["coordinateMax"] = axisDescriptor.getCoordinateMax();
 
-  assert(size > 0);
-
-  return size;
+  return axisDescriptorJson;
 }
 
-static int32_t getLODCount(const VolumeDataLayoutDescriptor &desc)
+std::string to_string(VolumeDataChannelDescriptor::Format format)
 {
-  return desc.getLODLevels() + 1;
-}
-
-static void createVolumeDataLayout(VDSHandle &handle)
-{
-  //handle.volumeDataLayout.reset(new VolumeDataLayout(handle.channelDescriptors)
-  int32_t dimensionality = int32_t(handle.axisDescriptors.size());
-
-  // Check if input layouts are valid so we can create a new layout
-  if (dimensionality < 2)
+  switch(format)
   {
-    handle.volumeDataLayout.reset();
-    return;
+  case VolumeDataChannelDescriptor::Format_1Bit: return "Format_1Bit";
+  case VolumeDataChannelDescriptor::Format_U8:   return "Format_U8";
+  case VolumeDataChannelDescriptor::Format_U16:  return "Format_U16";
+  case VolumeDataChannelDescriptor::Format_R32:  return "Format_R32";
+  case VolumeDataChannelDescriptor::Format_U32:  return "Format_U32";
+  case VolumeDataChannelDescriptor::Format_R64:  return "Format_R64";
+  case VolumeDataChannelDescriptor::Format_U64:  return "Format_U64";
+
+  default: assert(0 && "Illegal format"); return "";
+  };
+}
+
+std::string to_string(VolumeDataChannelDescriptor::Components components)
+{
+  switch(components)
+  {
+  case VolumeDataChannelDescriptor::Components_1: return "Components_1";
+  case VolumeDataChannelDescriptor::Components_2: return "Components_2";
+  case VolumeDataChannelDescriptor::Components_4: return "Components_4";
+
+  default: assert(0 && "Illegal components"); return "";
+  };
+}
+
+std::string to_string(VolumeDataMapping mapping)
+{
+  switch(mapping)
+  {
+  case VolumeDataMapping::Direct:   return "Direct";
+  case VolumeDataMapping::PerTrace: return "PerTrace";
+
+  default: assert(0 && "Illegal mapping"); return "";
+  };
+}
+
+Json::Value serializeChannelDescriptor(VolumeDataChannelDescriptor const &channelDescriptor)
+{
+  Json::Value valueRangeJson(Json::ValueType::arrayValue);
+
+  valueRangeJson.append(channelDescriptor.getValueRangeMin());
+  valueRangeJson.append(channelDescriptor.getValueRangeMax());
+
+  Json::Value channelDescriptorJson;
+
+  channelDescriptorJson["format"] = to_string(channelDescriptor.getFormat());
+  channelDescriptorJson["components"] = to_string(channelDescriptor.getComponents());
+  channelDescriptorJson["name"] = channelDescriptor.getName();
+  channelDescriptorJson["unit"] = channelDescriptor.getUnit();
+  channelDescriptorJson["valueRange"] = valueRangeJson;
+  channelDescriptorJson["channelMapping"] = to_string(channelDescriptor.getMapping());
+  channelDescriptorJson["mappedValues"] = channelDescriptor.getMappedValueCount();
+  channelDescriptorJson["discrete"] = channelDescriptor.isDiscrete();
+  channelDescriptorJson["renderable"] = channelDescriptor.isRenderable();
+  channelDescriptorJson["allowLossyCompression"] = channelDescriptor.isAllowLossyCompression();
+  channelDescriptorJson["useNoValue"] = channelDescriptor.isUseNoValue();
+  channelDescriptorJson["noValue"] = channelDescriptor.getNoValue();
+  channelDescriptorJson["integerScale"] = channelDescriptor.getIntegerScale();
+  channelDescriptorJson["integerOffset"] = channelDescriptor.getIntegerOffset();
+
+  return channelDescriptorJson;
+}
+
+template<typename T, int N>
+Json::Value serializeVector(Vector<T, N> const &vector)
+{
+  static_assert(N > 1 && N <= 4, "Only vectors with 2, 3 or 4 elements are supported");
+
+  Json::Value vectorJson(Json::ValueType::arrayValue);
+
+  int i = 0;
+  switch(N)
+  {
+  case 4: vectorJson.append(vector[i++]);
+  case 3: vectorJson.append(vector[i++]);
+  case 2: vectorJson.append(vector[i++]);
+          vectorJson.append(vector[i++]);
   }
 
-  handle.volumeDataLayout.reset(
-    new VolumeDataLayout(
-      handle,
-      handle.layoutDescriptor,
-      handle.axisDescriptors,
-      handle.channelDescriptors,
-      0, //MIA for now
-      { 1, 0 }, //MIA for now
-      VolumeDataHash::getUniqueHash(),
-      CompressionMethod::None,
-      0,
-      false,
-      0));
+  return vectorJson;
+}
 
-  for(int32_t iDimensionGroup = 0; iDimensionGroup < DimensionGroup_3D_Max; iDimensionGroup++)
+Json::Value serializeBLOB(std::vector<uint8_t> const &blob)
+{
+  std::vector<char> base64;
+  Base64Encode(blob.data(), blob.size(), base64);
+
+  return Json::Value(&base64[0], &base64[0] + base64.size());
+}
+
+Json::Value serializeMetadata(MetadataContainer const &metadataContainer)
+{
+  Json::Value
+    metadataJsonArray(Json::ValueType::arrayValue);
+
+  for(auto metadataKey : metadataContainer.keys)
   {
-    DimensionGroup dimensionGroup = (DimensionGroup)iDimensionGroup;
+    Json::Value  metadataJson;
 
-    int32_t nChunkDimensionality = DimensionGroupUtil::getDimensionality(dimensionGroup);
+    metadataJson["category"] = metadataKey.category;
+    metadataJson["name"] = metadataKey.name;
 
-        // Check if highest dimension in chunk is higher than the highest dimension in the dataset or 1D
-    if(DimensionGroupUtil::getDimension(dimensionGroup, nChunkDimensionality - 1) >= dimensionality ||
-       nChunkDimensionality == 1)
+    switch(metadataKey.type)
     {
-      continue;
+    case MetadataType::Int:        metadataJson["type"] = "Int";        metadataJson["value"] = Json::Value(metadataContainer.intData.at(metadataKey)); break;
+    case MetadataType::IntVector2: metadataJson["type"] = "IntVector2"; metadataJson["value"] = serializeVector(metadataContainer.intVector2Data.at(metadataKey)); break;
+    case MetadataType::IntVector3: metadataJson["type"] = "IntVector3"; metadataJson["value"] = serializeVector(metadataContainer.intVector3Data.at(metadataKey)); break;
+    case MetadataType::IntVector4: metadataJson["type"] = "IntVector4"; metadataJson["value"] = serializeVector(metadataContainer.intVector4Data.at(metadataKey)); break;
+
+    case MetadataType::Float:        metadataJson["type"] = "Float";        metadataJson["value"] = Json::Value(metadataContainer.floatData.at(metadataKey)); break;
+    case MetadataType::FloatVector2: metadataJson["type"] = "FloatVector2"; metadataJson["value"] = serializeVector(metadataContainer.floatVector2Data.at(metadataKey)); break;
+    case MetadataType::FloatVector3: metadataJson["type"] = "FloatVector3"; metadataJson["value"] = serializeVector(metadataContainer.floatVector3Data.at(metadataKey)); break;
+    case MetadataType::FloatVector4: metadataJson["type"] = "FloatVector4"; metadataJson["value"] = serializeVector(metadataContainer.floatVector4Data.at(metadataKey)); break;
+
+    case MetadataType::Double:        metadataJson["type"] = "Double";        metadataJson["value"] = Json::Value(metadataContainer.doubleData.at(metadataKey)); break;
+    case MetadataType::DoubleVector2: metadataJson["type"] = "DoubleVector2"; metadataJson["value"] = serializeVector(metadataContainer.doubleVector2Data.at(metadataKey)); break;
+    case MetadataType::DoubleVector3: metadataJson["type"] = "DoubleVector3"; metadataJson["value"] = serializeVector(metadataContainer.doubleVector3Data.at(metadataKey)); break;
+    case MetadataType::DoubleVector4: metadataJson["type"] = "DoubleVector4"; metadataJson["value"] = serializeVector(metadataContainer.doubleVector4Data.at(metadataKey)); break;
+
+    case MetadataType::String: metadataJson["type"] = "String"; metadataJson["value"] = Json::Value(metadataContainer.stringData.at(metadataKey)); break;
+
+    case MetadataType::BLOB: metadataJson["type"] = "BLOB"; metadataJson["value"] = serializeBLOB(metadataContainer.blobData.at(metadataKey)); break;
     }
 
-    assert(nChunkDimensionality == 2 || nChunkDimensionality == 3);
-
-    int32_t physicalLODLevels = (nChunkDimensionality == 3 || handle.layoutDescriptor.isCreate2DLODs()) ? getLODCount(handle.layoutDescriptor) : 1;
-    int32_t brickSize = getInternalCubeSizeLOD0(handle.layoutDescriptor) * (nChunkDimensionality == 2 ? handle.layoutDescriptor.getBrickSizeMultiplier2D() : 1);
-
-    handle.volumeDataLayout->createRenderLayers(dimensionGroup, brickSize, physicalLODLevels);
+    metadataJsonArray.append(metadataJson);
   }
+
+  return metadataJsonArray;
+}
+
+std::string to_string(VolumeDataLayoutDescriptor::BrickSize brickSize)
+{
+  switch(brickSize)
+  {
+  case VolumeDataLayoutDescriptor::BrickSize_32:   return "BrickSize_32";
+  case VolumeDataLayoutDescriptor::BrickSize_64:   return "BrickSize_64";
+  case VolumeDataLayoutDescriptor::BrickSize_128:  return "BrickSize_128";
+  case VolumeDataLayoutDescriptor::BrickSize_256:  return "BrickSize_256";
+  case VolumeDataLayoutDescriptor::BrickSize_512:  return "BrickSize_512";
+  case VolumeDataLayoutDescriptor::BrickSize_1024: return "BrickSize_1024";
+  case VolumeDataLayoutDescriptor::BrickSize_2048: return "BrickSize_2048";
+  case VolumeDataLayoutDescriptor::BrickSize_4096: return "BrickSize_4096";
+
+  default: assert(0 && "Illegal brick size"); return "";
+  };
+}
+
+std::string to_string(VolumeDataLayoutDescriptor::LODLevels lodLevels)
+{
+  switch(lodLevels)
+  {
+  case VolumeDataLayoutDescriptor::LODLevels_None: return "LODLevels_None";
+  case VolumeDataLayoutDescriptor::LODLevels_1:    return "LODLevels_1";
+  case VolumeDataLayoutDescriptor::LODLevels_2:    return "LODLevels_2";
+  case VolumeDataLayoutDescriptor::LODLevels_3:    return "LODLevels_3";
+  case VolumeDataLayoutDescriptor::LODLevels_4:    return "LODLevels_4";
+  case VolumeDataLayoutDescriptor::LODLevels_5:    return "LODLevels_5";
+  case VolumeDataLayoutDescriptor::LODLevels_6:    return "LODLevels_6";
+  case VolumeDataLayoutDescriptor::LODLevels_7:    return "LODLevels_7";
+  case VolumeDataLayoutDescriptor::LODLevels_8:    return "LODLevels_8";
+  case VolumeDataLayoutDescriptor::LODLevels_9:    return "LODLevels_9";
+  case VolumeDataLayoutDescriptor::LODLevels_10:   return "LODLevels_10";
+  case VolumeDataLayoutDescriptor::LODLevels_11:   return "LODLevels_11";
+  case VolumeDataLayoutDescriptor::LODLevels_12:   return "LODLevels_12";
+
+  default: assert(0 && "Illegal LOD levels"); return "";
+  };
+}
+
+Json::Value serializeVolumeDataLayout(VolumeDataLayout const &volumeDataLayout, MetadataContainer const &metadataContainer)
+{
+  Json::Value root;
+
+  VolumeDataLayoutDescriptor
+    layoutDescriptor = volumeDataLayout.getLayoutDescriptor();
+
+  Json::Value layoutDescriptorJson;
+
+  layoutDescriptorJson["brickSize"] = to_string(layoutDescriptor.getBrickSize());
+  layoutDescriptorJson["negativeMargin"] = layoutDescriptor.getNegativeMargin();
+  layoutDescriptorJson["positiveMargin"] = layoutDescriptor.getPositiveMargin();
+  layoutDescriptorJson["brickSize2DMultiplier"] = layoutDescriptor.getBrickSizeMultiplier2D();
+  layoutDescriptorJson["lodLevels"] = to_string(layoutDescriptor.getLODLevels());
+  layoutDescriptorJson["create2DLODs"] = layoutDescriptor.isCreate2DLODs();
+  layoutDescriptorJson["forceFullResolutionDimension"] = layoutDescriptor.isForceFullResolutionDimension();
+  layoutDescriptorJson["fullResolutionDimension"] = layoutDescriptor.getFullResolutionDimension();
+
+  root["layoutDescriptor"] = layoutDescriptorJson;
+
+  Json::Value axisDescriptorsJson(Json::ValueType::arrayValue);
+
+  for(int dimension = 0, dimensionality = volumeDataLayout.getDimensionality(); dimension < dimensionality; dimension++)
+  {
+    axisDescriptorsJson.append(serializeAxisDescriptor(volumeDataLayout.getAxisDescriptor(dimension)));
+  }
+
+  root["axisDescriptors"] = axisDescriptorsJson;
+
+  Json::Value channelDescriptorsJson(Json::ValueType::arrayValue);
+
+  for(int channel = 0, channelCount = volumeDataLayout.getChannelCount(); channel < channelCount; channel++)
+  {
+    channelDescriptorsJson.append(serializeChannelDescriptor(volumeDataLayout.getChannelDescriptor(channel)));
+  }
+
+  root["channelDescriptors"] = channelDescriptorsJson;
+
+  root["metadata"] = serializeMetadata(metadataContainer);
+
+  return root;
+}
+
+std::vector<uint8_t>
+writeJson(Json::Value root)
+{
+  std::vector<uint8_t>
+    result;
+
+  Json::StreamWriterBuilder wbuilder;
+  wbuilder["indentation"] = "    ";
+  std::string document = Json::writeString(wbuilder, root);
+
+  // strip carriage return
+  result.reserve(document.length());
+  for(char c : document)
+  {
+    if(c != '\r')
+    {
+      result.push_back(c);
+    }
+  }
+
+  return result;
 }
 
 class SyncTransferHandler : public TransferHandler

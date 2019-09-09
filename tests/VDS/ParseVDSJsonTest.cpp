@@ -19,6 +19,8 @@
 #include <OpenVDSHandle.h>
 #include <IO/File.h>
 
+#include <json/json.h>
+
 #include <cstdlib>
 
 #include <gtest/gtest.h>
@@ -27,6 +29,10 @@ namespace OpenVDS
 {
   bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error);
   bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error);
+  bool parseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error);
+
+  Json::Value serializeVolumeDataLayout(VolumeDataLayout const &volumeDataLayout, MetadataContainer const &metadataContainer);
+  std::vector<uint8_t> writeJson(Json::Value root);
 }
 
 struct TestOpenOptions : OpenVDS::OpenOptions
@@ -37,8 +43,8 @@ struct TestOpenOptions : OpenVDS::OpenOptions
 
 GTEST_TEST(OpenVDS_integration, ParseVolumeDataLayoutJson)
 {
-  std::vector<uint8_t> 
-    jsonVolumeDataLayout;
+  std::vector<uint8_t>
+    serializedVolumeDataLayout;
 
   // Read input VolumeDataLayout.json
   {
@@ -53,8 +59,8 @@ GTEST_TEST(OpenVDS_integration, ParseVolumeDataLayoutJson)
       fileSize = volumeDataLayoutFile.size(error);
     EXPECT_EQ(error.code, 0);
 
-    jsonVolumeDataLayout.resize(fileSize + 1); // remember null-termination
-    volumeDataLayoutFile.read(&jsonVolumeDataLayout[0], 0, (int32_t)fileSize, error);
+    serializedVolumeDataLayout.resize(fileSize);
+    volumeDataLayoutFile.read(serializedVolumeDataLayout.data(), 0, (int32_t)fileSize, error);
     EXPECT_EQ(error.code, 0);
   }
 
@@ -67,6 +73,33 @@ GTEST_TEST(OpenVDS_integration, ParseVolumeDataLayoutJson)
   // Clear error
   error = OpenVDS::Error();
 
-  OpenVDS::parseVolumeDataLayout(jsonVolumeDataLayout, handle, error);
+  OpenVDS::parseVolumeDataLayout(serializedVolumeDataLayout, handle, error);
   EXPECT_EQ(error.code, 0);
+
+  // Create volume data layout from descriptors
+  createVolumeDataLayout(handle);
+
+  // Serialize volume data layout
+  Json::Value
+    volumeDataLayoutJson = OpenVDS::serializeVolumeDataLayout(*handle.volumeDataLayout, handle.metadataContainer);
+
+  std::vector<uint8_t>
+    result = OpenVDS::writeJson(volumeDataLayoutJson);
+
+  std::string
+    originalString(serializedVolumeDataLayout.data(), serializedVolumeDataLayout.data() + serializedVolumeDataLayout.size()),
+    resultString(result.data(), result.data() + result.size());
+
+  // This won't work as the formatting of double numbers differs between implementations and the reference data was generated using Python
+//  EXPECT_EQ(resultString, originalString);
+
+  Json::Value originalJson, resultJson;
+
+  OpenVDS::parseJSONFromBuffer(serializedVolumeDataLayout, originalJson, error);
+  EXPECT_EQ(error.code, 0);
+
+  OpenVDS::parseJSONFromBuffer(result, resultJson, error);
+  EXPECT_EQ(error.code, 0);
+
+  EXPECT_TRUE(originalJson.compare(resultJson) == 0);
 }

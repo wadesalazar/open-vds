@@ -79,6 +79,9 @@ struct VDSHandle
                     layerMetadataContainer;
 };
 
+const char *addDescriptorString(std::string const &descriptorString, VDSHandle &handle);
+
+void createVolumeDataLayout(VDSHandle &handle);
 }
 
 #endif //OPENVDSHANDLE_H

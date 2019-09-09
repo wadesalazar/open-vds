@@ -62,7 +62,7 @@ bool Base64Decode(const char *data, int64_t len, std::vector<unsigned char> &res
 
   // skip leading whitespace
   while(len && isspace(*data)) len--, data++;
-  if(len == 0) { error = true; }
+  if(len == 0) { return true; }
 
   result.reserve(result.size() + len / 4 * 3);
 
@@ -92,21 +92,21 @@ bool Base64Decode(const char *data, int64_t len, std::vector<unsigned char> &res
 
 void Base64Encode(const unsigned char *data, int64_t len, std::vector<char> &result)
 {
-  result.reserve(((len + 2) / 3) * 4);
+  result.reserve(result.size() + ((len + 2) / 3) * 4);
 
   while(len > 0)
   {
-    int a = data[0] & 0x3f, b = (data[0] & 0xc0) >> 2, c = 0, d = 0;
+    int a = data[0] >> 2, b = (data[0] & 0x03) << 4, c = 0, d = 0;
 
-    if(len > 1) { b |= (data[1] & 0x0f); c = (data[1] & 0xf0) >> 2; }
-    if(len > 2) { c |= (data[2] & 0x03); d = (data[2] & 0xfc) >> 2; }
+    if(len > 1) { b |= data[1] >> 4; c = (data[1] & 0x0f) << 2; }
+    if(len > 2) { c |= data[2] >> 6; d = (data[2] & 0x3f) << 0; }
 
     result.push_back(Base64Table::encode(a));
     result.push_back(Base64Table::encode(b));
     result.push_back((len > 1) ? Base64Table::encode(c) : '=');
     result.push_back((len > 2) ? Base64Table::encode(d) : '=');
 
-    len -= 3;
+    len -= 3; data += 3;
   }
 }
 }

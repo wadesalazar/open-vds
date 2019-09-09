@@ -42,6 +42,10 @@ private:
   int32_t        m_baseBrickSize;
   int32_t        m_negativeRenderMargin;
   int32_t        m_positiveRenderMargin;
+  int32_t        m_brickSize2DMultiplier;
+  int32_t        m_maxLOD;
+  bool           m_isCreate2DLODs;
+
   int32_t        m_pendingWriteRequests;
   int32_t        m_actualValueRangeChannel;
   FloatRange     m_actualValueRange;
@@ -114,6 +118,8 @@ public:
 
   //REMOVE VIRTUAL?
   // Implementation of VolumeDataLayout interface
+  virtual VolumeDataLayoutDescriptor getLayoutDescriptor() const;
+
   virtual int32_t getChannelCount() const { return int32_t(m_volumeDataChannelDescriptor.size()); }
   virtual bool isChannelAvailable(const char *channelName) const;
   virtual int32_t getChannelIndex(const char *channelName) const;

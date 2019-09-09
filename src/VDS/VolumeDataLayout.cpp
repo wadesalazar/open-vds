@@ -57,6 +57,9 @@ VolumeDataLayout::VolumeDataLayout(const VDSHandle &handle,
   , m_baseBrickSize(int32_t(1) << layoutDescriptor.getBrickSize())
   , m_negativeRenderMargin(layoutDescriptor.getNegativeMargin())
   , m_positiveRenderMargin(layoutDescriptor.getPositiveMargin())
+  , m_brickSize2DMultiplier(layoutDescriptor.getBrickSizeMultiplier2D())
+  , m_maxLOD(layoutDescriptor.getLODLevels())
+  , m_isCreate2DLODs(layoutDescriptor.isCreate2DLODs())
   , m_volumeDataChannelDescriptor(volumeDataChannelDescriptor)
   , m_actualValueRangeChannel(actualValueRangeChannel)
   , m_actualValueRange(actualValueRange)
@@ -257,6 +260,42 @@ VolumeDataChannelDescriptor VolumeDataLayout::getChannelDescriptor(int32_t chann
                                      VolumeDataChannelDescriptor::Flags(bFlags._flags),
                                      volumeDataChannelDescriptor.getIntegerScale(),
                                      volumeDataChannelDescriptor.getIntegerOffset());
+}
+
+VolumeDataLayoutDescriptor VolumeDataLayout::getLayoutDescriptor() const
+{
+  VolumeDataLayoutDescriptor::BrickSize
+    brickSize;
+
+  switch(m_baseBrickSize)
+  {
+  case   32: brickSize = VolumeDataLayoutDescriptor::BrickSize_32; break;
+  case   64: brickSize = VolumeDataLayoutDescriptor::BrickSize_64; break;
+  case  128: brickSize = VolumeDataLayoutDescriptor::BrickSize_128; break;
+  case  256: brickSize = VolumeDataLayoutDescriptor::BrickSize_256; break;
+  case  512: brickSize = VolumeDataLayoutDescriptor::BrickSize_512; break;
+  case 1024: brickSize = VolumeDataLayoutDescriptor::BrickSize_1024; break;
+  case 2048: brickSize = VolumeDataLayoutDescriptor::BrickSize_2048; break;
+  case 4096: brickSize = VolumeDataLayoutDescriptor::BrickSize_4096; break;
+
+  default: assert(0 && "illegal bricksize"); brickSize = VolumeDataLayoutDescriptor::BrickSize();
+  }
+
+  VolumeDataLayoutDescriptor::LODLevels
+    lodLevels = (VolumeDataLayoutDescriptor::LODLevels)m_maxLOD;
+
+  VolumeDataLayoutDescriptor::Options
+    options = VolumeDataLayoutDescriptor::Options_None;
+
+  if(m_isCreate2DLODs)                options = options | VolumeDataLayoutDescriptor::Options_Create2DLODs;
+  if(m_fullResolutionDimension != -1) options = options | VolumeDataLayoutDescriptor::Options_ForceFullResolutionDimension;
+
+  return VolumeDataLayoutDescriptor(brickSize,
+                                    m_negativeRenderMargin, m_positiveRenderMargin,
+                                    m_brickSize2DMultiplier,
+                                    lodLevels,
+                                    options,
+                                    m_fullResolutionDimension);
 }
 
 VolumeDataAxisDescriptor VolumeDataLayout::getAxisDescriptor(int32_t dimension) const

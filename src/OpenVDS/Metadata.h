@@ -26,13 +26,33 @@
 
 namespace OpenVDS
 {
-struct MetadataKey
+
+enum class MetadataType
 {
-  std::string category;
-  std::string name;
+  Int,
+  IntVector2,
+  IntVector3,
+  IntVector4,
+  Float,
+  FloatVector2,
+  FloatVector3,
+  FloatVector4,
+  Double,
+  DoubleVector2,
+  DoubleVector3,
+  DoubleVector4,
+  String,
+  BLOB
 };
 
-inline bool operator==(const MetadataKey& a, const MetadataKey& b) { return a.category == b.category && a.name == b.name; }
+struct MetadataKey
+{
+  MetadataType type;
+  std::string  category;
+  std::string  name;
+};
+
+inline bool operator==(const MetadataKey& a, const MetadataKey& b) { return a.type == b.type && a.category == b.category && a.name == b.name; }
 
 } // end namespace OpenVDS
 
@@ -68,11 +88,12 @@ struct MetadataContainer
   std::unordered_map<MetadataKey, DoubleVector2> doubleVector2Data;
   std::unordered_map<MetadataKey, DoubleVector3> doubleVector3Data;
   std::unordered_map<MetadataKey, DoubleVector4> doubleVector4Data;
-
  
   std::unordered_map<MetadataKey, std::string> stringData;
 
   std::unordered_map<MetadataKey, std::vector<uint8_t>> blobData;
+
+  std::vector<MetadataKey> keys;
 };
 } // end namespace OpenVDS
 

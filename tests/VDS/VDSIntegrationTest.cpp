@@ -21,20 +21,14 @@
 
 #include <gtest/gtest.h>
 
-std::string getEnvironmentVariable(std::string variableName)
-{
-  const char *value = getenv(variableName.c_str());
-  return value ? value : "";
-}
-
 GTEST_TEST(OpenVDS_integration, DownloadJson)
 {
   OpenVDS::Error error;
   OpenVDS::AWSOpenOptions options;
 
-  options.region = getEnvironmentVariable("OPENVDS_TEST_AWS_REGION");
-  options.bucket = getEnvironmentVariable("OPENVDS_TEST_AWS_BUCKET");
-  options.key = getEnvironmentVariable("OPENVDS_TEST_AWS_OBJECTID");
+  options.region = TEST_AWS_REGION;
+  options.bucket = TEST_AWS_BUCKET;
+  options.key = TEST_AWS_OBJECTID;
 
   if(options.region.empty() || options.bucket.empty() || options.key.empty())
   {

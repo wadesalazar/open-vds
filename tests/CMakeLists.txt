@@ -43,3 +43,6 @@ add_test_executable(vds_integration_tests
   VDS/DeserializeVolumeDataTest.cpp
   )
 target_compile_definitions(vds_integration_tests PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
+target_compile_definitions(vds_integration_tests PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
+target_compile_definitions(vds_integration_tests PRIVATE -DTEST_AWS_BUCKET="${TEST_AWS_BUCKET}")
+target_compile_definitions(vds_integration_tests PRIVATE -DTEST_AWS_OBJECTID="${TEST_AWS_OBJECTID}")

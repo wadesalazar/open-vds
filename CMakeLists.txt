@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.10.2)
 project(Open-VDS)
 
 set (TEST_DATA_PATH "" CACHE PATH "Test data path")
+set (TEST_AWS_REGION "" CACHE STRING "Test AWS region")
+set (TEST_AWS_BUCKET "" CACHE STRING "Test AWS bucket")
+set (TEST_AWS_OBJECTID "" CACHE STRING "Test AWS object ID")
+
 set (CMAKE_CXX_STANDARD 11)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
