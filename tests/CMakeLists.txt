@@ -22,8 +22,7 @@ macro(add_test_executable name)
 endmacro()
 
 add_test_executable(io_tests
-  io/filetest.cpp
-  io/s3test.cpp)
+  io/filetest.cpp)
 
 add_test_executable(jsoncpp_tests
   jsoncpp/jsoncpp_parse.cpp

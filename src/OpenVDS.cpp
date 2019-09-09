@@ -19,7 +19,6 @@
 
 #include <OpenVDSHandle.h>
 
-#include <IO/S3_Downloader.h>
 #include <VDS/ParseVDSJson.h>
 
 #include <memory>

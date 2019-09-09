@@ -20,7 +20,6 @@
 #include "VolumeDataLayout.h"
 #include "VolumeDataHash.h"
 #include "MetadataManager.h"
-#include <IO/S3_Downloader.h>
 
 #include <json/json.h>
 

@@ -3,7 +3,6 @@ set(SOURCE_FILES
   IO/File.cpp
   IO/Linux_File.cpp
   IO/Win_File.cpp
-  IO/S3_Downloader.cpp
   IO/IOManager.cpp
   IO/IOManagerAWS.cpp
   VDS/VolumeDataPartition.cpp
@@ -30,7 +29,6 @@ set(SOURCE_FILES
 
 set (PRIVATE_HEADER_FILES
   IO/File.h
-  IO/S3_Downloader.h
   IO/IOManager.h
   IO/IOManagerAWS.h
   VDS/VolumeDataPartition.h
