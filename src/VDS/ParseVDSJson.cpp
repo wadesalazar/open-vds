@@ -841,7 +841,7 @@ Json::Value serializeChannelDescriptor(VolumeDataChannelDescriptor const &channe
   return channelDescriptorJson;
 }
 
-template<typename T, int N>
+template<typename T, size_t N>
 Json::Value serializeVector(Vector<T, N> const &vector)
 {
   static_assert(N > 1 && N <= 4, "Only vectors with 2, 3 or 4 elements are supported");
