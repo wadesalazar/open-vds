@@ -1,4 +1,5 @@
-function(BuildExternal name version source_dir install_libs runtime_libs cmake_args)
+function(BuildExternal name version source_dir install_libs_release runtime_libs_release install_libs_debug runtime_libs_debug cmake_args)
+
   set(INSTALL_INT "${PROJECT_BINARY_DIR}/${name}_${version}_install")
   set(INSTALL_INT_CONFIG "${INSTALL_INT}/$<CONFIG>")
 
@@ -10,17 +11,37 @@ function(BuildExternal name version source_dir install_libs runtime_libs cmake_a
   else()
     set(CMAKE_BUILD_TYPE_ARG "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
     set(INSTALL_INT_CONFIG "${INSTALL_INT}/${CMAKE_BUILD_TYPE}")
-    foreach (LIB IN LISTS install_libs)
+    foreach (LIB IN LISTS install_libs_release)
+      list(APPEND BUILDBYPRODUCTS "${INSTALL_INT_CONFIG}/${LIB}")
+    endforeach()
+    foreach (LIB IN LISTS install_libs_debug)
       list(APPEND BUILDBYPRODUCTS "${INSTALL_INT_CONFIG}/${LIB}")
     endforeach()
   endif()
-  foreach (LIB IN LISTS install_libs)
-    list(APPEND LIBS_LIST "${INSTALL_INT_CONFIG}/${LIB}")
+
+  if (NOT install_libs_debug)
+    list(APPEND install_libs_debug ${install_libs_release})
+  endif()
+
+  if (NOT runtime_libs_debug)
+    list(APPEND runtime_libs_debug ${runtime_libs_release})
+  endif()
+
+  foreach (LIB IN LISTS install_libs_release)
+    set_property(GLOBAL APPEND PROPERTY OPENVDS_LINK_LIBRARIES_RELEASE "${INSTALL_INT_CONFIG}/${LIB}")
+  endforeach()
+  foreach (LIB IN LISTS install_libs_debug)
+    set_property(GLOBAL APPEND PROPERTY OPENVDS_LINK_LIBRARIES_DEBUG "${INSTALL_INT_CONFIG}/${LIB}")
   endforeach()
 
-  foreach (LIB IN LISTS runtime_libs)
-    list(APPEND RUNTIME_LIST "${INSTALL_INT_CONFIG}/${LIB}")
+  foreach (LIB IN LISTS runtime_libs_release)
+    set_property(GLOBAL APPEND PROPERTY RUNTIME_LIBS_RELEASE "${INSTALL_INT_CONFIG}/${LIB}")
   endforeach()
+  foreach (LIB IN LISTS runtime_libs_debug)
+    set_property(GLOBAL APPEND PROPERTY RUNTIME_LIBS_DEBUG "${INSTALL_INT_CONFIG}/${LIB}")
+  endforeach()
+
+  set_property(GLOBAL APPEND PROPERTY OPENVDS_INCLUDE_LIBRARIES "${INSTALL_INT_CONFIG}/include")
 
   include(ExternalProject)
   ExternalProject_Add(${name}
@@ -31,12 +52,5 @@ function(BuildExternal name version source_dir install_libs runtime_libs cmake_a
     INSTALL_DIR ${INSTALL_INT}
     CMAKE_ARGS ${cmake_args};${CMAKE_BUILD_TYPE_ARG};-DCMAKE_INSTALL_PREFIX=${INSTALL_INT_CONFIG}
     BUILD_BYPRODUCTS ${BUILDBYPRODUCTS})
-
-  #parent scope variables cant be used in this file
-  set("${name}_INCLUDE_PATH" ${INSTALL_INT_CONFIG}/include PARENT_SCOPE)
-  set("${name}_LIBS" ${LIBS_LIST} PARENT_SCOPE)
-  if (RUNTIME_LIST)
-    set("${name}_RUNTIME" ${RUNTIME_LIST} PARENT_SCOPE)
-  endif()
 endfunction()
 

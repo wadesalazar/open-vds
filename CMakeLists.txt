@@ -8,6 +8,12 @@ set (TEST_AWS_OBJECTID "" CACHE STRING "Test AWS object ID")
 
 set (CMAKE_CXX_STANDARD 11)
 
+define_property(GLOBAL PROPERTY RUNTIME_LIBS_RELEASE BRIEF_DOCS "Runtime libraries" FULL_DOCS "Files that will be copied to test folders")
+define_property(GLOBAL PROPERTY RUNTIME_LIBS_DEBUG   BRIEF_DOCS "Runtime libraries" FULL_DOCS "Files that will be copied to test folders")
+define_property(GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_RELEASE BRIEF_DOCS "OpenVDS link libraries" FULL_DOCS "Files OpenVDS will link with")
+define_property(GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_DEBUG   BRIEF_DOCS "OpenVDS link libraries" FULL_DOCS "Files OpenVDS will link with")
+define_property(GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES BRIEF_DOCS "OpenVDS include libraries" FULL_DOCS "Include paths for 3rdparty")
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 find_package(Threads)
 

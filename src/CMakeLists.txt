@@ -80,19 +80,26 @@ add_library(openvds_objects OBJECT
   ${SOURCE_FILES})
 
 find_package(OpenMP REQUIRED)
+
+get_property(link_3rdparty_release GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_RELEASE)
+get_property(link_3rdparty_debug   GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_DEBUG)
+get_property(include_3rdparty      GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES)
+
 add_dependencies(openvds_objects aws-cpp-sdk)
-target_include_directories(openvds_objects PRIVATE "${aws-cpp-sdk_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
+
+target_include_directories(openvds_objects PRIVATE ${include_3rdparty} "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(openvds_objects PRIVATE openvds_EXPORTS)
 
 target_link_libraries(openvds_objects Threads::Threads)
 target_link_libraries(openvds_objects jsoncpp_lib_static)
-target_link_libraries(openvds_objects ${aws-cpp-sdk_EXTERNAL_LIBS} ${aws-cpp-sdk_LIBS})
+if (aws-cpp-sdk_EXTERNAL_LIBS)
+  target_link_libraries(openvds_objects ${aws-cpp-sdk_EXTERNAL_LIBS})
+endif()
+target_link_libraries(openvds_objects $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)
 target_link_libraries(openvds_objects OpenMP::OpenMP_CXX)
 
 if (BUILD_ZLIB)
   add_dependencies(openvds_objects zlib)
-  target_include_directories(openvds_objects PRIVATE "${zlib_INCLUDE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}")
-  target_link_libraries(openvds_objects ${zlib_LIBS})
 else()
   find_package(ZLIB REQUIRED)
   target_link_libraries(openvds_objects ZLIB::ZLIB)
