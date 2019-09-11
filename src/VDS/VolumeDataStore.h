@@ -30,12 +30,6 @@
 namespace OpenVDS
 {
 
-class WaveletAdaptiveLevelsMetadata
-{
-public:
-  uint8_t m_levels[WAVELET_ADAPTIVE_LEVELS];
-};
-
 struct VolumeDataStore
 {
   static bool verify(const VolumeDataChunk& volumeDataChunk, const std::vector<uint8_t>& serializedData, CompressionMethod compressionMethod, bool isFullyRead);

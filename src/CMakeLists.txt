@@ -61,6 +61,7 @@ set (PRIVATE_HEADER_FILES
   VDS/FSE/mem.h
   VDS/FSE/fse.h
   VDS/Rle.h
+  VDS/ValueConversion.h
   )
 
 set (EXPORTED_HEADER_FILES
