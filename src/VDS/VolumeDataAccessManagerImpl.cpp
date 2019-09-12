@@ -562,4 +562,45 @@ bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::v
   return true;
 }
 
+void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPage)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  for(auto &pendingRequestKeyValuePair : m_pendingRequests)
+  {
+    VolumeDataChunk const volumeDataChunk = pendingRequestKeyValuePair.first;
+    PendingRequest &pendingRequest = pendingRequestKeyValuePair.second;
+
+    if(pendingRequest.m_lockedMetadataPage == metadataPage)
+    {
+      MetadataManager *metadataManager = metadataPage->GetManager();
+
+      int32_t pageIndex = (int)(volumeDataChunk.chunkIndex / metadataManager->metadataStatus().m_chunkMetadataPageSize);
+      int32_t entryIndex = (int)(volumeDataChunk.chunkIndex % metadataManager->metadataStatus().m_chunkMetadataPageSize);
+
+      assert(pageIndex == metadataPage->PageIndex());
+
+      if (metadataPage->IsValid())
+      {
+
+        uint8_t const *metadata = metadataManager->getPageEntry(metadataPage, entryIndex);
+
+        ParsedMetadata parsedMetadata = parseMetadata(metadataManager->metadataStatus().m_chunkMetadataByteSize, metadata);
+      
+        metadataManager->unlockPage(metadataPage);
+        pendingRequest.m_lockedMetadataPage = nullptr;
+
+        int adaptiveLevel;
+
+        IORange ioRange = calculateRangeHeaderImpl(parsedMetadata, metadataManager->metadataStatus(), &adaptiveLevel);
+
+        std::string url = makeURLForChunk(metadataManager->layerUrlStr(), volumeDataChunk.chunkIndex);
+
+        pendingRequest.m_activeTransfer = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
+      }
+    }
+  }
+  m_pendingRequestChangedCondition.notify_all();
+}
+
 }

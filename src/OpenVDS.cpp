@@ -46,11 +46,18 @@ VDSHandle *open(const OpenOptions &options, Error &error)
   return ret.release();
 }
 
-VolumeDataLayout *layout(VDSHandle *handle)
+VolumeDataLayout *getLayout(VDSHandle *handle)
 {
   if (!handle)
     return nullptr;
   return handle->volumeDataLayout.get();
+}
+
+VolumeDataAccessManager *getDataAccessManager(VDSHandle *handle)
+{
+  if (!handle)
+    return nullptr;
+  return handle->dataAccessManager.get();
 }
 
 const char *addDescriptorString(std::string const &descriptorString, VDSHandle &handle)

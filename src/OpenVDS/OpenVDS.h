@@ -77,8 +77,8 @@ OPENVDS_EXPORT VDSHandle* open(const OpenOptions& options, Error &error);
 OPENVDS_EXPORT VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
 OPENVDS_EXPORT void       destroy(VDSHandle *handle);
 
-OPENVDS_EXPORT VolumeDataLayout *layout(VDSHandle *handle);
-OPENVDS_EXPORT VolumeDataAccessManager *dataAccessManager(VDSHandle *handle);
+OPENVDS_EXPORT VolumeDataLayout *getLayout(VDSHandle *handle);
+OPENVDS_EXPORT VolumeDataAccessManager *getDataAccessManager(VDSHandle *handle);
 }
 
 #endif //OPENVDS_H

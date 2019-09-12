@@ -179,6 +179,8 @@ public:
 
   bool prepareReadChunkData(const VolumeDataChunk& chunk, int32_t(&pitch)[Dimensionality_Max], bool verbose, Error& error);
   bool readChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
+  void pageTransferCompleted(MetadataPage* page);
+  
 private:
   VolumeDataLayout *m_layout;
   IOManager *m_ioManager;

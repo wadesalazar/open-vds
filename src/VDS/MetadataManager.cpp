@@ -18,7 +18,7 @@
 #include "MetadataManager.h"
 
 #include <IO/IOManager.h>
-
+#include "VolumeDataAccessManagerImpl.h"
 #include <assert.h>
 
 namespace OpenVDS
@@ -27,25 +27,27 @@ namespace OpenVDS
 class MetadataPageTransfer : public TransferHandler
 {
 public:
-MetadataPageTransfer(std::vector<uint8_t> &targetData)
-    : m_targetData(targetData)
+MetadataPageTransfer(MetadataManager *manager, MetadataPage *metadataPage)
+  : manager(manager)
+  , metadataPage(metadataPage)
 { }
-
-std::vector<uint8_t> &m_targetData;
 
 void handleData(std::vector<uint8_t> &&data) override
 {
-  m_targetData = data;
+  manager->pageTransferCompleted(metadataPage, std::move(data));
 }
 
 void handleError(Error &error) override
 {
 }
 
+MetadataManager *manager;
+MetadataPage *metadataPage;
 };
 
-MetadataManager::MetadataManager(IOManager *iomanager, std::string const &layerUrl, MetadataStatus const &metadataStatus, int pageLimit)
+MetadataManager::MetadataManager(IOManager* iomanager, VolumeDataAccessManagerImpl* accessManager, std::string const& layerUrl, MetadataStatus const& metadataStatus, int pageLimit)
     : m_iomanager(iomanager)
+    , m_accessManager(accessManager)
     , m_layerUrl(layerUrl)
     , m_metadataStatus(metadataStatus)
     , m_pageLimit(pageLimit)
@@ -113,7 +115,7 @@ void MetadataManager::initiateTransfer(MetadataPage *page, std::string const &ur
 
   assert(!page->m_valid && !page->m_activeTransfer);
 
-  page->m_activeTransfer = m_iomanager->requestObject(url, std::make_shared<MetadataPageTransfer>(page->m_data));
+  page->m_activeTransfer = m_iomanager->requestObject(url, std::make_shared<MetadataPageTransfer>(this, page));
 }
 
 void MetadataManager::pageTransferError(MetadataPage *page, const char *msg)
@@ -134,14 +136,16 @@ void MetadataManager::pageTransferError(MetadataPage *page, const char *msg)
   //TODO pendingrequestchangedcondition.notify_all
 }
 
-void MetadataManager::pageTransferCompleted(MetadataPage *page)
+void MetadataManager::pageTransferCompleted(MetadataPage *page, std::vector<uint8_t> &&data)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
-
+  page->m_data = data;
   page->m_valid = true;
   page->m_activeTransfer = nullptr;
-
   lock.unlock();
+
+  m_accessManager->pageTransferCompleted(page);
+
 }
 
 

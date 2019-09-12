@@ -37,6 +37,7 @@ VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerIm
   , m_layer(layer)
   , m_maxPages(maxPages)
   , m_isReadWrite(isReadWrite)
+  , m_isCommitInProgress(false)
 {
 }
   

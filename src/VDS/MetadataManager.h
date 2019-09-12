@@ -82,9 +82,12 @@ namespace OpenVDS
   typedef std::list<MetadataPage> MetadataPageList;
 
   class IOManager;
+  class VolumeDataAccessManagerImpl;
+
   class MetadataManager
   {
     IOManager *m_iomanager;
+    VolumeDataAccessManagerImpl *m_accessManager;
     std::string m_layerUrl;
 
     MetadataStatus m_metadataStatus;
@@ -100,7 +103,7 @@ namespace OpenVDS
 
     void limitPages();
   public:
-    MetadataManager(IOManager *iomanager, std::string const &layerURL, MetadataStatus const &metadataStatus, int pageLimit);
+    MetadataManager(IOManager *iomanager, VolumeDataAccessManagerImpl *accessManager, std::string const &layerURL, MetadataStatus const &metadataStatus, int pageLimit);
     ~MetadataManager();
 
     const char *layerUrl() const { return m_layerUrl.c_str(); }
@@ -110,7 +113,7 @@ namespace OpenVDS
 
     void pageTransferError(MetadataPage *page, const char *msg);
 
-    void pageTransferCompleted(MetadataPage *page);
+    void pageTransferCompleted(MetadataPage* page, std::vector<uint8_t>&& data);
 
     void initiateTransfer(MetadataPage *page, std::string const &url, bool verbose);
 
