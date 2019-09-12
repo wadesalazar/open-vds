@@ -41,7 +41,7 @@ struct TestOpenOptions : OpenVDS::OpenOptions
 };
 
 
-GTEST_TEST(OpenVDS_integration, ParseVolumeDataLayoutJson)
+GTEST_TEST(VDS_integration, ParseVolumeDataLayoutJson)
 {
   std::vector<uint8_t>
     serializedVolumeDataLayout;

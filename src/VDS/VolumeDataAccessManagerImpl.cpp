@@ -596,7 +596,9 @@ void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPa
 
         std::string url = makeURLForChunk(metadataManager->layerUrlStr(), volumeDataChunk.chunkIndex);
 
-        pendingRequest.m_activeTransfer = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
+        auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
+        pendingRequest.m_activeTransfer = m_ioManager->requestObject(url, transferHandler, ioRange);
+        pendingRequest.m_transferHandle = transferHandler;
       }
     }
   }

@@ -147,7 +147,7 @@ static std::vector<uint8_t> loadTestFile(const std::string &file)
     return serializedData;
 }
 
-GTEST_TEST(OpenVDS_integration, DeSerializeVolumeData)
+GTEST_TEST(VDS_integration, DeSerializeVolumeData)
 {
 
   OpenVDS::Error error;
