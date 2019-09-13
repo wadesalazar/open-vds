@@ -139,6 +139,8 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
   error = Error();
   std::unique_ptr<VDSHandle> handle(new VDSHandle(options, error));
 
+  handle->layoutDescriptor = layoutDescriptor;
+
   for(auto axisDescriptor : axisDescriptors)
   {
     handle->axisDescriptors.push_back(VolumeDataAxisDescriptor(axisDescriptor.getNumSamples(), addDescriptorString(axisDescriptor.getName(), *handle), addDescriptorString(axisDescriptor.getUnit(), *handle), axisDescriptor.getCoordinateMin(), axisDescriptor.getCoordinateMax()));
@@ -148,6 +150,8 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
   {
     handle->channelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.getFormat(), channelDescriptor.getComponents(), addDescriptorString(channelDescriptor.getName(), *handle), addDescriptorString(channelDescriptor.getUnit(), *handle), channelDescriptor.getValueRangeMin(), channelDescriptor.getValueRangeMax()));
   }
+
+  handle->metadataContainer = metadataContainer;
 
   createVolumeDataLayout(*handle);
 
