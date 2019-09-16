@@ -16,20 +16,31 @@
 ****************************************************************************/
 
 #include "VolumeDataHash.h"
+#include "Hash.h"
 
 #include <mutex>
+#include <chrono>
 #include <random>
 
 namespace OpenVDS
 {
+
+static uint64_t createSeed()
+{
+  static HashCombiner hash;
+  hash.add(std::chrono::system_clock::now().time_since_epoch().count());
+  hash.add(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+  return hash.getCombinedHash();
+}
+
 uint64_t VolumeDataHash::getUniqueHash()
 {
   static std::mutex hashMutex;
 
   std::lock_guard<std::mutex> lock(hashMutex); 
 
-  static std::default_random_engine upper;
-  static std::default_random_engine lower;
+  static std::default_random_engine upper(static_cast<std::default_random_engine::result_type>(createSeed()));
+  static std::default_random_engine lower(static_cast<std::default_random_engine::result_type>(createSeed()));
 
   std::uniform_int_distribution<uint32_t> distribution;
 
