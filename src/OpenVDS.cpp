@@ -160,7 +160,9 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
 
   if (!serializeAndUploadVDSJson(*handle, error))
     return nullptr;
-  
+
+  handle->dataAccessManager.reset(new VolumeDataAccessManagerImpl(handle.get()));
+
   return handle.release();
 }
 
