@@ -376,7 +376,7 @@ VolumeDataPartition::getChunkMinMax(int64_t chunk, int32_t *min, int32_t *max, b
       }
       else
       {
-        nMax = std::max(nMax + m_positiveMargin[iDimension], m_dimensionNumSamples[iDimension] + m_positiveBorder[iDimension]);
+        nMax = std::min(nMax + m_positiveMargin[iDimension], m_dimensionNumSamples[iDimension] + m_positiveBorder[iDimension]);
       }
     }
 

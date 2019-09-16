@@ -711,9 +711,9 @@ bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompr
   assert(m_dataVersion == WAVELET_DATA_VERSION_1_4);
   initCoder();
 
-  int *startOfCompressedData = (int *)m_compressedData;
+  int32_t *startOfCompressedData = (int32_t *)m_compressedData;
 
-  int32_t compressedSize = m_wordCompressedData[1];
+  int32_t compressedSize = startOfCompressedData[1];
 
   // no data?
   if (compressedSize < WAVELET_MIN_COMPRESSED_HEADER)

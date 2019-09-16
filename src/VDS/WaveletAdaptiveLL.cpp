@@ -480,10 +480,10 @@ static void evalAndSplitAllNormal(const WaveletAdaptiveLL_DecodeIterator& decode
       nChildrenOut += tempOutputItemIndices[thread];
     }
 
-    if (tempOutputItemIndices[thread])
+    if (tempOutputPosIndices[thread])
     {
-      memmove(outputPos + nValuesOut, tempOutputPos[thread], tempOutputItemIndices[thread] * sizeof(int));
-      nValuesOut += tempOutputItemIndices[thread];
+      memmove(outputPos + nValuesOut, tempOutputPos[thread], tempOutputPosIndices[thread] * sizeof(int));
+      nValuesOut += tempOutputPosIndices[thread];
     }
 
     if (tempInputItemIndices[thread])

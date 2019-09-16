@@ -442,14 +442,8 @@ static std::string makeURLForChunk(const std::string &layerUrl, uint64_t chunk)
   return std::string(url);
 }
 
-bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &chunk, int32_t (&pitch)[Dimensionality_Max], bool verbose, Error &error)
+bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &chunk, bool verbose, Error &error)
 {
-  // This can probably be improved by looking up the data directly in the cache and not requesting it if it's valid,
-  // similar to the VolumeSamples code
-
-  for(auto &p : pitch)
-    p = 0;
-
   int32_t channel = chunk.layer->getChannelIndex();
   const char *channelName = channel > 0 ? chunk.layer->getLayout()->getChannelName(chunk.layer->getChannelIndex()) : "";
   int32_t lod = chunk.layer->getLOD();
@@ -481,7 +475,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
     char url[1000];
     snprintf(url, sizeof(url), "%s/ChunkMetadata/%d", layerURL, pageIndex);
 
-    metadataManager->initiateTransfer(metadataPage, url, verbose);
+    metadataManager->initiateTransfer(this, metadataPage, url, verbose);
   }
 
   // Check if the page is not valid and we need to add the request later when the metadata page transfer completes

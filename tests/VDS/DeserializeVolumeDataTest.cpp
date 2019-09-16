@@ -29,7 +29,7 @@
 
 namespace OpenVDS
 {
-  bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, bool isRenderable, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, DataBlock &dataBlock, std::vector<uint8_t> &destination, Error &error);
+  bool deserializeVolumeData(const std::vector<uint8_t>& serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, const FloatRange& valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, DataBlock& dataBlock, std::vector<uint8_t>& destination, Error& error);
 }
 
 static void stats(const OpenVDS::DataBlock &aDataBlock, const std::vector<uint8_t> &aData, const OpenVDS::DataBlock &bDataBlock, const std::vector<uint8_t> &bData, double &diff, double &maxError, double &deviation, double &samples)
@@ -155,14 +155,14 @@ GTEST_TEST(VDS_integration, DeSerializeVolumeData)
   std::vector<uint8_t> serializedNone = loadTestFile("/chunk.CompressionMethod_None");
   std::vector<uint8_t> dataNone;
   OpenVDS::DataBlock dataBlockNone;
-  OpenVDS::deserializeVolumeData(serializedNone, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::None, true, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockNone, dataNone, error);
+  OpenVDS::deserializeVolumeData(serializedNone, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::None, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockNone, dataNone, error);
   EXPECT_EQ(error.code, 0);
   
   
   std::vector<uint8_t> serializedWavelet = loadTestFile("/chunk.CompressionMethod_Wavelet");
   std::vector<uint8_t> dataWavelet;
   OpenVDS::DataBlock dataBlockWavelet;
-  OpenVDS::deserializeVolumeData(serializedWavelet, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::Wavelet, true, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockWavelet, dataWavelet, error);
+  OpenVDS::deserializeVolumeData(serializedWavelet, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::Wavelet, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockWavelet, dataWavelet, error);
   EXPECT_EQ(error.code, 0);
 
   EXPECT_EQ(dataNone.size(), dataWavelet.size());
@@ -182,7 +182,7 @@ GTEST_TEST(VDS_integration, DeSerializeVolumeData)
   std::vector<uint8_t> serializedRLE = loadTestFile("/chunk.CompressionMethod_RLE");
   std::vector<uint8_t> dataRLE;
   OpenVDS::DataBlock dataBlockRLE;
-  OpenVDS::deserializeVolumeData(serializedRLE, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::RLE, true, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockRLE, dataRLE, error);
+  OpenVDS::deserializeVolumeData(serializedRLE, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::RLE, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockRLE, dataRLE, error);
   EXPECT_EQ(error.code, 0);
 
   EXPECT_EQ(dataNone.size(), dataRLE.size());
@@ -192,7 +192,7 @@ GTEST_TEST(VDS_integration, DeSerializeVolumeData)
   std::vector<uint8_t> serializedZip = loadTestFile("/chunk.CompressionMethod_Zip");
   std::vector<uint8_t> dataZip;
   OpenVDS::DataBlock dataBlockZip;
-  OpenVDS::deserializeVolumeData(serializedZip, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::Zip, true, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockZip, dataZip, error);
+  OpenVDS::deserializeVolumeData(serializedZip, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::Zip, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockZip, dataZip, error);
   EXPECT_EQ(error.code, 0);
 
   EXPECT_EQ(dataNone.size(), dataZip.size());

@@ -38,8 +38,6 @@ private:
 
   int32_t m_pins;
 
-  void *m_buffer;
-
   bool m_isDirty;
 
   int32_t m_pitch[Dimensionality_Max];

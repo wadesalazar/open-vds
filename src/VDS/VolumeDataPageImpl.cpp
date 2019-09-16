@@ -102,7 +102,6 @@ VolumeDataPageImpl::VolumeDataPageImpl(VolumeDataPageAccessorImpl* volumeDataPag
   , m_chunk(chunk)
   , m_blob()
   , m_pins(1)
-  , m_buffer(nullptr)
   , m_isDirty(false)
   , m_chunksCopiedTo(0)
 {
@@ -122,8 +121,6 @@ VolumeDataPageImpl::~VolumeDataPageImpl()
   {
     fprintf(stderr, "OpenVDS: VolumeDataPage was not released before VolumeDataPageAccessor was destructed");
   }
-
-  m_buffer = NULL;
 }
 
   // All these methods require the caller to hold a lock
@@ -174,7 +171,7 @@ void VolumeDataPageImpl::setBufferData(std::vector<uint8_t>&& blob, const int(&p
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
 
-  m_blob = blob;
+  m_blob = std::move(blob);
 
   for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
   {
@@ -197,12 +194,7 @@ void* VolumeDataPageImpl::getBufferInternal(int(&anPitch)[Dimensionality_Max], b
     anPitch[iDimension] = m_pitch[iDimension];
   }
 
-  if(!m_buffer)
-  {
-    m_buffer = m_blob.data();
-  }
-
-  return m_buffer;
+  return m_blob.data();
 }
 
 bool VolumeDataPageImpl::isCopyMarginNeeded(VolumeDataPageImpl* targetPage)

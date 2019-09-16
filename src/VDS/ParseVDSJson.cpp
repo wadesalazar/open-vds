@@ -747,7 +747,7 @@ bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error
         {
           int pageLimit = handle.axisDescriptors.size() <= 3 ? 64 : 1024;
 
-          handle.layerMetadataContainer.managers.insert(std::make_pair(layerName, std::unique_ptr<MetadataManager>(new MetadataManager(handle.ioManager.get(), static_cast<VolumeDataAccessManagerImpl *>(handle.dataAccessManager.get()), layerName, metadataStatus, pageLimit))));
+          handle.layerMetadataContainer.managers.insert(std::make_pair(layerName, std::unique_ptr<MetadataManager>(new MetadataManager(handle.ioManager.get(), layerName, metadataStatus, pageLimit))));
         }
       }
     }

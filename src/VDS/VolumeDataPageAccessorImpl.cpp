@@ -176,13 +176,9 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
 
   assert(page->isPinned());
 
-  std::vector<uint8_t> blob;
-
-  int32_t pitch[Dimensionality_Max];
-
   Error error;
   VolumeDataChunk volumeDataChunk = m_layer->getChunkFromIndex(chunk);
-  if (!m_accessManager->prepareReadChunkData(volumeDataChunk, pitch, true, error))
+  if (!m_accessManager->prepareReadChunkData(volumeDataChunk, true, error))
   {
     page->unPin();
     fprintf(stderr, "Failed to download chunk: %s\n", error.string.c_str());
@@ -191,10 +187,10 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
 
   pageMutexLocker.unlock();
 
-  std::vector<uint8_t> page_data;
+  std::vector<uint8_t> serialized_data;
   std::vector<uint8_t> metadata;
   CompressionInfo compressionInfo;
-  if (!m_accessManager->readChunk(volumeDataChunk, page_data, metadata, compressionInfo, error))
+  if (!m_accessManager->readChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, error))
   {
     pageMutexLocker.lock();
     page->unPin();
@@ -202,12 +198,23 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
     return nullptr;
   }
 
-  if (!VolumeDataStore::deserializeVolumeData(volumeDataChunk, page_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->getFormat(), page_data, error))
+  std::vector<uint8_t> page_data;
+  DataBlock dataBlock;
+  if (!VolumeDataStore::deserializeVolumeData(volumeDataChunk, serialized_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->getFormat(), dataBlock, page_data, error))
   {
     pageMutexLocker.lock();
     page->unPin();
     fprintf(stderr, "Failed when deserializing chunk: %s\n", error.string.c_str());
     return nullptr;
+  }
+
+  int pitch[Dimensionality_Max];
+  for (int i = 0; i < std::size(pitch); i++)
+  {
+    if (i < std::size(dataBlock.pitch))
+      pitch[i] = dataBlock.pitch[i];
+    else
+      pitch[i] = 1;
   }
 
   pageMutexLocker.lock();

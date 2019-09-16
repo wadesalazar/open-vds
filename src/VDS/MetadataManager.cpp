@@ -27,14 +27,15 @@ namespace OpenVDS
 class MetadataPageTransfer : public TransferHandler
 {
 public:
-MetadataPageTransfer(MetadataManager *manager, MetadataPage *metadataPage)
+MetadataPageTransfer(MetadataManager *manager, VolumeDataAccessManagerImpl *accessManager, MetadataPage *metadataPage)
   : manager(manager)
+  , accessManager(accessManager)
   , metadataPage(metadataPage)
 { }
 
 void handleData(std::vector<uint8_t> &&data) override
 {
-  manager->pageTransferCompleted(metadataPage, std::move(data));
+  manager->pageTransferCompleted(accessManager, metadataPage, std::move(data));
 }
 
 void handleError(Error &error) override
@@ -42,25 +43,27 @@ void handleError(Error &error) override
 }
 
 MetadataManager *manager;
+VolumeDataAccessManagerImpl *accessManager;
 MetadataPage *metadataPage;
 };
 
-MetadataManager::MetadataManager(IOManager* iomanager, VolumeDataAccessManagerImpl* accessManager, std::string const& layerUrl, MetadataStatus const& metadataStatus, int pageLimit)
-    : m_iomanager(iomanager)
-    , m_accessManager(accessManager)
-    , m_layerUrl(layerUrl)
-    , m_metadataStatus(metadataStatus)
-    , m_pageLimit(pageLimit)
-{}
+MetadataManager::MetadataManager(IOManager* iomanager, std::string const& layerUrl, MetadataStatus const& metadataStatus, int pageLimit)
+  : m_iomanager(iomanager)
+  , m_layerUrl(layerUrl)
+  , m_metadataStatus(metadataStatus)
+  , m_pageLimit(pageLimit)
+{
+}
 
 MetadataManager::~MetadataManager()
-{}
+{
+}
 
 void MetadataManager::limitPages()
 {
   assert(m_pageMap.size() == m_pageList.size());
 
-  while(m_pageList.size() > m_pageLimit && m_pageList.back().m_lockCount == 0)
+  while (m_pageList.size() > m_pageLimit && m_pageList.back().m_lockCount == 0)
   {
     m_pageMap.erase(m_pageList.back().m_pageIndex);
     m_pageList.pop_back();
@@ -69,8 +72,8 @@ void MetadataManager::limitPages()
   assert(m_pageMap.size() == m_pageList.size());
 }
 
-MetadataPage *
-MetadataManager::lockPage(int pageIndex, bool *initiateTransfer)
+MetadataPage*
+MetadataManager::lockPage(int pageIndex, bool* initiateTransfer)
 {
   assert(initiateTransfer);
 
@@ -80,7 +83,7 @@ MetadataManager::lockPage(int pageIndex, bool *initiateTransfer)
 
   MetadataPageMap::iterator mi = m_pageMap.find(pageIndex);
 
-  if(mi != m_pageMap.end())
+  if (mi != m_pageMap.end())
   {
     // Move page to front of list
     m_pageList.splice(m_pageList.begin(), m_pageList, mi->second);
@@ -96,7 +99,7 @@ MetadataManager::lockPage(int pageIndex, bool *initiateTransfer)
     *initiateTransfer = true;
   }
 
-  MetadataPage *page = std::addressof(*m_pageList.begin());
+  MetadataPage* page = std::addressof(*m_pageList.begin());
 
   page->m_lockCount++;
 
@@ -109,43 +112,41 @@ MetadataManager::lockPage(int pageIndex, bool *initiateTransfer)
   return page;
 }
 
-void MetadataManager::initiateTransfer(MetadataPage *page, std::string const &url, bool verbose)
+void MetadataManager::initiateTransfer(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::string const& url, bool verbose)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
   assert(!page->m_valid && !page->m_activeTransfer);
 
-  page->m_activeTransfer = m_iomanager->requestObject(url, std::make_shared<MetadataPageTransfer>(this, page));
+  page->m_activeTransfer = m_iomanager->requestObject(url, std::make_shared<MetadataPageTransfer>(this, accessManager, page));
 }
 
-void MetadataManager::pageTransferError(MetadataPage *page, const char *msg)
+void MetadataManager::pageTransferError(MetadataPage* page, const char* msg)
 {
   std::string
     errorString = std::string("Failed to transfer metadata page: ") + std::string(msg);
 
   fprintf(stderr, "OpenVDS: %s\n", errorString.c_str());
 
-// what to do
-//  std::unique_lock<std::mutex> metadataManagersMutexLock(VDSRemotePlugin::s_metadataManagersMutex);
-//
-//  for(auto pluginInstance : m_references)
-//  {
-//    pluginInstance->PageTransferCompleted(page);
+  // what to do
+  //  std::unique_lock<std::mutex> metadataManagersMutexLock(VDSRemotePlugin::s_metadataManagersMutex);
+  //
+  //  for(auto pluginInstance : m_references)
+  //  {
+  //    pluginInstance->PageTransferCompleted(page);
 //  }
 
   //TODO pendingrequestchangedcondition.notify_all
 }
 
-void MetadataManager::pageTransferCompleted(MetadataPage *page, std::vector<uint8_t> &&data)
+void MetadataManager::pageTransferCompleted(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::vector<uint8_t> &&data)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
-  page->m_data = data;
+  page->m_data = std::move(data);
   page->m_valid = true;
-  page->m_activeTransfer = nullptr;
   lock.unlock();
 
-  m_accessManager->pageTransferCompleted(page);
-
+  accessManager->pageTransferCompleted(page);
 }
 
 
