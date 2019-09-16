@@ -18,6 +18,9 @@
 #ifndef HASH_H_INCLUDE
 #define HASH_H_INCLUDE
 
+#include <string>
+#include <Math/Range.h>
+
 namespace OpenVDS
 {
 
@@ -57,12 +60,39 @@ struct InternalHasher<float>
 {
 static uint64_t calculateHash(float rValue) { union { float _rValue; uint32_t _uValue; } convert; convert._rValue = rValue; return InternalHasher<uint32_t>::calculateHash(convert._uValue); }
 };
+
 template <>
 struct InternalHasher<double>
 {
 static uint64_t calculateHash(double rValue) { union { double _rValue; uint64_t _uValue; } convert; convert._rValue = rValue; return InternalHasher<uint64_t>::calculateHash(convert._uValue); }
 };
 
+template <>
+struct InternalHasher<std::string>
+{
+static uint64_t calculateHash(std::basic_string<char> const &str)
+{
+  uint64_t
+    hash(0xff51afd7ed558ccdULL);
+
+  int64_t length = str.length(), i = 0;
+  while(i < length)
+  {
+    uint64_t
+      chars = str[i++];
+
+    if(i < length) chars |= str[i++] << 8;
+    if(i < length) chars |= str[i++] << 16;
+    if(i < length) chars |= str[i++] << 24;
+
+    hash ^=  InternalHasher<uint64_t>::calculateHash(chars);
+    hash = (hash << 27) | (hash >> (64 - 27));
+    hash = hash * 5 + 0x52dce729;
+  }
+
+  return hash;
+}
+};
 
 template<typename T>
 struct InternalHasher<Range<T>>
