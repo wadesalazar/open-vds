@@ -67,6 +67,8 @@ struct SEGYBinInfoHeaderFields
 
 struct SEGYFileInfo
 {
+  uint64_t      m_persistentID;
+
   SEGY::Endianness
                 m_headerEndianness;
 
@@ -82,7 +84,7 @@ struct SEGYFileInfo
   std::vector<SEGYSegmentInfo>
                 m_segmentInfo;
 
-  SEGYFileInfo(SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo() {}
+  SEGYFileInfo(SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_persistentID(), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo() {}
 
   int  traceByteSize() const;
 

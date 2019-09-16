@@ -15,12 +15,15 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#include <VDS/Hash.h>
+
 #include "IO/File.h"
 #include "SEGYFileInfo.h"
 
 #include <iostream>
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 
 using namespace OpenVDS;
 using namespace SEGY;
@@ -95,6 +98,9 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
   char textualFileHeader[TextualFileHeaderSize];
   char binaryFileHeader[BinaryFileHeaderSize];
   char traceHeader[TraceHeaderSize];
+
+  // Make a globally unique ID for the result of this scan operation
+  m_persistentID = OpenVDS::HashCombiner(std::chrono::system_clock::now().time_since_epoch().count()).add(std::chrono::high_resolution_clock::now().time_since_epoch().count()).getCombinedHash();
 
   OpenVDS::IOError error;
 
