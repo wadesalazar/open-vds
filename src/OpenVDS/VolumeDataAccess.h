@@ -637,7 +637,10 @@ public:
   virtual int   addReference() = 0;
   virtual int   removeReference() = 0;
 
-  virtual VolumeDataPage *readPageAtPosition(const int (&anPosition)[Dimensionality_Max]) = 0;
+  virtual VolumeDataPage *createPage(int64_t chunkIndex) = 0;
+  virtual VolumeDataPage *readPage(int64_t chunkIndex) = 0;
+
+  VolumeDataPage *readPageAtPosition(const int (&position)[Dimensionality_Max]) { return readPage(getChunkIndex(position)); }
 
   virtual void  commit() = 0;
 };

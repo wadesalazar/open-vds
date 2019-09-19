@@ -104,7 +104,19 @@ int VolumeDataPageAccessorImpl::removeReference()
   return --m_references;
 }
 
-VolumeDataPage* VolumeDataPageAccessorImpl::readPageAtPosition(const int(&position)[Dimensionality_Max])
+VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
+{
+  std::unique_lock<std::mutex> pageMutexLocker(m_pagesMutex);
+
+  if(!m_layer)
+  {
+    return nullptr;
+  }
+
+  return nullptr;
+}
+
+VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
 {
   std::unique_lock<std::mutex> pageMutexLocker(m_pagesMutex);
 
@@ -118,19 +130,6 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPageAtPosition(const int(&positi
     fprintf(stderr, "The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)");
     return nullptr;
   }
-
-  int32_t indexArray[Dimensionality_Max];
-
-  for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
-  {
-    if(position[iDimension] < 0 || position[iDimension] >= m_layer->getDimensionNumSamples(iDimension))
-    {
-      return nullptr;
-    }
-    indexArray[iDimension] = m_layer->voxelToIndex(position[iDimension], iDimension);
-  }
-
-  int64_t chunk = m_layer->indexArrayToChunkIndex(indexArray);
 
   for(auto page_it = m_pages.begin(); page_it != m_pages.end(); ++page_it)
   {

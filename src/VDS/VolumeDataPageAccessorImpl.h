@@ -76,7 +76,8 @@ public:
   int   addReference() override;
   int   removeReference() override;
 
-  VolumeDataPage* readPageAtPosition(const int(&anPosition)[Dimensionality_Max]) override;
+  VolumeDataPage *createPage(int64_t chunk) override;
+  VolumeDataPage *readPage(int64_t chunk) override;
 
   void  commit() override;
 
