@@ -84,9 +84,13 @@ struct SEGYFileInfo
   std::vector<SEGYSegmentInfo>
                 m_segmentInfo;
 
+  SEGY::HeaderField
+                m_primaryKey,
+                m_secondaryKey;
+
   SEGYFileInfo(SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_persistentID(), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo() {}
 
   int  traceByteSize() const;
 
-  bool scan(OpenVDS::File const &file, SEGY::HeaderField const &primaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::standardHeaderFields());
+  bool scan(OpenVDS::File const &file, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::standardHeaderFields());
 };

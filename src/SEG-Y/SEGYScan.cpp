@@ -67,6 +67,30 @@ to_string(SEGY::Endianness endiannness)
   }
 }
 
+std::string
+to_string(SEGY::FieldWidth fieldWidth)
+{
+  switch(fieldWidth)
+  {
+  case SEGY::FieldWidth::TwoByte:    return "TwoByte";
+  case SEGY::FieldWidth::FourByte: return "FourByte";
+  default:
+    assert(0); return "";
+  }
+}
+
+Json::Value
+serializeSEGYHeaderField(SEGY::HeaderField const &headerField)
+{
+  Json::Value
+    jsonHeaderField(Json::ValueType::arrayValue);
+
+  jsonHeaderField.append(headerField.byteLocation);
+  jsonHeaderField.append(to_string(headerField.fieldWidth));
+
+  return jsonHeaderField;
+}
+
 std::string to_hexstring(uint64_t value)
 {
   char buffer[sizeof(value) * 2 + 1];
@@ -86,6 +110,8 @@ serializeSEGYFileInfo(SEGYFileInfo const &fileInfo)
   jsonFileInfo["sampleCount"]          = fileInfo.m_sampleCount;
   jsonFileInfo["sampleInterval"]       = fileInfo.m_sampleIntervalMilliseconds;
   jsonFileInfo["traceCount"]           = fileInfo.m_traceCount;
+  jsonFileInfo["primaryKey"]           = serializeSEGYHeaderField(fileInfo.m_primaryKey);
+  jsonFileInfo["secondaryKey"]         = serializeSEGYHeaderField(fileInfo.m_secondaryKey);
 
   Json::Value
     jsonSegmentInfoArray(Json::ValueType::arrayValue);
@@ -296,12 +322,14 @@ main(int argc, char *argv[])
   std::vector<std::string> fileNames;
   std::string headerFormatFileName;
   std::string primaryKey = "InlineNumber";
+  std::string secondaryKey = "CrosslineNumber";
   double scale = 0;
   bool littleEndian = false;
 
   options.add_option("", "h", "header-format", "A JSON file defining the header format for the input SEG-Y file. The expected format is a dictonary of strings (field names) to pairs (byte position, field width) where field width can be \"TwoByte\" or \"FourByte\". Additionally, an \"Endianness\" key can be specified as \"BigEndian\" or \"LittleEndian\".", cxxopts::value<std::string>(headerFormatFileName), "<file>");
   options.add_option("", "p", "primary-key", "The name of the trace header field to use as the primary key.", cxxopts::value<std::string>(primaryKey)->default_value("Inline"), "<field>");
-  options.add_option("", "s", "scale", "If a scale override (floating point) is given, it is used to scale the coordinates in the header instead of determining the scale factor from the coordinate scale trace header field.", cxxopts::value<double>(scale), "<value>");
+  options.add_option("", "s", "secondary-key", "The name of the trace header field to use as the secondary key.", cxxopts::value<std::string>(secondaryKey)->default_value("Crossline"), "<field>");
+  options.add_option("", "", "scale", "If a scale override (floating point) is given, it is used to scale the coordinates in the header instead of determining the scale factor from the coordinate scale trace header field.", cxxopts::value<double>(scale), "<value>");
   options.add_option("", "l", "little-endian", "Force (non-standard) little-endian trace headers.", cxxopts::value<bool>(littleEndian), "");
 
   options.add_option("", "", "input", "", cxxopts::value<std::vector<std::string>>(fileNames), "");
@@ -356,11 +384,13 @@ main(int argc, char *argv[])
     parseHeaderFormatFile(headerFormatFile, g_traceHeaderFields, headerEndianness);
   }
 
-  // get the canonical field name for the primary key
+  // get the canonical field name for the primary and secondary key
   resolveAlias(primaryKey);
+  resolveAlias(secondaryKey);
 
   SEGY::HeaderField
-    primaryKeyHeaderField;
+    primaryKeyHeaderField,
+    secondaryKeyHeaderField;
 
   if(g_traceHeaderFields.find(primaryKey) != g_traceHeaderFields.end())
   {
@@ -370,6 +400,11 @@ main(int argc, char *argv[])
   {
     std::cerr << std::string("Unrecognized header field given for primary key: ") << primaryKey;
     return EXIT_FAILURE;
+  }
+
+  if(g_traceHeaderFields.find(secondaryKey) != g_traceHeaderFields.end())
+  {
+    secondaryKeyHeaderField = g_traceHeaderFields[secondaryKey];
   }
 
   SEGYBinInfoHeaderFields
@@ -392,7 +427,7 @@ main(int argc, char *argv[])
   SEGYFileInfo
     fileInfo(headerEndianness);
 
-  bool success = fileInfo.scan(file, primaryKeyHeaderField, binInfoHeaderFields);
+  bool success = fileInfo.scan(file, primaryKeyHeaderField, secondaryKeyHeaderField, binInfoHeaderFields);
 
   if(!success)
   {

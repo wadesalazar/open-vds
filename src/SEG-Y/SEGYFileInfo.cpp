@@ -93,7 +93,7 @@ SEGYFileInfo::traceByteSize() const
 }
 
 bool
-SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
+SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField, HeaderField const &secondaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
 {
   char textualFileHeader[TextualFileHeaderSize];
   char binaryFileHeader[BinaryFileHeaderSize];
@@ -101,6 +101,9 @@ SEGYFileInfo::scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
 
   // Make a globally unique ID for the result of this scan operation
   m_persistentID = OpenVDS::HashCombiner(std::chrono::system_clock::now().time_since_epoch().count()).add(std::chrono::high_resolution_clock::now().time_since_epoch().count()).getCombinedHash();
+
+  m_primaryKey = primaryKeyHeaderField;
+  m_secondaryKey = secondaryKeyHeaderField;
 
   OpenVDS::IOError error;
 
