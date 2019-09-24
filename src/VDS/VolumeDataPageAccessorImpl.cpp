@@ -35,7 +35,12 @@ namespace OpenVDS
 VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl* accessManager, VolumeDataLayer* layer, int maxPages, bool isReadWrite)
   : m_accessManager(accessManager)
   , m_layer(layer)
+  , m_pagesFound(0)
+  , m_pagesRead(0)
+  , m_pagesWritten(0)
+  , m_currentPages(0)
   , m_maxPages(maxPages)
+  , m_references(0)
   , m_isReadWrite(isReadWrite)
   , m_isCommitInProgress(false)
 {
