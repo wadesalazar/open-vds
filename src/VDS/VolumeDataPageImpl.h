@@ -38,7 +38,9 @@ private:
 
   int32_t m_pins;
 
-  bool m_isDirty;
+  bool    m_isReadWrite;
+
+  bool    m_isDirty;
 
   int32_t m_pitch[Dimensionality_Max];
 
@@ -50,10 +52,8 @@ private:
   int32_t m_chunksCopiedTo;
 
 public:
-  VolumeDataPageImpl(VolumeDataPageImpl const &) = delete;
-
   VolumeDataPageImpl(VolumeDataPageAccessorImpl *volumeDataPageAccessor, int64_t chunk);
-  ~VolumeDataPageImpl();
+  VolumeDataPageImpl(VolumeDataPageImpl const &) = delete;
 
   int64_t getChunkIndex() const { return m_chunk; }
 

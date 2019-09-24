@@ -28,6 +28,7 @@
 #include "DimensionGroup.h"
 
 #include <chrono>
+#include <algorithm>
 
 namespace OpenVDS
 {
@@ -38,7 +39,6 @@ VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerIm
   , m_pagesFound(0)
   , m_pagesRead(0)
   , m_pagesWritten(0)
-  , m_currentPages(0)
   , m_maxPages(maxPages)
   , m_references(0)
   , m_isReadWrite(isReadWrite)
@@ -118,7 +118,74 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
     return nullptr;
   }
 
-  return nullptr;
+  if (m_layer->getProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
+  {
+    fprintf(stderr, "The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)");
+    return nullptr;
+  }
+
+  auto page_it = std::find_if(m_pages.begin(), m_pages.end(), [chunk](VolumeDataPageImpl *page)->bool { return page->getChunkIndex() == chunk; });
+  if(page_it != m_pages.end())
+  {
+    throw std::runtime_error("Cannot create a page that already exists");
+  }
+
+  // Wait for commit to finish before inserting a new page
+  while(m_isCommitInProgress)
+  {
+    m_commitFinishedCondition.wait_for(pageMutexLocker, std::chrono::milliseconds(1000));
+    if(!m_layer)
+    {
+      return nullptr;
+    }
+  }
+
+  // Create a new page
+  VolumeDataPageImpl *page = new VolumeDataPageImpl(this, chunk);
+
+  m_pages.push_front(page);
+
+  assert(page->isPinned());
+
+  Error error;
+  VolumeDataChunk volumeDataChunk = m_layer->getChunkFromIndex(chunk);
+
+  pageMutexLocker.unlock();
+
+  std::vector<uint8_t> page_data;
+  DataBlock dataBlock;
+  if (!VolumeDataStore::createConstantValueDataBlock(volumeDataChunk, m_layer->getFormat(), m_layer->getNoValue(), m_layer->getComponents(), m_layer->isUseNoValue() ? VolumeDataHash::NOVALUE : VolumeDataHash(0.0f), dataBlock, page_data, error))
+  {
+    pageMutexLocker.lock();
+    page->unPin();
+    fprintf(stderr, "Failed when creating chunk: %s\n", error.string.c_str());
+    return nullptr;
+  }
+
+  int pitch[Dimensionality_Max];
+  for (int i = 0; i < std::size(pitch); i++)
+  {
+    if (i < std::size(dataBlock.pitch))
+      pitch[i] = dataBlock.pitch[i];
+    else
+      pitch[i] = 1;
+  }
+
+  pageMutexLocker.lock();
+  page->setBufferData(std::move(page_data), pitch);
+  m_pagesRead++;
+
+  m_pageReadCondition.notify_all();
+
+  if(!m_layer)
+  {
+    page->unPin();
+    page = nullptr;
+  }
+
+  limitPageListSize(m_maxPages, pageMutexLocker);
+
+  return page;
 }
 
 VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
@@ -127,7 +194,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
 
   if(!m_layer)
   {
-    return NULL;
+    return nullptr;
   }
 
   if (m_layer->getProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
@@ -166,18 +233,16 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
   while(m_isCommitInProgress)
   {
     m_commitFinishedCondition.wait_for(pageMutexLocker, std::chrono::milliseconds(1000));
-  }
-
-  if(!m_layer)
-  {
-    return nullptr;
+    if(!m_layer)
+    {
+      return nullptr;
+    }
   }
 
   // Not found, we need to create a new page
   VolumeDataPageImpl *page = new VolumeDataPageImpl(this, chunk);
 
   m_pages.push_front(page);
-  m_currentPages++;
 
   assert(page->isPinned());
 
@@ -231,7 +296,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
   if(!m_layer)
   {
     page->unPin();
-    page = NULL;
+    page = nullptr;
   }
 
   limitPageListSize(m_maxPages, pageMutexLocker);
@@ -241,7 +306,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
 
 void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_lock<std::mutex>& pageListMutexLock)
 {
-  while(m_currentPages > m_maxPages)
+  while(m_pages.size() > m_maxPages)
   {
     // Wait for commit to finish before deleting a page
     while(m_isCommitInProgress)
@@ -250,23 +315,16 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
     }
 
     // Find a page to evict
-    auto page = m_pages.end();
+    auto page_it = std::find_if(m_pages.rbegin(), m_pages.rend(), [](VolumeDataPageImpl *page)->bool { return !page->isPinned(); });
 
-    for (auto r_it = m_pages.rbegin(); r_it != m_pages.rend(); ++r_it)
-    {
-      if (!(*r_it)->isPinned())
-      {
-        page = ++r_it.base();
-        break;
-      }
-    }
-
-    if(page == m_pages.end())
+    if(page_it == m_pages.rend())
     {
       return;
     }
 
-    if((*page)->isWritten())
+    VolumeDataPageImpl *page = *page_it;
+
+    if(page->isWritten())
     {
       // Finish reading all pages currently being read
       while(1)
@@ -275,7 +333,7 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
 
         for(VolumeDataPageImpl *targetPage : m_pages)
         {
-          if((*page)->isCopyMarginNeeded(targetPage))
+          if(page->isCopyMarginNeeded(targetPage))
           {
             if(targetPage->isEmpty())
             {
@@ -290,50 +348,48 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
           break;
         }
 
-        (*page)->pin(); // Make sure this page isn't deleted by LimitPageListSize!
+        page->pin(); // Make sure this page isn't deleted by LimitPageListSize!
 
         // Wait for the page getting read
         m_pageReadCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
 
-        (*page)->unPin();
+        page->unPin();
 
         // Check if the page was pinned while we released the mutex, we have to abort evicting this page
-        if((*page)->isPinned())
+        if(page->isPinned())
         {
           break;
         }
       }
 
       // Check if the page was pinned while we released the mutex, we have to abort evicting this page
-      if((*page)->isPinned())
+      if(page->isPinned())
       {
         continue;
       }
 
       // Copy margins
-      if((*page)->isWritten())
+      if(page->isWritten())
       {
         for(VolumeDataPageImpl *targetPage : m_pages)
         {
-          if((*page)->isCopyMarginNeeded(targetPage))
+          if(page->isCopyMarginNeeded(targetPage))
           {
-            (*page)->copyMargin(targetPage);
+            page->copyMargin(targetPage);
           }
         }
       }
     }
 
-    auto page_v = *page;
-    m_pages.erase(page);
-    m_currentPages--;
+    m_pages.erase(std::prev(page_it.base()));
 
-    if(page_v->isDirty())
+    if(page->isDirty())
     {
-      (*page)->writeBack(m_layer, pageListMutexLock);
+      page->writeBack(m_layer, pageListMutexLock);
       m_pagesWritten++;
     }
 
-    delete page_v;
+    delete page;
   }
 }
 

@@ -40,7 +40,6 @@ private:
   int m_pagesFound;
   int m_pagesRead;
   int m_pagesWritten;
-  int m_currentPages;
   int m_maxPages;
   int m_references;
   bool m_isReadWrite;
@@ -81,7 +80,7 @@ public:
 
   void  commit() override;
 
-  bool isReadWrite() const { return false; }
+  bool isReadWrite() const { return m_isReadWrite; }
 };
 
 }

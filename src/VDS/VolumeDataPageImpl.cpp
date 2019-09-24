@@ -102,6 +102,7 @@ VolumeDataPageImpl::VolumeDataPageImpl(VolumeDataPageAccessorImpl* volumeDataPag
   , m_chunk(chunk)
   , m_blob()
   , m_pins(1)
+  , m_isReadWrite(false)
   , m_isDirty(false)
   , m_chunksCopiedTo(0)
 {
@@ -113,14 +114,6 @@ VolumeDataPageImpl::VolumeDataPageImpl(VolumeDataPageAccessorImpl* volumeDataPag
   }
 
   memset(m_copiedToChunkIndexes, 0, sizeof(m_copiedToChunkIndexes));
-}
-
-VolumeDataPageImpl::~VolumeDataPageImpl()
-{
-  if(m_pins > 0)
-  {
-    fprintf(stderr, "OpenVDS: VolumeDataPage was not released before VolumeDataPageAccessor was destructed");
-  }
 }
 
   // All these methods require the caller to hold a lock
@@ -192,6 +185,11 @@ void* VolumeDataPageImpl::getBufferInternal(int(&anPitch)[Dimensionality_Max], b
   for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
   {
     anPitch[iDimension] = m_pitch[iDimension];
+  }
+
+  if(isReadWrite)
+  {
+    m_isReadWrite = true;
   }
 
   return m_blob.data();
@@ -310,7 +308,7 @@ void VolumeDataPageImpl::copyMargin(VolumeDataPageImpl* targetPage)
   switch(m_volumeDataPageAccessor->getChannelDescriptor().getFormat())
   {
   default:
-    fprintf(stderr,"Unsupported format");
+    assert(0 && "Unsupported format");
     break;
   case VolumeDataChannelDescriptor::Format_1Bit:
     dataBlock_BlockCopyWithExplicitContiguity<true, true>((bool *)targetBuffer, (bool *)sourceBuffer, iTargetIndex, iSourceIndex, remappedTargetPitch, remappedSourcePitch, remappedOverlapSize);
@@ -362,7 +360,7 @@ void* VolumeDataPageImpl::getWritableBuffer(int(&pitch)[Dimensionality_Max])
 
   if(!m_volumeDataPageAccessor->isReadWrite())
   {
-    fprintf(stderr, "Trying to get a writable buffer from a read-only volume data page accessor");
+    throw std::runtime_error("Trying to get a writable buffer from a read-only volume data page accessor");
   }
 
   return getBufferInternal(pitch, true);
@@ -371,10 +369,10 @@ void VolumeDataPageImpl::updateWrittenRegion(const int(&writtenMin)[Dimensionali
 {
  std::unique_lock<std::mutex>  pageListMutexLock(const_cast<VolumeDataPageAccessorImpl *>(m_volumeDataPageAccessor)->m_pagesMutex);
 
-  //if(!m_blob.getIsLocked())
-  //{
-    //fprintf(stderr, "Cannot update the written area when of a volume data page which isn't writable"));
-  //}
+  if(!m_isReadWrite)
+  {
+    throw std::runtime_error("Cannot update the written area of a volume data page which isn't writable");
+  }
 
   // Expand written area
   if(m_writtenMin[0] == 0 && m_writtenMax[0] == 0)
