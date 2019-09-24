@@ -322,7 +322,7 @@ static void fillConstantValueBuffer(std::vector<uint8_t> &buffer, int32_t alloca
   }
 }
 
-static bool createConstantValueDataBlock(VolumeDataChunk const &volumeDataChunk, VolumeDataChannelDescriptor::Format format, float noValue, VolumeDataChannelDescriptor::Components components, VolumeDataHash const &constantValueVolumeDataHash, DataBlock &dataBlock, std::vector<uint8_t> &buffer, Error &error)
+bool VolumeDataStore::createConstantValueDataBlock(VolumeDataChunk const &volumeDataChunk, VolumeDataChannelDescriptor::Format format, float noValue, VolumeDataChannelDescriptor::Components components, VolumeDataHash const &constantValueVolumeDataHash, DataBlock &dataBlock, std::vector<uint8_t> &buffer, Error &error)
 {
   int32_t size[4];
   volumeDataChunk.layer->getChunkVoxelSize(volumeDataChunk.chunkIndex, size);
