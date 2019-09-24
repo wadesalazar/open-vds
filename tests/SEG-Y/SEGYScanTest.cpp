@@ -35,12 +35,7 @@ TEST(SEGYScanTest, scan)
 
   if(!OpenVDS::File::exists(fileName))
   {
-#ifdef GTEST_SKIP
-    GTEST_SKIP();
-#else
-    SUCCEED() << "Skipped SEGYScanTest test -- Could not locate test data";
-    return;
-#endif
+    GTEST_SKIP() << "Could not locate test data";
   }
 
   file.open(fileName, false, false, false, error);

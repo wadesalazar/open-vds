@@ -32,12 +32,7 @@ GTEST_TEST(OpenVDS_integration, DownloadJson)
 
   if(options.region.empty() || options.bucket.empty() || options.key.empty())
   {
-#ifdef GTEST_SKIP
-    GTEST_SKIP();
-#else
-    SUCCEED() << "Skipped DownloadJson test -- Environment variables not set";
-    return;
-#endif
+    GTEST_SKIP() << "Environment variables not set";
   }
 
   ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());

@@ -33,7 +33,7 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
 
   if(options.region.empty() || options.bucket.empty() || options.key.empty())
   {
-    GTEST_SKIP("Skipped SimpleVolumeDataPageReadt test -- Environment variables not set");
+    GTEST_SKIP() << "Environment variables not set";
   }
 
   ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
