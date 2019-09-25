@@ -26,6 +26,7 @@ set(SOURCE_FILES
   VDS/FSE/entropy_common.cpp
   VDS/FSE/fse_decompress.cpp
   VDS/Rle.cpp
+  VDS/VolumeDataRequestProcessor.cpp
   )
 
 set (PRIVATE_HEADER_FILES
@@ -65,6 +66,7 @@ set (PRIVATE_HEADER_FILES
   VDS/Rle.h
   VDS/ValueConversion.h
   VDS/VolumeSampler.h
+  VDS/VolumeDataRequestProcessor.h
   )
 
 set (EXPORTED_HEADER_FILES

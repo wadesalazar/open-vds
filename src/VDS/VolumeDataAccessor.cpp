@@ -19,6 +19,12 @@
 
 #include "VolumeDataAccessManagerImpl.h"
 #include "VolumeDataLayout.h"
+#include "VolumeDataRequestProcessor.h"
+#include "DataBlock.h"
+
+#include <inttypes.h>
+
+#define VDS_MAX_REQUEST_VOLUME_SUBSET_BYTESIZE           2147483648 // 2 GB
 
 namespace OpenVDS
 {
@@ -193,8 +199,12 @@ template <> void vectorToNDPos(FloatVector4 const &index, int (&pos)[Dimensional
 
 
 template <typename INDEX, typename T>
-VolumeDataReadWriteAccessor<INDEX, T> *VolumeDataAccess_CreateVolumeDataAccessor_cast(VolumeDataLayout const *volumeDataLayout, VolumeDataPageAccessorImpl *volumeDataPageAccessor, float replacementNoValue)
+VolumeDataReadWriteAccessor<INDEX, T> *VolumeDataAccess_CreateVolumeDataAccessor(VolumeDataPageAccessor *v, float replacementNoValue)
 {
+  assert(v);
+
+  VolumeDataPageAccessorImpl *volumeDataPageAccessor = static_cast<VolumeDataPageAccessorImpl *>(v);
+  VolumeDataLayout const *volumeDataLayout = volumeDataPageAccessor->getLayout();
   int32_t channel = volumeDataPageAccessor->getChannelIndex();
 
   if(volumeDataLayout->isChannelUseNoValue(channel))
@@ -241,17 +251,6 @@ VolumeDataReadWriteAccessor<INDEX, T> *VolumeDataAccess_CreateVolumeDataAccessor
       return new ConvertingVolumeDataAccessor<INDEX, T, bool,     false>(*volumeDataPageAccessor, replacementNoValue);
     }
   }
-}
-
-template <typename INDEX, typename T>
-VolumeDataReadWriteAccessor<INDEX, T> *VolumeDataAccess_CreateVolumeDataAccessor(VolumeDataPageAccessor *v, float replacementNoValue)
-{
-  assert(v);
-
-  VolumeDataPageAccessorImpl *volumeDataPageAccessor = static_cast<VolumeDataPageAccessorImpl *>(v);
-  VolumeDataLayout const *volumeDataLayout = volumeDataPageAccessor->getLayout();
-
-  return VolumeDataAccess_CreateVolumeDataAccessor_cast<INDEX, T>(volumeDataLayout, volumeDataPageAccessor, replacementNoValue);
 }
 
 template<typename INDEX, typename T1, typename T2, bool isUseNoValue>
@@ -447,70 +446,87 @@ VolumeDataReadAccessor<FloatVector4, double>* VolumeDataAccessManagerImpl::creat
    return VolumeDataAccess_CreateInterpolatingVolumeDataAccessor<FloatVector4, double>(volumeDataPageAccessor, replacementNoValue, interpolationMethod);
 }
 
-//static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t(&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], int32_t lod, VolumeDataChannelDescriptor::Format format, bool isReplaceNoValue, float replacementNoValue)
-//{
- // NDBox ndBox(minRequested, maxRequested);
+static int64_t getVoxelCount(const int32_t(&min)[Dimensionality_Max], const int32_t (&max)[Dimensionality_Max], int32_t lod, int32_t dimensionality)
+{
+  int64_t  voxel = 1;
 
- // // Initialized unused dimensions
- // for (int32_t iDimension = volumeDataLayer->getLayout()->getDimensionality(); iDimension < Dimensionality_Max; iDimension++)
- // {
- //   ndBox.m_min[iDimension] = 0;
- //   ndBox.m_max[iDimension] = 1;
- // }
+  for (int32_t iCount = 0; iCount < dimensionality; iCount++)
+  {
+    int32_t iMin = min[iCount];
+    int32_t iMax = max[iCount];
 
- // int64_t voxelCount = ndBox.getVoxelCount(lod, volumeDataLayer->getLayout()->getDimensionality());
- // int64_t requestByteSize = voxelCount * getElementSize(format, VolumeDataChannelDescriptor::Components_1);
+    int64_t nSize = iMax - iMin;
 
- // if (requestByteSize > VDS_MAX_REQUEST_VOLUME_SUBSET_BYTESIZE)
- // {
- //   fprintf(stderr, "Requested volume subset is larger than 2GB %" PRId64 "\n", requestByteSize);
- //   abort();
- // }
+    assert(nSize == 1 || (nSize % (int64_t(1) << int64_t(lod)) == 0));
 
- // VolumeDataLayer *childLayer = volumeDataLayer;
- // 
- // while (childLayer && childLayer->getLOD() > 0)
- // {
- //   childLayer = childLayer->getChildLayer();
- // }
+    nSize >>= lod;
 
- // if (childLayer->getProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
- // {
- //   fprintf(stderr, "The requested dimension group or channel is unavailable (check produce status on VDS before requesting data)\n");
- //   abort();
- // }
+    if (nSize <= 0)
+    {          
+      if (min[iCount] >= max[iCount])
+      {
+        return 0;
+      }
+    }
+    else
+    {
+      voxel *= nSize;
+    }
+  }
 
- // std::vector<VolumeDataChunk> chunksInRegion;
+  return voxel;
+}
 
- // volumeDataLayer->getChunksInRegion(ndBox.m_min, ndBox.m_max, &chunksInRegion);
+static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t(&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], int32_t lod, VolumeDataChannelDescriptor::Format format, bool isReplaceNoValue, float replacementNoValue)
+{
 
- // if(chunksInRegion.size() == 0)
- // {
- //   fprintf(stderr, "Requested volume subset does not contain any data");
- //   abort();
- // }
+  int32_t boxMinRequested[Dimensionality_Max];
+  int32_t boxMaxRequested[Dimensionality_Max];
 
- // return request_processor.addJob(chunksInRegion, [](VolumeDataPage *page){});
- // 
-//  HueJobID_i iHueJobID = HueJobIDList_c::StaticInstance().CreateJob(true, workers);
-//
-//  // The shared request data is deleted when the last HueVDSDeliverVolumeSubsetRequest is finished or canceled.
-//  HueVDSDeliverVolumeSubsetRequest_c::SharedData_pc pcSharedData = HueVDSDeliverVolumeSubsetRequest_c::CreateSharedData(iHueJobID, lcChunksInRegion.GetItemCount(), pxBuffer, ndBox._aiMin, ndBox._aiMax, iLOD, eFormat, pcHueVolumeDataLayer->IsUseNoValue(), isReplaceNoValue, isReplaceNoValue ? rReplacementNoValue : pcHueVolumeDataLayer->GetNoValue(), pcHueVolumeDataLayer->GetLayout()->GetFullResolutionDimension());
-//
-//  for (int32_t iProcessingUnit = 0; iProcessingUnit < PROCESSING_MAX_UNITS; ++iProcessingUnit) 
-//  {
-//    if (volumeDataChunks[iProcessingUnit].size())
-//    {
-//      HueVolumeDataRequest_pc pcHueVolumeDataRequest = HUENEW HueVDSDeliverVolumeSubsetRequest_c(pcSharedData, pplcHueVolumeDataChunk[iProcessingUnit]->GetItemCount());
-//
-//      HueVolumeDataCache_c::GetInstance()->RequestRead(*pplcHueVolumeDataChunk[iProcessingUnit], pcHueVolumeDataRequest, iHueJobID);
-//      delete pplcHueVolumeDataChunk[iProcessingUnit];
-//    }
-//  }
-//
-//  ConsiderRegisterJobIDToPluginContext(iHueJobID);
-//  return int64_t(0);
-//}
+  memcpy(boxMinRequested, minRequested, sizeof(boxMinRequested));
+  memcpy(boxMaxRequested, maxRequested, sizeof(boxMaxRequested));
+
+  // Initialized unused dimensions
+  for (int32_t iDimension = volumeDataLayer->getLayout()->getDimensionality(); iDimension < Dimensionality_Max; iDimension++)
+  {
+    boxMinRequested[iDimension] = 0;
+    boxMaxRequested[iDimension] = 1;
+  }
+
+  int64_t voxelCount = getVoxelCount(boxMinRequested, boxMaxRequested, lod, volumeDataLayer->getLayout()->getDimensionality());
+  int64_t requestByteSize = voxelCount * getElementSize(format, VolumeDataChannelDescriptor::Components_1);
+
+  if (requestByteSize > VDS_MAX_REQUEST_VOLUME_SUBSET_BYTESIZE)
+  {
+    fprintf(stderr, "Requested volume subset is larger than 2GB %" PRId64 "\n", requestByteSize);
+    abort();
+  }
+
+  VolumeDataLayer* childLayer = volumeDataLayer;
+
+  while (childLayer && childLayer->getLOD() > 0)
+  {
+    childLayer = childLayer->getChildLayer();
+  }
+
+  if (childLayer->getProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
+  {
+    fprintf(stderr, "The requested dimension group or channel is unavailable (check produce status on VDS before requesting data)\n");
+    abort();
+  }
+
+  std::vector<VolumeDataChunk> chunksInRegion;
+
+  volumeDataLayer->getChunksInRegion(boxMinRequested, boxMaxRequested, &chunksInRegion);
+
+  if (chunksInRegion.size() == 0)
+  {
+    fprintf(stderr, "Requested volume subset does not contain any data");
+    abort();
+  }
+
+  return request_processor.addJob(chunksInRegion, [](VolumeDataPage* page) {});
+}
 
 int64_t VolumeDataAccessManagerImpl::requestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format)
 {

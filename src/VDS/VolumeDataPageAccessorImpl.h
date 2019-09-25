@@ -73,6 +73,9 @@ public:
   int   addReference() override;
   int   removeReference() override;
 
+  VolumeDataPage *prepareReadPage(int64_t chunk);
+  void readPreparedPaged(VolumeDataPage *page);
+
   VolumeDataPage *createPage(int64_t chunk) override;
   VolumeDataPage *readPage(int64_t chunk) override;
 

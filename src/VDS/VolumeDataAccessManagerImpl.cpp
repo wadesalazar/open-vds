@@ -29,7 +29,6 @@
 #include <assert.h>
 #include <atomic>
 
-#define VDS_MAX_REQUEST_VOLUME_SUBSET_BYTESIZE           2147483648 // 2 GB
 namespace OpenVDS
 {
 

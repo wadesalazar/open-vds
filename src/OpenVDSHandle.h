@@ -29,6 +29,7 @@
 #include "VDS/VolumeDataLayout.h"
 #include "VDS/MetadataManager.h"
 #include "VDS/VolumeDataAccessManagerImpl.h"
+#include "VDS/VolumeDataRequestProcessor.h"
 #include "IO/IOManager.h"
 
 #include <vector>
@@ -77,6 +78,8 @@ struct VDSHandle
                     ioManager;
   LayerMetadataContainer
                     layerMetadataContainer;
+  std::unique_ptr<VolumeDataRequestProcessor>
+                    requestProcessor;
 };
 
 const char *addDescriptorString(std::string const &descriptorString, VDSHandle &handle);

@@ -28,6 +28,7 @@
 #include "VDS/VolumeDataLayout.h"
 #include "VDS/VolumeDataPageAccessorImpl.h"
 #include "VDS/VolumeDataAccessManagerImpl.h"
+#include "VDS/VolumeDataRequestProcessor.h"
 
 namespace OpenVDS
 {
@@ -43,6 +44,7 @@ VDSHandle *open(const OpenOptions &options, Error &error)
     return nullptr;
   }
   ret->dataAccessManager.reset(new VolumeDataAccessManagerImpl(ret.get()));
+  ret->requestProcessor.reset(new VolumeDataRequestProcessor(*ret->dataAccessManager.get()));
   return ret.release();
 }
 
@@ -162,6 +164,7 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
     return nullptr;
 
   handle->dataAccessManager.reset(new VolumeDataAccessManagerImpl(handle.get()));
+  handle->requestProcessor.reset(new VolumeDataRequestProcessor(*handle->dataAccessManager.get()));
 
   return handle.release();
 }

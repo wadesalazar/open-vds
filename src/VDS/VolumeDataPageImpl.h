@@ -39,8 +39,8 @@ private:
   int32_t m_pins;
 
   bool    m_isReadWrite;
-
   bool    m_isDirty;
+  bool    m_requestPrepared;
 
   int32_t m_pitch[Dimensionality_Max];
 
@@ -72,6 +72,8 @@ public:
   void *        getBufferInternal(int (&anPitch)[Dimensionality_Max], bool isReadWrite);
   bool          isCopyMarginNeeded(VolumeDataPageImpl *targetPage);
   void          copyMargin(VolumeDataPageImpl *targetPage);
+
+  void          setRequestPrepared(bool prepared) { m_requestPrepared = prepared; }
 
   // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)
   void  getMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const override;
