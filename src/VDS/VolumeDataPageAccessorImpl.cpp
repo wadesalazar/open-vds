@@ -163,9 +163,9 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
   }
 
   int pitch[Dimensionality_Max];
-  for (int i = 0; i < std::size(pitch); i++)
+  for (int i = 0; i < array_size(pitch); i++)
   {
-    if (i < std::size(dataBlock.pitch))
+    if (i < array_size(dataBlock.pitch))
       pitch[i] = dataBlock.pitch[i];
     else
       pitch[i] = 1;
@@ -279,9 +279,9 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
   }
 
   int pitch[Dimensionality_Max];
-  for (int i = 0; i < std::size(pitch); i++)
+  for (int i = 0; i < array_size(pitch); i++)
   {
-    if (i < std::size(dataBlock.pitch))
+    if (i < array_size(dataBlock.pitch))
       pitch[i] = dataBlock.pitch[i];
     else
       pitch[i] = 1;
