@@ -43,6 +43,11 @@ function(BuildExternal name version source_dir install_libs_release runtime_libs
 
   set_property(GLOBAL APPEND PROPERTY OPENVDS_INCLUDE_LIBRARIES "${INSTALL_INT_CONFIG}/include")
 
+  if (cmake_args)
+    set(cmake_arg_complete "${cmake_args};")
+  endif()
+  set(cmake_arg_complete "${cmake_arg_complete}${CMAKE_BUILD_TYPE_ARG}")
+  set(cmake_arg_complete "${cmake_arg_complete};-DCMAKE_INSTALL_PREFIX=${INSTALL_INT_CONFIG}")
   include(ExternalProject)
   ExternalProject_Add(${name}
     PREFIX ${PROJECT_BINARY_DIR}/${name}_${version}
@@ -50,7 +55,7 @@ function(BuildExternal name version source_dir install_libs_release runtime_libs
     BUILD_IN_SOURCE OFF
     URL ""
     INSTALL_DIR ${INSTALL_INT}
-    CMAKE_ARGS ${cmake_args};${CMAKE_BUILD_TYPE_ARG};-DCMAKE_INSTALL_PREFIX=${INSTALL_INT_CONFIG}
+    CMAKE_ARGS ${cmake_arg_complete}
     BUILD_BYPRODUCTS ${BUILDBYPRODUCTS})
 endfunction()
 

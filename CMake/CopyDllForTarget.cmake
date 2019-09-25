@@ -2,7 +2,10 @@ function(copyDllForTarget target)
     if (WIN32)
       add_custom_command(TARGET ${target}
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:openvds> $<TARGET_FILE_DIR:${target}>)
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:openvds> $<TARGET_FILE_DIR:${target}>
+        DEPENDS openvds
+      )
+
       get_property(runtime_release GLOBAL PROPERTY RUNTIME_LIBS_RELEASE)
       get_property(runtime_debug   GLOBAL PROPERTY RUNTIME_LIBS_DEBUG)
       foreach(file ${runtime_release})
