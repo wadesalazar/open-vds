@@ -173,7 +173,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
 
   pageMutexLocker.lock();
   page->setBufferData(std::move(page_data), pitch);
-  m_pagesRead++;
+  page->makeDirty();
 
   m_pageReadCondition.notify_all();
 
