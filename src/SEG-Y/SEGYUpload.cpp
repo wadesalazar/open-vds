@@ -329,13 +329,11 @@ createAxisDescriptors(SEGYFileInfo const &fileInfo)
 
   axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, "ms", 0.0f, (fileInfo.m_sampleCount - 1) * (float)fileInfo.m_sampleIntervalMilliseconds));
 
-  int
-    inlineStep = 0,
-    crosslineStep = 0;
+  int inlineStep = 1,
+      crosslineStep = 1;
 
-  int
-    minInline    = fileInfo.m_segmentInfo[0].m_binInfoStart.m_inlineNumber,    maxInline    = minInline,
-    minCrossline = fileInfo.m_segmentInfo[0].m_binInfoStart.m_crosslineNumber, maxCrossline = minCrossline;
+  int minInline    = fileInfo.m_segmentInfo[0].m_binInfoStart.m_inlineNumber,    maxInline    = minInline,
+      minCrossline = fileInfo.m_segmentInfo[0].m_binInfoStart.m_crosslineNumber, maxCrossline = minCrossline;
 
   for(auto const &segmentInfo : fileInfo.m_segmentInfo)
   {
@@ -350,8 +348,11 @@ createAxisDescriptors(SEGYFileInfo const &fileInfo)
     maxCrossline = std::max(maxCrossline, segmentInfo.m_binInfoStop.m_crosslineNumber);
   }
 
-  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE,  "", (float)minCrossline, (float)maxCrossline));
-  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,     "", (float)minInline,    (float)maxInline));
+  int inlineCount    = 1 + (maxInline    - minInline   ) / inlineStep,
+      crosslineCount = 1 + (maxCrossline - minCrossline) / crosslineStep;
+
+  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(crosslineCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE,  "", (float)minCrossline, (float)maxCrossline));
+  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(inlineCount,    KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,     "", (float)minInline,    (float)maxInline));
 
   return axisDescriptors;
 }
@@ -823,6 +824,10 @@ main(int argc, char *argv[])
       page->release();
     }
   }
+
+  amplitudeAccessor->commit();
+  traceFlagAccessor->commit();
+  segyTraceHeaderAccessor->commit();
 
   fileView.reset();
   return EXIT_SUCCESS;
