@@ -20,8 +20,6 @@
 
 #include <cstdint>
 
-#include "DimensionGroup.h"
-
 namespace OpenVDS
 {
 class VolumeDataLayer;

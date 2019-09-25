@@ -174,7 +174,9 @@ void VolumeDataPageImpl::setBufferData(std::vector<uint8_t>&& blob, const int(&p
 
 void VolumeDataPageImpl::writeBack(VolumeDataLayer* volumeDataLayer, std::unique_lock<std::mutex>& pageListMutexLock)
 {
-  assert(false);
+  assert(m_isDirty);
+
+
 }
 
 

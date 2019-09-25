@@ -14,6 +14,7 @@ set(SOURCE_FILES
   VDS/VolumeDataPageAccessorImpl.cpp
   VDS/VolumeDataAccessManagerImpl.cpp
   VDS/VolumeDataPageImpl.cpp
+  VDS/VolumeDataAccessor.cpp
   VDS/DimensionGroup.cpp
   VDS/ParseVDSJson.cpp
   VDS/MetadataManager.cpp
@@ -40,6 +41,7 @@ set (PRIVATE_HEADER_FILES
   VDS/VolumeDataHash.h
   VDS/VolumeDataPageAccessorImpl.h
   VDS/VolumeDataAccessManagerImpl.h
+  VDS/VolumeDataAccessor.h
   VDS/VolumeDataPageImpl.h
   VDS/DimensionGroup.h
   VDS/Hash.h
@@ -62,6 +64,7 @@ set (PRIVATE_HEADER_FILES
   VDS/FSE/fse.h
   VDS/Rle.h
   VDS/ValueConversion.h
+  VDS/VolumeSampler.h
   )
 
 set (EXPORTED_HEADER_FILES
@@ -79,6 +82,11 @@ add_library(openvds_objects OBJECT
   ${PRIVATE_HEADER_FILES}
   ${EXPORTED_HEADER_FILES}
   ${SOURCE_FILES})
+
+
+if(MSVC_VERSION)
+  set_source_files_properties(VDS/VolumeDataAccessor.cpp PROPERTIES COMPILE_FLAGS /bigobj)
+endif()
 
 find_package(OpenMP REQUIRED)
 

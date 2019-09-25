@@ -257,14 +257,6 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
   return true;
 }
 
-inline int quantizeValueWithReciprocalScale(float value, float offset, float reciprocalScale, int buckets)
-{
-  float  bucket = (value - offset) * reciprocalScale;
-  return (bucket <= 0)           ? 0 :
-         (bucket >= buckets - 1) ? (buckets - 1) :
-                                   (int)(bucket + 0.5f);
-}
-
 static float getConvertedConstantValue(VolumeDataChannelDescriptor const &volumeDataChannelDescriptor, VolumeDataChannelDescriptor::Format format, float noValue, VolumeDataHash const &constantValueVolumeDataHash)
 {
   if(format == VolumeDataChannelDescriptor::Format_1Bit)

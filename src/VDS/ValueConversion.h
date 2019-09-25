@@ -138,6 +138,168 @@ inline uint16_t convertNoValue<uint16_t>(double noValue)
   return 0xffff;
 }
 
+template<typename T1, bool isUseNoValue>
+struct ResultConverter
+{
+  static float reciprocalScale(float, float) { return 1.0f; }
+
+  template<typename T2>
+  static T1 convertValueT(T2 value, float, float)
+  {
+    return convertValue<T1, T2>(value);
+  }
+};
+
+static inline int quantizeValueWithReciprocalScale(float value, float offset, float reciprocalScale, int buckets)
+{
+  float  bucket = (value - offset) * reciprocalScale;
+  return (bucket <= 0)           ? 0 :
+         (bucket >= buckets - 1) ? (buckets - 1) :
+                                   (int)(bucket + 0.5f);
 }
 
+template<bool isUseNoValue>
+struct ResultConverter<uint8_t, isUseNoValue>
+{
+  static float reciprocalScale(float valueRangeMin, float valueRangeMax) { return (255 - isUseNoValue) / (valueRangeMax - valueRangeMin); }
+
+  template<typename T2>
+  static uint8_t convertValueT(T2 value, float offset, float reciprocalScale)
+  {
+    return (uint8_t)quantizeValueWithReciprocalScale((float)value, offset, reciprocalScale, 256 - isUseNoValue);
+  }
+};
+
+template<bool isUseNoValue>
+struct ResultConverter<uint16_t, isUseNoValue>
+{
+  static float reciprocalScale(float valueRangeMin, float valueRangeMax) { return (65535 - isUseNoValue) / (valueRangeMax - valueRangeMin); }
+
+  template<typename T2>
+  static uint16_t convertValueT(T2 value, float offset, float reciprocalScale)
+  {
+    return (uint16_t)quantizeValueWithReciprocalScale((float)value, offset, reciprocalScale, 65536 - isUseNoValue);
+  }
+};
+
+template<typename T, bool isUseNoValue>
+struct QuantizedTypesToFloatConverter
+{
+  QuantizedTypesToFloatConverter()
+  {}
+  QuantizedTypesToFloatConverter(float integerScale, float integerOffset, bool isRangeScale)
+  {}
+
+  T convertValue(T value) const
+  {
+    return value;
+  }
+};
+
+template<bool isUseNoValue>
+struct QuantizedTypesToFloatConverter<uint8_t, isUseNoValue>
+{
+  float m_integerScale;
+  float m_integerOffset;
+
+  QuantizedTypesToFloatConverter() : m_integerScale(1), m_integerOffset(0)
+  {}
+  
+  QuantizedTypesToFloatConverter(float integerScale, float integerOffset, bool isRangeScale)
+    : m_integerScale(integerScale / (isRangeScale ? 255.0f - isUseNoValue : 1.0f))
+    , m_integerOffset(integerOffset)
+  {}
+
+  float convertValue(uint8_t value) const
+  {
+    return m_integerOffset + m_integerScale * value;
+  }
+};
+
+template<bool isUseNoValue>
+struct QuantizedTypesToFloatConverter<uint16_t, isUseNoValue>
+{
+  float m_integerScale;
+  float m_integerOffset;
+
+public:
+  QuantizedTypesToFloatConverter()
+    : m_integerScale(1)
+    , m_integerOffset(0)
+  {}
+  QuantizedTypesToFloatConverter(float integerScale, float integerOffset, bool isRangeScale)
+    : m_integerScale(integerScale / (isRangeScale ? 65535.0f - isUseNoValue : 1.0f))
+    , m_integerOffset(integerOffset)
+  {}
+
+  float convertValue(uint16_t value) const
+  {
+    return m_integerOffset + m_integerScale * value;
+  }
+};
+
+template<typename T1, typename T2, bool isUseNoValue>
+class QuantizingValueConverterWithNoValue
+{
+  QuantizedTypesToFloatConverter<T2, isUseNoValue> m_quantizedTypesToFloatConverter;
+  float m_integerOffset;
+  float m_reciprocalScale;
+
+  T2 m_noValue;
+
+  T1 m_replacementNoValue;
+
+public:
+  QuantizingValueConverterWithNoValue()
+    : m_integerOffset(0)
+    , m_reciprocalScale(0)
+    , m_noValue(0)
+    , m_replacementNoValue(0)
+  {}
+  
+  QuantizingValueConverterWithNoValue(float valueRangeMin, float valueRangeMax, float integerScale, float integerOffset, float noValue, float replacementNoValue)
+    : m_integerOffset(valueRangeMin)
+    , m_reciprocalScale(ResultConverter<T1, isUseNoValue>::reciprocalScale(valueRangeMin, valueRangeMax))
+    , m_noValue(convertNoValue<T2>(noValue))
+    , m_replacementNoValue(convertNoValue<T1>(replacementNoValue))
+    , m_quantizedTypesToFloatConverter(integerScale, integerOffset, false)
+  {}
+
+  QuantizingValueConverterWithNoValue(float valueRangeMin, float valueRangeMax, float integerScale, float integerOffset, double noValue, double replacementNoValue)
+    : m_integerOffset(valueRangeMin)
+    , m_reciprocalScale(ResultConverter<T1, isUseNoValue>::reciprocalScale(valueRangeMin, valueRangeMax))
+    , m_noValue(convertNoValue<T2>(noValue))
+    , m_replacementNoValue(convertNoValue<T1>(replacementNoValue))
+    , m_quantizedTypesToFloatConverter(integerScale, integerOffset, false)
+  {}
+
+  QuantizingValueConverterWithNoValue(float valueRangeMin, float valueRangeMax, float integerScale, float integerOffset, float noValue, float replacementNoValue, bool isConvertWithValueRangeOnly)
+    : m_integerOffset(isConvertWithValueRangeOnly ? valueRangeMin : integerOffset)
+    , m_reciprocalScale(isConvertWithValueRangeOnly ? ResultConverter<T1, isUseNoValue>::reciprocalScale(valueRangeMin, valueRangeMax) : 1.0f / integerScale)
+    , m_noValue(convertNoValue<T2>(noValue))
+    , m_replacementNoValue(convertNoValue<T1>(replacementNoValue))
+    , m_quantizedTypesToFloatConverter(isConvertWithValueRangeOnly ? valueRangeMax - valueRangeMin : integerScale, isConvertWithValueRangeOnly ? valueRangeMin : integerOffset, isConvertWithValueRangeOnly)
+  {}
+
+  QuantizingValueConverterWithNoValue(float valueRangeMin, float valueRangeMax, float integerScale, float integerOffset, double noValue, double replacementNoValue, bool isConvertWithValueRangeOnly)
+    : m_integerOffset(isConvertWithValueRangeOnly ? valueRangeMin : integerOffset)
+    , m_reciprocalScale(isConvertWithValueRangeOnly ? ResultConverter<T1, isUseNoValue>::reciprocalScale(valueRangeMin, valueRangeMax) : 1.0f / integerScale)
+    , m_noValue(convertNoValue<T2>(noValue))
+    , m_replacementNoValue(convertNoValue<T1>(replacementNoValue))
+    , m_quantizedTypesToFloatConverter(isConvertWithValueRangeOnly ? valueRangeMax - valueRangeMin : integerScale, isConvertWithValueRangeOnly ? valueRangeMin : integerOffset, isConvertWithValueRangeOnly)
+  {}
+
+  T1 convertValue(T2 value) const
+  {
+    if(isUseNoValue && value == m_noValue)
+    {
+      return m_replacementNoValue;
+    }
+    else
+    {
+      return ResultConverter<T1, isUseNoValue>::convertValueT(m_quantizedTypesToFloatConverter.convertValue(value), m_integerOffset, m_reciprocalScale);
+    }
+  }
+};
+}
 #endif //VALUECONVERSION_H

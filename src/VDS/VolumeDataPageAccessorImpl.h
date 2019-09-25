@@ -20,7 +20,6 @@
 
 #include <OpenVDS/VolumeDataAccess.h>
 #include "IntrusiveList.h"
-#include "Hash.h"
 
 #include <list>
 #include <mutex>
@@ -54,7 +53,6 @@ private:
 
 private:
   void limitPageListSize(int maxPages, std::unique_lock<std::mutex> &pageListMutexLock);
-  void commitPage(VolumeDataPage *page, std::unique_lock<std::mutex> &pageListMutexLock);
 
 public:
   VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl *acccessManager, VolumeDataLayer* layer, int maxPages, bool isReadWrite);
@@ -81,6 +79,7 @@ public:
   void  commit() override;
 
   bool isReadWrite() const { return m_isReadWrite; }
+  VolumeDataAccessManagerImpl *getManager() const { return m_accessManager; }
 };
 
 }
