@@ -22,6 +22,7 @@
 
 #include "VolumeDataLayout.h"
 #include "VolumeDataRegion.h"
+#include "VolumeDataChannelMapping.h"
 
 #include <OpenVDS/VolumeDataAccess.h>
 
@@ -53,7 +54,7 @@ VolumeDataLayer::VolumeDataLayer(VolumeDataPartition const &volumeDataPartition,
 {
   assert(volumeDataLayout);
   assert((channel == 0 && primaryChannelLayer == NULL) || (channel > 0 && primaryChannelLayer != NULL));
-
+  assert(volumeDataChannelMapping == volumeDataLayout->getVolumeDataChannelMapping(channel));
 
   if(lowerLOD)
   {
@@ -78,7 +79,7 @@ VolumeDataLayer::VolumeDataLayer(VolumeDataPartition const &volumeDataPartition,
 
 const VolumeDataChannelMapping* VolumeDataLayer::getVolumeDataChannelMapping() const
 {
-  return m_volumeDataChannelMapping; //TODO Verify this!
+  return m_volumeDataChannelMapping;
 }
 
 int32_t VolumeDataLayer::getMappedValueCount() const
@@ -88,38 +89,34 @@ int32_t VolumeDataLayer::getMappedValueCount() const
 
 void VolumeDataLayer::getChunkIndexArrayFromVoxel(const IndexArray& voxel, IndexArray& chunk) const
 {
-  //const VolumeDataChannelMapping *volumeDataChannelMapping = m_volumeDataLayout->getVolumeDataChannelMapping(getChannelIndex());
-
   for(int32_t iDimension = 0; iDimension < array_size(chunk); iDimension++)
   {
-    //if(volumeDataChannelMapping)
-    //{
-    //  chunk[iDimension] = volumeDataChannelMapping->getMappedChunkIndexFromVoxel(getPrimaryChannelLayer(), voxel[iDimension], iDimension);
-    //}
-    //else
-    //{
+    if(m_volumeDataChannelMapping)
+    {
+      chunk[iDimension] = m_volumeDataChannelMapping->getMappedChunkIndexFromVoxel(getPrimaryChannelLayer(), voxel[iDimension], iDimension);
+    }
+    else
+    {
       chunk[iDimension] = voxelToIndex(voxel[iDimension], iDimension);
-    //}
+    }
   }
 }
 
 int64_t
 VolumeDataLayer::getChunkIndexFromNDPos(const NDPos &ndPos) const
 {
-  //const VolumeDataChannelMapping *volumeDataChannelMapping = m_volumeDataLayout->getVolumeDataChannelMapping(getChannelIndex());
-
   IndexArray chunk;
 
   for(int32_t iDimension = 0; iDimension < array_size(chunk); iDimension++)
   {
-    //if(volumeDataChannelMapping)
-    //{
-    //  chunk[iDimension] = volumeDataChannelMapping->getMappedChunkIndexFromVoxel(getPrimaryChannelLayer(), (int32_t)floorf(ndPos.data[iDimension]), iDimension);
-    //}
-    //else
-    //{
+    if(m_volumeDataChannelMapping)
+    {
+      chunk[iDimension] = m_volumeDataChannelMapping->getMappedChunkIndexFromVoxel(getPrimaryChannelLayer(), (int32_t)floorf(ndPos.data[iDimension]), iDimension);
+    }
+    else
+    {
       chunk[iDimension] = voxelToIndex((int32_t)floorf(ndPos.data[iDimension]), iDimension);
-    //}
+    }
   }
 
   return indexArrayToChunkIndex(chunk);
