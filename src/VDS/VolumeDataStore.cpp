@@ -394,7 +394,7 @@ bool VolumeDataStore::deserializeVolumeData(const VolumeDataChunk &volumeDataChu
   }
   else
   {
-    volumeDataHash = volumeDataHash ^ (uint64_t(adaptiveLevel) + 1) * 0x4068934683409867ULL;
+    volumeDataHash = uint64_t(volumeDataHash) ^ (uint64_t(adaptiveLevel) + 1) * 0x4068934683409867ULL;
 
     {
       //create a value range from scale and offset so that conversion to 8 or 16 bit is done correctly inside deserialization

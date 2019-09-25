@@ -56,7 +56,7 @@ public:
   explicit VolumeDataHash(float constantValue) { m_constant.value = constantValue; m_constant.magic = CONSTANT; }
 
   bool operator== (uint64_t dataHash) { return m_dataHash == dataHash; }
-  operator uint64_t () const { return m_dataHash; }
+  explicit operator uint64_t () const { return m_dataHash; }
 };
 
 }

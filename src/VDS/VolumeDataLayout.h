@@ -78,7 +78,7 @@ public:
 
   const VDSHandle &getHandle() { return m_handle;}
 
-  uint64_t getContentsHash() const { return m_contentsHash; }
+  uint64_t         getContentsHash() const { return uint64_t(m_contentsHash); }
   VolumeDataLayer::VolumeDataLayerID addDataLayer(VolumeDataLayer *layer);
 
   FloatRange const &getChannelValueRange(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getValueRange(); }
