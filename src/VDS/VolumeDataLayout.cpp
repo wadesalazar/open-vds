@@ -411,9 +411,16 @@ void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t
       m_primaryBaseLayers[dimensionGroup] = primaryChannelLayer;
     }
 
-    //// Default physical layers to NEVER_REMAP
-    //if(lod < physicalLODLevels) _apcPrimaryTopLayers[eDimensionGroup]->SetProduceMethod(VolumeDataLayer_c::NEVER_REMAP, 0);
-    if(lod < physicalLODLevels) m_primaryTopLayers[dimensionGroup]->setProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
+    if(lod < physicalLODLevels)
+    {
+      for(VolumeDataLayer *volumeDataLayer = m_primaryTopLayers[dimensionGroup]; volumeDataLayer; volumeDataLayer = volumeDataLayer->getNextChannelLayer())
+      {
+        if(volumeDataLayer->getLayerType() != VolumeDataLayer::Virtual)
+        {
+          volumeDataLayer->setProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
+        }
+      }
+    }
   }
 }
 
