@@ -23,6 +23,7 @@
 #include "VolumeDataPageImpl.h"
 #include <OpenVDSHandle.h>
 
+#include <cstdint>
 #include <algorithm>
 #include <atomic>
 
@@ -35,7 +36,7 @@ VolumeDataRequestProcessor::VolumeDataRequestProcessor(VolumeDataAccessManagerIm
 
 int64_t gen_jobid()
 {
-  static std::atomic_int64_t id(0);
+  static std::atomic< std::int64_t > id(0);
   return ++id;
 }
 
