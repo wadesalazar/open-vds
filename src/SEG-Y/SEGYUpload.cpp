@@ -781,11 +781,27 @@ main(int argc, char *argv[])
 
     if(error.code == 0)
     {
-      OpenVDS::VolumeDataPage * page = amplitudeAccessor->createPage(chunk);
+      OpenVDS::VolumeDataPage * amplitudePage = amplitudeAccessor->createPage(chunk);
+      OpenVDS::VolumeDataPage * traceFlagPage = nullptr;
+      OpenVDS::VolumeDataPage * segyTraceHeaderPage = nullptr;
 
-      int pitch[OpenVDS::Dimensionality_Max];
-      void *buffer = page->getWritableBuffer(pitch);
-      assert(pitch[0] == 1);
+      if(min[0] == 0)
+      {
+        traceFlagPage = traceFlagAccessor->createPage(traceFlagAccessor->getChunkIndex(min));
+        segyTraceHeaderPage = segyTraceHeaderAccessor->createPage(segyTraceHeaderAccessor->getChunkIndex(min));
+      }
+
+      int amplitudePitch[OpenVDS::Dimensionality_Max];
+      int traceFlagPitch[OpenVDS::Dimensionality_Max];
+      int segyTraceHeaderPitch[OpenVDS::Dimensionality_Max];
+
+      void *amplitudeBuffer = amplitudePage->getWritableBuffer(amplitudePitch);
+      void *traceFlagBuffer = traceFlagPage ? traceFlagPage->getWritableBuffer(traceFlagPitch) : nullptr;
+      void *segyTraceHeaderBuffer = segyTraceHeaderPage ? segyTraceHeaderPage->getWritableBuffer(segyTraceHeaderPitch) : nullptr;
+
+      assert(amplitudePitch[0] == 1);
+      assert(!traceFlagBuffer || traceFlagPitch[1] == 1);
+      assert(!segyTraceHeaderBuffer || segyTraceHeaderPitch[1] == SEGY::TraceHeaderSize);
 
       // We loop through the segments that have primary keys inside this block and copy the traces that have secondary keys inside this block
       for(auto segment = lower; segment != upper; ++segment)
@@ -815,13 +831,31 @@ main(int argc, char *argv[])
           assert(primaryIndex >= min[2] && primaryIndex < max[2]);
           assert(secondaryIndex >= min[1] && secondaryIndex < max[1]);
 
-          int targetOffset = (primaryIndex - min[2]) * pitch[2] + (secondaryIndex - min[1]) * pitch[1];
+          {
+            int targetOffset = (primaryIndex - min[2]) * amplitudePitch[2] + (secondaryIndex - min[1]) * amplitudePitch[1];
 
-          copySamples(data, fileInfo.m_dataSampleFormatCode, reinterpret_cast<float *>(buffer) + targetOffset, sampleStart, sampleCount);
+            copySamples(data, fileInfo.m_dataSampleFormatCode, &reinterpret_cast<float *>(amplitudeBuffer)[targetOffset], sampleStart, sampleCount);
+          }
+
+          if(traceFlagBuffer)
+          {
+            int targetOffset = (primaryIndex - min[2]) * traceFlagPitch[2] + (secondaryIndex - min[1]) * traceFlagPitch[1];
+
+            reinterpret_cast<uint8_t *>(traceFlagBuffer)[targetOffset] = true;
+          }
+
+          if(segyTraceHeaderBuffer)
+          {
+            int targetOffset = (primaryIndex - min[2]) * segyTraceHeaderPitch[2] + (secondaryIndex - min[1]) * segyTraceHeaderPitch[1];
+
+            memcpy(&reinterpret_cast<uint8_t *>(segyTraceHeaderBuffer)[targetOffset], header, SEGY::TraceHeaderSize);
+          }
         }
       }
 
-      page->release();
+      amplitudePage->release();
+      if(traceFlagPage) traceFlagPage->release();
+      if(segyTraceHeaderPage) segyTraceHeaderPage->release();
     }
   }
 
