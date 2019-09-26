@@ -38,6 +38,7 @@ include(CMake/Build3rdParty.cmake)
 build3rdparty()
 
 add_subdirectory(src)
+add_subdirectory(python)
 
 enable_testing()
 add_subdirectory(tests)
