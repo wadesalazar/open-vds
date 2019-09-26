@@ -27,6 +27,24 @@
 namespace OpenVDS
 {
 
+template <typename INDEX> INDEX ndPosToVector(const int (&pos)[Dimensionality_Max]){ assert(false); } ;
+
+template <> IntVector2 ndPosToVector<IntVector2>(const int (&pos)[Dimensionality_Max]) { return { pos[1], pos[0]}; }
+template <> IntVector3 ndPosToVector<IntVector3>(const int (&pos)[Dimensionality_Max]) { return { pos[2], pos[1], pos[0]}; }
+template <> IntVector4 ndPosToVector<IntVector4>(const int (&pos)[Dimensionality_Max]) { return { pos[3], pos[2], pos[1], pos[0]}; }
+template <> FloatVector2 ndPosToVector<FloatVector2>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[1], (float)pos[0]}; }
+template <> FloatVector3 ndPosToVector<FloatVector3>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[2], (float)pos[1], (float)pos[0]}; }
+template <> FloatVector4 ndPosToVector<FloatVector4>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[3], (float)pos[2], (float)pos[1], (float)pos[0]}; }
+
+template <typename INDEX> void vectorToNDPos(INDEX const &index, int (&pos)[Dimensionality_Max]) { assert(false); };
+template <> void vectorToNDPos(IntVector2 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; }
+template <> void vectorToNDPos(IntVector3 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; pos[2] = index[2]; }
+template <> void vectorToNDPos(IntVector4 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; pos[2] = index[2]; pos[3] = index[3]; }
+template <> void vectorToNDPos(FloatVector2 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); }
+template <> void vectorToNDPos(FloatVector3 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); pos[2] = (int)floorf(index[2]); }
+template <> void vectorToNDPos(FloatVector4 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); pos[2] = (int)floorf(index[2]); pos[3] = (int)floorf(index[3]); }
+
+
 class AccessorRegion : public IndexRegion<IntVector4>
 {
 public:
@@ -246,7 +264,7 @@ class ConvertingVolumeDataAccessor : public RawVolumeDataAccessor<T2>, public Vo
   using RawVolumeDataAccessor<T2>::m_validRegion;
   using RawVolumeDataAccessor<T2>::m_buffer;
   using RawVolumeDataAccessor<T2>::m_pitch;
-  //using RawVolumeDataAccessor<T2>::m_volumeDataPageAccessor;
+  using RawVolumeDataAccessor<T2>::m_volumeDataPageAccessor;
 
   QuantizingValueConverterWithNoValue<T1, T2, isUseNoValue> m_readValueConverter;
 
@@ -501,25 +519,25 @@ public:
 
 
   template <typename T>
-  static T readBuffer(const void *buffer, int index)
+  T readBuffer(const void *buffer, int index)
   {
     return static_cast<const T *>(buffer)[index];
   }
 
   template <typename T>
-  static void writeBuffer(void *buffer, int index, T value)
+  void writeBuffer(void *buffer, int index, T value)
   {
     static_cast<T *>(buffer)[index] = value;
   }
 
   template <>
-  static bool readBuffer<bool>(const void *buffer, int index)
+  bool readBuffer<bool>(const void *buffer, int index)
   {
     return (static_cast<const unsigned char *>(buffer)[index / 8] & (1 << (index % 8))) != 0;
   }
 
   template <>
-  static void writeBuffer<bool>(void *buffer, int index, bool value)
+  void writeBuffer<bool>(void *buffer, int index, bool value)
   {
     if(value)
     {

@@ -22,6 +22,8 @@
 #include "ValueConversion.h"
 #include <Math/Vector.h>
 
+#include <cmath>
+
 namespace OpenVDS
 {
 template <typename T>

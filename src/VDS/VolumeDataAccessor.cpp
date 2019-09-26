@@ -180,24 +180,6 @@ void VolumeDataAccessorBase::readPageAtPosition(IntVector4 index, bool enableWri
   m_writable = enableWriting;
 }
 
-template <typename INDEX> INDEX ndPosToVector(const int (&pos)[Dimensionality_Max]){ assert(false) } ;
-
-template <> IntVector2 ndPosToVector<IntVector2>(const int (&pos)[Dimensionality_Max]) { return { pos[1], pos[0]}; }
-template <> IntVector3 ndPosToVector<IntVector3>(const int (&pos)[Dimensionality_Max]) { return { pos[2], pos[1], pos[0]}; }
-template <> IntVector4 ndPosToVector<IntVector4>(const int (&pos)[Dimensionality_Max]) { return { pos[3], pos[2], pos[1], pos[0]}; }
-template <> FloatVector2 ndPosToVector<FloatVector2>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[1], (float)pos[0]}; }
-template <> FloatVector3 ndPosToVector<FloatVector3>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[2], (float)pos[1], (float)pos[0]}; }
-template <> FloatVector4 ndPosToVector<FloatVector4>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[3], (float)pos[2], (float)pos[1], (float)pos[0]}; }
-
-template <typename INDEX> void vectorToNDPos(INDEX const &index, int (&pos)[Dimensionality_Max]) { assert(false) };
-template <> void vectorToNDPos(IntVector2 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; }
-template <> void vectorToNDPos(IntVector3 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; pos[2] = index[2]; }
-template <> void vectorToNDPos(IntVector4 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; pos[2] = index[2]; pos[3] = index[3]; }
-template <> void vectorToNDPos(FloatVector2 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); }
-template <> void vectorToNDPos(FloatVector3 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); pos[2] = (int)floorf(index[2]); }
-template <> void vectorToNDPos(FloatVector4 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); pos[2] = (int)floorf(index[2]); pos[3] = (int)floorf(index[3]); }
-
-
 template <typename INDEX, typename T>
 VolumeDataReadWriteAccessor<INDEX, T> *VolumeDataAccess_CreateVolumeDataAccessor(VolumeDataPageAccessor *v, float replacementNoValue)
 {
