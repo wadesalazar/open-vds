@@ -137,6 +137,11 @@ set_target_properties(openvds
   PRIVATE_HEADER "${PRIVATE_HEADER_FILES}"
   #OUTPUT_NAME ${PROJECT_NAME}
 )
+target_include_directories(openvds
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include>
+)
 
 if (${MSVC_TOOLSET_VERSION})
   set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION}")
@@ -162,5 +167,17 @@ install(TARGETS openvds
     install(FILES ${aws-cpp-sdk_RUNTIME} ${zlib_RUNTIME}
       DESTINATION bin${LIB_TOOLSET_DIR})
   endif()
+
+export(
+    TARGETS
+        openvds
+        openvds_objects
+        jsoncpp_lib_static
+    NAMESPACE
+        openvds::
+    FILE
+        openvds-config.cmake
+)
+set(OPENVDS_LIB_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "")
 
 add_subdirectory(SEG-Y)
