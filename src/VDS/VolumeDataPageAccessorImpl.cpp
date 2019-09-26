@@ -162,13 +162,14 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
     return nullptr;
   }
 
-  int pitch[Dimensionality_Max];
-  for (int i = 0; i < array_size(pitch); i++)
+  int pitch[Dimensionality_Max] = {};
+
+  for(int chunkDimension = 0; chunkDimension < m_layer->getChunkDimensionality(); chunkDimension++)
   {
-    if (i < array_size(dataBlock.pitch))
-      pitch[i] = dataBlock.pitch[i];
-    else
-      pitch[i] = 1;
+    int dimension = DimensionGroupUtil::getDimension(m_layer->getChunkDimensionGroup(), chunkDimension);
+
+    assert(dimension >= 0 && dimension < Dimensionality_Max);
+    pitch[dimension] = dataBlock.pitch[chunkDimension];
   }
 
   pageMutexLocker.lock();
@@ -278,13 +279,14 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
     return nullptr;
   }
 
-  int pitch[Dimensionality_Max];
-  for (int i = 0; i < array_size(pitch); i++)
+  int pitch[Dimensionality_Max] = {};
+
+  for(int chunkDimension = 0; chunkDimension < m_layer->getChunkDimensionality(); chunkDimension++)
   {
-    if (i < array_size(dataBlock.pitch))
-      pitch[i] = dataBlock.pitch[i];
-    else
-      pitch[i] = 1;
+    int dimension = DimensionGroupUtil::getDimension(m_layer->getChunkDimensionGroup(), chunkDimension);
+
+    assert(dimension >= 0 && dimension < Dimensionality_Max);
+    pitch[dimension] = dataBlock.pitch[chunkDimension];
   }
 
   pageMutexLocker.lock();
