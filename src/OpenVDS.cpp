@@ -150,7 +150,21 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
 
   for(auto channelDescriptor : channelDescriptors)
   {
-    handle->channelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.getFormat(), channelDescriptor.getComponents(), addDescriptorString(channelDescriptor.getName(), *handle), addDescriptorString(channelDescriptor.getUnit(), *handle), channelDescriptor.getValueRangeMin(), channelDescriptor.getValueRangeMax()));
+    VolumeDataChannelDescriptor::Flags flags = VolumeDataChannelDescriptor::Default;
+
+    if(channelDescriptor.isDiscrete())                     flags = flags | VolumeDataChannelDescriptor::DiscreteData;
+    if(!channelDescriptor.isAllowLossyCompression())       flags = flags | VolumeDataChannelDescriptor::NoLossyCompression;
+    if(channelDescriptor.isUseZipForLosslessCompression()) flags = flags | VolumeDataChannelDescriptor::NoLossyCompressionUseZip;
+    if(!channelDescriptor.isRenderable())                  flags = flags | VolumeDataChannelDescriptor::NotRenderable;
+
+    if(channelDescriptor.isUseNoValue())
+    {
+      handle->channelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.getFormat(), channelDescriptor.getComponents(), addDescriptorString(channelDescriptor.getName(), *handle), addDescriptorString(channelDescriptor.getUnit(), *handle), channelDescriptor.getValueRangeMin(), channelDescriptor.getValueRangeMax(), channelDescriptor.getMapping(), channelDescriptor.getMappedValueCount(), flags, channelDescriptor.getNoValue(), channelDescriptor.getIntegerScale(), channelDescriptor.getIntegerOffset()));
+    }
+    else
+    {
+      handle->channelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.getFormat(), channelDescriptor.getComponents(), addDescriptorString(channelDescriptor.getName(), *handle), addDescriptorString(channelDescriptor.getUnit(), *handle), channelDescriptor.getValueRangeMin(), channelDescriptor.getValueRangeMax(), channelDescriptor.getMapping(), channelDescriptor.getMappedValueCount(), flags, channelDescriptor.getIntegerScale(), channelDescriptor.getIntegerOffset()));
+    }
   }
 
   handle->metadataContainer = metadataContainer;
