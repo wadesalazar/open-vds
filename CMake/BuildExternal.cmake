@@ -27,6 +27,8 @@ function(BuildExternal name version source_dir install_libs_release runtime_libs
     list(APPEND runtime_libs_debug ${runtime_libs_release})
   endif()
 
+  set(${name}_INSTALL_INT_CONFIG "${INSTALL_INT_CONFIG}" PARENT_SCOPE)
+
   foreach (LIB IN LISTS install_libs_release)
     set_property(GLOBAL APPEND PROPERTY OPENVDS_LINK_LIBRARIES_RELEASE "${INSTALL_INT_CONFIG}/${LIB}")
   endforeach()

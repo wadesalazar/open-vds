@@ -25,11 +25,15 @@ add_custom_target(
         build # setup.py build args
             --cmake-executable ${CMAKE_COMMAND}
             --generator ${CMAKE_GENERATOR}
+            $<$<BOOL:$<CONFIG>>:--build-type=$<CONFIG>>
         -- # cmake to the extension
             -Dopenvds_DIR=${OPENVDS_LIB_BINARY_DIR}
+            $<$<BOOL:${zlib_INSTALL_INT_CONFIG}>:-DCMAKE_PREFIX_PATH=${zlib_INSTALL_INT_CONFIG}>
             # "install" to the python/openvds dir with rpath, so there's no need
             # to fiddle with environment in ctest to load the core library from
             # the build tree
+            -DCMAKE_BUILD_TYPE=$<CONFIG>
+            $<$<BOOL:$<CONFIG>>:-DCMAKE_BUILD_TYPE=$<CONFIG>>
             -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
             -DCMAKE_INSTALL_RPATH=$<TARGET_FILE_DIR:openvds>
             -DCMAKE_INSTALL_NAME_DIR=$<TARGET_FILE_DIR:openvds>
