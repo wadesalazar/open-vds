@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(OpenVDS-python)
 
+if (NOT BUILD_PYTHON)
+    return()
+endif ()
+
 find_package(PythonInterp REQUIRED)
 
 set(python ${PYTHON_EXECUTABLE})
