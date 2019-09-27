@@ -11,6 +11,7 @@ option(BUILD_PYTHON "Build python bindings" ON)
 
 set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 define_property(GLOBAL PROPERTY RUNTIME_LIBS_RELEASE BRIEF_DOCS "Runtime libraries" FULL_DOCS "Files that will be copied to test folders")
 define_property(GLOBAL PROPERTY RUNTIME_LIBS_DEBUG   BRIEF_DOCS "Runtime libraries" FULL_DOCS "Files that will be copied to test folders")
@@ -22,8 +23,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 find_package(Threads)
 
 if (UNIX)
-  add_definitions(-Wreturn-type)
-  add_compile_options(-fPIC)
+  add_compile_options(-Wreturn-type)
 endif()
 
 if (WIN32)
