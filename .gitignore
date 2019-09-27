@@ -1,3 +1,4 @@
 .vs
 Builds
 Dist
+/python/_skbuild/win-amd64-2.7/cmake-build
