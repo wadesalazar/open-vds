@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10.2)
 project(Open-VDS)
 
+include(GNUInstallDirs)
+
 set (TEST_DATA_PATH "" CACHE PATH "Test data path")
 set (TEST_AWS_REGION "" CACHE STRING "Test AWS region")
 set (TEST_AWS_BUCKET "" CACHE STRING "Test AWS bucket")
