@@ -5,6 +5,7 @@ set (TEST_DATA_PATH "" CACHE PATH "Test data path")
 set (TEST_AWS_REGION "" CACHE STRING "Test AWS region")
 set (TEST_AWS_BUCKET "" CACHE STRING "Test AWS bucket")
 set (TEST_AWS_OBJECTID "" CACHE STRING "Test AWS object ID")
+option(BUILD_PYTHON "Build python bindings" ON)
 
 set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
