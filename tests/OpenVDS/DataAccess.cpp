@@ -45,7 +45,7 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle);
 
-  OpenVDS::VolumeDataPageAccessor *pageAccessor = dataAccessManager->createVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 10, false);
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = dataAccessManager->createVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   ASSERT_TRUE(pageAccessor);
 
   int pos[OpenVDS::Dimensionality_Max] = {layout->getDimensionNumSamples(0) / 2, layout->getDimensionNumSamples(1) /2, layout->getDimensionNumSamples(2) / 2};

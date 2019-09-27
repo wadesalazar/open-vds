@@ -73,6 +73,13 @@ protected:
                 VolumeDataAccessManager() {}
   virtual      ~VolumeDataAccessManager() {}
 public:
+  enum AccessMode
+  {
+    AccessMode_ReadOnly,
+    AccessMode_ReadWrite,
+    AccessMode_Create
+  };
+
   /// <summary>
   /// Get the VolumeDataLayout object for a VDS.
   /// </summary>
@@ -102,13 +109,13 @@ public:
   /// <param name="nMaxPages">
   /// The maximum number of pages that the volume data page accessor will cache.
   /// </param>
-  /// <param name="isReadWrite">
-  /// Set to true to make a read/write accessor. Read/write accessors can only be made for VDSDirect.
+  /// <param name="accessMode">
+  /// This specifies the access mode (ReadOnly/ReadWrite/Create) of the volume data page accessor.
   /// </param>
   /// <returns>
   /// A VolumeDataPageAccessor object for the VDS associated with the given VolumeDataLayout object.
   /// </returns>
-  virtual VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, bool isReadWrite) = 0;
+  virtual VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) = 0;
 
   /// <summary>
   /// Destroy a volume data page accessor object.

@@ -337,7 +337,7 @@ void VolumeDataLayout::setActualValueRange(int32_t actualValueRangeChannel, Floa
 }
 
 
-void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels)
+void VolumeDataLayout::createLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels, VolumeDataLayer::ProduceStatus produceStatus)
 {
   assert(physicalLODLevels > 0);
 
@@ -417,7 +417,7 @@ void VolumeDataLayout::createRenderLayers(DimensionGroup dimensionGroup, int32_t
       {
         if(volumeDataLayer->getLayerType() != VolumeDataLayer::Virtual)
         {
-          volumeDataLayer->setProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
+          volumeDataLayer->setProduceStatus(produceStatus);
         }
       }
     }

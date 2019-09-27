@@ -114,9 +114,9 @@ void createVolumeDataLayout(VDSHandle &handle)
       false,
       0));
 
-  for(int32_t iDimensionGroup = 0; iDimensionGroup < DimensionGroup_3D_Max; iDimensionGroup++)
+  for(int32_t dimensionGroupIndex = 0; dimensionGroupIndex < DimensionGroup_3D_Max; dimensionGroupIndex++)
   {
-    DimensionGroup dimensionGroup = (DimensionGroup)iDimensionGroup;
+    DimensionGroup dimensionGroup = (DimensionGroup)dimensionGroupIndex;
 
     int32_t nChunkDimensionality = DimensionGroupUtil::getDimensionality(dimensionGroup);
 
@@ -132,7 +132,7 @@ void createVolumeDataLayout(VDSHandle &handle)
     int32_t physicalLODLevels = (nChunkDimensionality == 3 || handle.layoutDescriptor.isCreate2DLODs()) ? getLODCount(handle.layoutDescriptor) : 1;
     int32_t brickSize = getInternalCubeSizeLOD0(handle.layoutDescriptor) * (nChunkDimensionality == 2 ? handle.layoutDescriptor.getBrickSizeMultiplier2D() : 1);
 
-    handle.volumeDataLayout->createRenderLayers(dimensionGroup, brickSize, physicalLODLevels);
+    handle.volumeDataLayout->createLayers(dimensionGroup, brickSize, physicalLODLevels, handle.produceStatuses[DimensionGroupUtil::getDimensionsNDFromDimensionGroup(dimensionGroup)]);
   }
 }
 
@@ -168,6 +168,9 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
   }
 
   handle->metadataContainer = metadataContainer;
+
+  handle->produceStatuses.clear();
+  handle->produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
 
   createVolumeDataLayout(*handle);
 

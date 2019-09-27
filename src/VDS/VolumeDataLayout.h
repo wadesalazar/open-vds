@@ -168,7 +168,7 @@ public:
   void setContentsHash(VolumeDataHash const &contentsHash);
   void setActualValueRange(int32_t actualValueRangeChannel, FloatRange const &actualValueRange); // This should probably be implemented with VDSMetadata
 
-  void createRenderLayers(DimensionGroup dimensions, int32_t brickSize, int32_t physicalLODLevels); //-> TODO: rename at some point
+  void createLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels, VolumeDataLayer::ProduceStatus produceStatus);
 
   bool isDimensionLODDecimated(int32_t dimension) const { return dimension != m_fullResolutionDimension; }
   int32_t getFullResolutionDimension() const { return m_fullResolutionDimension; }

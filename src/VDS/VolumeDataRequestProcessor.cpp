@@ -52,7 +52,7 @@ int64_t VolumeDataRequestProcessor::addJob(std::vector<VolumeDataChunk>& chunks,
   auto page_accessor_it = m_page_accessors.find(key);
   if (page_accessor_it == m_page_accessors.end())
   {
-    auto pa = static_cast<VolumeDataPageAccessorImpl *>(m_manager.createVolumeDataPageAccessor(layout, dimensions, lod, channel, 100, false));
+    auto pa = static_cast<VolumeDataPageAccessorImpl *>(m_manager.createVolumeDataPageAccessor(layout, dimensions, lod, channel, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly));
     auto insert_result = m_page_accessors.insert({key, pa});
     assert(insert_result.second);
     page_accessor_it = insert_result.first;

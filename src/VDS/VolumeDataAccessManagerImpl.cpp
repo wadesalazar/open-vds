@@ -67,7 +67,7 @@ static ParsedMetadata parseMetadata(int metadataByteSize, unsigned char const *m
   }
   else
   {
-    fprintf(stderr, "%s%s\n", std::string(" Unsupported chunkMetadataByteSize: ").c_str(), std::to_string(metadataByteSize).c_str());
+    throw std::runtime_error(std::string(" Unsupported chunkMetadataByteSize: ") + std::to_string(metadataByteSize));
   }
 
   return parsedMetadata;
@@ -180,13 +180,13 @@ static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayout const *layout, Dimen
 {
   if(!layout)
   {
-    fprintf(stderr, "Volume data layout is NULL, this is usually because the VDS setup is invalid");
+    throw std::runtime_error("Volume data layout is NULL, this is usually because the VDS setup is invalid");
     return nullptr;
   }
 
   if(channel > layout->getChannelCount())
   {
-    fprintf(stderr, "Specified channel doesn't exist");
+    throw std::runtime_error("Specified channel doesn't exist");
     return nullptr;
   }
 
@@ -194,7 +194,7 @@ static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayout const *layout, Dimen
 
   if(!layer && !isAllowFailure)
   {
-    fprintf(stderr, "Specified dimension group doesn't exist");
+    throw std::runtime_error("Specified dimension group doesn't exist");
     return nullptr;
   }
 
@@ -205,7 +205,7 @@ static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayout const *layout, Dimen
 
   if((!layer || layer->getLayerType() == VolumeDataLayer::Virtual) && !isAllowFailure)
   {
-    fprintf(stderr, "Specified LOD doesn't exist");
+    throw std::runtime_error("Specified LOD doesn't exist");
   }
 
   assert(layer || isAllowFailure);
@@ -224,14 +224,24 @@ VolumeDataLayout const* VolumeDataAccessManagerImpl::getVolumeDataLayout() const
   return m_layout;
 }
 
-VolumeDataPageAccessor* VolumeDataAccessManagerImpl::createVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, bool isReadWrite)
+VolumeDataPageAccessor* VolumeDataAccessManagerImpl::createVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
+
   VolumeDataLayer *layer = getVolumeDataLayer(volumeDataLayout, dimensionsND, channel, lod, true);
   if (!layer)
     return nullptr;
 
-  VolumeDataPageAccessorImpl *accessor = new VolumeDataPageAccessorImpl(this,layer,maxPages, isReadWrite);
+  if(accessMode == VolumeDataAccessManager::AccessMode_Create)
+  {
+    layer->setProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
+  }
+  else if (layer->getProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
+  {
+    throw std::runtime_error("The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)");
+  }
+
+  VolumeDataPageAccessorImpl *accessor = new VolumeDataPageAccessorImpl(this, layer, maxPages, accessMode != VolumeDataAccessManager::AccessMode_ReadOnly);
   m_volumeDataPageAccessorList.insertLast(accessor);
   return accessor;
 }

@@ -741,9 +741,9 @@ main(int argc, char *argv[])
   auto accessManager = OpenVDS::getDataAccessManager(vds);
   auto layout = accessManager->getVolumeDataLayout();
 
-  auto amplitudeAccessor       = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, true);
-  auto traceFlagAccessor       = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, true);
-  auto segyTraceHeaderAccessor = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, true);
+  auto amplitudeAccessor       = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto traceFlagAccessor       = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto segyTraceHeaderAccessor = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
 
   int64_t traceByteSize = fileInfo.traceByteSize();
 
