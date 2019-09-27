@@ -147,7 +147,8 @@ if (${MSVC_TOOLSET_VERSION})
   set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION}")
 endif()
 
-install(TARGETS openvds
+install(TARGETS openvds openvds_objects jsoncpp_lib_static
+  EXPORT openvds-export
   ARCHIVE
     DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR}
   LIBRARY
@@ -167,6 +168,13 @@ install(TARGETS openvds
     install(FILES ${aws-cpp-sdk_RUNTIME} ${zlib_RUNTIME}
       DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
   endif()
+
+install(
+    EXPORT openvds-export
+    NAMESPACE openvds::
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openvds/cmake
+    FILE openvds-config.cmake
+)
 
 export(
     TARGETS
