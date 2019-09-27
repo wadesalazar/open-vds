@@ -32,6 +32,7 @@ add_custom_target(
             # "install" to the python/openvds dir with rpath, so there's no need
             # to fiddle with environment in ctest to load the core library from
             # the build tree
+            -DENABLE_OPENMP=${ENABLE_OPENMP}
             -DCMAKE_BUILD_TYPE=$<CONFIG>
             $<$<BOOL:$<CONFIG>>:-DCMAKE_BUILD_TYPE=$<CONFIG>>
             -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON

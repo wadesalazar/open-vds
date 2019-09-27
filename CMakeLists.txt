@@ -8,6 +8,7 @@ set (TEST_AWS_REGION "" CACHE STRING "Test AWS region")
 set (TEST_AWS_BUCKET "" CACHE STRING "Test AWS bucket")
 set (TEST_AWS_OBJECTID "" CACHE STRING "Test AWS object ID")
 option(BUILD_PYTHON "Build python bindings" ON)
+option(ENABLE_OPENMP "Enable the OpenMP codepath" ON)
 
 set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -24,6 +25,8 @@ find_package(Threads)
 
 if (UNIX)
   add_compile_options(-Wreturn-type)
+elseif (MSVC_VERSION GREATER_EQUAL 1910 AND NOT ENABLE_OPENMP)
+  add_compile_options(/permissive-)
 endif()
 
 if (WIN32)

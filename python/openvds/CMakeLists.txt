@@ -9,7 +9,9 @@ set(CMAKE_C_VISIBILITY_PRESET   "hidden")
 find_package(PythonExtensions REQUIRED)
 
 find_package(Threads REQUIRED)
-find_package(OpenMP REQUIRED)
+if(ENABLE_OPENMP)
+  find_package(OpenMP REQUIRED)
+endif()
 find_package(ZLIB REQUIRED)
 find_package(openvds REQUIRED)
 

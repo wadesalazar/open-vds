@@ -134,8 +134,7 @@ class SystemFileView : public FileView
     return siSysInfo.dwAllocationGranularity;
   }
 
-  static PrefetchVirtualMemory_pf
-    SystemFileView::staticGetPrefetchVirtualMemoryProcAddress()
+  static PrefetchVirtualMemory_pf staticGetPrefetchVirtualMemoryProcAddress()
   {
     HMODULE hKernel32 = LoadLibraryW(L"Kernel32");
     if (!hKernel32)
@@ -222,7 +221,7 @@ public:
   }
 };
 
-SystemFileView::PrefetchVirtualMemory_pf SystemFileView::s_pfPrefetchVirtualMemory = SystemFileView::staticGetPrefetchVirtualMemoryProcAddress();
+SystemFileView::PrefetchVirtualMemory_pf SystemFileView::s_pfPrefetchVirtualMemory = staticGetPrefetchVirtualMemoryProcAddress();
 DWORD SystemFileView::s_dwPageSize = SystemFileView::staticPageSize();
 
 bool File::exists(const std::string& filename)

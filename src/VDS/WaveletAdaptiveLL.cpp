@@ -31,6 +31,19 @@
 namespace OpenVDS
 {
 
+#if !defined(_OPENMP)
+static int32_t omp_get_max_threads()
+{
+  return 1;
+}
+
+static int32_t omp_get_thread_num()
+{
+  return 1;
+}
+#endif
+
+
 static uint8_t* assignPtrAndIncrementOffset(int nSize, uint8_t*& workBuffer)
 {
   // round off buffer to 256 bytes offset
