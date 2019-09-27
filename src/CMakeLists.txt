@@ -98,7 +98,7 @@ get_property(include_3rdparty      GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES)
 
 add_dependencies(openvds_objects aws-cpp-sdk)
 
-target_include_directories(openvds_objects PRIVATE SYSTEM ${include_3rdparty} "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(openvds_objects SYSTEM PRIVATE ${include_3rdparty} "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(openvds_objects PRIVATE openvds_EXPORTS)
 
 target_link_libraries(openvds_objects Threads::Threads)
