@@ -131,7 +131,7 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/Dist/OpenVDS CACHE STRING "" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-add_library(openvds SHARED $<TARGET_OBJECTS:openvds_objects>)
+add_library(openvds $<TARGET_OBJECTS:openvds_objects>)
 target_link_libraries(openvds openvds_objects)
 set_target_properties(openvds
   PROPERTIES

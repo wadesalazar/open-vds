@@ -9,10 +9,10 @@ set (TEST_AWS_BUCKET "" CACHE STRING "Test AWS bucket")
 set (TEST_AWS_OBJECTID "" CACHE STRING "Test AWS object ID")
 option(BUILD_PYTHON "Build python bindings" ON)
 option(ENABLE_OPENMP "Enable the OpenMP codepath" ON)
+option(BUILD_SHARED_LIBS "Build OpenVDS as a shared library" ON)
 
 set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 define_property(GLOBAL PROPERTY RUNTIME_LIBS_RELEASE BRIEF_DOCS "Runtime libraries" FULL_DOCS "Files that will be copied to test folders")
 define_property(GLOBAL PROPERTY RUNTIME_LIBS_DEBUG   BRIEF_DOCS "Runtime libraries" FULL_DOCS "Files that will be copied to test folders")

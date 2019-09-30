@@ -4,6 +4,7 @@ include(GoogleTest)
 set(BUILD_GMOCK OFF CACHE BOOL "We dont need mock" FORCE)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 set(INSTALL_GTEST OFF CACHE BOOL "Dont install" FORCE)
+set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(${gtest_SOURCE_DIR} ${PROJECT_BINARY_DIR}/gtest)
 set_target_properties(gtest PROPERTIES
   FOLDER ExternalProjectTargets/GoogleTest)
