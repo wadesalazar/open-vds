@@ -25,7 +25,12 @@
 #include <aws/s3/S3Client.h>
 namespace OpenVDS
 {
-  struct AsyncCallerContext;
+  class DownloadRequestAWS;
+  class UploadRequestAWS;
+  template<typename> struct AsyncContext;
+  using AsyncDownloadContext = AsyncContext<DownloadRequestAWS>;
+  using AsyncUploadContext = AsyncContext<UploadRequestAWS>;
+
   class DownloadRequestAWS : public Request
   {
   public:
@@ -38,9 +43,36 @@ namespace OpenVDS
     void cancel() override;
 
     std::shared_ptr<TransferHandler> m_handler;
-    std::shared_ptr<AsyncCallerContext> m_context;
+    std::shared_ptr<AsyncDownloadContext> m_context;
     Error m_error;
     bool  m_done;
+    std::condition_variable m_waitForFinish;
+  };
+
+  class VectorBuf : public std::basic_streambuf<char, std::char_traits<char>>
+  {
+  public:
+    VectorBuf(std::vector<uint8_t>& vec)
+    {
+      setg((char *) vec.data(), (char *) vec.data(), (char *) vec.data() + vec.size());
+    }
+  };
+
+  class UploadRequestAWS : public Request
+  {
+  public:
+    UploadRequestAWS(Aws::S3::S3Client &client, const std::string &bucket, const std::string &id, std::shared_ptr<std::vector<uint8_t>> data, const IORange &range);
+    void waitForFinish() override;
+    bool isDone() const override;
+    bool isSuccess(Error &error) const override;
+    void cancel() override;
+
+    std::shared_ptr<AsyncUploadContext> m_context;
+    std::shared_ptr<std::vector<uint8_t>> m_data;
+    VectorBuf m_vectorBuf;
+    std::shared_ptr<Aws::IOStream> m_stream;
+    Error m_error;
+    bool m_done;
     std::condition_variable m_waitForFinish;
   };
 
