@@ -370,7 +370,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
 
   lock.lock();
   auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
-  m_pendingRequests[chunk] = PendingRequest(m_ioManager->requestObject(url, transferHandler, ioRange), transferHandler);
+  m_pendingRequests[chunk] = PendingRequest(m_ioManager->downloadObject(url, transferHandler, ioRange), transferHandler);
 
   return true;
 }
@@ -460,7 +460,7 @@ void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPa
         std::string url = makeURLForChunk(metadataManager->layerUrlStr(), volumeDataChunk.chunkIndex);
 
         auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
-        pendingRequest.m_activeTransfer = m_ioManager->requestObject(url, transferHandler, ioRange);
+        pendingRequest.m_activeTransfer = m_ioManager->downloadObject(url, transferHandler, ioRange);
         pendingRequest.m_transferHandle = transferHandler;
       }
     }

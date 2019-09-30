@@ -19,6 +19,7 @@
 #include "VolumeDataPageAccessorImpl.h"
 #include "VolumeDataChunk.h"
 #include "VolumeDataLayer.h"
+#include "VolumeDataAccessManagerImpl.h"
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 
 #include <algorithm>
@@ -175,8 +176,9 @@ void VolumeDataPageImpl::setBufferData(std::vector<uint8_t>&& blob, const int(&p
 void VolumeDataPageImpl::writeBack(VolumeDataLayer* volumeDataLayer, std::unique_lock<std::mutex>& pageListMutexLock)
 {
   assert(m_isDirty);
+  IOManager *iomanager = m_volumeDataPageAccessor->getManager()->getIoManager();
 
-
+  //iomanager->
 }
 
 

@@ -1035,7 +1035,7 @@ bool downloadAndParseVDSJson(VDSHandle& handle, Error& error)
   std::shared_ptr<SyncTransferHandler> syncTransferHandler = std::make_shared<SyncTransferHandler>();
   syncTransferHandler->error = &error;
   syncTransferHandler->data = &volumedatalayout_json;
-  auto req = handle.ioManager->requestObject("VolumeDataLayout", syncTransferHandler);
+  auto req = handle.ioManager->downloadObject("VolumeDataLayout", syncTransferHandler);
   req->waitForFinish();
   if (!req->isSuccess(error) || volumedatalayout_json.empty())
   {
@@ -1044,7 +1044,7 @@ bool downloadAndParseVDSJson(VDSHandle& handle, Error& error)
   }
   std::vector<uint8_t> layerstatus_json;
   syncTransferHandler->data = &layerstatus_json;
-  req = handle.ioManager->requestObject("LayerStatus", syncTransferHandler);
+  req = handle.ioManager->downloadObject("LayerStatus", syncTransferHandler);
   req->waitForFinish();
   if (!req->isSuccess(error) || layerstatus_json.empty())
   {

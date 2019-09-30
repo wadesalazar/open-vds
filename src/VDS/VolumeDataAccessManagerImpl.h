@@ -81,7 +81,7 @@ struct PendingRequest
 {
   MetadataPage* m_lockedMetadataPage;
 
-  std::shared_ptr<ObjectRequester> m_activeTransfer;
+  std::shared_ptr<Request> m_activeTransfer;
   std::shared_ptr<ReadChunkTransfer> m_transferHandle;
 
   PendingRequest() : m_lockedMetadataPage(nullptr)
@@ -91,7 +91,7 @@ struct PendingRequest
   explicit PendingRequest(MetadataPage* lockedMetadataPage) : m_lockedMetadataPage(lockedMetadataPage), m_activeTransfer(nullptr)
   {
   }
-  explicit PendingRequest(std::shared_ptr<ObjectRequester> activeTransfer, std::shared_ptr<ReadChunkTransfer> handler) : m_lockedMetadataPage(nullptr), m_activeTransfer(activeTransfer), m_transferHandle(handler)
+  explicit PendingRequest(std::shared_ptr<Request> activeTransfer, std::shared_ptr<ReadChunkTransfer> handler) : m_lockedMetadataPage(nullptr), m_activeTransfer(activeTransfer), m_transferHandle(handler)
   {
   }
 };
@@ -180,7 +180,8 @@ public:
   bool prepareReadChunkData(const VolumeDataChunk& chunk, bool verbose, Error& error);
   bool readChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
   void pageTransferCompleted(MetadataPage* page);
-  
+
+  IOManager *getIoManager() const { return m_ioManager; }
 private:
   VolumeDataLayout *m_layout;
   IOManager *m_ioManager;

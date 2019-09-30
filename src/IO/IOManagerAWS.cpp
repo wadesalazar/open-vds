@@ -63,10 +63,10 @@ namespace OpenVDS
 
   struct AsyncCallerContext
   {
-    AsyncCallerContext(ObjectRequesterAWS *back)
+    AsyncCallerContext(DownloadRequestAWS *back)
       : back(back)
     {}
-    ObjectRequesterAWS *back;
+    DownloadRequestAWS *back;
     std::mutex mutex;
   };
 
@@ -117,7 +117,7 @@ namespace OpenVDS
     }
   }
 
-  ObjectRequesterAWS::ObjectRequesterAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, const std::shared_ptr<TransferHandler>& handler, const IORange &range)
+  DownloadRequestAWS::DownloadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, const std::shared_ptr<TransferHandler>& handler, const IORange &range)
     : m_handler(handler)
     , m_context(std::make_shared<AsyncCallerContext>(this))
     , m_done(false)
@@ -136,31 +136,31 @@ namespace OpenVDS
     client.GetObjectAsync(object_request, bounded_callback);
   }
 
-  ObjectRequesterAWS::~ObjectRequesterAWS()
+  DownloadRequestAWS::~DownloadRequestAWS()
   {
     cancel(); 
   }
 
-  void ObjectRequesterAWS::waitForFinish()
+  void DownloadRequestAWS::waitForFinish()
   {
     std::unique_lock<std::mutex> lock(m_context->mutex);
     if (m_done)
       return;
     m_waitForFinish.wait(lock);
   }
-  bool ObjectRequesterAWS::isDone() const
+  bool DownloadRequestAWS::isDone() const
   {
     std::unique_lock<std::mutex> lock(m_context->mutex);
     return m_done;
   }
-  bool ObjectRequesterAWS::isSuccess(Error& error) const
+  bool DownloadRequestAWS::isSuccess(Error& error) const
   {
     std::unique_lock<std::mutex> lock(m_context->mutex);
     error = m_error;
     return m_error.code == 0;
   }
 
-  void ObjectRequesterAWS::cancel()
+  void DownloadRequestAWS::cancel()
   {
     std::unique_lock<std::mutex> lock(m_context->mutex);
     m_context->back = nullptr;
@@ -192,9 +192,15 @@ namespace OpenVDS
     deinitizlieAWSSDK();
   }
 
-  std::shared_ptr<ObjectRequester> IOManagerAWS::requestObject(const std::string objectName, std::shared_ptr<TransferHandler> handler, const IORange &range)
+  std::shared_ptr<Request> IOManagerAWS::downloadObject(const std::string objectName, std::shared_ptr<TransferHandler> handler, const IORange &range)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    return std::make_shared<ObjectRequesterAWS>(*m_s3Client.get(), m_bucket, id, handler, range);
+    return std::make_shared<DownloadRequestAWS>(*m_s3Client.get(), m_bucket, id, handler, range);
+  }
+  
+  std::shared_ptr<Request> IOManagerAWS::uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const IORange& range)
+  {
+    std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
+    return std::shared_ptr<Request>();
   }
 }

@@ -51,7 +51,7 @@ namespace OpenVDS
     int64_t             m_adaptiveLevelSizes[WAVELET_ADAPTIVE_LEVELS];
   };
 
-  class ObjectRequester;
+  class Request;
   class MetadataManager;
   class MetadataPage
   {
@@ -63,7 +63,7 @@ namespace OpenVDS
     bool m_valid;
     int m_lockCount;
 
-    std::shared_ptr<ObjectRequester> m_activeTransfer;
+    std::shared_ptr<Request> m_activeTransfer;
 
     std::vector<uint8_t> m_data;
   public:

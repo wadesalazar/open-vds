@@ -32,10 +32,10 @@ namespace OpenVDS
     virtual void handleError(Error &error) = 0;
   };
 
-  class ObjectRequester
+  class Request
   {
   public:
-    virtual ~ObjectRequester();
+    virtual ~Request();
     virtual void waitForFinish() = 0;
     virtual bool isDone() const = 0;
     virtual bool isSuccess(Error &error) const = 0;
@@ -52,7 +52,8 @@ namespace OpenVDS
   {
   public:
     virtual ~IOManager();
-    virtual std::shared_ptr<ObjectRequester> requestObject(const std::string objectName, std::shared_ptr<TransferHandler> handler, const IORange &range = IORange()) = 0;
+    virtual std::shared_ptr<Request> downloadObject(const std::string objectName, std::shared_ptr<TransferHandler> handler, const IORange &range = IORange()) = 0;
+    virtual std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const IORange &range = IORange()) = 0;
 
     static IOManager *createIOManager(const OpenOptions &options, Error &error);
   };

@@ -21,7 +21,7 @@
 
 namespace OpenVDS
 {
-ObjectRequester::~ObjectRequester()
+Request::~Request()
 {}
 TransferHandler::~TransferHandler()
 {}
