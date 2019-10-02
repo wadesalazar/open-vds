@@ -30,7 +30,7 @@ class VolumeDataPageAccessorImpl;
 class VolumeDataPageImpl : public VolumeDataPage
 {
 private:
-  const VolumeDataPageAccessorImpl * m_volumeDataPageAccessor;
+  VolumeDataPageAccessorImpl * m_volumeDataPageAccessor;
 
   int64_t m_chunk;
 

@@ -77,21 +77,22 @@ public:
   std::vector<uint8_t> m_data;
   std::vector<uint8_t> m_metadata;
 };
-struct PendingRequest
+
+struct PendingDownloadRequest
 {
   MetadataPage* m_lockedMetadataPage;
 
   std::shared_ptr<Request> m_activeTransfer;
   std::shared_ptr<ReadChunkTransfer> m_transferHandle;
 
-  PendingRequest() : m_lockedMetadataPage(nullptr)
+  PendingDownloadRequest() : m_lockedMetadataPage(nullptr)
   {
   }
 
-  explicit PendingRequest(MetadataPage* lockedMetadataPage) : m_lockedMetadataPage(lockedMetadataPage), m_activeTransfer(nullptr)
+  explicit PendingDownloadRequest(MetadataPage* lockedMetadataPage) : m_lockedMetadataPage(lockedMetadataPage), m_activeTransfer(nullptr)
   {
   }
-  explicit PendingRequest(std::shared_ptr<Request> activeTransfer, std::shared_ptr<ReadChunkTransfer> handler) : m_lockedMetadataPage(nullptr), m_activeTransfer(activeTransfer), m_transferHandle(handler)
+  explicit PendingDownloadRequest(std::shared_ptr<Request> activeTransfer, std::shared_ptr<ReadChunkTransfer> handler) : m_lockedMetadataPage(nullptr), m_activeTransfer(activeTransfer), m_transferHandle(handler)
   {
   }
 };
@@ -119,10 +120,27 @@ static bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
   return DimensionGroupUtil::getDimensionsNDFromDimensionGroup(a.layer->getChunkDimensionGroup()) < DimensionGroupUtil::getDimensionsNDFromDimensionGroup(b.layer->getChunkDimensionGroup());
 }
 
+struct PendingUploadRequest
+{
+  int64_t jobID;
+  std::shared_ptr<Request> request;
+};
+
+struct UploadError
+{
+  UploadError(const Error &error, const std::string &urlObject)
+    : error(error)
+    , urlObject(urlObject)
+  {}
+  Error error;
+  std::string urlObject;
+};
+
 class VolumeDataAccessManagerImpl : public VolumeDataAccessManager
 {
 public:
   VolumeDataAccessManagerImpl(VDSHandle *handle);
+  ~VolumeDataAccessManagerImpl();
   VolumeDataLayout const *getVolumeDataLayout() const override;
   VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) override;
 
@@ -181,7 +199,16 @@ public:
   bool readChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
   void pageTransferCompleted(MetadataPage* page);
 
+  int64_t requestWriteChunk(const VolumeDataChunk &chunk, std::shared_ptr<std::vector<uint8_t>> data);
+
   IOManager *getIoManager() const { return m_ioManager; }
+
+  void flushUploadQueue() override;
+  void clearUploadErrors() override;
+  void forceClearAllUploadErrors() override;
+  int32_t uploadErrorCount() override;
+  void getCurrentUploadError(const char **objectId, int32_t *errorCode, const char **errorString) override;
+
 private:
   VolumeDataLayout *m_layout;
   IOManager *m_ioManager;
@@ -189,7 +216,10 @@ private:
   IntrusiveList<VolumeDataPageAccessorImpl, &VolumeDataPageAccessorImpl::m_volumeDataPageAccessorListNode> m_volumeDataPageAccessorList;
   std::mutex m_mutex;
   std::condition_variable m_pendingRequestChangedCondition;
-  std::map<VolumeDataChunk, PendingRequest> m_pendingRequests;
+  std::map<VolumeDataChunk, PendingDownloadRequest> m_pendingDownloadRequests;
+  std::vector<PendingUploadRequest> m_pendingUploadRequests;
+  std::vector<std::unique_ptr<UploadError>> m_uploadErrors;
+  uint32_t m_currentErrorIndex;
 };
 }
 #endif //VOLUMEDATAACCESSMANAGERIMPL_H

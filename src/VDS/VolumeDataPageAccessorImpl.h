@@ -24,6 +24,7 @@
 #include <list>
 #include <mutex>
 #include <condition_variable>
+#include <vector>
 
 namespace OpenVDS
 {
@@ -78,10 +79,13 @@ public:
 
   VolumeDataPage *createPage(int64_t chunk) override;
   VolumeDataPage *readPage(int64_t chunk) override;
+ 
+  int64_t requestWritePage(int64_t chunk, std::shared_ptr<std::vector<uint8_t>> data);
 
   void  commit() override;
 
   bool isReadWrite() const { return m_isReadWrite; }
+
   VolumeDataAccessManagerImpl *getManager() const { return m_accessManager; }
 };
 

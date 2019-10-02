@@ -540,6 +540,12 @@ public:
   /// A factor (between 0 and 1) indicating how much of the request has been completed.
   /// </returns>
   virtual float getCompletionFactor(int64_t requestID) = 0;
+  
+  virtual void flushUploadQueue() = 0;
+  virtual void clearUploadErrors() = 0;
+  virtual void forceClearAllUploadErrors() = 0;
+  virtual int32_t uploadErrorCount() = 0;
+  virtual void getCurrentUploadError(const char **objectId, int32_t *errorCode, const char **errorString) = 0;
 };
 
 template<> inline VolumeDataReadWriteAccessor<IntVector4, double>   *VolumeDataAccessManager::createVolumeDataAccessor<IntVector4, double>  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create4DVolumeDataAccessorR64 (volumeDataPageAccessor, replacementNoValue); }

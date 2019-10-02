@@ -21,8 +21,13 @@
 
 namespace OpenVDS
 {
+Request::Request(const std::string& objectName)
+  : m_objectName(objectName)
+{
+}
 Request::~Request()
 {}
+
 TransferHandler::~TransferHandler()
 {}
 void TransferHandler::handleMetadata(const std::string& key, const std::string& header)

@@ -34,7 +34,7 @@ VolumeDataRequestProcessor::VolumeDataRequestProcessor(VolumeDataAccessManagerIm
   : m_manager(manager)
 {}
 
-int64_t gen_jobid()
+static int64_t gen_jobid()
 {
   static std::atomic< std::int64_t > id(0);
   return ++id;

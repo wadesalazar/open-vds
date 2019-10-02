@@ -219,6 +219,15 @@ VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDSHandle* handle)
 {
 }
 
+VolumeDataAccessManagerImpl::~VolumeDataAccessManagerImpl()
+{
+  flushUploadQueue();
+  if (m_uploadErrors.size())
+  {
+    fprintf(stderr, "VolumeDataAccessManager destructor: there where upload errors\n");
+  }
+}
+
 VolumeDataLayout const* VolumeDataAccessManagerImpl::getVolumeDataLayout() const
 {
   return m_layout;
@@ -302,23 +311,29 @@ static MetadataManager *getMetadataMangerForLayer(LayerMetadataContainer *contai
   return metadataManager;
 }
 
-static std::string makeURLForChunk(const std::string &layerUrl, uint64_t chunk)
+static std::string createUrlForChunk(const std::string &layerUrl, uint64_t chunk)
 {
-  char url[1000];
+  char url[1024];
 
   snprintf(url, sizeof(url), "%s/%" PRIu64, layerUrl.c_str(), chunk);
 
-  return std::string(url);
+  return url;
+}
+
+static std::string createBaseUrl(const VolumeDataLayer *layer)
+{
+  int32_t channel = layer->getChannelIndex();
+  const char *channelName = channel > 0 ? layer->getLayout()->getChannelName(layer->getChannelIndex()) : "";
+  int32_t lod = layer->getLOD();
+  const char *dimensions_string = DimensionGroupUtil::getDimensionsGroupString(DimensionGroupUtil::getDimensionsNDFromDimensionGroup(layer->getChunkDimensionGroup()));
+  char layerURL[1024];
+  snprintf(layerURL, sizeof(layerURL), "%sDimensions_%sLOD%d", channelName, dimensions_string, lod);
+  return layerURL;
 }
 
 bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &chunk, bool verbose, Error &error)
 {
-  int32_t channel = chunk.layer->getChannelIndex();
-  const char *channelName = channel > 0 ? chunk.layer->getLayout()->getChannelName(chunk.layer->getChannelIndex()) : "";
-  int32_t lod = chunk.layer->getLOD();
-  const char *dimensions_string = DimensionGroupUtil::getDimensionsGroupString(DimensionGroupUtil::getDimensionsNDFromDimensionGroup(chunk.layer->getChunkDimensionGroup()));
-  char layerURL[1000];
-  snprintf(layerURL, sizeof(layerURL), "%sDimensions_%sLOD%d", channelName, dimensions_string, lod);
+  std::string layerURL = createBaseUrl(chunk.layer);
   auto metadataManager = getMetadataMangerForLayer(m_layerMetadataContainer, layerURL);
   //do fallback
   if (!metadataManager)
@@ -350,7 +365,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
   // Check if the page is not valid and we need to add the request later when the metadata page transfer completes
   if (!metadataPage->IsValid())
   {
-    m_pendingRequests[chunk] = PendingRequest(metadataPage);
+    m_pendingDownloadRequests[chunk] = PendingDownloadRequest(metadataPage);
     return true;
   }
 
@@ -366,11 +381,11 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
 
   IORange ioRange = calculateRangeHeaderImpl(parsedMetadata, metadataManager->metadataStatus(), &adaptiveLevel);
 
-  std::string url = makeURLForChunk(layerURL, chunk.chunkIndex);
+  std::string url = createUrlForChunk(layerURL, chunk.chunkIndex);
 
   lock.lock();
   auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
-  m_pendingRequests[chunk] = PendingRequest(m_ioManager->downloadObject(url, transferHandler, ioRange), transferHandler);
+  m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->downloadObject(url, transferHandler, ioRange), transferHandler);
 
   return true;
 }
@@ -379,15 +394,15 @@ bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::v
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  auto pendingRequestIterator = m_pendingRequests.find(chunk);
+  auto pendingRequestIterator = m_pendingDownloadRequests.find(chunk);
 
-  if(pendingRequestIterator == m_pendingRequests.end())
+  if(pendingRequestIterator == m_pendingDownloadRequests.end())
   {
     error.code = -1;
     error.string = "Missing request for chunk: " + std::to_string(chunk.chunkIndex);
     return false;
   }
-  PendingRequest& pendingRequest = pendingRequestIterator->second;
+  PendingDownloadRequest& pendingRequest = pendingRequestIterator->second;
 
   if (!pendingRequest.m_activeTransfer)
   {
@@ -400,7 +415,7 @@ bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::v
   auto activeTransfer = pendingRequest.m_activeTransfer;
   auto transferHandler = pendingRequest.m_transferHandle;
 
-  m_pendingRequests.erase(pendingRequestIterator);
+  m_pendingDownloadRequests.erase(pendingRequestIterator);
 
   lock.unlock();
 
@@ -429,10 +444,10 @@ void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPa
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  for(auto &pendingRequestKeyValuePair : m_pendingRequests)
+  for(auto &pendingRequestKeyValuePair : m_pendingDownloadRequests)
   {
     VolumeDataChunk const volumeDataChunk = pendingRequestKeyValuePair.first;
-    PendingRequest &pendingRequest = pendingRequestKeyValuePair.second;
+    PendingDownloadRequest &pendingRequest = pendingRequestKeyValuePair.second;
 
     if(pendingRequest.m_lockedMetadataPage == metadataPage)
     {
@@ -457,7 +472,7 @@ void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPa
 
         IORange ioRange = calculateRangeHeaderImpl(parsedMetadata, metadataManager->metadataStatus(), &adaptiveLevel);
 
-        std::string url = makeURLForChunk(metadataManager->layerUrlStr(), volumeDataChunk.chunkIndex);
+        std::string url = createUrlForChunk(metadataManager->layerUrlStr(), volumeDataChunk.chunkIndex);
 
         auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
         pendingRequest.m_activeTransfer = m_ioManager->downloadObject(url, transferHandler, ioRange);
@@ -466,6 +481,82 @@ void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPa
     }
   }
   m_pendingRequestChangedCondition.notify_all();
+}
+  
+static int64_t gen_upload_jobid()
+{
+  static std::atomic< std::int64_t > id(0);
+  return --id;
+}
+
+int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk& chunk, std::shared_ptr<std::vector<uint8_t>> data)
+{
+  std::string url = createUrlForChunk(createBaseUrl(chunk.layer), chunk.chunkIndex);
+  m_pendingUploadRequests.erase(std::remove_if(m_pendingUploadRequests.begin(), m_pendingUploadRequests.end(), [this](PendingUploadRequest &request){
+    Error error;
+    bool done = request.request->isDone();
+    if (done && !request.request->isSuccess(error))
+      this->m_uploadErrors.emplace_back(new UploadError(error, request.request->getObjectName()));
+    return done;
+    }), m_pendingUploadRequests.end());
+  m_pendingUploadRequests.push_back({gen_upload_jobid(), m_ioManager->uploadObject(url, data)});
+  return 0;
+}
+
+void VolumeDataAccessManagerImpl::flushUploadQueue()
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  Error error;
+  for (auto &upload : m_pendingUploadRequests)
+  {
+    upload.request->waitForFinish();
+    if (!upload.request->isSuccess(error))
+    {
+      m_uploadErrors.emplace_back(new UploadError(error, upload.request->getObjectName()));
+    }
+  }
+}
+
+void VolumeDataAccessManagerImpl::clearUploadErrors()
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_uploadErrors.erase(m_uploadErrors.begin(), m_uploadErrors.begin() + m_currentErrorIndex);
+  m_currentErrorIndex = 0;
+}
+
+void VolumeDataAccessManagerImpl::forceClearAllUploadErrors()
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_uploadErrors.clear();
+  m_currentErrorIndex = 0;
+}
+
+
+int32_t VolumeDataAccessManagerImpl::uploadErrorCount()
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  return m_uploadErrors.size() - m_currentErrorIndex;
+}
+
+void VolumeDataAccessManagerImpl::getCurrentUploadError(const char** objectId, int32_t* errorCode, const char** errorString)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  if (m_currentErrorIndex >= m_uploadErrors.size())
+  {
+    if (objectId)
+      *objectId = nullptr;
+    if (errorCode)
+      *errorCode = 0;
+    if (errorString)
+      *errorString = nullptr;
+  }
+
+  const auto &error = m_uploadErrors[m_currentErrorIndex];
+  m_currentErrorIndex++;
+  lock.unlock();
+  *objectId = error->urlObject.c_str();
+  *errorCode = error->error.code;
+  *errorString = error->error.string.c_str();
 }
 
 }

@@ -25,7 +25,9 @@
 #include <aws/s3/model/BucketLocationConstraint.h>
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/PutObjectRequest.h>
-
+#include <aws/core/utils/memory/stl/AWSString.h>
+#include <aws/core/utils/logging/DefaultLogSystem.h>
+#include <aws/core/utils/logging/AWSLogging.h>
 #include <mutex>
 #include <functional>
 
@@ -48,10 +50,15 @@ namespace OpenVDS
 
   static void initializeAWSSDK()
   {
+
     std::unique_lock<std::mutex> lock(initialize_sdk_mutex);
     initialize_sdk++;
     if (initialize_sdk == 1)
     {
+
+      Aws::Utils::Logging::InitializeAWSLogging(
+        Aws::MakeShared<Aws::Utils::Logging::DefaultLogSystem>(
+          "OpenVDS-S3 Integration", Aws::Utils::Logging::LogLevel::Trace, "aws_sdk_"));
       Aws::InitAPI(initialize_sdk_options);
     }
   }
@@ -62,6 +69,7 @@ namespace OpenVDS
     initialize_sdk--;
     if (!initialize_sdk)
     {
+      Aws::Utils::Logging::ShutdownAWSLogging();
       Aws::ShutdownAPI(initialize_sdk_options);
     }
 
@@ -125,7 +133,8 @@ namespace OpenVDS
   }
 
   DownloadRequestAWS::DownloadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, const std::shared_ptr<TransferHandler>& handler, const IORange &range)
-    : m_handler(handler)
+    : Request(id)
+    , m_handler(handler)
     , m_context(std::make_shared<AsyncDownloadContext>(this))
     , m_done(false)
   {
@@ -191,7 +200,7 @@ namespace OpenVDS
   }
 
   UploadRequestAWS::UploadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, std::shared_ptr<std::vector<uint8_t>> data, const IORange& range)
-    : Request()
+    : Request(id)
     , m_context(std::make_shared<AsyncUploadContext>(this))
     , m_data(data)
     , m_vectorBuf(*data)
@@ -202,6 +211,14 @@ namespace OpenVDS
     put.SetBucket(std::move(convertStdString(bucket)));
     put.SetKey(std::move(convertStdString(id)));
     put.SetBody(m_stream);
+    if (range.end)
+    {
+      assert(false);
+      //Have to use the Multi upload api instead. Maybe use TransferManager?
+//      char rangeHeaderBuffer[100];
+//      snprintf(rangeHeaderBuffer, sizeof(rangeHeaderBuffer), "bytes=%zu-%zu", range.start, range.end);
+//      object_request.SetRange(rangeHeaderBuffer);
+    }
     
     using namespace std::placeholders;
     auto bounded_callback = std::bind(&upload_callback, _1, _2, _3, _4, m_context);
@@ -211,6 +228,8 @@ namespace OpenVDS
   void UploadRequestAWS::waitForFinish()
   {
     std::unique_lock<std::mutex> lock(m_context->mutex);
+    if (m_done)
+      return;
     m_waitForFinish.wait(lock);
   }
   bool UploadRequestAWS::isDone() const

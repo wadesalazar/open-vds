@@ -395,6 +395,10 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
   }
 }
 
+int64_t VolumeDataPageAccessorImpl::requestWritePage(int64_t chunk, std::shared_ptr<std::vector<uint8_t>> data)
+{
+  return m_accessManager->requestWriteChunk({ m_layer, chunk }, data);
+}
 /////////////////////////////////////////////////////////////////////////////
 // Commit
 

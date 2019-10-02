@@ -35,11 +35,15 @@ namespace OpenVDS
   class Request
   {
   public:
+    Request(const std::string &objectName);
     virtual ~Request();
     virtual void waitForFinish() = 0;
     virtual bool isDone() const = 0;
     virtual bool isSuccess(Error &error) const = 0;
     virtual void cancel() = 0;
+    const std::string &getObjectName() const { return m_objectName; }
+  private:
+    std::string m_objectName;
   };
 
   struct IORange

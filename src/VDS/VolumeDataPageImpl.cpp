@@ -176,7 +176,10 @@ void VolumeDataPageImpl::setBufferData(std::vector<uint8_t>&& blob, const int(&p
 void VolumeDataPageImpl::writeBack(VolumeDataLayer* volumeDataLayer, std::unique_lock<std::mutex>& pageListMutexLock)
 {
   assert(m_isDirty);
-  IOManager *iomanager = m_volumeDataPageAccessor->getManager()->getIoManager();
+  std::shared_ptr<std::vector<uint8_t>> to_write = std::make_shared<std::vector<uint8_t>>();
+  *to_write = m_blob;
+  m_volumeDataPageAccessor->requestWritePage(m_chunk, to_write);
+  ///IOManager *iomanager = m_volumeDataPageAccessor->wri
 
   //iomanager->
 }
