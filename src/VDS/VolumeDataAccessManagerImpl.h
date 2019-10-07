@@ -43,7 +43,7 @@ public:
     , m_adaptiveLevel(adaptiveLevel)
   {}
 
-  ~ReadChunkTransfer()
+  ~ReadChunkTransfer() override
   {
   }
 
@@ -140,7 +140,7 @@ class VolumeDataAccessManagerImpl : public VolumeDataAccessManager
 {
 public:
   VolumeDataAccessManagerImpl(VDSHandle *handle);
-  ~VolumeDataAccessManagerImpl();
+  ~VolumeDataAccessManagerImpl() override;
   VolumeDataLayout const *getVolumeDataLayout() const override;
   VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) override;
 

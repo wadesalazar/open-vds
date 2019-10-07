@@ -35,7 +35,7 @@ namespace OpenVDS
   {
   public:
     DownloadRequestAWS(Aws::S3::S3Client &client, const std::string &bucket, const std::string &id, const std::shared_ptr<TransferHandler> &handler, const IORange &range);
-    ~DownloadRequestAWS();
+    ~DownloadRequestAWS() override;
  
     void waitForFinish() override;
     bool isDone() const override;
@@ -80,7 +80,7 @@ namespace OpenVDS
   {
     public:
       IOManagerAWS(const AWSOpenOptions &openOptions, Error &error);
-      ~IOManagerAWS();
+      ~IOManagerAWS() override;
 
       std::shared_ptr<Request> downloadObject(const std::string objectName, std::shared_ptr<TransferHandler> handler, const IORange &range = IORange()) override;
       std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const IORange& range = IORange()) override;

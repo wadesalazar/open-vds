@@ -26,7 +26,7 @@ namespace OpenVDS
 class TraceVolumeDataChannelMapping : public VolumeDataChannelMapping
 {
   TraceVolumeDataChannelMapping() {}
-  ~TraceVolumeDataChannelMapping() {}
+  ~TraceVolumeDataChannelMapping() override {}
 public:
   DimensionGroup
                 getMappedChunkDimensionGroup(VolumeDataPartition const &primaryPartition, int32_t mappedValues) const override;

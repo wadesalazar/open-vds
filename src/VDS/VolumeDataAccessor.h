@@ -314,12 +314,12 @@ public:
     m_replacementNoValue  = replacementNoValue;
   }
 
-  int64_t regionCount()
+  int64_t regionCount() override
   {
     return m_volumeDataPageAccessor->getChunkCount();
   }
 
-  IndexRegion<INDEX> region(int64_t region)
+  IndexRegion<INDEX> region(int64_t region) override
   {
     int32_t minExcludingMargin[Dimensionality_Max];
     int32_t maxExcludingMargin[Dimensionality_Max];
@@ -329,14 +329,14 @@ public:
     return IndexRegion<INDEX>(ndPosToVector<INDEX>(minExcludingMargin), ndPosToVector<INDEX>(maxExcludingMargin));
   }
 
-  int64_t regionFromIndex(INDEX index)
+  int64_t regionFromIndex(INDEX index) override
   {
     int position[Dimensionality_Max];
     vectorToNDPos(index, position);
     return m_volumeDataPageAccessor->getChunkIndex(position);
   }
 
-  IndexRegion<INDEX> currentRegion()
+  IndexRegion<INDEX> currentRegion() override
   {
     INDEX min, max;
 
@@ -344,16 +344,16 @@ public:
     return IndexRegion<INDEX>(min, max);
   }
 
-  T1 getValue(INDEX index) { return m_readValueConverter.convertValue(RawVolumeDataAccessor<T2>::getValue(index)); }
+  T1 getValue(INDEX index) override { return m_readValueConverter.convertValue(RawVolumeDataAccessor<T2>::getValue(index)); }
 
-  void setValue(INDEX index, T1 value) { return RawVolumeDataAccessor<T2>::setValue(index, m_writeValueConverter.convertValue(value)); }
+  void setValue(INDEX index, T1 value) override { return RawVolumeDataAccessor<T2>::setValue(index, m_writeValueConverter.convertValue(value)); }
 
-  void commit() { return RawVolumeDataAccessor<T2>::commit(); }
-  void cancel() { return RawVolumeDataAccessor<T2>::cancel(); }
+  void commit() override { return RawVolumeDataAccessor<T2>::commit(); }
+  void cancel() override { return RawVolumeDataAccessor<T2>::cancel(); }
 
-  VolumeDataAccessManager &getManager() { return *VolumeDataAccessorBase::m_volumeDataPageAccessor->getManager(); }
+  VolumeDataAccessManager &getManager() override { return *m_volumeDataPageAccessor->getManager(); }
 
-  VolumeDataLayout const *getLayout() { return VolumeDataAccessorBase::getLayout(); }
+  VolumeDataLayout const *getLayout() override { return VolumeDataAccessorBase::getLayout(); }
 
   VolumeDataAccessor *clone(VolumeDataPageAccessor &volumeDataPageAccessor) { volumeDataPageAccessor.addReference(); return new ConvertingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
 };
@@ -423,13 +423,13 @@ public:
     m_replacementNoValue  = replacementNoValue;
   }
 
-  int64_t regionCount()
+  int64_t regionCount() override
   {
     return m_volumeDataPageAccessor->getChunkCount();
   }
 
   IndexRegion<INDEX>
-  region(int64_t region)
+  region(int64_t region) override
   {
     int32_t minExcludingMargin[Dimensionality_Max];
     int32_t maxExcludingMargin[Dimensionality_Max];
@@ -439,14 +439,14 @@ public:
     return IndexRegion<INDEX>(ndPosToVector<INDEX>(minExcludingMargin), ndPosToVector<INDEX>(maxExcludingMargin));
   }
 
-  int64_t regionFromIndex(INDEX index)
+  int64_t regionFromIndex(INDEX index) override
   {
     int position[Dimensionality_Max];
     vectorToNDPos(index, position);
     return m_volumeDataPageAccessor->getChunkIndex(position);
   }
 
-  IndexRegion<INDEX> currentRegion()
+  IndexRegion<INDEX> currentRegion() override
   {
     INDEX min;
     INDEX max;
@@ -455,7 +455,7 @@ public:
     return IndexRegion<INDEX>(min, max);
   }
 
-  T1 getValue(FloatVector2 pos)
+  T1 getValue_t(FloatVector2 pos)
   {
     IntVector2 index = {(int)floorf(pos[0]), (int)floorf(pos[1])};
 
@@ -471,7 +471,7 @@ public:
     return convertValue<T1>(m_volumeSampler.sample2D((T2 *)m_buffer, {pos[1] - m_min[3], pos[0] - m_min[2]}));
   }
 
-  T1 getValue(FloatVector3 pos)
+  T1 getValue_t(FloatVector3 pos)
   {
     IntVector3 index = {(int)floorf(pos[0]),
                      (int)floorf(pos[1]),
@@ -490,7 +490,7 @@ public:
     return convertValue<T1>(m_volumeSampler.sample3D((T2 *)m_buffer, {pos[2] - m_min[3], pos[1] - m_min[2], pos[0] - m_min[1]}));
   }
 
-  T1 getValue(FloatVector4 pos)
+  T1 getValue_t(FloatVector4 pos)
   {
     IntVector4 index = {(int)floorf(pos[0]),
                      (int)floorf(pos[1]),
@@ -510,9 +510,14 @@ public:
     return convertValue<T1>(m_volumeSampler.sample3D((T2 *)m_buffer, {pos[3] - m_min[3], pos[2] - m_min[2], pos[1] - m_min[1]}));
   }
 
-  VolumeDataAccessManager &getManager() { return *m_volumeDataPageAccessor->getManager(); }
+  T1 getValue(INDEX pos) override
+  {
+      return getValue_t(pos);
+  }
 
-  VolumeDataLayout const *getLayout() { return VolumeDataAccessorBase::getLayout(); }
+  VolumeDataAccessManager &getManager() override { return *m_volumeDataPageAccessor->getManager(); }
+
+  VolumeDataLayout const *getLayout() override { return VolumeDataAccessorBase::getLayout(); }
 
   VolumeDataAccessor *clone(VolumeDataPageAccessor &volumeDataPageAccessor) { volumeDataPageAccessor.addReference(); return InterpolatingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
 };

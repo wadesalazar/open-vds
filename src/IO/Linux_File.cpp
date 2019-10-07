@@ -157,7 +157,7 @@ public:
     }
   }
 
-  ~SystemFileView()
+  ~SystemFileView() override
   {
     int iRetval = munmap(m_pxBaseAddress, m_nNumberOfBytes);
 
