@@ -339,7 +339,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
   //do fallback
   if (!metadataManager)
   {
-    error.code =- 1;
+    error.code = -1;
     error.string = "No metdadataManager";
     return false;
   }
