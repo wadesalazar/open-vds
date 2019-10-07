@@ -16,7 +16,7 @@
 ****************************************************************************/
 
 #ifndef VOLUMEDATASTORE_H
-#define VOLUMEDATASOTRE_H
+#define VOLUMEDATASTORE_H
 
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/VolumeData.h>
