@@ -29,7 +29,7 @@ class IntrusiveListNode
 public:
   Item *m_next;
   Item *m_prev;
-  IntrusiveListNode() : m_next(NULL), m_prev(NULL) {}
+  IntrusiveListNode() : m_next(nullptr), m_prev(nullptr) {}
 };
 
 template <typename Item, IntrusiveListNode<Item> Item::*PtrToNode = &Item::node>
@@ -47,8 +47,8 @@ private:
 
 public:
   IntrusiveList()
-    : m_firstItem(NULL)
-    , m_lastItem(NULL)
+    : m_firstItem(nullptr)
+    , m_lastItem(nullptr)
 #ifdef INTRUSIVE_LIST_MAINTAIN_COUNT
     , m_count(0)
 #endif
@@ -89,8 +89,8 @@ public:
       m_firstItem = node.m_next;
     }
 
-    node.m_prev = NULL;
-    node.m_next = NULL;
+    node.m_prev = nullptr;
+    node.m_next = nullptr;
 
 #ifdef INTRUSIVE_LIST_MAINTAIN_COUNT
     m_count--;

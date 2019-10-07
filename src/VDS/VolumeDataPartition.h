@@ -110,7 +110,7 @@ public:
   int32_t getNumChunksInDimension(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_chunksInDimension[dimension]; }
   int64_t getTotalChunkCount() const { return m_totalChunks; }
 
-  int64_t getParentIndex(int64_t chunk, VolumeDataPartition const &parentPartition, int32_t *child = NULL) const;
+  int64_t getParentIndex(int64_t chunk, VolumeDataPartition const &parentPartition, int32_t *child = nullptr) const;
   void    getChildIndices(int64_t chunk, VolumeDataPartition const &childPartition, int64_t *childIndices) const;
 
   int64_t getTotalVoxels(bool isIncludeMargins) const;

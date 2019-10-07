@@ -46,14 +46,14 @@ VolumeDataLayer::VolumeDataLayer(VolumeDataPartition const &volumeDataPartition,
   , m_volumeDataChannelMapping(volumeDataChannelMapping)
   , m_layerType(layerType)
   , m_primaryChannelLayer(primaryChannelLayer)
-  , m_nextChannelLayer(NULL)
+  , m_nextChannelLayer(nullptr)
   , m_lowerLOD(lowerLOD)
-  , m_higherLOD(NULL)
+  , m_higherLOD(nullptr)
   , m_remapFromLayer(this)
   , m_produceStatus(ProduceStatus_Unavailable)
 {
   assert(volumeDataLayout);
-  assert((channel == 0 && primaryChannelLayer == NULL) || (channel > 0 && primaryChannelLayer != NULL));
+  assert((channel == 0 && primaryChannelLayer == nullptr) || (channel > 0 && primaryChannelLayer != nullptr));
   assert(volumeDataChannelMapping == volumeDataLayout->getVolumeDataChannelMapping(channel));
 
   if(lowerLOD)

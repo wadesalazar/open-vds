@@ -146,7 +146,7 @@ VolumeDataLayer *VolumeDataLayout::getVolumeDataLayerFromID(VolumeDataLayer::Vol
   assert(volumeDataLayerID >= 0 || volumeDataLayerID == VolumeDataLayer::LayerIdNone);
   if(volumeDataLayerID == VolumeDataLayer::LayerIdNone || volumeDataLayerID >= getLayerCount())
   {
-    return NULL;
+    return nullptr;
   }
   else
   {
@@ -364,7 +364,7 @@ void VolumeDataLayout::createLayers(DimensionGroup dimensionGroup, int32_t brick
 
     VolumeDataPartition primaryPartition(lod, dimensionGroup, null, m_dimensionNumSamples, brickSizeArray, null, null, BorderMode::None, null, null, m_negativeRenderMargin, m_positiveRenderMargin, m_fullResolutionDimension);
 
-    VolumeDataLayer *primaryChannelLayer = NULL;
+    VolumeDataLayer *primaryChannelLayer = nullptr;
 
     for(int32_t channel = 0; channel < channels; channel++)
     {

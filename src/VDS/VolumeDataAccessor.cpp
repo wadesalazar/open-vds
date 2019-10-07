@@ -81,13 +81,13 @@ void VolumeDataAccessorBase::cancel()
 VolumeDataAccessorBase::VolumeDataAccessorBase(VolumeDataPageAccessor &volumeDataPageAccessor)
   : m_volumeDataPageAccessor(static_cast<VolumeDataPageAccessorImpl *>(&volumeDataPageAccessor))
   , m_canceled(false)
-  , m_currentPage(NULL)
+  , m_currentPage(nullptr)
   , m_min{0,0,0,0}
   , m_max{0,0,0,0}
   , m_validRegion(AccessorRegion({0, 0, 0, 0}, {0, 0, 0, 0}))
   , m_writtenRegion(AccessorRegion({0, 0, 0, 0}, {0, 0, 0, 0}))
   , m_writable(false)
-  , m_buffer(0)
+  , m_buffer(nullptr)
   , m_pitch{0, 0, 0, 0}
 {
   int numSamples[Dimensionality_Max];
@@ -104,7 +104,7 @@ VolumeDataAccessorBase::~VolumeDataAccessorBase()
   {
     updateWrittenRegion();
     m_currentPage->release();
-    m_currentPage = NULL;
+    m_currentPage = nullptr;
   }
   if(m_volumeDataPageAccessor)
   {
@@ -117,7 +117,7 @@ VolumeDataAccessorBase::~VolumeDataAccessorBase()
 
       m_volumeDataPageAccessor->getManager()->destroyVolumeDataPageAccessor(m_volumeDataPageAccessor);
     }
-    m_volumeDataPageAccessor = NULL;
+    m_volumeDataPageAccessor = nullptr;
   }
 }
 
@@ -127,7 +127,7 @@ void VolumeDataAccessorBase::readPageAtPosition(IntVector4 index, bool enableWri
   {
     updateWrittenRegion();
     m_currentPage->release();
-    m_currentPage = NULL;
+    m_currentPage = nullptr;
   }
 
   assert(m_writtenRegion.max[0] == 0);
@@ -149,7 +149,7 @@ void VolumeDataAccessorBase::readPageAtPosition(IntVector4 index, bool enableWri
     }
     else
     {
-      m_buffer = NULL;
+      m_buffer = nullptr;
       m_min = {0, 0, 0, 0};
       m_max = {0, 0, 0, 0};
       m_pitch = {0, 0, 0, 0};
@@ -256,7 +256,7 @@ VolumeDataReadAccessor<INDEX, T1>* CreateInterpolatingVolumeDataAccessorImpl(Vol
     //return new InterpolatingVolumeDataAccessor<INDEX, T1, T2, isUseNoValue, InterpolationMethod::Triangular_Excluding_Valuerange_Min_And_Less>(*volumeDataPageAccessor, replacementNoValue);
   }
 
-  return 0;
+  return nullptr;
 }
 
 
@@ -312,7 +312,7 @@ static VolumeDataReadAccessor<INDEX, T>* VolumeDataAccess_CreateInterpolatingVol
     }
   }
 
-  return 0;
+  return nullptr;
 }
 
 VolumeDataReadWriteAccessor<IntVector2, bool>* VolumeDataAccessManagerImpl::create2DVolumeDataAccessor1Bit(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue)

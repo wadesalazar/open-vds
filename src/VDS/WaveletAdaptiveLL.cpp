@@ -761,7 +761,7 @@ static int32_t decodeTreeStructure(const WaveletAdaptiveLL_DecodeIterator& decod
   int32_t iStreamPos = WAVELET_ADAPTIVE_LEVELS * sizeof(int);
 
   int32_t* numberOfValuesPerLevelMultiple = (int32_t*)decodeIterator.stream;
-  int32_t* numberOfValuesPerLevelSingle = NULL;
+  int32_t* numberOfValuesPerLevelSingle = nullptr;
 
 
   if (!isAllNormal)

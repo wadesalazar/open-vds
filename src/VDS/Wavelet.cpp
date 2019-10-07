@@ -369,7 +369,7 @@ Wavelet::Wavelet(const void *compressedData, int32_t transformSizeX, int32_t tra
 {
   m_compressedData = (const uint8_t *)compressedData;
   m_wordCompressedData = (const uint32_t *)compressedData;
-  m_noValueData = NULL;
+  m_noValueData = nullptr;
   m_dataVersion = dataVersion;
   m_dimensions = dimensions;
 
@@ -735,7 +735,7 @@ bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompr
   
   int nDeCompressZeroSize = 0;
   
-  unsigned char *pnDecompressZeroSize = NULL;
+  unsigned char *pnDecompressZeroSize = nullptr;
   
   pnDecompressZeroSize = (unsigned char*)m_wordCompressedData;
   nDeCompressZeroSize = *m_wordCompressedData;
@@ -862,7 +862,7 @@ void Wavelet::deCompressNoValuesHeader()
   if (size == -1)
   {
     m_wordCompressedData++;
-    m_noValueData = NULL;
+    m_noValueData = nullptr;
     return; // no NoValues
   }
 
