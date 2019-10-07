@@ -240,6 +240,7 @@ namespace OpenVDS
   bool UploadRequestAWS::isSuccess(Error& error) const
   {
     std::unique_lock<std::mutex> lock(m_context->mutex);
+    error = m_error;
     return m_error.code == 0;
   }
   void UploadRequestAWS::cancel()

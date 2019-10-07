@@ -414,4 +414,46 @@ bool VolumeDataStore::deserializeVolumeData(const VolumeDataChunk &volumeDataChu
 
   return true;
 }
+
+bool VolumeDataStore::serialize(const VolumeDataChunk& chunk, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, std::vector<uint8_t>& destinationBuffer, Error& error)
+{
+  destinationBuffer = chunkData;
+//    DataBlockDescriptor dataBlockDescriptor;
+//
+//    if(!dataBlockDescriptor->isValid())
+//    {
+//      error.code = -1;
+//      error.string = "Failed to decode DataBlockDescriptor";
+//      return false;
+//    }
+//
+//    if (!initializeDataBlock(*dataBlockDescriptor, dataBlock, error))
+//      return false;
+//
+//    void * source = dataBlockDescriptor + 1;
+//
+//    int32_t byteSize = getByteSize(*dataBlockDescriptor);
+//    std::unique_ptr<uint8_t[]>buffer(new uint8_t[byteSize]);
+//
+//    int32_t decompressedSize = rle_Decompress((uint8_t *)buffer.get(), byteSize, (uint8_t *)source);
+//    assert(decompressedSize == byteSize);
+//
+//    int allocatedSize = getAllocatedByteSize(dataBlock);
+//    destination.resize(allocatedSize);
+//    copyLinearBufferIntoDataBlock(buffer.get(), dataBlock, destination);
+//  switch(compressionMethod)
+//  {
+//  case CompressionMethod::None:
+//    destinationBuffer = layerData;
+//    return true;
+//  case CompressionMethod::Zip:
+//    return true;
+//  default:
+//    error.code = -20;
+//    error.string = "Not implemented compresssion algorithm";
+//    return false;
+//  }
+  return true;
+}
+
 }

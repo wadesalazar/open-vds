@@ -216,6 +216,7 @@ VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDSHandle* handle)
   : m_layout(handle->volumeDataLayout.get())
   , m_ioManager(handle->ioManager.get())
   , m_layerMetadataContainer(&handle->layerMetadataContainer)
+  , m_currentErrorIndex(0)
 {
 }
 
@@ -553,10 +554,20 @@ void VolumeDataAccessManagerImpl::getCurrentUploadError(const char** objectId, i
 
   const auto &error = m_uploadErrors[m_currentErrorIndex];
   m_currentErrorIndex++;
+  if (objectId)
+    *objectId = error->urlObject.c_str();
+  if (errorCode)
+    *errorCode = error->error.code;
+  if (errorString)
+    *errorString = error->error.string.c_str();
   lock.unlock();
-  *objectId = error->urlObject.c_str();
-  *errorCode = error->error.code;
-  *errorString = error->error.string.c_str();
+}
+
+void VolumeDataAccessManagerImpl::addUploadError(const Error& error, VolumeDataLayer* layer, uint64_t chunk)
+{
+  std::string urlString = createUrlForChunk(createBaseUrl(layer), chunk);
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_uploadErrors.emplace_back(new UploadError(error, urlString));
 }
 
 }

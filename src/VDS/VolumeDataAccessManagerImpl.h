@@ -209,6 +209,7 @@ public:
   int32_t uploadErrorCount() override;
   void getCurrentUploadError(const char **objectId, int32_t *errorCode, const char **errorString) override;
 
+  void addUploadError(const Error &error, VolumeDataLayer *layer, uint64_t chunk);
 private:
   VolumeDataLayout *m_layout;
   IOManager *m_ioManager;

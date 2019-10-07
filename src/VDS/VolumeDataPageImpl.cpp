@@ -20,6 +20,7 @@
 #include "VolumeDataChunk.h"
 #include "VolumeDataLayer.h"
 #include "VolumeDataAccessManagerImpl.h"
+#include "VolumeDataStore.h"
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 
 #include <algorithm>
@@ -176,12 +177,15 @@ void VolumeDataPageImpl::setBufferData(std::vector<uint8_t>&& blob, const int(&p
 void VolumeDataPageImpl::writeBack(VolumeDataLayer* volumeDataLayer, std::unique_lock<std::mutex>& pageListMutexLock)
 {
   assert(m_isDirty);
+  Error error;
   std::shared_ptr<std::vector<uint8_t>> to_write = std::make_shared<std::vector<uint8_t>>();
-  *to_write = m_blob;
+  if (!VolumeDataStore::serialize({volumeDataLayer, m_chunk}, m_blob, CompressionMethod::None, *to_write, error))
+  {
+    m_volumeDataPageAccessor->getManager()->addUploadError(error, volumeDataLayer, m_chunk);
+    return;
+  }
   m_volumeDataPageAccessor->requestWritePage(m_chunk, to_write);
-  ///IOManager *iomanager = m_volumeDataPageAccessor->wri
-
-  //iomanager->
+  m_isDirty = false;
 }
 
 
