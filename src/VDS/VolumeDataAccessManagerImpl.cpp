@@ -358,7 +358,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
   if (initiateTransfer)
   {
     char url[1000];
-    snprintf(url, sizeof(url), "%s/ChunkMetadata/%d", layerURL, pageIndex);
+    snprintf(url, sizeof(url), "%s/ChunkMetadata/%d", layerURL.c_str(), pageIndex);
 
     metadataManager->initiateTransfer(this, metadataPage, url, verbose);
   }
