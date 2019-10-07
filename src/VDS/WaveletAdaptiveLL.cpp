@@ -20,7 +20,9 @@
 #include "MetadataManager.h"
 #include <assert.h>
 
+#if defined(_OPENMP)
 #include <omp.h>
+#endif
 
 #include <algorithm>
 #include <math.h>

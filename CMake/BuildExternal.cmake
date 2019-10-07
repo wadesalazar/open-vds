@@ -1,7 +1,6 @@
 function(BuildExternal name version source_dir install_libs_release runtime_libs_release install_libs_debug runtime_libs_debug cmake_args)
 
   set(INSTALL_INT "${PROJECT_BINARY_DIR}/${name}_${version}_install")
-  set(INSTALL_INT_CONFIG "${INSTALL_INT}/$<CONFIG>")
 
 
   get_property(_isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -56,7 +55,7 @@ function(BuildExternal name version source_dir install_libs_release runtime_libs
     SOURCE_DIR ${source_dir}
     BUILD_IN_SOURCE OFF
     URL ""
-    INSTALL_DIR ${INSTALL_INT}
+    INSTALL_DIR ${INSTALL_INT_CONFIG}
     CMAKE_ARGS ${cmake_arg_complete}
     BUILD_BYPRODUCTS ${BUILDBYPRODUCTS})
 endfunction()
