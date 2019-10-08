@@ -33,10 +33,10 @@ class VolumeDataLayoutDescriptor;
 class VolumeDataLayout
 {
 private:
-  const VDSHandle &m_handle;
+  VDSHandle     &m_handle;
   std::vector<VolumeDataLayer *> m_volumeDataLayers;
   std::vector<VolumeDataChannelDescriptor> m_volumeDataChannelDescriptor;
-  bool          m_isReadOnly;
+  bool           m_isReadOnly;
   VolumeDataHash m_contentsHash; 
   int32_t        m_dimensionality;
   int32_t        m_baseBrickSize;
@@ -64,7 +64,7 @@ private:
   int32_t m_fullResolutionDimension;
 
 public:
-  VolumeDataLayout(const VDSHandle &handle,
+  VolumeDataLayout(VDSHandle &handle,
                    const VolumeDataLayoutDescriptor &layoutDescriptor,
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
                    const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
@@ -76,7 +76,7 @@ public:
                    bool isZipLosslessChannels, 
                    int32_t waveletAdaptiveLoadLevel);
 
-  const VDSHandle &getHandle() { return m_handle;}
+  VDSHandle       &getHandle() { return m_handle; }
 
   uint64_t         getContentsHash() const { return uint64_t(m_contentsHash); }
   VolumeDataLayer::VolumeDataLayerID addDataLayer(VolumeDataLayer *layer);

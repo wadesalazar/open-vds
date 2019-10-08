@@ -41,7 +41,7 @@ static std::condition_variable &staticGetPendingRequestCountChangedCondition()
   return pendingRequestCountChangedCondition;
 }
 
-VolumeDataLayout::VolumeDataLayout(const VDSHandle &handle,
+VolumeDataLayout::VolumeDataLayout(VDSHandle &handle,
                    const VolumeDataLayoutDescriptor &layoutDescriptor,
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
                    const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
@@ -182,6 +182,7 @@ int32_t VolumeDataLayout::changePendingWriteRequestCount(int32_t difference)
   }
   return ret;
 }
+
 void VolumeDataLayout::completePendingWriteChunkRequests(int32_t maxPendingWriteRequests) const
 {
   std::unique_lock<std::mutex> pendingRequestCountMutexLock(staticGetPendingRequestCountMutex());
