@@ -88,8 +88,7 @@ enum class CompressionMethod
   Zip,
   WaveletNormalizeBlock,
   WaveletLossless,
-  WaveletNormalizeBlockLossless,
-  Max
+  WaveletNormalizeBlockLossless
 };
  
 class CompressionInfo
