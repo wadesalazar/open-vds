@@ -10,14 +10,12 @@ set (TEST_AWS_OBJECTID "" CACHE STRING "Test AWS object ID")
 
 if (APPLE)
     set(BUILD_PYTHON_DEFAULT OFF)
-    set(ENABLE_OPENMP_DEFAULT OFF)
 else()
     set(BUILD_PYTHON_DEFAULT ON)
-    set(ENABLE_OPENMP_DEFAULT ON)
 endif()
 
 option(BUILD_PYTHON "Build python bindings" ${BUILD_PYTHON_DEFAULT})
-option(ENABLE_OPENMP "Enable the OpenMP codepath" ${ENABLE_OPENMP_DEFAULT})
+option(ENABLE_OPENMP "Enable the OpenMP codepath" ON)
 option(BUILD_SHARED_LIBS "Build OpenVDS as a shared library" ON)
 
 set (CMAKE_CXX_STANDARD 11)
@@ -31,10 +29,12 @@ define_property(GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES BRIEF_DOCS "OpenVDS in
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 find_package(Threads)
-
+if (ENABLE_OPENMP)
+    find_package(OpenMP)
+endif()
 if (UNIX)
   add_compile_options(-Wreturn-type)
-elseif (MSVC_VERSION GREATER_EQUAL 1910 AND NOT ENABLE_OPENMP)
+elseif (MSVC_VERSION GREATER_EQUAL 1910 AND NOT OpenMP_CXX_FOUND)
   add_compile_options(/permissive-)
 endif()
 

@@ -90,10 +90,6 @@ if(MSVC_VERSION)
   set_source_files_properties(VDS/VolumeDataAccessor.cpp PROPERTIES COMPILE_FLAGS /bigobj)
 endif()
 
-if (ENABLE_OPENMP)
-find_package(OpenMP REQUIRED)
-endif()
-
 get_property(link_3rdparty_release GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_RELEASE)
 get_property(link_3rdparty_debug   GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_DEBUG)
 get_property(include_3rdparty      GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES)
@@ -110,8 +106,8 @@ if (aws-cpp-sdk_EXTERNAL_LIBS)
 endif()
 target_link_libraries(openvds_objects $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)
 
-if (ENABLE_OPENMP)
-target_link_libraries(openvds_objects OpenMP::OpenMP_CXX)
+if (OpenMP_CXX_FOUND)
+    target_link_libraries(openvds_objects OpenMP::OpenMP_CXX)
 endif()
 
 if (BUILD_ZLIB)
