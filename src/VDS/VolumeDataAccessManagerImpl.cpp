@@ -22,6 +22,7 @@
 #include "VolumeDataPageAccessorImpl.h"
 #include "ValueConversion.h"
 #include "VolumeSampler.h"
+#include "ParseVDSJson.h"
 
 #include <cmath>
 #include <algorithm>
@@ -222,7 +223,6 @@ VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDSHandle* handle)
 
 VolumeDataAccessManagerImpl::~VolumeDataAccessManagerImpl()
 {
-  flushUploadQueue();
   if (m_uploadErrors.size())
   {
     fprintf(stderr, "VolumeDataAccessManager destructor: there where upload errors\n");
@@ -514,7 +514,16 @@ void VolumeDataAccessManagerImpl::flushUploadQueue()
     if (!upload.request->isSuccess(error))
     {
       m_uploadErrors.emplace_back(new UploadError(error, upload.request->getObjectName()));
+      error = Error();
     }
+  }
+  m_pendingUploadRequests.clear();
+   
+  error = Error();
+  serializeAndUploadLayerStatus(m_layout->getHandle(), error);
+  if(error.code != 0)
+  {
+    m_uploadErrors.emplace_back(new UploadError(error, "LayerStatus"));
   }
 }
 

@@ -39,7 +39,7 @@ VDSHandle *open(const OpenOptions &options, Error &error)
   if (error.code)
     return nullptr;
 
-  if (!downloadAndParseVDSJson(*ret.get(), error))
+  if (!downloadAndParseVolumeDataLayoutAndLayerStatus(*ret.get(), error))
   {
     return nullptr;
   }
@@ -177,7 +177,7 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
   if (error.code)
     return nullptr;
 
-  if (!serializeAndUploadVDSJson(*handle, error))
+  if (!serializeAndUploadVolumeDataLayout(*handle, error))
     return nullptr;
 
   handle->dataAccessManager.reset(new VolumeDataAccessManagerImpl(handle.get()));

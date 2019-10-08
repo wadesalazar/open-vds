@@ -23,8 +23,9 @@
 
 namespace OpenVDS
 {
-  bool downloadAndParseVDSJson(VDSHandle &handle, Error &error);
-  bool serializeAndUploadVDSJson(VDSHandle &handle, Error &error);
+bool downloadAndParseVolumeDataLayoutAndLayerStatus(VDSHandle &handle, Error &error);
+bool serializeAndUploadVolumeDataLayout(VDSHandle& handle, Error& error);
+bool serializeAndUploadLayerStatus(VDSHandle& handle, Error& error);
 }
 
 #endif //PARSEVDSJSON_H

@@ -947,6 +947,34 @@ std::string to_string(VolumeDataLayoutDescriptor::LODLevels lodLevels)
   };
 }
 
+std::string to_string(VolumeDataLayer::ProduceStatus produceStatus)
+{
+  switch(produceStatus)
+  {
+  case VolumeDataLayer::ProduceStatus_Unavailable:     return "Unavailable";
+  case VolumeDataLayer::ProduceStatus_Remapped:        return "Remapped";
+  case VolumeDataLayer::ProduceStatus_Normal:          return "Normal";
+
+  default: assert(0 && "Illegal produce status"); return "";
+  };
+}
+
+std::string to_string(CompressionMethod compressionMethod)
+{
+  switch(compressionMethod)
+  {
+  case CompressionMethod::None:                          return "None";
+  case CompressionMethod::Wavelet:                       return "Wavelet";
+  case CompressionMethod::RLE:                           return "RLE";
+  case CompressionMethod::Zip:                           return "Zip";
+  case CompressionMethod::WaveletNormalizeBlock:         return "WaveletNormalizeBlock";
+  case CompressionMethod::WaveletLossless:               return "WaveletLossless";
+  case CompressionMethod::WaveletNormalizeBlockLossless: return "WaveletNormalizeBlockLossless";
+
+  default: assert(0 && "Illegal compression method"); return "";
+  };
+}
+
 Json::Value serializeVolumeDataLayout(VolumeDataLayout const &volumeDataLayout, MetadataContainer const &metadataContainer)
 {
   Json::Value root;
@@ -990,6 +1018,58 @@ Json::Value serializeVolumeDataLayout(VolumeDataLayout const &volumeDataLayout, 
   return root;
 }
 
+Json::Value serializeLayerStatus(VolumeDataLayer const &volumeDataLayer)
+{
+  Json::Value layerStatusJson;
+
+  std::string channelName = std::string(volumeDataLayer.getVolumeDataChannelDescriptor().getName());
+  std::string dimensionGroupName = std::string(DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getChunkDimensionGroup()));
+
+  layerStatusJson["layerName"] = channelName + dimensionGroupName + "LOD" + std::to_string(volumeDataLayer.getLOD());
+  layerStatusJson["channelName"] = channelName;
+  layerStatusJson["dimensionGroup"] = dimensionGroupName;
+  layerStatusJson["lod"] = volumeDataLayer.getLOD();
+  layerStatusJson["produceStatus"] = to_string(volumeDataLayer.getProduceStatus());
+  layerStatusJson["compressionMethod"] = to_string(volumeDataLayer.getEffectiveCompressionMethod());
+  layerStatusJson["compressionTolerance"] = volumeDataLayer.getEffectiveCompressionTolerance();
+
+  return layerStatusJson;
+}
+
+Json::Value serializeLayerStatusArray(VolumeDataLayout const &volumeDataLayout)
+{
+  Json::Value layerStatusArrayJson(Json::ValueType::arrayValue);
+
+  for(int dimensionGroupIndex = 0; dimensionGroupIndex < DimensionGroup_3D_Max; dimensionGroupIndex++)
+  {
+    DimensionGroup dimensionGroup = (DimensionGroup)dimensionGroupIndex;
+
+    int chunkDimensionality = DimensionGroupUtil::getDimensionality(dimensionGroup);
+
+    // Check if highest dimension in chunk is higher than the highest dimension in the dataset or 1D
+    if(DimensionGroupUtil::getDimension(dimensionGroup, chunkDimensionality - 1) >= volumeDataLayout.getDimensionality() ||
+       chunkDimensionality == 1)
+    {
+      continue;
+    }
+
+    assert(chunkDimensionality == 2 || chunkDimensionality == 3);
+
+    for(int channel = 0; channel < volumeDataLayout.getChannelCount(); channel++)
+    {
+      for(VolumeDataLayer *volumeDataLayer = volumeDataLayout.getBaseLayer(dimensionGroup, channel); volumeDataLayer && volumeDataLayer->getLayerType() != VolumeDataLayer::Virtual; volumeDataLayer = volumeDataLayer->getParentLayer())
+      {
+        if(volumeDataLayer->getProduceStatus() != VolumeDataLayer::ProduceStatus_Unavailable)
+        {
+          layerStatusArrayJson.append(serializeLayerStatus(*volumeDataLayer));
+        }
+      }
+    }
+  }
+  
+  return layerStatusArrayJson;
+}
+
 std::vector<uint8_t>
 writeJson(Json::Value root)
 {
@@ -1029,24 +1109,24 @@ public:
   Error *error;
 };
 
-bool downloadAndParseVDSJson(VDSHandle& handle, Error& error)
+bool downloadAndParseVolumeDataLayoutAndLayerStatus(VDSHandle& handle, Error& error)
 {
   std::vector<uint8_t> volumedatalayout_json;
   std::shared_ptr<SyncTransferHandler> syncTransferHandler = std::make_shared<SyncTransferHandler>();
   syncTransferHandler->error = &error;
   syncTransferHandler->data = &volumedatalayout_json;
-  auto req = handle.ioManager->downloadObject("VolumeDataLayout", syncTransferHandler);
-  req->waitForFinish();
-  if (!req->isSuccess(error) || volumedatalayout_json.empty())
+  auto request = handle.ioManager->downloadObject("VolumeDataLayout", syncTransferHandler);
+  request->waitForFinish();
+  if (!request->isSuccess(error) || volumedatalayout_json.empty())
   {
     error.string = "S3 Error on downloading VolumeDataLayout object: " + error.string;
     return false;
   }
   std::vector<uint8_t> layerstatus_json;
   syncTransferHandler->data = &layerstatus_json;
-  req = handle.ioManager->downloadObject("LayerStatus", syncTransferHandler);
-  req->waitForFinish();
-  if (!req->isSuccess(error) || layerstatus_json.empty())
+  request = handle.ioManager->downloadObject("LayerStatus", syncTransferHandler);
+  request->waitForFinish();
+  if (!request->isSuccess(error) || layerstatus_json.empty())
   {
     error.string = "S3 Error on downloading LayerStatus object: " + error.string;
     return false;
@@ -1071,8 +1151,37 @@ bool downloadAndParseVDSJson(VDSHandle& handle, Error& error)
   return true;
 }
 
-bool serializeAndUploadVDSJson(VDSHandle& handle, Error& error)
+bool serializeAndUploadVolumeDataLayout(VDSHandle& handle, Error& error)
 {
+  Json::Value volumeDataLayoutJson = serializeVolumeDataLayout(*handle.volumeDataLayout, handle.metadataContainer);
+  auto serializedVolumeDataLayout = std::make_shared<std::vector<uint8_t>>(writeJson(volumeDataLayoutJson));
+  auto request = handle.ioManager->uploadObject("VolumeDataLayout", serializedVolumeDataLayout);
+
+  request->waitForFinish();
+
+  if (!request->isSuccess(error))
+  {
+    error.string = "S3 Error on uploading VolumeDataLayout object: " + error.string;
+    return false;
+  }
+
+  return true;
+}
+
+bool serializeAndUploadLayerStatus(VDSHandle& handle, Error& error)
+{
+  Json::Value layerStatusArrayJson = serializeLayerStatusArray(*handle.volumeDataLayout);
+  auto serializedLayerStatus = std::make_shared<std::vector<uint8_t>>(writeJson(layerStatusArrayJson));
+  auto request = handle.ioManager->uploadObject("LayerStatus", serializedLayerStatus);
+
+  request->waitForFinish();
+
+  if (!request->isSuccess(error))
+  {
+    error.string = "S3 Error on uploading LayerStatus object: " + error.string;
+    return false;
+  }
+
   return true;
 }
 
