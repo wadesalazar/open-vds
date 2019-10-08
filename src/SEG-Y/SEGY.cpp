@@ -179,9 +179,9 @@ it shouldn't be TOO difficult). */
 void
 ieee2ibm(void *to, const void *from, size_t len)
 {
-  register unsigned fr; /* fraction */
-  register int exp; /* exponent */
-  register int sgn; /* sign */
+  unsigned fr; /* fraction */
+  int exp; /* exponent */
+  int sgn; /* sign */
 
   for (; len-- > 0; to = (char *)to + 4, from = (const char *)from + 4)
   {
