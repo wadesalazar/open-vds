@@ -35,7 +35,7 @@ class Base64Table
 
     for(int i = 0; i < sizeof(alphabet) - 1; i++)
     {
-      table[alphabet[i]] = i;
+      table[int(alphabet[i])] = i;
     }
   }
 
@@ -56,9 +56,6 @@ Base64Table::table[256];
 bool Base64Decode(const char *data, int64_t len, std::vector<unsigned char> &result)
 {
   bool error = false;
-
-  int
-    decode = 0;
 
   // skip leading whitespace
   while(len && isspace(*data)) len--, data++;

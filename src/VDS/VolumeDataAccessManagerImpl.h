@@ -97,7 +97,7 @@ struct PendingDownloadRequest
   }
 };
 
-static bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
+inline bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
 {
   if (a.layer->getChunkDimensionGroup() == b.layer->getChunkDimensionGroup())
   {

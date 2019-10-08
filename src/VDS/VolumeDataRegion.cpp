@@ -87,8 +87,6 @@ bool VolumeDataRegion::isChunkInRegion(VolumeDataChunk const &volumeDataChunk) c
 VolumeDataRegion::VolumeDataRegion(VolumeDataLayer const &volumeDataLayer, const IndexArray &min, const IndexArray &max)
   : m_volumeDataLayer(&volumeDataLayer)
 {
-  VolumeDataLayout *volumeDataLayout = volumeDataLayer.getLayout();
-
   int64_t modulo = 1;
 
   for(int32_t iDimension = 0; iDimension < array_size(m_chunkMin); iDimension++)

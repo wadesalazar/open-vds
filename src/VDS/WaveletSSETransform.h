@@ -527,9 +527,8 @@ Wavelet_TransformLine_UpdateCoarse(float* write, float* read, int32_t nLength, f
 inline void
 Wavelet_InverseTransformLine(float* readWrite, int32_t nLength)
 {
-  int32_t
-    nLengthLow = (nLength + 1) >> 1,
-    nLengthHigh = nLength >> 1;
+  int32_t nLengthLow = (nLength + 1) >> 1;
+  int32_t nLengthHigh = nLength >> 1;
 
   Wavelet_TransformLine_UpdateCoarse(readWrite, readWrite + nLengthLow, nLengthLow, -1.0f / 32.0f, (float)REAL_INVSQRT2, nLength & 1);
   Wavelet_TransformLine_PredictDetail(readWrite + nLengthLow, readWrite, nLengthHigh, -1.0f / 16.0f, nLength & 1);
@@ -538,18 +537,15 @@ Wavelet_InverseTransformLine(float* readWrite, int32_t nLength)
 inline void
 Wavelet_InterleaveLine(float* write, float* readLow, float* readHigh, int32_t nLength)
 {
-  int32_t
-    nLengthLow = (nLength + 1) >> 1,
-    nLengthHigh = nLength >> 1;
+  int32_t nLengthLow = (nLength + 1) >> 1;
+  int32_t nLengthHigh = nLength >> 1;
 
-  int32_t
-    i = 0;
+  int32_t i = 0;
 
   for (; i + 8 <= nLength; i += 8)
   {
-    __m128
-      mmLow = _mm_loadu_ps(readLow + (i >> 1)),
-      mmHigh = _mm_loadu_ps(readHigh + (i >> 1));
+    __m128 mmLow = _mm_loadu_ps(readLow + (i >> 1));
+    __m128 mmHigh = _mm_loadu_ps(readHigh + (i >> 1));
 
     _mm_storeu_ps(write + i, _mm_unpacklo_ps(mmLow, mmHigh));
     _mm_storeu_ps(write + i + 4, _mm_unpackhi_ps(mmLow, mmHigh));

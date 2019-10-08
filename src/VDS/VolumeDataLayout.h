@@ -76,6 +76,8 @@ public:
                    bool isZipLosslessChannels, 
                    int32_t waveletAdaptiveLoadLevel);
 
+  virtual ~VolumeDataLayout();
+
   VDSHandle       &getHandle() { return m_handle; }
 
   uint64_t         getContentsHash() const { return uint64_t(m_contentsHash); }

@@ -108,7 +108,6 @@ static void copyLinearBufferIntoDataBlock(const void *sourceBuffer, const DataBl
 
   int32_t allocatedSizeX = dataBlock.allocatedSize[0];
   int32_t allocatedSizeY = dataBlock.allocatedSize[1];
-  int32_t allocatedSizeZ = dataBlock.allocatedSize[2];
 
   if(dataBlock.format == VolumeDataChannelDescriptor::Format_1Bit)
   {
@@ -116,15 +115,14 @@ static void copyLinearBufferIntoDataBlock(const void *sourceBuffer, const DataBl
   }
 
   uint32_t elementSize = getElementSize(dataBlock);
-  uint32_t byteSize = sizeX * sizeY * sizeZ * elementSize;
 
   for(int32_t iZ = 0; iZ < sizeZ; iZ++)
   {
     for(int32_t iY = 0; iY < sizeY; iY++)
     {
-      uint8_t *target = targetBuffer.data()                       +  (iZ * allocatedSizeY + iY) * allocatedSizeX * elementSize;
+      uint8_t *target = targetBuffer.data()                             +  (iZ * allocatedSizeY + iY) * allocatedSizeX * elementSize;
       const uint8_t *source = static_cast<const uint8_t*>(sourceBuffer) +  (iZ * sizeY          + iY) * sizeX          * elementSize;
-      memcpy(target, source, sizeX * elementSize);
+      memcpy(target, source, size_t(sizeX) * elementSize);
     }
   }
 }
@@ -136,7 +134,6 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
     const void *data = serializedData.data();
 
     int32_t dataVersion = ((int32_t *)data)[0];
-    int32_t compressedSize = ((int32_t *)data)[1];
 
     assert(dataVersion == WAVELET_DATA_VERSION_1_4);
 

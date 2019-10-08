@@ -139,8 +139,8 @@ namespace OpenVDS
     , m_done(false)
   {
     Aws::S3::Model::GetObjectRequest object_request;
-    object_request.SetBucket(std::move(convertStdString(bucket)));
-    object_request.SetKey(std::move(convertStdString(id)));
+    object_request.SetBucket(convertStdString(bucket));
+    object_request.SetKey(convertStdString(id));
     if (range.end)
     {
       char rangeHeaderBuffer[100];
@@ -208,8 +208,8 @@ namespace OpenVDS
     , m_done(false)
   {
     Aws::S3::Model::PutObjectRequest put;
-    put.SetBucket(std::move(convertStdString(bucket)));
-    put.SetKey(std::move(convertStdString(id)));
+    put.SetBucket(convertStdString(bucket));
+    put.SetKey(convertStdString(id));
     put.SetBody(m_stream);
     if (range.end)
     {

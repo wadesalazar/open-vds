@@ -527,11 +527,6 @@ static void evalAndSplit(const WaveletAdaptiveLL_DecodeIterator& decodeIterator,
 
   int32_t elementsThisRun = nElement - iCurrentElement;
 
-  uint8_t byte = 0;
-
-  int32_t iBit = 0;
-  int32_t iByteWrite = 0;
-
   int32_t writeOut = iCurrentElement;
 
   int32_t idealChild = 1 << dimensions;
@@ -743,13 +738,11 @@ static int32_t decodeTreeStructure(const WaveletAdaptiveLL_DecodeIterator& decod
   const Wavelet_PixelSetChildren* pixelSetChildren = decodeIterator.pixelSetChildren;
   int32_t pixelSetChildrenCount = decodeIterator.pixelSetChildrenCount;
 
-  const  Wavelet_PixelSetPixel* pixelSetPixelInSignificant = decodeIterator.pixelSetPixelInSignificant;
   int32_t pixelSetPixelInsignificantCount = decodeIterator.pixelSetPixelInsignificantCount;
 
   const int32_t startDecodeBits = decodeIterator.decodeBits;
   const int32_t maxDecodeLevel = decodeIterator.decompressLevel;
   const float startThreshold = decodeIterator.startThreshold;
-  const float threshold = decodeIterator.threshold;
 
   int32_t* valueEncodingMultiple = decodeIterator.valueEncodingMultiple;
   int32_t* valuesAtLevelMultiple = decodeIterator.valuesAtLevelMultiple;
@@ -860,11 +853,6 @@ static int32_t decodeTreeStructure(const WaveletAdaptiveLL_DecodeIterator& decod
       }
     }
 
-
-    int32_t singleOffset = decodeIterator.maxChildren;
-
-    int32_t newValuesMultiple = valuesMultiple - signValueSetMultiple;
-    int32_t newValuesSingle = valuesSingle - signValueSetSingle;
 
     // values at each decode step
     valuesAtLevelMultiple[decodeBits] = valuesMultiple * multiple;
@@ -1147,9 +1135,6 @@ int32_t waveletAdaptiveLL_DecompressLossless(uint8_t *in, float *pic, int32_t si
 
   uint8_t *compressedData[4];
 
-
-  // FORWARD COMPATIBILITY!
-  const int32_t *losslessInit = (int *)in;
 
   in += sizeof(int);
 

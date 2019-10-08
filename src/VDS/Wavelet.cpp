@@ -145,10 +145,6 @@ static int32_t findTransformMethod(IntVector3 (&bandSize)[TRANSFORM_MAX_ITERATIO
 
 static void createTransformData(Wavelet_TransformData (&transformData)[TRANSFORM_MAX_ITERATIONS], const IntVector3 (&bandSize)[TRANSFORM_MAX_ITERATIONS + 1], int32_t *transformMask, int32_t transformIterations)
 {
-  int32_t previousBandSizeX = -1;
-  int32_t previousBandSizeY = -1;
-  int32_t previousBandSizeZ = -1;
-
   for (int i=0; i < transformIterations; i++)
   {
     int currentTransformMask = transformMask[i];
@@ -393,8 +389,6 @@ Wavelet::Wavelet(const void *compressedData, int32_t transformSizeX, int32_t tra
 
   m_transformIterations = findTransformMethod(m_bandSize, m_transformMask, m_transformSizeX, m_transformSizeY, m_transformSizeZ, m_dataVersion);
 
-  char transformMask = m_transformMask[0];
-
   m_allocatedHalfSizeX = m_bandSize[1][0];
   m_allocatedHalfSizeY = m_bandSize[1][1];
   m_allocatedHalfSizeZ = m_bandSize[1][2];
@@ -596,8 +590,6 @@ static void replaceZeroFromZeroCount(T *pic, int transformSizeY, int transformSi
   #pragma omp parallel for
     for (int iY=0; iY<transformSizeY;iY++)
     {
-      int nCount = 0;
-
       T *read = pic + iY * allocatedSizeX + iZ * allocatedSizeX * allocatedSizeY;
 
       uint16_t count = countLow[iY + iZ * transformSizeY];
@@ -632,8 +624,6 @@ static void decompressZerosAlongX(const uint8_t *in, void *pic, int elementSize,
   bool isHigh = transformSizeX >= 256;
 
   int transformSizeYZ = transformSizeY * transformSizeZ;
-
-  const uint8_t *start = in;
 
   uint8_t *countLow = temp; 
   uint8_t *countHigh = temp + transformSizeYZ;
@@ -908,7 +898,6 @@ void Wavelet::inverseTransform(float *source)
     int32_t bufferPitchX = bufferPitchXY * bandSizeZ; // Swapping pitches is faster.
 
     int32_t bitCount[8] = { 0, 1, 1, 2, 1, 2, 2, 3 };
-    int32_t transformCount = bitCount[transformMask & 0x07];
 
     int32_t readPitchX = m_allocatedSizeX;
     int32_t readPitchXY = m_allocatedSizeXY;
@@ -917,8 +906,6 @@ void Wavelet::inverseTransform(float *source)
 
     float *read = source;
     float *write = tempBuffer.data();
-
-    const int32_t threadCount = WAVELET_SSE_THREADS;
 
     if (transformMask == 7)
     {
@@ -1288,8 +1275,6 @@ static inline bool rleDecodeOneRun(uint8_t *&rleByte, uint32_t &setBits)
 
 static void rleDecode(uint8_t *rleBytes, uint32_t *bitBuffer, int32_t intsToDecode)
 {
-  int32_t bytesRead = 0;
-
   int bitsToDecode = intsToDecode * 32;
 
   int writeBit = 0;
@@ -1328,8 +1313,6 @@ void Wavelet::deCompressNoValues(float *noValue, std::vector<uint32_t> &buffer)
 
   // Create a union for type punning that works with strict aliasing
   union { float fValue; int32_t iValue; } convert;
-
-  int32_t byteSize = *m_noValueData++;
 
   convert.iValue = *m_noValueData++; *noValue = convert.fValue;
 

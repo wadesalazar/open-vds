@@ -59,11 +59,11 @@ VolumeDataLayout::VolumeDataLayout(VDSHandle &handle,
   , m_positiveRenderMargin(layoutDescriptor.getPositiveMargin())
   , m_brickSize2DMultiplier(layoutDescriptor.getBrickSizeMultiplier2D())
   , m_maxLOD(layoutDescriptor.getLODLevels())
-  , m_isCreate2DLODs(layoutDescriptor.isCreate2DLODs())
   , m_volumeDataChannelDescriptor(volumeDataChannelDescriptor)
+  , m_isCreate2DLODs(layoutDescriptor.isCreate2DLODs())
   , m_actualValueRangeChannel(actualValueRangeChannel)
-  , m_actualValueRange(actualValueRange)
   , m_contentsHash(volumeDataHash)
+  , m_actualValueRange(actualValueRange)
   , m_compressionMethod(compressionMethod)
   , m_compressionTolerance(compressionTolerance)
   , m_isZipLosslessChannels(isZipLosslessChannels)
@@ -89,6 +89,10 @@ VolumeDataLayout::VolumeDataLayout(VDSHandle &handle,
 
   memset(m_primaryBaseLayers, 0, sizeof(m_primaryBaseLayers));
   memset(m_primaryTopLayers, 0, sizeof(m_primaryTopLayers));
+}
+
+VolumeDataLayout::~VolumeDataLayout()
+{
 }
 
 VolumeDataLayer::VolumeDataLayerID VolumeDataLayout::addDataLayer(VolumeDataLayer *layer)
@@ -186,9 +190,6 @@ int32_t VolumeDataLayout::changePendingWriteRequestCount(int32_t difference)
 void VolumeDataLayout::completePendingWriteChunkRequests(int32_t maxPendingWriteRequests) const
 {
   std::unique_lock<std::mutex> pendingRequestCountMutexLock(staticGetPendingRequestCountMutex());
-
-  bool
-    isFirstTime = true;
 
   while (m_pendingWriteRequests > maxPendingWriteRequests)
   {
