@@ -906,6 +906,7 @@ void Wavelet::inverseTransform(float *source)
 
     float *read = source;
     float *write = tempBuffer.data();
+    const int32_t threadCount = WAVELET_SSE_THREADS;
 
     if (transformMask == 7)
     {
