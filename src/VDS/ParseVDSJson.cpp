@@ -648,31 +648,31 @@ static CompressionMethod compressionMethodFromJson(Json::Value const &jsonCompre
   }
 }
 
-static MetadataStatus MetadataStatusFromJSON(Json::Value const &jsonMetadataStatus)
+static MetadataStatus MetadataStatusFromJSON(Json::Value const &metadataStatusJson)
 {
-  if(jsonMetadataStatus.empty())
+  if(metadataStatusJson.empty())
   {
     return MetadataStatus();
   }
 
   MetadataStatus metadataStatus = MetadataStatus();
 
-  metadataStatus.m_chunkIndexCount       = jsonMetadataStatus["chunkCount"].asInt();
-  metadataStatus.m_chunkMetadataPageSize = jsonMetadataStatus["chunkMetadataPageSize"].asInt();
-  metadataStatus.m_chunkMetadataByteSize = jsonMetadataStatus["chunkMetadataByteSize"].asInt();
-  metadataStatus.m_compressionMethod     = compressionMethodFromJson(jsonMetadataStatus["compressionMethod"]);
-  metadataStatus.m_compressionTolerance  = jsonMetadataStatus["compressionTolerance"].asFloat();
+  metadataStatus.m_chunkIndexCount       = metadataStatusJson["chunkCount"].asInt();
+  metadataStatus.m_chunkMetadataPageSize = metadataStatusJson["chunkMetadataPageSize"].asInt();
+  metadataStatus.m_chunkMetadataByteSize = metadataStatusJson["chunkMetadataByteSize"].asInt();
+  metadataStatus.m_compressionMethod     = compressionMethodFromJson(metadataStatusJson["compressionMethod"]);
+  metadataStatus.m_compressionTolerance  = metadataStatusJson["compressionTolerance"].asFloat();
 
-  metadataStatus.m_uncompressedSize = jsonMetadataStatus["uncompressedSize"].asInt64();
+  metadataStatus.m_uncompressedSize = metadataStatusJson["uncompressedSize"].asInt64();
 
   Json::Value
-    adaptiveLevelSizesJSON = jsonMetadataStatus["adaptiveLevelSizes"];
+    adaptiveLevelSizesJson = metadataStatusJson["adaptiveLevelSizes"];
 
-  if(!adaptiveLevelSizesJSON.empty())
+  if(!adaptiveLevelSizesJson.empty())
   {
     for(int i = 0; i < WAVELET_ADAPTIVE_LEVELS; i++)
     {
-      metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJSON[i].asInt64();
+      metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJson[i].asInt64();
     }
   }
 
@@ -725,13 +725,13 @@ bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error
       metadataStatus.m_uncompressedSize = layerStatus["uncompressedSize"].asInt64();
 
       Json::Value
-        adaptiveLevelSizesJSON = layerStatus["adaptiveLevelSizes"];
+        adaptiveLevelSizesJson = layerStatus["adaptiveLevelSizes"];
 
-      if (!adaptiveLevelSizesJSON.empty())
+      if (!adaptiveLevelSizesJson.empty())
       {
         for (int i = 0; i < WAVELET_ADAPTIVE_LEVELS; i++)
         {
-          metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJSON[i].asInt64();
+          metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJson[i].asInt64();
         }
       }
 
@@ -816,7 +816,7 @@ std::string to_string(VolumeDataMapping mapping)
 
 Json::Value serializeChannelDescriptor(VolumeDataChannelDescriptor const &channelDescriptor)
 {
-  Json::Value valueRangeJson(Json::ValueType::arrayValue);
+  Json::Value valueRangeJson(Json::arrayValue);
 
   valueRangeJson.append(channelDescriptor.getValueRangeMin());
   valueRangeJson.append(channelDescriptor.getValueRangeMax());
@@ -846,7 +846,7 @@ Json::Value serializeVector(Vector<T, N> const &vector)
 {
   static_assert(N > 1 && N <= 4, "Only vectors with 2, 3 or 4 elements are supported");
 
-  Json::Value vectorJson(Json::ValueType::arrayValue);
+  Json::Value vectorJson(Json::arrayValue);
 
   int i = 0;
   switch(N)
@@ -871,7 +871,7 @@ Json::Value serializeBLOB(std::vector<uint8_t> const &blob)
 Json::Value serializeMetadata(MetadataContainer const &metadataContainer)
 {
   Json::Value
-    metadataJsonArray(Json::ValueType::arrayValue);
+    metadataJsonArray(Json::arrayValue);
 
   for(auto metadataKey : metadataContainer.keys)
   {
@@ -995,7 +995,7 @@ Json::Value serializeVolumeDataLayout(VolumeDataLayout const &volumeDataLayout, 
 
   root["layoutDescriptor"] = layoutDescriptorJson;
 
-  Json::Value axisDescriptorsJson(Json::ValueType::arrayValue);
+  Json::Value axisDescriptorsJson(Json::arrayValue);
 
   for(int dimension = 0, dimensionality = volumeDataLayout.getDimensionality(); dimension < dimensionality; dimension++)
   {
@@ -1004,7 +1004,7 @@ Json::Value serializeVolumeDataLayout(VolumeDataLayout const &volumeDataLayout, 
 
   root["axisDescriptors"] = axisDescriptorsJson;
 
-  Json::Value channelDescriptorsJson(Json::ValueType::arrayValue);
+  Json::Value channelDescriptorsJson(Json::arrayValue);
 
   for(int channel = 0, channelCount = volumeDataLayout.getChannelCount(); channel < channelCount; channel++)
   {
@@ -1018,16 +1018,13 @@ Json::Value serializeVolumeDataLayout(VolumeDataLayout const &volumeDataLayout, 
   return root;
 }
 
-Json::Value serializeLayerStatus(VolumeDataLayer const &volumeDataLayer)
+Json::Value serializeLayerStatus(VolumeDataLayer const &volumeDataLayer, std::string const &layerName)
 {
   Json::Value layerStatusJson;
 
-  std::string channelName = std::string(volumeDataLayer.getVolumeDataChannelDescriptor().getName());
-  std::string dimensionGroupName = std::string(DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getChunkDimensionGroup()));
-
-  layerStatusJson["layerName"] = channelName + dimensionGroupName + "LOD" + std::to_string(volumeDataLayer.getLOD());
-  layerStatusJson["channelName"] = channelName;
-  layerStatusJson["dimensionGroup"] = dimensionGroupName;
+  layerStatusJson["layerName"] = layerName;
+  layerStatusJson["channelName"] = volumeDataLayer.getVolumeDataChannelDescriptor().getName();
+  layerStatusJson["dimensionGroup"] = DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getPrimaryChannelLayer().getChunkDimensionGroup());
   layerStatusJson["lod"] = volumeDataLayer.getLOD();
   layerStatusJson["produceStatus"] = to_string(volumeDataLayer.getProduceStatus());
   layerStatusJson["compressionMethod"] = to_string(volumeDataLayer.getEffectiveCompressionMethod());
@@ -1036,13 +1033,38 @@ Json::Value serializeLayerStatus(VolumeDataLayer const &volumeDataLayer)
   return layerStatusJson;
 }
 
-Json::Value serializeLayerStatusArray(VolumeDataLayout const &volumeDataLayout)
+Json::Value serializeMetadataStatus(MetadataStatus const &metadataStatus)
 {
-  Json::Value layerStatusArrayJson(Json::ValueType::arrayValue);
+  Json::Value metadataStatusJson;
+
+  metadataStatusJson["chunkCount"]            = metadataStatus.m_chunkIndexCount;
+  metadataStatusJson["chunkMetadataPageSize"] = metadataStatus.m_chunkMetadataPageSize;
+  metadataStatusJson["chunkMetadataByteSize"] = metadataStatus.m_chunkMetadataByteSize;
+  metadataStatusJson["compressionMethod"]     = to_string(metadataStatus.m_compressionMethod);
+  metadataStatusJson["compressionTolerance"]  = metadataStatus.m_compressionTolerance;
+  metadataStatusJson["uncompressedSize"] = metadataStatus.m_uncompressedSize;
+
+  Json::Value
+    adaptiveLevelSizesJson(Json::arrayValue);
+
+  for(int i = 0; i < WAVELET_ADAPTIVE_LEVELS; i++)
+  {
+    adaptiveLevelSizesJson.append(metadataStatus.m_adaptiveLevelSizes[i]);
+  }
+
+  metadataStatusJson["adaptiveLevelSizes"] = adaptiveLevelSizesJson;
+
+  return metadataStatusJson;
+}
+
+Json::Value serializeLayerStatusArray(VolumeDataLayout const &volumeDataLayout, LayerMetadataContainer const &layerMetadataContainer)
+{
+  Json::Value layerStatusArrayJson(Json::arrayValue);
 
   for(int dimensionGroupIndex = 0; dimensionGroupIndex < DimensionGroup_3D_Max; dimensionGroupIndex++)
   {
     DimensionGroup dimensionGroup = (DimensionGroup)dimensionGroupIndex;
+    std::string dimensionGroupName = DimensionGroupUtil::getDimensionGroupName(dimensionGroup);
 
     int chunkDimensionality = DimensionGroupUtil::getDimensionality(dimensionGroup);
 
@@ -1059,9 +1081,24 @@ Json::Value serializeLayerStatusArray(VolumeDataLayout const &volumeDataLayout)
     {
       for(VolumeDataLayer *volumeDataLayer = volumeDataLayout.getBaseLayer(dimensionGroup, channel); volumeDataLayer && volumeDataLayer->getLayerType() != VolumeDataLayer::Virtual; volumeDataLayer = volumeDataLayer->getParentLayer())
       {
+        std::string layerName = (channel == 0 ? std::string() : std::string(volumeDataLayer->getVolumeDataChannelDescriptor().getName())) + dimensionGroupName + "LOD" + std::to_string(volumeDataLayer->getLOD());
+
         if(volumeDataLayer->getProduceStatus() != VolumeDataLayer::ProduceStatus_Unavailable)
         {
-          layerStatusArrayJson.append(serializeLayerStatus(*volumeDataLayer));
+          Json::Value layerStatusJson = serializeLayerStatus(*volumeDataLayer, layerName);
+          auto it = layerMetadataContainer.managers.find(layerName);
+          if(it != layerMetadataContainer.managers.end())
+          {
+            Json::Value metadataStatusJson = serializeMetadataStatus(it->second->metadataStatus());
+
+            for (const auto& key : metadataStatusJson.getMemberNames())
+            {
+              layerStatusJson[key] = metadataStatusJson[key];
+            }
+
+            layerStatusJson["hasChunkMetadataPages"] = true;
+          }
+          layerStatusArrayJson.append(layerStatusJson);
         }
       }
     }
@@ -1170,7 +1207,7 @@ bool serializeAndUploadVolumeDataLayout(VDSHandle& handle, Error& error)
 
 bool serializeAndUploadLayerStatus(VDSHandle& handle, Error& error)
 {
-  Json::Value layerStatusArrayJson = serializeLayerStatusArray(*handle.volumeDataLayout);
+  Json::Value layerStatusArrayJson = serializeLayerStatusArray(*handle.volumeDataLayout, handle.layerMetadataContainer);
   auto serializedLayerStatus = std::make_shared<std::vector<uint8_t>>(writeJson(layerStatusArrayJson));
   auto request = handle.ioManager->uploadObject("LayerStatus", serializedLayerStatus);
 
