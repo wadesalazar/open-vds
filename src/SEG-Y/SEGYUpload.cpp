@@ -298,7 +298,7 @@ parseSEGYFileInfoFile(OpenVDS::File const &file, SEGYFileInfo &fileInfo)
       throw Json::Exception(errs);
     }
 
-    fileInfo.m_persistentID = strtol(jsonFileInfo["persistentID"].asCString(), nullptr, 16);
+    fileInfo.m_persistentID = strtoull(jsonFileInfo["persistentID"].asCString(), nullptr, 16);
     fileInfo.m_headerEndianness = endiannessFromJson(jsonFileInfo["headerEndianness"]);
     fileInfo.m_dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(jsonFileInfo["dataSampleFormatCode"].asInt());
     fileInfo.m_sampleCount = jsonFileInfo["sampleCount"].asInt();
