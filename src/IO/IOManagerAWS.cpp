@@ -211,6 +211,8 @@ namespace OpenVDS
     put.SetBucket(convertStdString(bucket));
     put.SetKey(convertStdString(id));
     put.SetBody(m_stream);
+    put.SetContentType("binary/octet-stream");
+    put.SetContentLength(data->size());
     if (range.end)
     {
       assert(false);
