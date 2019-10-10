@@ -24,7 +24,7 @@
 namespace OpenVDS
 {
 
-class MetadataPageTransfer : public TransferHandler
+class MetadataPageTransfer : public TransferDownloadHandler
 {
 public:
 MetadataPageTransfer(MetadataManager *manager, VolumeDataAccessManagerImpl *accessManager, MetadataPage *metadataPage)
@@ -38,7 +38,7 @@ void handleData(std::vector<uint8_t> &&data) override
   manager->pageTransferCompleted(accessManager, metadataPage, std::move(data));
 }
 
-void handleError(Error &error) override
+void completed(const Request &request, const Error &error) override
 {
 }
 

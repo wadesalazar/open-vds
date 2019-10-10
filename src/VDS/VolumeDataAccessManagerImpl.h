@@ -35,7 +35,7 @@ namespace OpenVDS
 class LayerMetadataContainer;
 class MetadataPage;
 
-class ReadChunkTransfer : public TransferHandler
+class ReadChunkTransfer : public TransferDownloadHandler
 {
 public:
   ReadChunkTransfer(CompressionMethod compressionMethod, int adaptiveLevel)
@@ -63,7 +63,8 @@ public:
   {
     m_data = data;
   }
-  void handleError(Error& error) override
+
+  void completed(const Request &req, const Error & error) override
   {
     m_error = error;
   }

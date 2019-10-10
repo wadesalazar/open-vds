@@ -18,18 +18,22 @@
 #ifndef IOMANAGER_H
 #define IOMANAGER_H
 
-#include <memory>
 #include <OpenVDS/OpenVDS.h>
+
+#include <memory>
+#include <map>
+#include <functional>
 
 namespace OpenVDS
 {
-  class TransferHandler
+  class Request;
+  class TransferDownloadHandler
   {
   public:
-    virtual ~TransferHandler();
+    virtual ~TransferDownloadHandler();
     virtual void handleMetadata(const std::string &key, const std::string &header);
     virtual void handleData(std::vector<uint8_t> &&data) = 0;
-    virtual void handleError(Error &error) = 0;
+    virtual void completed(const Request &request, const Error &error) = 0;
   };
 
   class Request
@@ -42,6 +46,7 @@ namespace OpenVDS
     virtual bool isSuccess(Error &error) const = 0;
     virtual void cancel() = 0;
     const std::string &getObjectName() const { return m_objectName; }
+
   private:
     std::string m_objectName;
   };
@@ -56,8 +61,13 @@ namespace OpenVDS
   {
   public:
     virtual ~IOManager();
-    virtual std::shared_ptr<Request> downloadObject(const std::string objectName, std::shared_ptr<TransferHandler> handler, const IORange &range = IORange()) = 0;
-    virtual std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const IORange &range = IORange()) = 0;
+    virtual std::shared_ptr<Request> downloadObject(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
+    virtual std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::map<std::string, std::string> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr) = 0;
+    std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
+    {
+      return uploadObject(objectName, data, std::map<std::string, std::string>(), completedCallback);
+    }
+
 
     static IOManager *createIOManager(const OpenOptions &options, Error &error);
   };

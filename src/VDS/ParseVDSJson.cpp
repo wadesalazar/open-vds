@@ -1130,14 +1130,14 @@ writeJson(Json::Value root)
   return result;
 }
 
-class SyncTransferHandler : public TransferHandler
+class SyncTransferHandler : public TransferDownloadHandler
 {
 public:
     void handleData(std::vector<uint8_t> &&data) override
     {
       *(this->data) = data;
     }
-    void handleError(Error &error) override
+    void completed(const Request &request, const Error &error) override
     {
       *(this->error) = error;
     }

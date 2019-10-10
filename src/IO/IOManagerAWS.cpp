@@ -111,7 +111,7 @@ namespace OpenVDS
       auto s3error = getObjectOutcome.GetError();
       objReq->m_error.code = int(s3error.GetResponseCode());
       objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
-      objReq->m_handler->handleError(objReq->m_error);
+      objReq->m_handler->completed(*objReq, objReq->m_error);
       return;
     }
 
@@ -130,9 +130,10 @@ namespace OpenVDS
       retrieved_object.read((char *)&data[0], content_length);
       objReq->m_handler->handleData(std::move(data));
     }
+    objReq->m_handler->completed(*objReq, objReq->m_error);
   }
 
-  DownloadRequestAWS::DownloadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, const std::shared_ptr<TransferHandler>& handler, const IORange &range)
+  DownloadRequestAWS::DownloadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler, const IORange &range)
     : Request(id)
     , m_handler(handler)
     , m_context(std::make_shared<AsyncDownloadContext>(this))
@@ -197,12 +198,16 @@ namespace OpenVDS
       uploadReq->m_error.code = int(s3error.GetResponseCode());
       uploadReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
     }
+    if (uploadReq->m_completedCallback)
+      uploadReq->m_completedCallback(*uploadReq, uploadReq->m_error);
   }
 
-  UploadRequestAWS::UploadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, std::shared_ptr<std::vector<uint8_t>> data, const IORange& range)
+  UploadRequestAWS::UploadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, std::shared_ptr<std::vector<uint8_t>> data, const std::map<std::string, std::string>& metadataHeader, std::function<void(const Request & request, const Error & error)> completedCallback)
     : Request(id)
     , m_context(std::make_shared<AsyncUploadContext>(this))
     , m_data(data)
+    , m_metadataHeader(metadataHeader)
+    , m_completedCallback(completedCallback)
     , m_vectorBuf(*data)
     , m_stream(std::make_shared<Aws::IOStream>(&m_vectorBuf))
     , m_done(false)
@@ -213,14 +218,6 @@ namespace OpenVDS
     put.SetBody(m_stream);
     put.SetContentType("binary/octet-stream");
     put.SetContentLength(data->size());
-    if (range.end)
-    {
-      assert(false);
-      //Have to use the Multi upload api instead. Maybe use TransferManager?
-//      char rangeHeaderBuffer[100];
-//      snprintf(rangeHeaderBuffer, sizeof(rangeHeaderBuffer), "bytes=%zu-%zu", range.start, range.end);
-//      object_request.SetRange(rangeHeaderBuffer);
-    }
     
     using namespace std::placeholders;
     auto bounded_callback = std::bind(&upload_callback, _1, _2, _3, _4, m_context);
@@ -277,15 +274,15 @@ namespace OpenVDS
     deinitizlieAWSSDK();
   }
 
-  std::shared_ptr<Request> IOManagerAWS::downloadObject(const std::string objectName, std::shared_ptr<TransferHandler> handler, const IORange &range)
+  std::shared_ptr<Request> IOManagerAWS::downloadObject(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
     return std::make_shared<DownloadRequestAWS>(*m_s3Client.get(), m_bucket, id, handler, range);
   }
   
-  std::shared_ptr<Request> IOManagerAWS::uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const IORange& range)
+  std::shared_ptr<Request> IOManagerAWS::uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::map<std::string, std::string>& metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    return std::make_shared<UploadRequestAWS>(*m_s3Client.get(), m_bucket, id, data, range);
+    return std::make_shared<UploadRequestAWS>(*m_s3Client.get(), m_bucket, id, data, metadataHeader, completedCallback);
   }
 }
