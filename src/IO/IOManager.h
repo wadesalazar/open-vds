@@ -21,7 +21,6 @@
 #include <OpenVDS/OpenVDS.h>
 
 #include <memory>
-#include <map>
 #include <functional>
 
 namespace OpenVDS
@@ -62,10 +61,10 @@ namespace OpenVDS
   public:
     virtual ~IOManager();
     virtual std::shared_ptr<Request> downloadObject(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
-    virtual std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::map<std::string, std::string> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr) = 0;
+    virtual std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr) = 0;
     std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
     {
-      return uploadObject(objectName, data, std::map<std::string, std::string>(), completedCallback);
+      return uploadObject(objectName, data, std::vector<std::pair<std::string, std::string>>(), completedCallback);
     }
 
 

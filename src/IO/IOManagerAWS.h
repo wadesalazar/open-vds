@@ -61,7 +61,7 @@ namespace OpenVDS
   class UploadRequestAWS : public Request
   {
   public:
-    UploadRequestAWS(Aws::S3::S3Client &client, const std::string &bucket, const std::string &id, std::shared_ptr<std::vector<uint8_t>> data, const std::map<std::string, std::string>& metadataHeader, std::function<void(const Request & request, const Error & error)> completedCallback);
+    UploadRequestAWS(Aws::S3::S3Client &client, const std::string &bucket, const std::string &id, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request & request, const Error & error)> completedCallback);
     void waitForFinish() override;
     bool isDone() const override;
     bool isSuccess(Error &error) const override;
@@ -69,7 +69,6 @@ namespace OpenVDS
 
     std::shared_ptr<AsyncUploadContext> m_context;
     std::shared_ptr<std::vector<uint8_t>> m_data;
-    std::map<std::string, std::string> m_metadataHeader;
     std::function<void(const Request &request, const Error &error)> m_completedCallback;
     VectorBuf m_vectorBuf;
     std::shared_ptr<Aws::IOStream> m_stream;
@@ -85,7 +84,7 @@ namespace OpenVDS
       ~IOManagerAWS() override;
 
       std::shared_ptr<Request> downloadObject(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range = IORange()) override;
-      std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::map<std::string, std::string>& metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback) override;
+      std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback) override;
     private:
       std::string m_region;
       std::string m_bucket;

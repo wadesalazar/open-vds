@@ -202,11 +202,10 @@ namespace OpenVDS
       uploadReq->m_completedCallback(*uploadReq, uploadReq->m_error);
   }
 
-  UploadRequestAWS::UploadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, std::shared_ptr<std::vector<uint8_t>> data, const std::map<std::string, std::string>& metadataHeader, std::function<void(const Request & request, const Error & error)> completedCallback)
+  UploadRequestAWS::UploadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback)
     : Request(id)
     , m_context(std::make_shared<AsyncUploadContext>(this))
     , m_data(data)
-    , m_metadataHeader(metadataHeader)
     , m_completedCallback(completedCallback)
     , m_vectorBuf(*data)
     , m_stream(std::make_shared<Aws::IOStream>(&m_vectorBuf))
@@ -218,6 +217,10 @@ namespace OpenVDS
     put.SetBody(m_stream);
     put.SetContentType("binary/octet-stream");
     put.SetContentLength(data->size());
+    for (auto &metaPair : metadataHeader)
+    {
+      put.AddMetadata(convertStdString(metaPair.first), convertStdString(metaPair.second.c_str()));
+    }
     
     using namespace std::placeholders;
     auto bounded_callback = std::bind(&upload_callback, _1, _2, _3, _4, m_context);
@@ -280,7 +283,7 @@ namespace OpenVDS
     return std::make_shared<DownloadRequestAWS>(*m_s3Client.get(), m_bucket, id, handler, range);
   }
   
-  std::shared_ptr<Request> IOManagerAWS::uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::map<std::string, std::string>& metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback)
+  std::shared_ptr<Request> IOManagerAWS::uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
     return std::make_shared<UploadRequestAWS>(*m_s3Client.get(), m_bucket, id, data, metadataHeader, completedCallback);
