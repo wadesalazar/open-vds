@@ -496,7 +496,6 @@ static int64_t gen_upload_jobid()
 
 int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk& chunk, std::shared_ptr<std::vector<uint8_t>> data)
 {
-  return 0;
   std::string url = createUrlForChunk(createBaseUrl(chunk.layer), chunk.chunkIndex);
   m_pendingUploadRequests.erase(std::remove_if(m_pendingUploadRequests.begin(), m_pendingUploadRequests.end(), [this](PendingUploadRequest &request){
     Error error;
