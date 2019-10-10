@@ -43,7 +43,7 @@ namespace OpenVDS
 class LayerMetadataContainer
 {
 public:
-  std::mutex mutex;
+  mutable std::mutex mutex;
   std::map<std::string, std::unique_ptr<MetadataManager>> managers;
 };
 
@@ -85,6 +85,11 @@ struct VDSHandle
 const char *addDescriptorString(std::string const &descriptorString, VDSHandle &handle);
 
 void createVolumeDataLayout(VDSHandle &handle);
+
+std::string getLayerName(VolumeDataLayer const &volumeDataLayer);
+MetadataManager *findMetadataManager(LayerMetadataContainer const &layerMetadataContainer, std::string const &layerName);
+MetadataManager *createMetadataManager(VDSHandle &handle, std::string const &layerName, MetadataStatus const &metadataStatus);
+
 }
 
 #endif //OPENVDSHANDLE_H

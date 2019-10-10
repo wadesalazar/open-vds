@@ -43,7 +43,7 @@ VDSHandle *open(const OpenOptions &options, Error &error)
   {
     return nullptr;
   }
-  ret->dataAccessManager.reset(new VolumeDataAccessManagerImpl(ret.get()));
+  ret->dataAccessManager.reset(new VolumeDataAccessManagerImpl(*ret.get()));
   ret->requestProcessor.reset(new VolumeDataRequestProcessor(*ret->dataAccessManager.get()));
   return ret.release();
 }
@@ -86,6 +86,35 @@ static int32_t getInternalCubeSizeLOD0(const VolumeDataLayoutDescriptor &desc)
 static int32_t getLODCount(const VolumeDataLayoutDescriptor &desc)
 {
   return desc.getLODLevels() + 1;
+}
+
+std::string getLayerName(VolumeDataLayer const &volumeDataLayer)
+{
+  if(volumeDataLayer.getChannelIndex() == 0)
+  {
+    return std::string(DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getChunkDimensionGroup())) + "LOD" + std::to_string(volumeDataLayer.getLOD());
+  }
+  else
+  {
+    assert(strlen(volumeDataLayer.getVolumeDataChannelDescriptor().getName()) != 0);
+    return std::string(volumeDataLayer.getVolumeDataChannelDescriptor().getName()) + std::string(DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getPrimaryChannelLayer().getChunkDimensionGroup())) + "LOD" + std::to_string(volumeDataLayer.getLOD());
+  }
+}
+
+MetadataManager *findMetadataManager(LayerMetadataContainer const &layerMetadataContainer, std::string const &layerName)
+{
+  std::unique_lock<std::mutex> metadataManagersMutexLock(layerMetadataContainer.mutex);
+  auto it = layerMetadataContainer.managers.find(layerName);
+  return (it != layerMetadataContainer.managers.end()) ? it->second.get() : nullptr;
+}
+
+MetadataManager *createMetadataManager(VDSHandle &handle, std::string const &layerName, MetadataStatus const &metadataStatus)
+{
+  std::unique_lock<std::mutex> metadataManagersMutexLock(handle.layerMetadataContainer.mutex);
+
+  assert(handle.layerMetadataContainer.managers.find(layerName) == handle.layerMetadataContainer.managers.end());
+  int pageLimit = handle.axisDescriptors.size() <= 3 ? 64 : 1024;
+  return handle.layerMetadataContainer.managers.insert(std::make_pair(layerName, std::unique_ptr<MetadataManager>(new MetadataManager(handle.ioManager.get(), layerName, metadataStatus, pageLimit)))).first->second.get();
 }
 
 void createVolumeDataLayout(VDSHandle &handle)
@@ -180,7 +209,7 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
   if (!serializeAndUploadVolumeDataLayout(*handle, error))
     return nullptr;
 
-  handle->dataAccessManager.reset(new VolumeDataAccessManagerImpl(handle.get()));
+  handle->dataAccessManager.reset(new VolumeDataAccessManagerImpl(*handle.get()));
   handle->requestProcessor.reset(new VolumeDataRequestProcessor(*handle->dataAccessManager.get()));
 
   return handle.release();

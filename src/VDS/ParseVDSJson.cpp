@@ -1081,15 +1081,13 @@ Json::Value serializeLayerStatusArray(VolumeDataLayout const &volumeDataLayout, 
     {
       for(VolumeDataLayer *volumeDataLayer = volumeDataLayout.getBaseLayer(dimensionGroup, channel); volumeDataLayer && volumeDataLayer->getLayerType() != VolumeDataLayer::Virtual; volumeDataLayer = volumeDataLayer->getParentLayer())
       {
-        std::string layerName = (channel == 0 ? std::string() : std::string(volumeDataLayer->getVolumeDataChannelDescriptor().getName())) + dimensionGroupName + "LOD" + std::to_string(volumeDataLayer->getLOD());
-
         if(volumeDataLayer->getProduceStatus() != VolumeDataLayer::ProduceStatus_Unavailable)
         {
+          std::string layerName = getLayerName(*volumeDataLayer);
           Json::Value layerStatusJson = serializeLayerStatus(*volumeDataLayer, layerName);
-          auto it = layerMetadataContainer.managers.find(layerName);
-          if(it != layerMetadataContainer.managers.end())
+          if(MetadataManager *metadataManager = findMetadataManager(layerMetadataContainer, layerName))
           {
-            Json::Value metadataStatusJson = serializeMetadataStatus(it->second->metadataStatus());
+            Json::Value metadataStatusJson = serializeMetadataStatus(metadataManager->metadataStatus());
 
             for (const auto& key : metadataStatusJson.getMemberNames())
             {

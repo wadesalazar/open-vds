@@ -140,7 +140,7 @@ struct UploadError
 class VolumeDataAccessManagerImpl : public VolumeDataAccessManager
 {
 public:
-  VolumeDataAccessManagerImpl(VDSHandle *handle);
+  VolumeDataAccessManagerImpl(VDSHandle &handle);
   ~VolumeDataAccessManagerImpl() override;
   VolumeDataLayout const *getVolumeDataLayout() const override;
   VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) override;
@@ -212,7 +212,7 @@ public:
 
   void addUploadError(const Error &error, VolumeDataLayer *layer, uint64_t chunk);
 private:
-  VolumeDataLayout *m_layout;
+  VDSHandle &m_handle;
   IOManager *m_ioManager;
   LayerMetadataContainer *m_layerMetadataContainer;
   IntrusiveList<VolumeDataPageAccessorImpl, &VolumeDataPageAccessorImpl::m_volumeDataPageAccessorListNode> m_volumeDataPageAccessorList;
