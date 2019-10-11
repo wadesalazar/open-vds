@@ -583,12 +583,4 @@ void VolumeDataAccessManagerImpl::getCurrentUploadError(const char** objectId, i
     *errorString = error->error.string.c_str();
   lock.unlock();
 }
-
-void VolumeDataAccessManagerImpl::addUploadError(const Error& error, VolumeDataLayer* layer, uint64_t chunk)
-{
-  std::string urlString = createUrlForChunk(getLayerName(*layer), chunk);
-  std::unique_lock<std::mutex> lock(m_mutex);
-  m_uploadErrors.emplace_back(new UploadError(error, urlString));
-}
-
 }

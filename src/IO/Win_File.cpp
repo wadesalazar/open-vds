@@ -35,15 +35,6 @@ static void s2ws(const std::string& source, std::wstring& target)
   MultiByteToWideChar(CP_UTF8, 0, source.c_str(), slength, &target[0], len);
 }
 
-static void sw2s(const std::wstring& source, std::string& target)
-{
-  int len;
-  int slength = (int)source.length() + 1;
-  len = WideCharToMultiByte(CP_UTF8, 0, source.c_str(), slength, 0, 0, 0, false);
-  target.resize(len);
-  WideCharToMultiByte(CP_UTF8, 0, source.c_str(), slength, &target[0], len, 0, false);
-}
-
 static std::string error_to_string(DWORD error)
 {
   LPVOID lpMsgBuf;
@@ -67,14 +58,8 @@ static void set_io_error(DWORD error, IOError &io_error)
   io_error.string = error_to_string(error);
 }
 
-static void set_io_error(DWORD error, std::string &error_string_prefix, IOError &io_error)
-{
-  io_error.code = error;
-  io_error.string = error_string_prefix + error_to_string(error);
-}
-
 template<size_t N>
-static void set_io_error(DWORD error, const char (&error_string_prefix)[N], IOError &io_error)
+void set_io_error(DWORD error, const char (&error_string_prefix)[N], IOError &io_error)
 {
   io_error.code = error;
   io_error.string = std::string(error_string_prefix, N) + error_to_string(error);
@@ -274,7 +259,7 @@ void File::close()
 {
   assert(isOpen());
 
-  BOOL isOK = CloseHandle(_pxPlatformHandle);
+  CloseHandle(_pxPlatformHandle);
 
   _pxPlatformHandle = 0;
   _cFileName.clear();
@@ -412,7 +397,7 @@ FileView *File::createFileView(int64_t nPos, int64_t nSize, bool isPopulate, IOE
   if(!m_pFileMappingObject)
   {
     if (!FileView::SystemFileMappingObject::open(&m_pFileMappingObject, *this, error))
-      return false;
+      return nullptr;
   }
   FileView *ret = new SystemFileView(m_pFileMappingObject, nPos, nSize, isPopulate, error);
   if (error.code)

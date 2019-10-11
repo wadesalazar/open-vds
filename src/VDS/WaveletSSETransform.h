@@ -537,9 +537,6 @@ Wavelet_InverseTransformLine(float* readWrite, int32_t nLength)
 inline void
 Wavelet_InterleaveLine(float* write, float* readLow, float* readHigh, int32_t nLength)
 {
-  int32_t nLengthLow = (nLength + 1) >> 1;
-  int32_t nLengthHigh = nLength >> 1;
-
   int32_t i = 0;
 
   for (; i + 8 <= nLength; i += 8)

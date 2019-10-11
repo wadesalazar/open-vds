@@ -104,12 +104,12 @@ static uint32_t getElementSize(VolumeDataChannelDescriptor::Format format, Volum
   }
 }
 
-static uint32_t getElementSize(const DataBlock &datablock)
+inline uint32_t getElementSize(const DataBlock &datablock)
 {
   return getElementSize(datablock.format, datablock.components);
 }
 
-static uint32_t getByteSize(const int32_t (&size)[DataStoreDimensionality_Max], VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, bool isBitSize = true)
+inline uint32_t getByteSize(const int32_t (&size)[DataStoreDimensionality_Max], VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, bool isBitSize = true)
 {
   int byteSize = size[0] * getElementSize(format, components);
 

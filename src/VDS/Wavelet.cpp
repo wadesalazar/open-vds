@@ -897,8 +897,6 @@ void Wavelet::inverseTransform(float *source)
     int32_t bufferPitchXY = (bandSizeX + 3) & ~3;
     int32_t bufferPitchX = bufferPitchXY * bandSizeZ; // Swapping pitches is faster.
 
-    int32_t bitCount[8] = { 0, 1, 1, 2, 1, 2, 2, 3 };
-
     int32_t readPitchX = m_allocatedSizeX;
     int32_t readPitchXY = m_allocatedSizeXY;
     int32_t writePitchX = bufferPitchX;

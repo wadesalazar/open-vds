@@ -44,8 +44,8 @@ protected:
 
   FileView()
     : m_nReferenceCount(1)
-    , m_nPos(0)
     , m_pData(nullptr)
+    , m_nPos(0)
     , m_nSize(0)
   {
   }
