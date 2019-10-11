@@ -144,8 +144,6 @@ namespace DimensionGroupUtil
 
   const char *getDimensionGroupName(DimensionGroup dimensionGroup);
 
-  const char *getDimensionsGroupString(DimensionsND dimensions);
-
   bool isRemappingPossible(DimensionGroup dimensionGroupA, DimensionGroup dimensionGroupB);
 
   DimensionGroup unionGroups(DimensionGroup dimensionGroupA, DimensionGroup dimensionGroupB);

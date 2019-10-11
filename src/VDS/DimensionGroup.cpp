@@ -1358,51 +1358,6 @@ const char * getDimensionGroupName(DimensionGroup dimensionGroup)
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_Max);
   return apzDimensionNames[dimensionGroup];
 }
-const char* getDimensionsGroupString(DimensionsND dimensions)
-{
-  switch(dimensions)
-  {
-  case Dimensions_012: return "012";
-  case Dimensions_013: return "013";
-  case Dimensions_014: return "014";
-  case Dimensions_015: return "015";
-  case Dimensions_023: return "023";
-  case Dimensions_024: return "024";
-  case Dimensions_025: return "025";
-  case Dimensions_034: return "034";
-  case Dimensions_035: return "035";
-  case Dimensions_045: return "045";
-  case Dimensions_123: return "123";
-  case Dimensions_124: return "124";
-  case Dimensions_125: return "125";
-  case Dimensions_134: return "134";
-  case Dimensions_135: return "135";
-  case Dimensions_145: return "145";
-  case Dimensions_234: return "234";
-  case Dimensions_235: return "235";
-  case Dimensions_245: return "245";
-  case Dimensions_345: return "345";
-
-  case Dimensions_01: return "01";
-  case Dimensions_02: return "02";
-  case Dimensions_03: return "03";
-  case Dimensions_04: return "04";
-  case Dimensions_05: return "05";
-  case Dimensions_12: return "12";
-  case Dimensions_13: return "13";
-  case Dimensions_14: return "14";
-  case Dimensions_15: return "15";
-  case Dimensions_23: return "23";
-  case Dimensions_24: return "24";
-  case Dimensions_25: return "25";
-  case Dimensions_34: return "34";
-  case Dimensions_35: return "35";
-  case Dimensions_45: return "45";
-  default:
-    ;
-  }
-  return "";
-}
 
 bool isRemappingPossible(DimensionGroup dimensionGroupA, DimensionGroup dimensionGroupB)
 {

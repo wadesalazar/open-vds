@@ -29,6 +29,7 @@
 #include <inttypes.h>
 #include <assert.h>
 #include <atomic>
+#include <fmt/format.h>
 
 namespace OpenVDS
 {
@@ -317,30 +318,15 @@ static MetadataManager *getMetadataMangerForLayer(LayerMetadataContainer const &
   return metadataManager;
 }
 
-static std::string createUrlForChunk(const std::string &layerUrl, uint64_t chunk)
+static inline std::string createUrlForChunk(const std::string &layerName, uint64_t chunk)
 {
-  char url[1024];
-
-  snprintf(url, sizeof(url), "%s/%" PRIu64, layerUrl.c_str(), chunk);
-
-  return url;
-}
-
-static std::string createBaseUrl(const VolumeDataLayer *layer)
-{
-  int32_t channel = layer->getChannelIndex();
-  const char *channelName = channel > 0 ? layer->getLayout()->getChannelName(layer->getChannelIndex()) : "";
-  int32_t lod = layer->getLOD();
-  const char *dimensions_string = DimensionGroupUtil::getDimensionsGroupString(DimensionGroupUtil::getDimensionsNDFromDimensionGroup(layer->getChunkDimensionGroup()));
-  char layerURL[1024];
-  snprintf(layerURL, sizeof(layerURL), "%sDimensions_%sLOD%d", channelName, dimensions_string, lod);
-  return layerURL;
+  return layerName + "/" + std::to_string(chunk);
 }
 
 bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &chunk, bool verbose, Error &error)
 {
-  std::string layerURL = createBaseUrl(chunk.layer);
-  auto metadataManager = getMetadataMangerForLayer(m_handle.layerMetadataContainer, layerURL);
+  std::string layerName = getLayerName(*chunk.layer);
+  auto metadataManager = getMetadataMangerForLayer(m_handle.layerMetadataContainer, layerName);
   //do fallback
   if (!metadataManager)
   {
@@ -362,8 +348,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
 
   if (initiateTransfer)
   {
-    char url[1000];
-    snprintf(url, sizeof(url), "%s/ChunkMetadata/%d", layerURL.c_str(), pageIndex);
+    std::string url = fmt::format("{}/ChunkMetadata/{}", layerName, pageIndex);
 
     metadataManager->initiateTransfer(this, metadataPage, url, verbose);
   }
@@ -387,7 +372,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
 
   IORange ioRange = calculateRangeHeaderImpl(parsedMetadata, metadataManager->metadataStatus(), &adaptiveLevel);
 
-  std::string url = createUrlForChunk(layerURL, chunk.chunkIndex);
+  std::string url = createUrlForChunk(layerName, chunk.chunkIndex);
 
   lock.lock();
   auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
@@ -487,8 +472,8 @@ void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPa
   }
   m_pendingRequestChangedCondition.notify_all();
 }
-  
-static int64_t gen_upload_jobid()
+
+static int64_t createUploadJobId()
 {
   static std::atomic< std::int64_t > id(0);
   return --id;
@@ -496,37 +481,49 @@ static int64_t gen_upload_jobid()
 
 int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk& chunk, std::shared_ptr<std::vector<uint8_t>> data)
 {
-  std::string url = createUrlForChunk(createBaseUrl(chunk.layer), chunk.chunkIndex);
-  m_pendingUploadRequests.erase(std::remove_if(m_pendingUploadRequests.begin(), m_pendingUploadRequests.end(), [this](PendingUploadRequest &request){
-    Error error;
-    bool done = request.request->isDone();
-    if (done && !request.request->isSuccess(error))
-      this->m_uploadErrors.emplace_back(new UploadError(error, request.request->getObjectName()));
-    return done;
-    }), m_pendingUploadRequests.end());
-  m_pendingUploadRequests.push_back({gen_upload_jobid(), m_ioManager->uploadObject(url, data)});
-  return 0;
+  std::string layerName = getLayerName(*chunk.layer);
+  auto metadataManager = getMetadataMangerForLayer(m_handle.layerMetadataContainer, layerName);
+
+  MetadataPage* lockedMetadataPage = nullptr;
+
+  std::string url = createUrlForChunk(layerName, chunk.chunkIndex);
+
+  int64_t jobId = createUploadJobId();
+
+  auto completedCallback = [this, jobId](const Request &request, const Error &error)
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+
+    if(error.code != 0)
+    {
+      m_uploadErrors.emplace_back(new UploadError(error, request.getObjectName()));
+    }
+
+    m_pendingUploadRequests.erase(jobId);
+  };
+
+  // add new pending upload request
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_pendingUploadRequests[jobId] = PendingUploadRequest(m_ioManager->uploadObject(url, data, completedCallback), lockedMetadataPage);
+  return jobId;
 }
 
 void VolumeDataAccessManagerImpl::flushUploadQueue()
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
-  Error error;
-  for (auto &upload : m_pendingUploadRequests)
+  while(true)
   {
-    upload.request->waitForFinish();
-    if (!upload.request->isSuccess(error))
-    {
-      m_uploadErrors.emplace_back(new UploadError(error, upload.request->getObjectName()));
-      error = Error();
-    }
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if(m_pendingUploadRequests.empty()) break;
+    Request &request = *m_pendingUploadRequests.begin()->second.m_request;
+    lock.unlock();
+    request.waitForFinish();
   }
-  m_pendingUploadRequests.clear();
-   
-  error = Error();
+
+  Error error;
   serializeAndUploadLayerStatus(m_handle, error);
   if(error.code != 0)
   {
+    std::unique_lock<std::mutex> lock(m_mutex);
     m_uploadErrors.emplace_back(new UploadError(error, "LayerStatus"));
   }
 }
@@ -578,7 +575,7 @@ void VolumeDataAccessManagerImpl::getCurrentUploadError(const char** objectId, i
 
 void VolumeDataAccessManagerImpl::addUploadError(const Error& error, VolumeDataLayer* layer, uint64_t chunk)
 {
-  std::string urlString = createUrlForChunk(createBaseUrl(layer), chunk);
+  std::string urlString = createUrlForChunk(getLayerName(*layer), chunk);
   std::unique_lock<std::mutex> lock(m_mutex);
   m_uploadErrors.emplace_back(new UploadError(error, urlString));
 }

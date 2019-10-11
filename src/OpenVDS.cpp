@@ -30,6 +30,8 @@
 #include "VDS/VolumeDataAccessManagerImpl.h"
 #include "VDS/VolumeDataRequestProcessor.h"
 
+#include <fmt/format.h>
+
 namespace OpenVDS
 {
 VDSHandle *open(const OpenOptions &options, Error &error)
@@ -92,12 +94,12 @@ std::string getLayerName(VolumeDataLayer const &volumeDataLayer)
 {
   if(volumeDataLayer.getChannelIndex() == 0)
   {
-    return std::string(DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getChunkDimensionGroup())) + "LOD" + std::to_string(volumeDataLayer.getLOD());
+    return fmt::format("{}LOD{}", DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getChunkDimensionGroup()), volumeDataLayer.getLOD());
   }
   else
   {
-    assert(strlen(volumeDataLayer.getVolumeDataChannelDescriptor().getName()) != 0);
-    return std::string(volumeDataLayer.getVolumeDataChannelDescriptor().getName()) + std::string(DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getPrimaryChannelLayer().getChunkDimensionGroup())) + "LOD" + std::to_string(volumeDataLayer.getLOD());
+    assert(std::string(volumeDataLayer.getVolumeDataChannelDescriptor().getName()) != "");
+    return fmt::format("{}{}LOD{}", volumeDataLayer.getVolumeDataChannelDescriptor().getName(), DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getPrimaryChannelLayer().getChunkDimensionGroup()), volumeDataLayer.getLOD());
   }
 }
 

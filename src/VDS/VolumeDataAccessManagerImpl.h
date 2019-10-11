@@ -123,8 +123,15 @@ inline bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
 
 struct PendingUploadRequest
 {
-  int64_t jobID;
-  std::shared_ptr<Request> request;
+  std::shared_ptr<Request> m_request;
+
+  MetadataPage* m_lockedMetadataPage;
+
+  PendingUploadRequest() : m_request(), m_lockedMetadataPage()
+  {
+  }
+
+  PendingUploadRequest(std::shared_ptr<Request> request, MetadataPage* lockedMetadataPage) : m_request(request), m_lockedMetadataPage(lockedMetadataPage) {}
 };
 
 struct UploadError
@@ -219,7 +226,7 @@ private:
   std::mutex m_mutex;
   std::condition_variable m_pendingRequestChangedCondition;
   std::map<VolumeDataChunk, PendingDownloadRequest> m_pendingDownloadRequests;
-  std::vector<PendingUploadRequest> m_pendingUploadRequests;
+  std::map<int64_t, PendingUploadRequest> m_pendingUploadRequests;
   std::vector<std::unique_ptr<UploadError>> m_uploadErrors;
   uint32_t m_currentErrorIndex;
 };
