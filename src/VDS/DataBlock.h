@@ -126,14 +126,19 @@ static uint32_t getByteSize(const int32_t (&size)[DataStoreDimensionality_Max], 
   return byteSize;
 }
 
-static uint32_t getByteSize(const DataBlock &block)
+inline uint32_t getByteSize(const DataBlock &block)
 {
   return getByteSize(block.size, block.format, block.components);
 }
 
-static uint32_t getAllocatedByteSize(const DataBlock &block)
+inline uint32_t getAllocatedByteSize(const DataBlock &block)
 {
   return getByteSize(block.allocatedSize, block.format, block.components, false);
+}
+
+inline int32_t getAllocatedByteSizeForSize(const int32_t size)
+{
+  return (size + 7) & -8;
 }
 
 }

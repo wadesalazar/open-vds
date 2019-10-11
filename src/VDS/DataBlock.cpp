@@ -61,10 +61,10 @@ bool initializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataC
     return false;
   }
 
-  dataBlock.allocatedSize[0] = (format == VolumeDataChannelDescriptor::Format_1Bit) ? ((dataBlock.size[0] * components) + 7) / 8 : dataBlock.size[0];
-  dataBlock.allocatedSize[1] = dataBlock.size[1];
-  dataBlock.allocatedSize[2] = dataBlock.size[2];
-  dataBlock.allocatedSize[3] = dataBlock.size[3];
+  dataBlock.allocatedSize[0] = (format == VolumeDataChannelDescriptor::Format_1Bit) ? ((dataBlock.size[0] * components) + 7) / 8 : getAllocatedByteSizeForSize(dataBlock.size[0]);
+  dataBlock.allocatedSize[1] = getAllocatedByteSizeForSize(dataBlock.size[1]);
+  dataBlock.allocatedSize[2] = getAllocatedByteSizeForSize(dataBlock.size[2]);
+  dataBlock.allocatedSize[3] = getAllocatedByteSizeForSize(dataBlock.size[3]);
   dataBlock.pitch[0] = 1;
   for (int i = 1; i < DataStoreDimensionality_Max; i++)
   {

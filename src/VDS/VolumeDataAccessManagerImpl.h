@@ -207,8 +207,8 @@ public:
   bool readChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
   void pageTransferCompleted(MetadataPage* page);
 
-  int64_t requestWriteChunk(const VolumeDataChunk &chunk, std::shared_ptr<std::vector<uint8_t>> data);
-
+  int64_t requestWriteChunk(const VolumeDataChunk &chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data);
+  
   IOManager *getIoManager() const { return m_ioManager; }
 
   void flushUploadQueue() override;

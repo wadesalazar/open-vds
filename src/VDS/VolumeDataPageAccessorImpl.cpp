@@ -173,7 +173,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
   }
 
   pageMutexLocker.lock();
-  page->setBufferData(std::move(page_data), pitch);
+  page->setBufferData(dataBlock, pitch, std::move(page_data));
   page->makeDirty();
 
   m_pageReadCondition.notify_all();
@@ -290,7 +290,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
   }
 
   pageMutexLocker.lock();
-  page->setBufferData(std::move(page_data), pitch);
+  page->setBufferData(dataBlock, pitch, std::move(page_data));
   m_pagesRead++;
 
   m_pageReadCondition.notify_all();
@@ -395,9 +395,9 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
   }
 }
 
-int64_t VolumeDataPageAccessorImpl::requestWritePage(int64_t chunk, std::shared_ptr<std::vector<uint8_t>> data)
+int64_t VolumeDataPageAccessorImpl::requestWritePage(int64_t chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& data)
 {
-  return m_accessManager->requestWriteChunk({ m_layer, chunk }, data);
+  return m_accessManager->requestWriteChunk({ m_layer, chunk }, dataBlock, data);
 }
 /////////////////////////////////////////////////////////////////////////////
 // Commit

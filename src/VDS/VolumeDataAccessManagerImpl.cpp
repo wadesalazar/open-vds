@@ -23,6 +23,7 @@
 #include "ValueConversion.h"
 #include "VolumeSampler.h"
 #include "ParseVDSJson.h"
+#include "VolumeDataStore.h"
 
 #include <cmath>
 #include <algorithm>
@@ -479,14 +480,24 @@ static int64_t createUploadJobId()
   return --id;
 }
 
-int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk& chunk, std::shared_ptr<std::vector<uint8_t>> data)
+int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data)
 {
+  Error error;
   std::string layerName = getLayerName(*chunk.layer);
+  std::string url = createUrlForChunk(layerName, chunk.chunkIndex);
+  std::shared_ptr<std::vector<uint8_t>> to_write = std::make_shared<std::vector<uint8_t>>();
+  uint64_t hash;
+
+  if (!VolumeDataStore::serializeVolumeData(chunk, dataBlock, data, CompressionMethod::Zip, *to_write, hash, error))
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_uploadErrors.emplace_back(new UploadError(error, url));
+    return 0;
+  }
   auto metadataManager = getMetadataMangerForLayer(m_handle.layerMetadataContainer, layerName);
 
   MetadataPage* lockedMetadataPage = nullptr;
 
-  std::string url = createUrlForChunk(layerName, chunk.chunkIndex);
 
   int64_t jobId = createUploadJobId();
 
@@ -504,7 +515,7 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk& ch
 
   // add new pending upload request
   std::unique_lock<std::mutex> lock(m_mutex);
-  m_pendingUploadRequests[jobId] = PendingUploadRequest(m_ioManager->uploadObject(url, data, completedCallback), lockedMetadataPage);
+  m_pendingUploadRequests[jobId] = PendingUploadRequest(m_ioManager->uploadObject(url, to_write, completedCallback), lockedMetadataPage);
   return jobId;
 }
 

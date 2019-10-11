@@ -31,6 +31,7 @@ namespace OpenVDS
 class VolumeDataPageImpl;
 class VolumeDataLayer;
 class VolumeDataAccessManagerImpl;
+struct DataBlock;
 
 class VolumeDataPageAccessorImpl : public VolumeDataPageAccessor
 {
@@ -80,7 +81,7 @@ public:
   VolumeDataPage *createPage(int64_t chunk) override;
   VolumeDataPage *readPage(int64_t chunk) override;
  
-  int64_t requestWritePage(int64_t chunk, std::shared_ptr<std::vector<uint8_t>> data);
+  int64_t requestWritePage(int64_t chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data);
 
   void  commit() override;
 

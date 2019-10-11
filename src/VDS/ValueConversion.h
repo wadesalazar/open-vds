@@ -241,13 +241,13 @@ public:
 template<typename T1, typename T2, bool isUseNoValue>
 class QuantizingValueConverterWithNoValue
 {
-  QuantizedTypesToFloatConverter<T2, isUseNoValue> m_quantizedTypesToFloatConverter;
   float m_integerOffset;
   float m_reciprocalScale;
 
   T2 m_noValue;
 
   T1 m_replacementNoValue;
+  QuantizedTypesToFloatConverter<T2, isUseNoValue> m_quantizedTypesToFloatConverter;
 
 public:
   QuantizingValueConverterWithNoValue()

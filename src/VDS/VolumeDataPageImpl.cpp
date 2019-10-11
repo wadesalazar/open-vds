@@ -162,29 +162,19 @@ void VolumeDataPageImpl::makeDirty()
   m_isDirty = true;
 }
 
-void VolumeDataPageImpl::setBufferData(std::vector<uint8_t>&& blob, const int(&pitch)[Dimensionality_Max])
+void VolumeDataPageImpl::setBufferData(const DataBlock &dataBlock, int32_t (&pitch)[Dimensionality_Max], std::vector<uint8_t>&& blob)
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
-
+  m_dataBlock = dataBlock;
+  static_assert(sizeof(pitch) == sizeof(m_pitch), "Pitch of different size");
+  memcpy(m_pitch, pitch, sizeof(m_pitch));
   m_blob = std::move(blob);
-
-  for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
-  {
-    m_pitch[iDimension] = pitch[iDimension];
-  }
 }
 
 void VolumeDataPageImpl::writeBack(VolumeDataLayer* volumeDataLayer, std::unique_lock<std::mutex>& pageListMutexLock)
 {
   assert(m_isDirty);
-  Error error;
-  std::shared_ptr<std::vector<uint8_t>> to_write = std::make_shared<std::vector<uint8_t>>();
-  if (!VolumeDataStore::serialize({volumeDataLayer, m_chunk}, m_blob, CompressionMethod::None, *to_write, error))
-  {
-    m_volumeDataPageAccessor->getManager()->addUploadError(error, volumeDataLayer, m_chunk);
-    return;
-  }
-  m_volumeDataPageAccessor->requestWritePage(m_chunk, to_write);
+  m_volumeDataPageAccessor->requestWritePage(m_chunk, m_dataBlock, m_blob);
   m_isDirty = false;
 }
 

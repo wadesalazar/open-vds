@@ -20,6 +20,8 @@
 
 #include <OpenVDS/VolumeDataAccess.h>
 
+#include "DataBlock.h"
+
 #include <mutex>
 #include <vector>
 
@@ -29,11 +31,13 @@ class VolumeDataLayer;
 class VolumeDataPageAccessorImpl;
 class VolumeDataPageImpl : public VolumeDataPage
 {
-private:
+public:
   VolumeDataPageAccessorImpl * m_volumeDataPageAccessor;
 
   int64_t m_chunk;
 
+  DataBlock m_dataBlock;
+  int32_t m_pitch[Dimensionality_Max];
   std::vector<uint8_t> m_blob;
 
   int32_t m_pins;
@@ -41,8 +45,6 @@ private:
   bool    m_isReadWrite;
   bool    m_isDirty;
   bool    m_requestPrepared;
-
-  int32_t m_pitch[Dimensionality_Max];
 
   int32_t m_writtenMin[Dimensionality_Max];
   int32_t m_writtenMax[Dimensionality_Max];
@@ -67,7 +69,7 @@ public:
   bool          isWritten();
   void          makeDirty();
 
-  void          setBufferData(std::vector<uint8_t> &&blob, const int (&pitch)[Dimensionality_Max]);
+  void          setBufferData(const DataBlock& dataBlock, int32_t(&pitch)[Dimensionality_Max], std::vector<uint8_t>&& blob);
   void          writeBack(VolumeDataLayer *volumeDataLayer, std::unique_lock<std::mutex> &pageListMutexLock);
   void *        getBufferInternal(int (&anPitch)[Dimensionality_Max], bool isReadWrite);
   bool          isCopyMarginNeeded(VolumeDataPageImpl *targetPage);
