@@ -138,8 +138,9 @@ namespace OpenVDS
     objReq->m_handler->completed(*objReq, objReq->m_error);
   }
 
-  DownloadRequestAWS::DownloadRequestAWS(const std::string& id)
+  DownloadRequestAWS::DownloadRequestAWS(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
     : Request(id)
+    , m_handler(handler)
     , m_cancelled(false)
     , m_done(false)
   {
@@ -150,7 +151,7 @@ namespace OpenVDS
     DownloadRequestAWS::cancel(); 
   }
 
-  void DownloadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, const std::shared_ptr<TransferDownloadHandler>& handler, const IORange& range, std::weak_ptr<DownloadRequestAWS> request)
+  void DownloadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestAWS> request)
   {
     Aws::S3::Model::GetObjectRequest object_request;
     object_request.SetBucket(convertStdString(bucket));
@@ -223,14 +224,15 @@ namespace OpenVDS
       objReq->m_completedCallback(*objReq, error);
   }
 
-  UploadRequestAWS::UploadRequestAWS(const std::string& id)
+  UploadRequestAWS::UploadRequestAWS(const std::string& id, std::function<void(const Request & request, const Error & error)> completedCallback)
     : Request(id)
+    , m_completedCallback(completedCallback)
     , m_cancelled(false)
     , m_done(false)
   {
   }
  
-  void UploadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::function<void(const Request & request, const Error & error)> completedCallback, std::weak_ptr<UploadRequestAWS> uploadRequest)
+  void UploadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::weak_ptr<UploadRequestAWS> uploadRequest)
   {
     m_stream = std::make_shared<IOStream>(data);
 
@@ -308,16 +310,16 @@ namespace OpenVDS
   std::shared_ptr<Request> IOManagerAWS::downloadObject(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    auto ret = std::make_shared<DownloadRequestAWS>(id);
-    ret->run(*m_s3Client.get(), m_bucket, handler, range, ret);
+    auto ret = std::make_shared<DownloadRequestAWS>(id, handler);
+    ret->run(*m_s3Client.get(), m_bucket, range, ret);
     return ret;
   }
   
   std::shared_ptr<Request> IOManagerAWS::uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    auto ret = std::make_shared<UploadRequestAWS>(id);
-    ret->run(*m_s3Client.get(), m_bucket, data, metadataHeader, completedCallback, ret);
+    auto ret = std::make_shared<UploadRequestAWS>(id, completedCallback);
+    ret->run(*m_s3Client.get(), m_bucket, data, metadataHeader, ret);
     return ret;
   }
 }

@@ -34,10 +34,10 @@ namespace OpenVDS
   class DownloadRequestAWS : public Request
   {
   public:
-    DownloadRequestAWS(const std::string &id);
+    DownloadRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
     ~DownloadRequestAWS() override;
 
-    void run(Aws::S3::S3Client& client, const std::string& bucket, const std::shared_ptr<TransferDownloadHandler>& handler, const IORange& range, std::weak_ptr<DownloadRequestAWS> request);
+    void run(Aws::S3::S3Client& client, const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestAWS> request);
 
     void waitForFinish() override;
     bool isDone() const override;
@@ -66,6 +66,7 @@ namespace OpenVDS
   public:
     IOStream(std::shared_ptr<std::vector<uint8_t>> data)
       : Aws::IOStream(&m_buffer)
+      , m_data(data)
       , m_buffer(*data)
     {}
     std::shared_ptr<std::vector<uint8_t>> m_data;
@@ -75,14 +76,13 @@ namespace OpenVDS
   class UploadRequestAWS : public Request
   {
   public:
-    UploadRequestAWS(const std::string &id);
-    void run(Aws::S3::S3Client& client, const std::string& bucket, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::function<void(const Request & request, const Error & error)> completedCallback, std::weak_ptr<UploadRequestAWS> uploadRequest);
+    UploadRequestAWS(const std::string &id, std::function<void(const Request & request, const Error & error)> completedCallback);
+    void run(Aws::S3::S3Client& client, const std::string& bucket, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::weak_ptr<UploadRequestAWS> uploadRequest);
     void waitForFinish() override;
     bool isDone() const override;
     bool isSuccess(Error &error) const override;
     void cancel() override;
 
-    std::shared_ptr<std::vector<uint8_t>> m_data;
     std::function<void(const Request &request, const Error &error)> m_completedCallback;
     std::shared_ptr<IOStream> m_stream;
     std::atomic_bool m_cancelled;
