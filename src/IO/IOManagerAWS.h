@@ -55,10 +55,21 @@ namespace OpenVDS
   class VectorBuf : public std::basic_streambuf<char, std::char_traits<char>>
   {
   public:
-    void setData(std::vector<uint8_t>& vec)
+    VectorBuf(std::vector<uint8_t>& vec)
     {
       setg((char *) vec.data(), (char *) vec.data(), (char *) vec.data() + vec.size());
     }
+  };
+
+  class IOStream : public Aws::IOStream
+  {
+  public:
+    IOStream(std::shared_ptr<std::vector<uint8_t>> data)
+      : Aws::IOStream(&m_buffer)
+      , m_buffer(*data)
+    {}
+    std::shared_ptr<std::vector<uint8_t>> m_data;
+    VectorBuf m_buffer;
   };
 
   class UploadRequestAWS : public Request
@@ -73,8 +84,7 @@ namespace OpenVDS
 
     std::shared_ptr<std::vector<uint8_t>> m_data;
     std::function<void(const Request &request, const Error &error)> m_completedCallback;
-    VectorBuf m_vectorBuf;
-    std::shared_ptr<Aws::IOStream> m_stream;
+    std::shared_ptr<IOStream> m_stream;
     std::atomic_bool m_cancelled;
     bool m_done;
     Error m_error;

@@ -225,7 +225,6 @@ namespace OpenVDS
 
   UploadRequestAWS::UploadRequestAWS(const std::string& id)
     : Request(id)
-    , m_stream(std::make_shared<Aws::IOStream>(&m_vectorBuf))
     , m_cancelled(false)
     , m_done(false)
   {
@@ -233,7 +232,7 @@ namespace OpenVDS
  
   void UploadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::function<void(const Request & request, const Error & error)> completedCallback, std::weak_ptr<UploadRequestAWS> uploadRequest)
   {
-    m_vectorBuf.setData(*data);
+    m_stream = std::make_shared<IOStream>(data);
 
     Aws::S3::Model::PutObjectRequest put;
     put.SetBucket(convertStdString(bucket));
