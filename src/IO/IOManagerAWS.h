@@ -34,25 +34,28 @@ namespace OpenVDS
   class DownloadRequestAWS : public Request
   {
   public:
-    DownloadRequestAWS(Aws::S3::S3Client &client, const std::string &bucket, const std::string &id, const std::shared_ptr<TransferDownloadHandler> &handler, const IORange &range);
+    DownloadRequestAWS(const std::string &id);
     ~DownloadRequestAWS() override;
- 
+
+    void run(Aws::S3::S3Client& client, const std::string& bucket, const std::shared_ptr<TransferDownloadHandler>& handler, const IORange& range, std::weak_ptr<DownloadRequestAWS> request);
+
     void waitForFinish() override;
     bool isDone() const override;
     bool isSuccess(Error &error) const override;
     void cancel() override;
 
     std::shared_ptr<TransferDownloadHandler> m_handler;
-    std::shared_ptr<AsyncDownloadContext> m_context;
+    std::atomic_bool m_cancelled;
+    bool m_done;
     Error m_error;
-    bool  m_done;
     std::condition_variable m_waitForFinish;
+    mutable std::mutex m_mutex;
   };
 
   class VectorBuf : public std::basic_streambuf<char, std::char_traits<char>>
   {
   public:
-    VectorBuf(std::vector<uint8_t>& vec)
+    void setData(std::vector<uint8_t>& vec)
     {
       setg((char *) vec.data(), (char *) vec.data(), (char *) vec.data() + vec.size());
     }
@@ -61,20 +64,22 @@ namespace OpenVDS
   class UploadRequestAWS : public Request
   {
   public:
-    UploadRequestAWS(Aws::S3::S3Client &client, const std::string &bucket, const std::string &id, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request & request, const Error & error)> completedCallback);
+    UploadRequestAWS(const std::string &id);
+    void run(Aws::S3::S3Client& client, const std::string& bucket, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::function<void(const Request & request, const Error & error)> completedCallback, std::weak_ptr<UploadRequestAWS> uploadRequest);
     void waitForFinish() override;
     bool isDone() const override;
     bool isSuccess(Error &error) const override;
     void cancel() override;
 
-    std::shared_ptr<AsyncUploadContext> m_context;
     std::shared_ptr<std::vector<uint8_t>> m_data;
     std::function<void(const Request &request, const Error &error)> m_completedCallback;
     VectorBuf m_vectorBuf;
     std::shared_ptr<Aws::IOStream> m_stream;
-    Error m_error;
+    std::atomic_bool m_cancelled;
     bool m_done;
+    Error m_error;
     std::condition_variable m_waitForFinish;
+    mutable std::mutex m_mutex;
   };
 
   class IOManagerAWS : public IOManager

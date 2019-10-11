@@ -97,51 +97,64 @@ namespace OpenVDS
     std::condition_variable &to_notify;
   };
 
-  static void download_callback(const Aws::S3::S3Client *client, const Aws::S3::Model::GetObjectRequest& objreq, const Aws::S3::Model::GetObjectOutcome &getObjectOutcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&awsContext, std::shared_ptr<AsyncDownloadContext> context)
+  static void download_callback(const Aws::S3::S3Client *client, const Aws::S3::Model::GetObjectRequest& objreq, const Aws::S3::Model::GetObjectOutcome &getObjectOutcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&awsContext, std::weak_ptr<DownloadRequestAWS> weak_request)
   {
-    std::unique_lock<std::mutex> lock(context->mutex);
-    auto objReq =  context->back;
-    if (!objReq)
+    auto objReq =  weak_request.lock();
+
+    if (!objReq || objReq->m_cancelled)
       return;
 
-    NotifyAll notify(objReq->m_waitForFinish);
-    objReq->m_done = true;
-    if (!getObjectOutcome.IsSuccess())
+    std::unique_lock<std::mutex> lock(objReq->m_mutex, std::defer_lock);
+    if (getObjectOutcome.IsSuccess())
     {
+      Aws::S3::Model::GetObjectResult result = const_cast<Aws::S3::Model::GetObjectOutcome&>(getObjectOutcome).GetResultWithOwnership();
+      for (auto it : result.GetMetadata())
+      {
+        objReq->m_handler->handleMetadata(convertAwsString(it.first), convertAwsString(it.second));
+      }
+      auto& retrieved_object = result.GetBody();
+      auto content_length = result.GetContentLength();
+      std::vector<uint8_t> data;
+
+      if (content_length > 0)
+      {
+        data.resize(content_length);
+        retrieved_object.read((char*)&data[0], content_length);
+        objReq->m_handler->handleData(std::move(data));
+      }
+      lock.lock();
+    }
+    else
+    {
+      lock.lock();
       auto s3error = getObjectOutcome.GetError();
       objReq->m_error.code = int(s3error.GetResponseCode());
       objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
-      objReq->m_handler->completed(*objReq, objReq->m_error);
-      return;
     }
 
-    Aws::S3::Model::GetObjectResult result = const_cast<Aws::S3::Model::GetObjectOutcome &>(getObjectOutcome).GetResultWithOwnership();
-    for (auto it : result.GetMetadata())
-    {
-      objReq->m_handler->handleMetadata(convertAwsString(it.first), convertAwsString(it.second));
-    }
-    auto &retrieved_object = result.GetBody();
-    auto content_length = result.GetContentLength();
-    std::vector<uint8_t> data;
-
-    if (content_length > 0)
-    {
-      data.resize(content_length);
-      retrieved_object.read((char *)&data[0], content_length);
-      objReq->m_handler->handleData(std::move(data));
-    }
+    objReq->m_done = true;
+    objReq->m_waitForFinish.notify_all();
+    lock.unlock();
     objReq->m_handler->completed(*objReq, objReq->m_error);
   }
 
-  DownloadRequestAWS::DownloadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler, const IORange &range)
+  DownloadRequestAWS::DownloadRequestAWS(const std::string& id)
     : Request(id)
-    , m_handler(handler)
-    , m_context(std::make_shared<AsyncDownloadContext>(this))
+    , m_cancelled(false)
     , m_done(false)
+  {
+  }
+
+  DownloadRequestAWS::~DownloadRequestAWS()
+  {
+    DownloadRequestAWS::cancel(); 
+  }
+
+  void DownloadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, const std::shared_ptr<TransferDownloadHandler>& handler, const IORange& range, std::weak_ptr<DownloadRequestAWS> request)
   {
     Aws::S3::Model::GetObjectRequest object_request;
     object_request.SetBucket(convertStdString(bucket));
-    object_request.SetKey(convertStdString(id));
+    object_request.SetKey(convertStdString(getObjectName()));
     if (range.end)
     {
       char rangeHeaderBuffer[100];
@@ -149,71 +162,82 @@ namespace OpenVDS
       object_request.SetRange(rangeHeaderBuffer);
     }
     using namespace std::placeholders;
-    auto bounded_callback = std::bind(&download_callback, _1, _2, _3, _4, m_context);
+    auto bounded_callback = std::bind(&download_callback, _1, _2, _3, _4, request);
     client.GetObjectAsync(object_request, bounded_callback);
-  }
-
-  DownloadRequestAWS::~DownloadRequestAWS()
-  {
-    cancel(); 
   }
 
   void DownloadRequestAWS::waitForFinish()
   {
-    std::unique_lock<std::mutex> lock(m_context->mutex);
-    if (m_done)
-      return;
-    m_waitForFinish.wait(lock);
+    std::unique_lock<std::mutex> lock(m_mutex);
+    while(!m_done)
+      m_waitForFinish.wait(lock);
   }
   bool DownloadRequestAWS::isDone() const
   {
-    std::unique_lock<std::mutex> lock(m_context->mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
     return m_done;
   }
+
   bool DownloadRequestAWS::isSuccess(Error& error) const
   {
-    std::unique_lock<std::mutex> lock(m_context->mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (!m_done)
+    {
+      error.code = -1;
+      error.string = "Download not done.";
+      return false;
+    }
     error = m_error;
     return m_error.code == 0;
   }
 
   void DownloadRequestAWS::cancel()
   {
-    std::unique_lock<std::mutex> lock(m_context->mutex);
-    m_context->back = nullptr;
+    m_cancelled = true;
   }
 
-  static void upload_callback(const Aws::S3::S3Client* client, const Aws::S3::Model::PutObjectRequest&putRequest, const Aws::S3::Model::PutObjectOutcome &outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&,  std::shared_ptr<AsyncUploadContext> context)
+  static void upload_callback(const Aws::S3::S3Client* client, const Aws::S3::Model::PutObjectRequest&putRequest, const Aws::S3::Model::PutObjectOutcome &outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&,  std::weak_ptr<UploadRequestAWS> weak_upload)
   {
-    std::unique_lock<std::mutex> lock(context->mutex);
-    auto uploadReq =  context->back;
-    if (!uploadReq)
+    auto objReq =  weak_upload.lock();
+    if (!objReq || objReq->m_cancelled)
       return;
 
-    NotifyAll notify(uploadReq->m_waitForFinish);
-    uploadReq->m_done = true;
-    if (!outcome.IsSuccess())
+    std::unique_lock<std::mutex> lock(objReq->m_mutex, std::defer_lock);
+    if (outcome.IsSuccess())
     {
-      auto s3error = outcome.GetError();
-      uploadReq->m_error.code = int(s3error.GetResponseCode());
-      uploadReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
+      lock.lock();
     }
-    if (uploadReq->m_completedCallback)
-      uploadReq->m_completedCallback(*uploadReq, uploadReq->m_error);
+    else
+    {
+      lock.lock();
+      auto s3error = outcome.GetError();
+      objReq->m_error.code = int(s3error.GetResponseCode());
+      objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
+    }
+
+    objReq->m_done = true;
+    objReq->m_waitForFinish.notify_all();
+    Error error = objReq->m_error;
+    lock.unlock();
+    if (objReq->m_completedCallback)
+      objReq->m_completedCallback(*objReq, error);
   }
 
-  UploadRequestAWS::UploadRequestAWS(Aws::S3::S3Client& client, const std::string& bucket, const std::string& id, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback)
+  UploadRequestAWS::UploadRequestAWS(const std::string& id)
     : Request(id)
-    , m_context(std::make_shared<AsyncUploadContext>(this))
-    , m_data(data)
-    , m_completedCallback(completedCallback)
-    , m_vectorBuf(*data)
     , m_stream(std::make_shared<Aws::IOStream>(&m_vectorBuf))
+    , m_cancelled(false)
     , m_done(false)
   {
+  }
+ 
+  void UploadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::function<void(const Request & request, const Error & error)> completedCallback, std::weak_ptr<UploadRequestAWS> uploadRequest)
+  {
+    m_vectorBuf.setData(*data);
+
     Aws::S3::Model::PutObjectRequest put;
     put.SetBucket(convertStdString(bucket));
-    put.SetKey(convertStdString(id));
+    put.SetKey(convertStdString(getObjectName()));
     put.SetBody(m_stream);
     put.SetContentType("binary/octet-stream");
     put.SetContentLength(data->size());
@@ -223,32 +247,37 @@ namespace OpenVDS
     }
     
     using namespace std::placeholders;
-    auto bounded_callback = std::bind(&upload_callback, _1, _2, _3, _4, m_context);
+    auto bounded_callback = std::bind(&upload_callback, _1, _2, _3, _4, uploadRequest);
 
     client.PutObjectAsync(put, bounded_callback);
   }
+
   void UploadRequestAWS::waitForFinish()
   {
-    std::unique_lock<std::mutex> lock(m_context->mutex);
-    if (m_done)
-      return;
-    m_waitForFinish.wait(lock);
+    std::unique_lock<std::mutex> lock(m_mutex);
+    while(!m_done)
+      m_waitForFinish.wait(lock);
   }
   bool UploadRequestAWS::isDone() const
   {
-    std::unique_lock<std::mutex> lock(m_context->mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
     return m_done;
   }
   bool UploadRequestAWS::isSuccess(Error& error) const
   {
-    std::unique_lock<std::mutex> lock(m_context->mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (!m_done)
+    {
+      error.code = -1;
+      error.string = "Download not done.";
+      return false;
+    }
     error = m_error;
     return m_error.code == 0;
   }
   void UploadRequestAWS::cancel()
   {
-    std::unique_lock<std::mutex> lock(m_context->mutex);
-    m_context->back = nullptr;
+    m_cancelled = true;
   }
 
   IOManagerAWS::IOManagerAWS(const AWSOpenOptions& openOptions, Error &error)
@@ -280,12 +309,16 @@ namespace OpenVDS
   std::shared_ptr<Request> IOManagerAWS::downloadObject(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    return std::make_shared<DownloadRequestAWS>(*m_s3Client.get(), m_bucket, id, handler, range);
+    auto ret = std::make_shared<DownloadRequestAWS>(id);
+    ret->run(*m_s3Client.get(), m_bucket, handler, range, ret);
+    return ret;
   }
   
   std::shared_ptr<Request> IOManagerAWS::uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    return std::make_shared<UploadRequestAWS>(*m_s3Client.get(), m_bucket, id, data, metadataHeader, completedCallback);
+    auto ret = std::make_shared<UploadRequestAWS>(id);
+    ret->run(*m_s3Client.get(), m_bucket, data, metadataHeader, completedCallback, ret);
+    return ret;
   }
 }
