@@ -29,6 +29,9 @@ add_test_executable(jsoncpp_tests
   jsoncpp/jsoncpp_parse.cpp
   jsoncpp/jsoncpp_serialize.cpp)
 
+add_test_executable(fmt_tests
+  fmt/basic_fmt.cpp)
+
 add_test_executable(segy_tests
   SEG-Y/SEGYScanTest.cpp
   ../src/SEG-Y/SEGY.cpp

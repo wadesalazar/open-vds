@@ -2,3 +2,4 @@ aws-cpp-sdk*
 gtest*
 jsoncpp*
 zlib*
+fmt*

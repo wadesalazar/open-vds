@@ -101,6 +101,8 @@ target_compile_definitions(openvds_objects PRIVATE openvds_EXPORTS)
 
 target_link_libraries(openvds_objects Threads::Threads)
 target_link_libraries(openvds_objects jsoncpp_lib_static)
+target_link_libraries(openvds_objects fmt::fmt)
+
 if (aws-cpp-sdk_EXTERNAL_LIBS)
   target_link_libraries(openvds_objects ${aws-cpp-sdk_EXTERNAL_LIBS})
 endif()
@@ -148,7 +150,7 @@ if (${MSVC_TOOLSET_VERSION})
   set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION}")
 endif()
 
-install(TARGETS openvds openvds_objects jsoncpp_lib_static
+install(TARGETS openvds openvds_objects jsoncpp_lib_static fmt
   EXPORT openvds-export
   ARCHIVE
     DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR}
@@ -182,6 +184,7 @@ export(
         openvds
         openvds_objects
         jsoncpp_lib_static
+        fmt
     NAMESPACE
         openvds::
     FILE
