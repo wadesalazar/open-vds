@@ -580,7 +580,7 @@ bool VolumeDataStore::serializeVolumeData(const VolumeDataChunk& chunk, const Da
     void *targetBuffer = destinationBuffer.data();
     memcpy(targetBuffer, &dataBlockHeader, sizeof(dataBlockHeader));
     targetBuffer = ((uint8_t *)targetBuffer) + sizeof(dataBlockHeader);
-    unsigned long compressedSize = 0;
+    unsigned long compressedSize = compressedMaxSize;
     int status = compress((uint8_t *)targetBuffer, &compressedSize, tmpdata.get(), tmpbuffersize);
     destinationBuffer.resize(compressedSize + sizeof(dataBlockHeader));
 
