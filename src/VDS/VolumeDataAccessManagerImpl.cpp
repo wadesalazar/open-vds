@@ -488,7 +488,7 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
   std::shared_ptr<std::vector<uint8_t>> to_write = std::make_shared<std::vector<uint8_t>>();
   uint64_t hash;
 
-  if (!VolumeDataStore::serializeVolumeData(chunk, dataBlock, data, CompressionMethod::Zip, *to_write, hash, error))
+  if (!VolumeDataStore::serializeVolumeData(chunk, dataBlock, data, getVolumeDataLayout()->getCompressionMethod(), *to_write, hash, error))
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_uploadErrors.emplace_back(new UploadError(error, url));

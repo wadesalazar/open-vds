@@ -140,7 +140,7 @@ void createVolumeDataLayout(VDSHandle &handle)
       0, //MIA for now
       { 1, 0 }, //MIA for now
       VolumeDataHash::getUniqueHash(),
-      CompressionMethod::None,
+      CompressionMethod::Zip,
       0,
       false,
       0));
