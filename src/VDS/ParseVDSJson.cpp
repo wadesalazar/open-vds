@@ -1150,7 +1150,7 @@ bool downloadAndParseVolumeDataLayoutAndLayerStatus(VDSHandle& handle, Error& er
   std::shared_ptr<SyncTransferHandler> syncTransferHandler = std::make_shared<SyncTransferHandler>();
   syncTransferHandler->error = &error;
   syncTransferHandler->data = &volumedatalayout_json;
-  auto request = handle.ioManager->downloadObject("VolumeDataLayout", syncTransferHandler);
+  auto request = handle.ioManager->download("VolumeDataLayout", syncTransferHandler);
   request->waitForFinish();
   if (!request->isSuccess(error) || volumedatalayout_json.empty())
   {
@@ -1159,7 +1159,7 @@ bool downloadAndParseVolumeDataLayoutAndLayerStatus(VDSHandle& handle, Error& er
   }
   std::vector<uint8_t> layerstatus_json;
   syncTransferHandler->data = &layerstatus_json;
-  request = handle.ioManager->downloadObject("LayerStatus", syncTransferHandler);
+  request = handle.ioManager->download("LayerStatus", syncTransferHandler);
   request->waitForFinish();
   if (!request->isSuccess(error) || layerstatus_json.empty())
   {
@@ -1190,7 +1190,7 @@ bool serializeAndUploadVolumeDataLayout(VDSHandle& handle, Error& error)
 {
   Json::Value volumeDataLayoutJson = serializeVolumeDataLayout(*handle.volumeDataLayout, handle.metadataContainer);
   auto serializedVolumeDataLayout = std::make_shared<std::vector<uint8_t>>(writeJson(volumeDataLayoutJson));
-  auto request = handle.ioManager->uploadObject("VolumeDataLayout", serializedVolumeDataLayout);
+  auto request = handle.ioManager->uploadJson("VolumeDataLayout", serializedVolumeDataLayout);
 
   request->waitForFinish();
 
@@ -1207,7 +1207,7 @@ bool serializeAndUploadLayerStatus(VDSHandle& handle, Error& error)
 {
   Json::Value layerStatusArrayJson = serializeLayerStatusArray(*handle.volumeDataLayout, handle.layerMetadataContainer);
   auto serializedLayerStatus = std::make_shared<std::vector<uint8_t>>(writeJson(layerStatusArrayJson));
-  auto request = handle.ioManager->uploadObject("LayerStatus", serializedLayerStatus);
+  auto request = handle.ioManager->uploadJson("LayerStatus", serializedLayerStatus);
 
   request->waitForFinish();
 

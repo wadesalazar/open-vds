@@ -60,11 +60,15 @@ namespace OpenVDS
   {
   public:
     virtual ~IOManager();
-    virtual std::shared_ptr<Request> downloadObject(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
-    virtual std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr) = 0;
-    std::shared_ptr<Request> uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
+    virtual std::shared_ptr<Request> download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
+    virtual std::shared_ptr<Request> upload(const std::string objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr) = 0;
+    std::shared_ptr<Request> uploadBinary(const std::string objectName, const std::string &contentDispositionFilename, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
     {
-      return uploadObject(objectName, data, std::vector<std::pair<std::string, std::string>>(), completedCallback);
+      return upload(objectName, contentDispositionFilename, "application/octet-stream", metadataHeader, data, completedCallback);
+    }
+    std::shared_ptr<Request> uploadJson(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
+    {
+      return upload(objectName, "", "application/json", std::vector<std::pair<std::string, std::string>>(), data, completedCallback);
     }
 
 

@@ -24,6 +24,7 @@
 #include "VolumeSampler.h"
 #include "ParseVDSJson.h"
 #include "VolumeDataStore.h"
+#include "VolumeDataHash.h"
 
 #include <cmath>
 #include <algorithm>
@@ -377,7 +378,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
 
   lock.lock();
   auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
-  m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->downloadObject(url, transferHandler, ioRange), transferHandler);
+  m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->download(url, transferHandler, ioRange), transferHandler);
 
   return true;
 }
@@ -463,7 +464,7 @@ void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPa
         std::string url = createUrlForChunk(metadataManager->layerUrlStr(), volumeDataChunk.chunkIndex);
 
         auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
-        pendingRequest.m_activeTransfer = m_ioManager->downloadObject(url, transferHandler, ioRange);
+        pendingRequest.m_activeTransfer = m_ioManager->download(url, transferHandler, ioRange);
         pendingRequest.m_transferHandle = transferHandler;
       }
 
@@ -485,6 +486,7 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
   Error error;
   std::string layerName = getLayerName(*chunk.layer);
   std::string url = createUrlForChunk(layerName, chunk.chunkIndex);
+  std::string contentDispositionName = layerName + "_" + std::to_string(chunk.chunkIndex);
   std::shared_ptr<std::vector<uint8_t>> to_write = std::make_shared<std::vector<uint8_t>>();
   uint64_t hash;
 
@@ -494,10 +496,15 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
     m_uploadErrors.emplace_back(new UploadError(error, url));
     return 0;
   }
+
+  if (hash == VolumeDataHash::UNKNOWN)
+  {
+    hash = VolumeDataHash::getUniqueHash();
+  }
+
   auto metadataManager = getMetadataMangerForLayer(m_handle.layerMetadataContainer, layerName);
 
   MetadataPage* lockedMetadataPage = nullptr;
-
 
   int64_t jobId = createUploadJobId();
 
@@ -513,9 +520,13 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
     m_pendingUploadRequests.erase(jobId);
   };
 
+  std::vector<char> base64Hash;
+  Base64Encode((const unsigned char *)&hash, sizeof(hash), base64Hash);
+  std::vector<std::pair<std::string, std::string>> meta_map;
+  meta_map.emplace_back("vdschunkmetadata", std::string(base64Hash.begin(), base64Hash.end()));
   // add new pending upload request
   std::unique_lock<std::mutex> lock(m_mutex);
-  m_pendingUploadRequests[jobId] = PendingUploadRequest(m_ioManager->uploadObject(url, to_write, completedCallback), lockedMetadataPage);
+  m_pendingUploadRequests[jobId] = PendingUploadRequest(m_ioManager->uploadBinary(url, contentDispositionName, meta_map, to_write, completedCallback), lockedMetadataPage);
   return jobId;
 }
 

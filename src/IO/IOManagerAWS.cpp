@@ -31,6 +31,8 @@
 #include <mutex>
 #include <functional>
 
+#include <fmt/format.h>
+
 namespace OpenVDS
 {
 
@@ -97,7 +99,7 @@ namespace OpenVDS
     std::condition_variable &to_notify;
   };
 
-  static void download_callback(const Aws::S3::S3Client *client, const Aws::S3::Model::GetObjectRequest& objreq, const Aws::S3::Model::GetObjectOutcome &getObjectOutcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&awsContext, std::weak_ptr<DownloadRequestAWS> weak_request)
+  static void download_callback(const Aws::S3::S3Client *client, const Aws::S3::Model::GetObjectRequest& objreq, const Aws::S3::Model::GetObjectOutcome &getObjectOutcome, std::weak_ptr<DownloadRequestAWS> weak_request)
   {
     auto objReq =  weak_request.lock();
 
@@ -151,19 +153,19 @@ namespace OpenVDS
     DownloadRequestAWS::cancel(); 
   }
 
-  void DownloadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestAWS> request)
+  void DownloadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestAWS> downloadRequest)
   {
     Aws::S3::Model::GetObjectRequest object_request;
     object_request.SetBucket(convertStdString(bucket));
     object_request.SetKey(convertStdString(getObjectName()));
     if (range.end)
     {
-      char rangeHeaderBuffer[100];
-      snprintf(rangeHeaderBuffer, sizeof(rangeHeaderBuffer), "bytes=%zu-%zu", range.start, range.end);
-      object_request.SetRange(rangeHeaderBuffer);
+      object_request.SetRange(convertStdString(fmt::format("bytes={}-{}", range.start, range.end)));
     }
-    using namespace std::placeholders;
-    auto bounded_callback = std::bind(&download_callback, _1, _2, _3, _4, request);
+    Aws::S3::GetObjectResponseReceivedHandler bounded_callback = [downloadRequest](const Aws::S3::S3Client *client, const Aws::S3::Model::GetObjectRequest &request, const Aws::S3::Model::GetObjectOutcome &outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) 
+    {
+      download_callback(client, request, outcome, downloadRequest);
+    };
     client.GetObjectAsync(object_request, bounded_callback);
   }
 
@@ -197,7 +199,7 @@ namespace OpenVDS
     m_cancelled = true;
   }
 
-  static void upload_callback(const Aws::S3::S3Client* client, const Aws::S3::Model::PutObjectRequest&putRequest, const Aws::S3::Model::PutObjectOutcome &outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&,  std::weak_ptr<UploadRequestAWS> weak_upload)
+  static void upload_callback(const Aws::S3::S3Client* client, const Aws::S3::Model::PutObjectRequest&putRequest, const Aws::S3::Model::PutObjectOutcome &outcome, std::weak_ptr<UploadRequestAWS> weak_upload)
   {
     auto objReq =  weak_upload.lock();
     if (!objReq || objReq->m_cancelled)
@@ -232,7 +234,7 @@ namespace OpenVDS
   {
   }
  
-  void UploadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::weak_ptr<UploadRequestAWS> uploadRequest)
+  void UploadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::weak_ptr<UploadRequestAWS> uploadRequest)
   {
     m_stream = std::make_shared<IOStream>(data);
 
@@ -240,17 +242,18 @@ namespace OpenVDS
     put.SetBucket(convertStdString(bucket));
     put.SetKey(convertStdString(getObjectName()));
     put.SetBody(m_stream);
-    put.SetContentType("binary/octet-stream");
+    put.SetContentType(convertStdString(contentType));
     put.SetContentLength(data->size());
+    if (contentDispostionFilename.size())
+      put.SetContentDisposition(Aws::String("attachment; filename=" + convertStdString(contentDispostionFilename)));
     for (auto &metaPair : metadataHeader)
     {
       put.AddMetadata(convertStdString(metaPair.first), convertStdString(metaPair.second.c_str()));
     }
     
-    using namespace std::placeholders;
-    auto bounded_callback = std::bind(&upload_callback, _1, _2, _3, _4, uploadRequest);
-
+    Aws::S3::PutObjectResponseReceivedHandler bounded_callback = [uploadRequest] (const Aws::S3::S3Client* client, const Aws::S3::Model::PutObjectRequest&putRequest, const Aws::S3::Model::PutObjectOutcome &outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) { upload_callback(client, putRequest, outcome, uploadRequest);};
     client.PutObjectAsync(put, bounded_callback);
+
   }
 
   void UploadRequestAWS::waitForFinish()
@@ -307,19 +310,19 @@ namespace OpenVDS
     deinitizlieAWSSDK();
   }
 
-  std::shared_ptr<Request> IOManagerAWS::downloadObject(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
+  std::shared_ptr<Request> IOManagerAWS::download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
     auto ret = std::make_shared<DownloadRequestAWS>(id, handler);
     ret->run(*m_s3Client.get(), m_bucket, range, ret);
     return ret;
   }
-  
-  std::shared_ptr<Request> IOManagerAWS::uploadObject(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::function<void(const Request &request, const Error &error)> completedCallback)
+
+  std::shared_ptr<Request> IOManagerAWS::upload(const std::string objectName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
     auto ret = std::make_shared<UploadRequestAWS>(id, completedCallback);
-    ret->run(*m_s3Client.get(), m_bucket, data, metadataHeader, ret);
+    ret->run(*m_s3Client.get(), m_bucket, contentDispositionFilename, contentType, metadataHeader, data, ret);
     return ret;
   }
 }

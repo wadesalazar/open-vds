@@ -118,7 +118,7 @@ void MetadataManager::initiateTransfer(VolumeDataAccessManagerImpl *accessManage
 
   assert(!page->m_valid && !page->m_activeTransfer);
 
-  page->m_activeTransfer = m_iomanager->downloadObject(url, std::make_shared<MetadataPageTransfer>(this, accessManager, page));
+  page->m_activeTransfer = m_iomanager->download(url, std::make_shared<MetadataPageTransfer>(this, accessManager, page));
 }
 
 void MetadataManager::pageTransferError(MetadataPage* page, const char* msg)
