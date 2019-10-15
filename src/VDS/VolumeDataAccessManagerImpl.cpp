@@ -382,7 +382,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
 
   return true;
 }
-  
+
 bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::vector<uint8_t> &serializedData, std::vector<uint8_t> &metadata, CompressionInfo &compressionInfo, Error &error)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
@@ -475,6 +475,32 @@ void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPa
   m_pendingRequestChangedCondition.notify_all();
 }
 
+bool VolumeDataAccessManagerImpl::writeMetadataPage(MetadataPage* metadataPage, const std::vector<uint8_t> &data)
+{
+  assert(metadataPage->IsValid());
+
+  MetadataManager *metadataManager = metadataPage->GetManager();
+
+  std::string url = fmt::format("{}/ChunkMetadata/{}", metadataManager->layerUrlStr(), metadataPage->PageIndex());
+
+  std::string contentDispositionName = fmt::format("{}_ChunkMetadata_{}", metadataManager->layerUrlStr(), metadataPage->PageIndex());
+
+  Error error;
+
+  auto req = m_ioManager->uploadBinary(url, contentDispositionName, std::vector<std::pair<std::string, std::string>>(), std::make_shared<std::vector<uint8_t>>(data));
+
+  req->waitForFinish();
+  bool success = req->isSuccess(error);
+
+  if(error.code != 0)
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_uploadErrors.emplace_back(new UploadError(error, "LayerStatus"));
+  }
+
+  return success;
+}
+
 static int64_t createUploadJobId()
 {
   static std::atomic< std::int64_t > id(0);
@@ -504,11 +530,22 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
 
   auto metadataManager = getMetadataMangerForLayer(m_handle.layerMetadataContainer, layerName);
 
-  MetadataPage* lockedMetadataPage = nullptr;
+  int pageIndex  = (int)(chunk.chunkIndex / metadataManager->metadataStatus().m_chunkMetadataPageSize);
+  int entryIndex = (int)(chunk.chunkIndex % metadataManager->metadataStatus().m_chunkMetadataPageSize);
+
+  bool initiateTransfer;
+
+  MetadataPage* lockedMetadataPage = metadataManager->lockPage(pageIndex, &initiateTransfer);
+
+  // Newly created page
+  if(initiateTransfer)
+  {
+    metadataManager->initPage(lockedMetadataPage);
+  }
 
   int64_t jobId = createUploadJobId();
 
-  auto completedCallback = [this, jobId](const Request &request, const Error &error)
+  auto completedCallback = [this, hash, metadataManager, lockedMetadataPage, entryIndex, jobId](const Request &request, const Error &error)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -516,8 +553,14 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
     {
       m_uploadErrors.emplace_back(new UploadError(error, request.getObjectName()));
     }
+    else
+    {
+      metadataManager->setPageEntry(lockedMetadataPage, entryIndex, reinterpret_cast<const uint8_t *>(&hash), sizeof(hash));
+    }
 
     m_pendingUploadRequests.erase(jobId);
+
+    lockedMetadataPage->GetManager()->unlockPage(lockedMetadataPage);
   };
 
   std::vector<char> base64Hash;
@@ -541,8 +584,16 @@ void VolumeDataAccessManagerImpl::flushUploadQueue()
     request.waitForFinish();
   }
 
+  for(auto it = m_handle.layerMetadataContainer.managers.begin(); it != m_handle.layerMetadataContainer.managers.end(); ++it)
+  {
+    auto metadataManager = it->second.get();
+
+    metadataManager->uploadDirtyPages(this);
+  }
+
   Error error;
   serializeAndUploadLayerStatus(m_handle, error);
+
   if(error.code != 0)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
@@ -568,7 +619,7 @@ void VolumeDataAccessManagerImpl::forceClearAllUploadErrors()
 int32_t VolumeDataAccessManagerImpl::uploadErrorCount()
 {
   std::unique_lock<std::mutex> lock(m_mutex);
-  return m_uploadErrors.size() - m_currentErrorIndex;
+  return int32_t(m_uploadErrors.size() - m_currentErrorIndex);
 }
 
 void VolumeDataAccessManagerImpl::getCurrentUploadError(const char** objectId, int32_t* errorCode, const char** errorString)

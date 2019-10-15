@@ -61,6 +61,7 @@ namespace OpenVDS
 
     int m_pageIndex;
     bool m_valid;
+    bool m_dirty;
     int m_lockCount;
 
     std::shared_ptr<Request> m_activeTransfer;
@@ -70,11 +71,13 @@ namespace OpenVDS
     MetadataManager *GetManager() { return m_manager; }
     int PageIndex() const { return m_pageIndex; }
     bool IsValid()   const { return m_valid; }
+    bool IsDirty()   const { return m_dirty; }
 
     MetadataPage(MetadataManager *manager, int pageIndex)
       : m_manager(manager)
       , m_pageIndex(pageIndex)
       , m_valid(false)
+      , m_dirty(false)
       , m_lockCount(0)
       , m_activeTransfer(nullptr)
     {}
@@ -110,13 +113,17 @@ namespace OpenVDS
 
     MetadataPage *lockPage(int pageIndex, bool *initiateTransfer);
 
+    void initPage(MetadataPage* page);
+
     void pageTransferError(MetadataPage *page, const char *msg);
 
     void pageTransferCompleted(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::vector<uint8_t>&& data);
 
     void initiateTransfer(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::string const& url, bool verbose);
+    void uploadDirtyPages(VolumeDataAccessManagerImpl* accessManager);
 
     uint8_t const *getPageEntry(MetadataPage *page, int entry) const;
+    void setPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength);
 
     void unlockPage(MetadataPage *page);
 

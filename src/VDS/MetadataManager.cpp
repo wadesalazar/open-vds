@@ -20,6 +20,8 @@
 #include <IO/IOManager.h>
 #include "VolumeDataAccessManagerImpl.h"
 #include <assert.h>
+#include <algorithm>
+#include <fmt/format.h>
 
 namespace OpenVDS
 {
@@ -112,6 +114,15 @@ MetadataManager::lockPage(int pageIndex, bool* initiateTransfer)
   return page;
 }
 
+void
+MetadataManager::initPage(MetadataPage* page)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  page->m_data.resize(m_metadataStatus.m_chunkMetadataByteSize * m_metadataStatus.m_chunkMetadataPageSize);
+  page->m_valid = true;
+  lock.unlock();
+}
+
 void MetadataManager::initiateTransfer(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::string const& url, bool verbose)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
@@ -119,6 +130,23 @@ void MetadataManager::initiateTransfer(VolumeDataAccessManagerImpl *accessManage
   assert(!page->m_valid && !page->m_activeTransfer);
 
   page->m_activeTransfer = m_iomanager->download(url, std::make_shared<MetadataPageTransfer>(this, accessManager, page));
+}
+
+void MetadataManager::uploadDirtyPages(VolumeDataAccessManagerImpl *accessManager)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  for(auto &page : m_pageList)
+  {
+    if(page.IsDirty())
+    {
+      bool success = accessManager->writeMetadataPage(&page, page.m_data);
+      if(success)
+      {
+        page.m_dirty = false;
+      }
+    }
+  }
 }
 
 void MetadataManager::pageTransferError(MetadataPage* page, const char* msg)
@@ -149,12 +177,22 @@ void MetadataManager::pageTransferCompleted(VolumeDataAccessManagerImpl* accessM
   accessManager->pageTransferCompleted(page);
 }
 
-
 uint8_t const *MetadataManager::getPageEntry(MetadataPage *page, int entryIndex) const
 {
   assert(page->IsValid());
 
   return &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize];
+}
+
+void MetadataManager::setPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  assert(page->IsValid());
+  assert(metadataLength == m_metadataStatus.m_chunkMetadataByteSize);
+
+  page->m_dirty = true;
+  std::copy(metadata, metadata + metadataLength, &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize]);
 }
 
 void MetadataManager::unlockPage(MetadataPage *page)
