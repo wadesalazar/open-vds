@@ -33,6 +33,7 @@
 #include <cstdlib>
 #include <climits>
 #include <json/json.h>
+#include <fmt/format.h>
 
 #include <algorithm>
 
@@ -753,6 +754,8 @@ main(int argc, char *argv[])
 
   for(int64_t chunk = 0; chunk < amplitudeAccessor->getChunkCount(); chunk++)
   {
+    int done = double(chunk)/amplitudeAccessor->getChunkCount() * 100;
+    fmt::print("\r{:3d}% done.", done);
     int32_t errorCount = accessManager->uploadErrorCount();
     for (int i = 0; i < errorCount; i++)
     {

@@ -559,6 +559,7 @@ bool VolumeDataStore::serializeVolumeData(const VolumeDataChunk& chunk, const Da
     {
       auto& layer = *chunk.layer;
       outputHash = getConstantValueVolumeDataHash(dataBlock, (const uint8_t *) targetBuffer, layer.getValueRange(), layer.getIntegerScale(), layer.getIntegerOffset(), layer.isUseNoValue(), layer.getNoValue());
+      destinationBuffer.resize(sizeof(dataBlockHeader));
       return true;
     }
     break;
@@ -571,6 +572,9 @@ bool VolumeDataStore::serializeVolumeData(const VolumeDataChunk& chunk, const Da
 
     if (isConstant)
     {
+      destinationBuffer.resize(sizeof(dataBlockHeader));
+      void* targetBuffer = destinationBuffer.data();
+      memcpy(targetBuffer, &dataBlockHeader, sizeof(dataBlockHeader));
       auto& layer = *chunk.layer;
       outputHash = getConstantValueVolumeDataHash(dataBlock, tmpdata.get(), layer.getValueRange(), layer.getIntegerScale(), layer.getIntegerOffset(), layer.isUseNoValue(), layer.getNoValue());
       return true;

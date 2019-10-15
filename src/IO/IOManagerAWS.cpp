@@ -205,14 +205,9 @@ namespace OpenVDS
     if (!objReq || objReq->m_cancelled)
       return;
 
-    std::unique_lock<std::mutex> lock(objReq->m_mutex, std::defer_lock);
-    if (outcome.IsSuccess())
+    std::unique_lock<std::mutex> lock(objReq->m_mutex);
+    if (!outcome.IsSuccess())
     {
-      lock.lock();
-    }
-    else
-    {
-      lock.lock();
       auto s3error = outcome.GetError();
       objReq->m_error.code = int(s3error.GetResponseCode());
       objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
