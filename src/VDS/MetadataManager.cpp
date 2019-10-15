@@ -63,7 +63,7 @@ MetadataManager::~MetadataManager()
 
 void MetadataManager::limitPages()
 {
-  assert(m_pageMap.size() == m_pageList.size());
+  assert(m_pageMap.size() == m_pageList.size() + m_dirtyPageList.size());
 
   while (m_pageList.size() > m_pageLimit && m_pageList.back().m_lockCount == 0)
   {
@@ -71,7 +71,7 @@ void MetadataManager::limitPages()
     m_pageList.pop_back();
   }
 
-  assert(m_pageMap.size() == m_pageList.size());
+  assert(m_pageMap.size() == m_pageList.size() + m_dirtyPageList.size());
 }
 
 MetadataPage*
@@ -81,7 +81,7 @@ MetadataManager::lockPage(int pageIndex, bool* initiateTransfer)
 
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  assert(m_pageMap.size() == m_pageList.size());
+  assert(m_pageMap.size() == m_pageList.size() + m_dirtyPageList.size());
 
   MetadataPageMap::iterator mi = m_pageMap.find(pageIndex);
 
@@ -107,7 +107,7 @@ MetadataManager::lockPage(int pageIndex, bool* initiateTransfer)
 
   limitPages();
 
-  assert(m_pageMap.size() == m_pageList.size());
+  assert(m_pageMap.size() == m_pageList.size() + m_dirtyPageList.size());
   assert(m_pageMap.find(pageIndex) != m_pageMap.end());
   assert(m_pageMap[pageIndex]->m_lockCount > 0);
 
@@ -136,15 +136,19 @@ void MetadataManager::uploadDirtyPages(VolumeDataAccessManagerImpl *accessManage
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  for(auto &page : m_pageList)
+  for(MetadataPageList::iterator it = m_dirtyPageList.begin(), next; it != m_dirtyPageList.end(); it = next)
   {
-    if(page.IsDirty())
+    auto page = *it;
+    assert(page.IsDirty());
+
+    // We need to keep a separate 'next' iterator since we're moving the current element to another list if the write is successful
+    next = std::next(it);
+
+    bool success = accessManager->writeMetadataPage(&page, page.m_data);
+    if(success)
     {
-      bool success = accessManager->writeMetadataPage(&page, page.m_data);
-      if(success)
-      {
-        page.m_dirty = false;
-      }
+      page.m_dirty = false;
+      m_pageList.splice(m_pageList.begin(), m_dirtyPageList, it);
     }
   }
 }
@@ -191,7 +195,14 @@ void MetadataManager::setPageEntry(MetadataPage *page, int entryIndex, uint8_t c
   assert(page->IsValid());
   assert(metadataLength == m_metadataStatus.m_chunkMetadataByteSize);
 
-  page->m_dirty = true;
+  if(!page->m_dirty)
+  {
+    page->m_dirty = true;
+
+    MetadataPageMap::iterator pageMapIterator = m_pageMap.find(page->m_pageIndex);
+
+    m_dirtyPageList.splice(m_dirtyPageList.end(), m_pageList, pageMapIterator->second);
+  }
   std::copy(metadata, metadata + metadataLength, &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize]);
 }
 
@@ -202,7 +213,7 @@ void MetadataManager::unlockPage(MetadataPage *page)
 
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  assert(m_pageMap.size() == m_pageList.size());
+  assert(m_pageMap.size() == m_pageList.size() + m_dirtyPageList.size());
   assert(m_pageMap.find(page->m_pageIndex) != m_pageMap.end());
 
   page->m_lockCount--;

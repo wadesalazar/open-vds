@@ -100,8 +100,9 @@ namespace OpenVDS
 
     typedef std::unordered_map<int, MetadataPageList::iterator> MetadataPageMap;
 
-    MetadataPageMap m_pageMap;
+    MetadataPageMap  m_pageMap;
     MetadataPageList m_pageList;
+    MetadataPageList m_dirtyPageList;
 
     void limitPages();
   public:
