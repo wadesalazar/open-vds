@@ -300,9 +300,13 @@ namespace OpenVDS
       m_objectId.resize(m_objectId.size() - 1);
     initializeAWSSDK();
 
-    Aws::Client::ClientConfiguration config;
-    config.region = m_region.c_str();
-    m_s3Client.reset(new Aws::S3::S3Client(config));
+    Aws::Client::ClientConfiguration clientConfig;
+    clientConfig.scheme = Aws::Http::Scheme::HTTPS;
+    clientConfig.region = m_region.c_str();
+    clientConfig.connectTimeoutMs = 3000;
+    clientConfig.requestTimeoutMs = 6000;
+
+    m_s3Client.reset(new Aws::S3::S3Client(clientConfig));
   }
 
   IOManagerAWS::~IOManagerAWS()
