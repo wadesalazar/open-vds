@@ -405,10 +405,7 @@ bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::v
 
   if (!pendingRequest.m_activeTransfer)
   {
-    while (pendingRequest.m_lockedMetadataPage)
-    {
-      m_pendingRequestChangedCondition.wait(lock);
-    }
+    m_pendingRequestChangedCondition.wait(lock, [&pendingRequest]{ return !pendingRequest.m_lockedMetadataPage; });
   }
 
   auto activeTransfer = pendingRequest.m_activeTransfer;

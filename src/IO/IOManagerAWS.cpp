@@ -172,8 +172,7 @@ namespace OpenVDS
   void DownloadRequestAWS::waitForFinish()
   {
     std::unique_lock<std::mutex> lock(m_mutex);
-    while(!m_done)
-      m_waitForFinish.wait(lock);
+    m_waitForFinish.wait(lock, [this]{ return m_done; });
   }
   bool DownloadRequestAWS::isDone() const
   {
@@ -254,8 +253,7 @@ namespace OpenVDS
   void UploadRequestAWS::waitForFinish()
   {
     std::unique_lock<std::mutex> lock(m_mutex);
-    while(!m_done)
-      m_waitForFinish.wait(lock);
+    m_waitForFinish.wait(lock, [this]{ return this->m_done; });
   }
   bool UploadRequestAWS::isDone() const
   {
