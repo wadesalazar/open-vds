@@ -88,7 +88,10 @@ MetadataManager::lockPage(int pageIndex, bool* initiateTransfer)
   if (mi != m_pageMap.end())
   {
     // Move page to front of list
-    m_pageList.splice(m_pageList.begin(), m_pageList, mi->second);
+    if (!mi->second->IsDirty())
+    {
+      m_pageList.splice(m_pageList.begin(), m_pageList, mi->second);
+    }
 
     *initiateTransfer = false;
   }
@@ -96,14 +99,14 @@ MetadataManager::lockPage(int pageIndex, bool* initiateTransfer)
   {
     // Create page in front of list
     m_pageList.emplace_front(this, pageIndex);
-    m_pageMap[pageIndex] = m_pageList.begin();
+    mi = m_pageMap.insert(MetadataPageMap::value_type(pageIndex, m_pageList.begin())).first;
 
     *initiateTransfer = true;
   }
 
-  MetadataPage* page = std::addressof(*m_pageList.begin());
+  MetadataPage &page = *mi->second;
 
-  page->m_lockCount++;
+  page.m_lockCount++;
 
   limitPages();
 
@@ -111,7 +114,7 @@ MetadataManager::lockPage(int pageIndex, bool* initiateTransfer)
   assert(m_pageMap.find(pageIndex) != m_pageMap.end());
   assert(m_pageMap[pageIndex]->m_lockCount > 0);
 
-  return page;
+  return &page;
 }
 
 void
