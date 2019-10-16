@@ -17,7 +17,8 @@
 
 #include "VolumeDataStore.h"
 
-#include "VolumeDataLayout.h"
+#include "VolumeDataLayoutImpl.h"
+
 #include "Wavelet.h"
 #include "VolumeDataHash.h"
 #include "Rle.h"

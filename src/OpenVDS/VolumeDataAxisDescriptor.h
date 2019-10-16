@@ -18,7 +18,7 @@
 #ifndef VOLUMEDATAAXISDESCRIPTOR_H
 #define VOLUMEDATAAXISDESCRIPTOR_H
 
-#include <Math/Range.h>
+#include <OpenVDS/Range.h>
 
 #include <cmath>
 #include <string>

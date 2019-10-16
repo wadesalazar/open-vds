@@ -16,7 +16,7 @@
 ****************************************************************************/
 
 #include "VolumeDataPageAccessorImpl.h"
-#include "VolumeDataLayout.h"
+#include "VolumeDataLayoutImpl.h"
 #include "VolumeDataLayer.h"
 #include "VolumeDataPageImpl.h"
 #include "VolumeDataStore.h"

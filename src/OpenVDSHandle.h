@@ -22,11 +22,10 @@
 #include <OpenVDS/VolumeDataAxisDescriptor.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/Metadata.h>
+#include <OpenVDS/Vector.h>
 
-#include <Math/Vector.h>
-
+#include "VDS/VolumeDataLayoutImpl.h"
 #include "VDS/VolumeDataLayer.h"
-#include "VDS/VolumeDataLayout.h"
 #include "VDS/MetadataManager.h"
 #include "VDS/VolumeDataAccessManagerImpl.h"
 #include "VDS/VolumeDataRequestProcessor.h"
@@ -70,7 +69,7 @@ struct VDSHandle
 
   MetadataContainer metadataContainer;
 
-  std::unique_ptr<VolumeDataLayout>
+  std::unique_ptr<VolumeDataLayoutImpl>
                     volumeDataLayout;
   std::unique_ptr<VolumeDataAccessManagerImpl>
                     dataAccessManager;

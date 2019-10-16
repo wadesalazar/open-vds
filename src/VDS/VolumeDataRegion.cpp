@@ -17,8 +17,9 @@
 
 #include "VolumeDataRegion.h"
 
+#include <OpenVDS/VolumeDataLayout.h>
+
 #include "VolumeDataChunk.h"
-#include "VolumeDataLayout.h"
 
 #include <assert.h>
 #include <algorithm>

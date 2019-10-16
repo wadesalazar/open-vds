@@ -20,7 +20,7 @@
 
 #include <OpenVDS/VolumeData.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
-#include <Math/Vector.h>
+#include <OpenVDS/Vector.h>
 
 namespace OpenVDS {
 

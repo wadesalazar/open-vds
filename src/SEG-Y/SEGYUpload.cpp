@@ -24,12 +24,12 @@
 #include <OpenVDS/VolumeDataAxisDescriptor.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/VolumeDataAccess.h>
-#include <Math/Range.h>
+#include <OpenVDS/Range.h>
+#include <OpenVDS/VolumeDataLayout.h>
 
-#include "VDS/VolumeDataLayout.h"
-#include "VDS/Hash.h"
 #include "cxxopts.hpp"
 
+#include <mutex>
 #include <cstdlib>
 #include <climits>
 #include <json/json.h>
@@ -754,7 +754,7 @@ main(int argc, char *argv[])
 
   for(int64_t chunk = 0; chunk < amplitudeAccessor->getChunkCount(); chunk++)
   {
-    int done = double(chunk)/amplitudeAccessor->getChunkCount() * 100;
+    int done = int(double(chunk)/amplitudeAccessor->getChunkCount() * 100);
     fmt::print("\r{:3d}% done.", done);
     int32_t errorCount = accessManager->uploadErrorCount();
     for (int i = 0; i < errorCount; i++)

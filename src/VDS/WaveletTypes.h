@@ -18,7 +18,7 @@
 #ifndef WAVELETTYPES_H
 #define WAVELETTYPES_H
 
-#include <Math/Vector.h>
+#include <OpenVDS/Vector.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include "DataBlock.h"
 

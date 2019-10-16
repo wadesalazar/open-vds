@@ -25,7 +25,7 @@
 
 #include <OpenVDS/VolumeDataAccess.h>
 
-#include "VDS/VolumeDataLayout.h"
+#include "VDS/VolumeDataLayoutImpl.h"
 #include "VDS/VolumeDataPageAccessorImpl.h"
 #include "VDS/VolumeDataAccessManagerImpl.h"
 #include "VDS/VolumeDataRequestProcessor.h"
@@ -132,7 +132,7 @@ void createVolumeDataLayout(VDSHandle &handle)
   }
 
   handle.volumeDataLayout.reset(
-    new VolumeDataLayout(
+    new VolumeDataLayoutImpl(
       handle,
       handle.layoutDescriptor,
       handle.axisDescriptors,

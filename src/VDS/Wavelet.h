@@ -20,7 +20,7 @@
 
 #include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
-#include <Math/Vector.h>
+#include <OpenVDS/Vector.h>
 #include "DataBlock.h"
 
 #include <memory>

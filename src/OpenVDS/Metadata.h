@@ -19,7 +19,7 @@
 #define OPENVDS_METADATA_H
 
 #include <unordered_map>
-#include <Math/Vector.h>
+#include <OpenVDS/Vector.h>
 
 #include <string>
 #include <vector>

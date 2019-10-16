@@ -18,7 +18,7 @@
 #include "VolumeDataAccessor.h"
 
 #include "VolumeDataAccessManagerImpl.h"
-#include "VolumeDataLayout.h"
+#include "VolumeDataLayoutImpl.h"
 #include "VolumeDataRequestProcessor.h"
 #include "DataBlock.h"
 

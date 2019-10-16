@@ -8,7 +8,7 @@ set(SOURCE_FILES
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
-  VDS/VolumeDataLayout.cpp
+  VDS/VolumeDataLayoutImpl.cpp
   VDS/VolumeDataRegion.cpp
   VDS/VolumeDataHash.cpp
   VDS/VolumeDataPageAccessorImpl.cpp
@@ -36,7 +36,7 @@ set (PRIVATE_HEADER_FILES
   VDS/VolumeDataPartition.h
   VDS/VolumeDataChannelMapping.h
   VDS/VolumeDataLayer.h
-  VDS/VolumeDataLayout.h
+  VDS/VolumeDataLayoutImpl.h
   VDS/VolumeDataChunk.h
   VDS/VolumeDataRegion.h
   VDS/VolumeDataHash.h
@@ -46,7 +46,6 @@ set (PRIVATE_HEADER_FILES
   VDS/VolumeDataPageImpl.h
   VDS/DimensionGroup.h
   VDS/Hash.h
-  Math/Vector.h
   VDS/Bitmask.h
   VDS/ParseVDSJson.h
   VDS/MetadataManager.h
@@ -78,6 +77,9 @@ set (EXPORTED_HEADER_FILES
   OpenVDS/VolumeDataChannelDescriptor.h
   OpenVDS/VolumeDataAxisDescriptor.h
   OpenVDS/VolumeDataAccess.h
+  OpenVDS/VolumeDataLayout.h
+  OpenVDS/Vector.h
+  OpenVDS/Range.h
   OpenVDS/openvds_export.h)
 
 add_library(openvds_objects OBJECT

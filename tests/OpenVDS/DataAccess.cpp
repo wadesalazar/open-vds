@@ -17,7 +17,7 @@
 
 #include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/VolumeDataAccess.h>
-#include <VDS/VolumeDataLayout.h>
+#include <OpenVDS/VolumeDataLayout.h>
 #include <cstdlib>
 
 #include <gtest/gtest.h>

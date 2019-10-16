@@ -18,10 +18,11 @@
 #ifndef VOLUMEDATAACCESSOR_H
 #define VOLUMEDATAACCESSOR_H
 
+#include <OpenVDS/Vector.h>
+
 #include "VolumeDataPageImpl.h"
 #include "VolumeDataPageAccessorImpl.h"
 #include "VolumeSampler.h"
-#include <Math/Vector.h>
 
 
 namespace OpenVDS

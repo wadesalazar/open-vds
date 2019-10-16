@@ -19,7 +19,7 @@
 
 #include "VolumeDataChunk.h"
 #include "VolumeDataChannelMapping.h"
-#include "VolumeDataLayout.h"
+#include "VolumeDataLayoutImpl.h"
 #include "VolumeDataPageImpl.h"
 #include <OpenVDSHandle.h>
 

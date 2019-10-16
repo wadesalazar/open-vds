@@ -19,7 +19,7 @@
 #define HASH_H_INCLUDE
 
 #include <string>
-#include <Math/Range.h>
+#include <OpenVDS/Range.h>
 
 namespace OpenVDS
 {

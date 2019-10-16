@@ -19,18 +19,17 @@
 #define VOLUMEDATALAYER_H
 
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
+#include <OpenVDS/Range.h>
+#include <OpenVDS/Vector.h>
 
 #include "VolumeDataPartition.h"
 #include "VolumeDataChunk.h"
-
-#include <Math/Range.h>
-#include <Math/Vector.h>
 
 #include <vector>
 
 namespace OpenVDS
 {
-class VolumeDataLayout;
+class VolumeDataLayoutImpl;
 
 class VolumeDataLayer : public VolumeDataPartition
 {
@@ -66,7 +65,7 @@ public:
   };
 
 private:
-  VolumeDataLayout * m_volumeDataLayout;                                          
+  VolumeDataLayoutImpl * m_volumeDataLayout;
 
   VolumeDataLayerID m_layerID;
   int32_t m_channel;
@@ -92,9 +91,9 @@ private:
   uint64_t getFormatHash(VolumeDataChannelDescriptor::Format actualFormat, bool isReplaceNoValue, float replacementNoValue) const;
 
 public:
-  VolumeDataLayer(VolumeDataPartition const& volumeDataPartition, VolumeDataLayout* volumeDataLayout, int32_t channel, VolumeDataLayer* primaryChannelLayer, VolumeDataLayer* lowerLOD, LayerType layerType, const VolumeDataChannelMapping* volumeDataChannelMapping);
+  VolumeDataLayer(VolumeDataPartition const& volumeDataPartition, VolumeDataLayoutImpl* volumeDataLayout, int32_t channel, VolumeDataLayer* primaryChannelLayer, VolumeDataLayer* lowerLOD, LayerType layerType, const VolumeDataChannelMapping* volumeDataChannelMapping);
 
-  VolumeDataLayout *getLayout() const
+  VolumeDataLayoutImpl *getLayout() const
   {
     return m_volumeDataLayout;
   }

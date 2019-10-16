@@ -17,7 +17,7 @@
 
 #include <OpenVDS/VolumeDataLayoutDescriptor.h>
 
-#include "VolumeDataLayout.h"
+#include "VolumeDataLayoutImpl.h"
 #include "VolumeDataChannelMapping.h"
 #include "DimensionGroup.h"
 
@@ -41,7 +41,7 @@ static std::condition_variable &staticGetPendingRequestCountChangedCondition()
   return pendingRequestCountChangedCondition;
 }
 
-VolumeDataLayout::VolumeDataLayout(VDSHandle &handle,
+VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDSHandle &handle,
                    const VolumeDataLayoutDescriptor &layoutDescriptor,
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
                    const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
@@ -91,17 +91,17 @@ VolumeDataLayout::VolumeDataLayout(VDSHandle &handle,
   memset(m_primaryTopLayers, 0, sizeof(m_primaryTopLayers));
 }
 
-VolumeDataLayout::~VolumeDataLayout()
+VolumeDataLayoutImpl::~VolumeDataLayoutImpl()
 {
 }
 
-VolumeDataLayer::VolumeDataLayerID VolumeDataLayout::addDataLayer(VolumeDataLayer *layer)
+VolumeDataLayer::VolumeDataLayerID VolumeDataLayoutImpl::addDataLayer(VolumeDataLayer *layer)
 {
   m_volumeDataLayers.push_back(layer);
   return VolumeDataLayer::VolumeDataLayerID(m_volumeDataLayers.size() - 1);
 }
 
-VolumeDataLayer* VolumeDataLayout::getBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const
+VolumeDataLayer* VolumeDataLayoutImpl::getBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const
 {
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_3D_Max);
   assert(channel >= 0 && channel < getChannelCount());
@@ -115,37 +115,37 @@ VolumeDataLayer* VolumeDataLayout::getBaseLayer(DimensionGroup dimensionGroup, i
   return volumeDataLayer;
 }
 
-FloatRange const& VolumeDataLayout::getChannelActualValueRange(int32_t channel) const
+FloatRange const& VolumeDataLayoutImpl::getChannelActualValueRange(int32_t channel) const
 {
   assert(channel >= 0 && channel < getChannelCount());
   return (channel == m_actualValueRangeChannel) ? m_actualValueRange : m_volumeDataChannelDescriptor[channel].getValueRange();
 }
 
-VolumeDataMapping VolumeDataLayout::getChannelMapping(int32_t channel) const
+VolumeDataMapping VolumeDataLayoutImpl::getChannelMapping(int32_t channel) const
 {
   assert(channel >= 0 && channel < getChannelCount());
   return m_volumeDataChannelDescriptor[channel].getMapping();
 }
 
-int32_t VolumeDataLayout::getChannelMappedValueCount(int32_t channel) const
+int32_t VolumeDataLayoutImpl::getChannelMappedValueCount(int32_t channel) const
 {
   assert(channel >= 0 && channel < getChannelCount());
   return m_volumeDataChannelDescriptor[channel].getMappedValueCount();
 }
 
-FloatRange const& VolumeDataLayout::getDimensionRange(int32_t dimension) const
+FloatRange const& VolumeDataLayoutImpl::getDimensionRange(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < m_dimensionality);
   return m_dimensionRange[dimension];
 }
 
-const VolumeDataChannelMapping* VolumeDataLayout::getVolumeDataChannelMapping(int32_t channel) const
+const VolumeDataChannelMapping* VolumeDataLayoutImpl::getVolumeDataChannelMapping(int32_t channel) const
 {
   assert(channel >= 0 && channel < m_volumeDataChannelDescriptor.size());
   return VolumeDataChannelMapping::getVolumeDataChannelMapping(m_volumeDataChannelDescriptor[channel].getMapping());
 }
 
-VolumeDataLayer *VolumeDataLayout::getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const
+VolumeDataLayer *VolumeDataLayoutImpl::getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const
 {
   assert(volumeDataLayerID >= 0 || volumeDataLayerID == VolumeDataLayer::LayerIdNone);
   if(volumeDataLayerID == VolumeDataLayer::LayerIdNone || volumeDataLayerID >= getLayerCount())
@@ -158,7 +158,7 @@ VolumeDataLayer *VolumeDataLayout::getVolumeDataLayerFromID(VolumeDataLayer::Vol
   }
 }
   
-VolumeDataLayer *VolumeDataLayout::getTopLayer(DimensionGroup dimensionGroup, int32_t channel) const
+VolumeDataLayer *VolumeDataLayoutImpl::getTopLayer(DimensionGroup dimensionGroup, int32_t channel) const
 {
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_3D_Max);
   assert(channel >= 0 && channel < getChannelCount());
@@ -172,7 +172,7 @@ VolumeDataLayer *VolumeDataLayout::getTopLayer(DimensionGroup dimensionGroup, in
   return volumeDataLayer;
 }
 
-int32_t VolumeDataLayout::changePendingWriteRequestCount(int32_t difference)
+int32_t VolumeDataLayoutImpl::changePendingWriteRequestCount(int32_t difference)
 {
   std::unique_lock<std::mutex> pendingRequestCountMutexLock(staticGetPendingRequestCountMutex());
 
@@ -187,7 +187,7 @@ int32_t VolumeDataLayout::changePendingWriteRequestCount(int32_t difference)
   return ret;
 }
 
-void VolumeDataLayout::completePendingWriteChunkRequests(int32_t maxPendingWriteRequests) const
+void VolumeDataLayoutImpl::completePendingWriteChunkRequests(int32_t maxPendingWriteRequests) const
 {
   std::unique_lock<std::mutex> pendingRequestCountMutexLock(staticGetPendingRequestCountMutex());
 
@@ -198,7 +198,7 @@ void VolumeDataLayout::completePendingWriteChunkRequests(int32_t maxPendingWrite
 
 }
 
-bool VolumeDataLayout::isChannelAvailable(const char *channelName) const
+bool VolumeDataLayoutImpl::isChannelAvailable(const char *channelName) const
 {
   int32_t nChannels = getChannelCount();
 
@@ -210,7 +210,7 @@ bool VolumeDataLayout::isChannelAvailable(const char *channelName) const
   return false;
 }
 
-int32_t VolumeDataLayout::getChannelIndex(const char *channelName) const
+int32_t VolumeDataLayoutImpl::getChannelIndex(const char *channelName) const
 {
   int32_t  nChannels = getChannelCount();
 
@@ -222,7 +222,7 @@ int32_t VolumeDataLayout::getChannelIndex(const char *channelName) const
   return 0;
 }
 
-VolumeDataChannelDescriptor VolumeDataLayout::getChannelDescriptor(int32_t channel) const
+VolumeDataChannelDescriptor VolumeDataLayoutImpl::getChannelDescriptor(int32_t channel) const
 {
   assert(channel >= 0 && channel < getChannelCount()); 
 
@@ -264,7 +264,7 @@ VolumeDataChannelDescriptor VolumeDataLayout::getChannelDescriptor(int32_t chann
                                      volumeDataChannelDescriptor.getIntegerOffset());
 }
 
-VolumeDataLayoutDescriptor VolumeDataLayout::getLayoutDescriptor() const
+VolumeDataLayoutDescriptor VolumeDataLayoutImpl::getLayoutDescriptor() const
 {
   VolumeDataLayoutDescriptor::BrickSize
     brickSize;
@@ -300,7 +300,7 @@ VolumeDataLayoutDescriptor VolumeDataLayout::getLayoutDescriptor() const
                                     m_fullResolutionDimension);
 }
 
-VolumeDataAxisDescriptor VolumeDataLayout::getAxisDescriptor(int32_t dimension) const
+VolumeDataAxisDescriptor VolumeDataLayoutImpl::getAxisDescriptor(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < m_dimensionality);
   return VolumeDataAxisDescriptor(getDimensionNumSamples(dimension),
@@ -309,37 +309,37 @@ VolumeDataAxisDescriptor VolumeDataLayout::getAxisDescriptor(int32_t dimension) 
                                   getDimensionRange(dimension));
 }
 
-int VolumeDataLayout::getDimensionNumSamples(int32_t dimension) const
+int VolumeDataLayoutImpl::getDimensionNumSamples(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < array_size(m_dimensionNumSamples));
   return m_dimensionNumSamples[dimension];
 }
 
-const char *VolumeDataLayout::getDimensionName(int32_t dimension) const
+const char *VolumeDataLayoutImpl::getDimensionName(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < array_size(m_dimensionName));
   return m_dimensionName[dimension];
 }
 
-const char *VolumeDataLayout::getDimensionUnit(int32_t dimension) const
+const char *VolumeDataLayoutImpl::getDimensionUnit(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < array_size(m_dimensionUnit));
   return m_dimensionUnit[dimension];
 }
   
-void VolumeDataLayout::setContentsHash(VolumeDataHash const &contentsHash)
+void VolumeDataLayoutImpl::setContentsHash(VolumeDataHash const &contentsHash)
 {
   m_contentsHash = contentsHash;
 }
 
-void VolumeDataLayout::setActualValueRange(int32_t actualValueRangeChannel, FloatRange const& actualValueRange)
+void VolumeDataLayoutImpl::setActualValueRange(int32_t actualValueRangeChannel, FloatRange const& actualValueRange)
 {
   m_actualValueRangeChannel = actualValueRangeChannel;
   m_actualValueRange = actualValueRange;
 }
 
 
-void VolumeDataLayout::createLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels, VolumeDataLayer::ProduceStatus produceStatus)
+void VolumeDataLayoutImpl::createLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels, VolumeDataLayer::ProduceStatus produceStatus)
 {
   assert(physicalLODLevels > 0);
 

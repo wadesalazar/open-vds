@@ -25,6 +25,7 @@
 #include "ParseVDSJson.h"
 #include "VolumeDataStore.h"
 #include "VolumeDataHash.h"
+#include "VolumeDataLayoutImpl.h"
 
 #include <cmath>
 #include <algorithm>
@@ -180,7 +181,7 @@ static IORange calculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, co
   return { 0 , 0 };
 }
 
-static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayout const *layout, DimensionsND dimension, int channel, int lod, bool isAllowFailure)
+static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayoutImpl const *layout, DimensionsND dimension, int channel, int lod, bool isAllowFailure)
 {
   if(!layout)
   {
@@ -236,11 +237,16 @@ VolumeDataLayout const* VolumeDataAccessManagerImpl::getVolumeDataLayout() const
   return m_handle.volumeDataLayout.get();
 }
 
+VolumeDataLayoutImpl const* VolumeDataAccessManagerImpl::getVolumeDataLayoutImpl() const
+{
+  return m_handle.volumeDataLayout.get();
+}
+
 VolumeDataPageAccessor* VolumeDataAccessManagerImpl::createVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  VolumeDataLayer *layer = getVolumeDataLayer(volumeDataLayout, dimensionsND, channel, lod, true);
+  VolumeDataLayer *layer = getVolumeDataLayer(static_cast<VolumeDataLayoutImpl const *>(volumeDataLayout), dimensionsND, channel, lod, true);
   if (!layer)
     return nullptr;
 
@@ -516,7 +522,7 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
   std::shared_ptr<std::vector<uint8_t>> to_write = std::make_shared<std::vector<uint8_t>>();
   uint64_t hash;
 
-  if (!VolumeDataStore::serializeVolumeData(chunk, dataBlock, data, getVolumeDataLayout()->getCompressionMethod(), *to_write, hash, error))
+  if (!VolumeDataStore::serializeVolumeData(chunk, dataBlock, data, getVolumeDataLayoutImpl()->getCompressionMethod(), *to_write, hash, error))
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_uploadErrors.emplace_back(new UploadError(error, url));

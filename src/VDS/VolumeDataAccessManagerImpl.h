@@ -150,6 +150,7 @@ public:
   VolumeDataAccessManagerImpl(VDSHandle &handle);
   ~VolumeDataAccessManagerImpl() override;
   VolumeDataLayout const *getVolumeDataLayout() const override;
+  VolumeDataLayoutImpl const *getVolumeDataLayoutImpl() const;
   VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) override;
 
   void  destroyVolumeDataPageAccessor(VolumeDataPageAccessor *volumeDataPageAccessor) override;

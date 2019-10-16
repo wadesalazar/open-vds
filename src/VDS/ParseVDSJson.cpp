@@ -17,7 +17,7 @@
 
 #include "ParseVDSJson.h"
 #include "VolumeDataLayer.h"
-#include "VolumeDataLayout.h"
+#include "VolumeDataLayoutImpl.h"
 #include "VolumeDataHash.h"
 #include "MetadataManager.h"
 
@@ -975,7 +975,7 @@ std::string to_string(CompressionMethod compressionMethod)
   };
 }
 
-Json::Value serializeVolumeDataLayout(VolumeDataLayout const &volumeDataLayout, MetadataContainer const &metadataContainer)
+Json::Value serializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayout, MetadataContainer const &metadataContainer)
 {
   Json::Value root;
 
@@ -1057,7 +1057,7 @@ Json::Value serializeMetadataStatus(MetadataStatus const &metadataStatus)
   return metadataStatusJson;
 }
 
-Json::Value serializeLayerStatusArray(VolumeDataLayout const &volumeDataLayout, LayerMetadataContainer const &layerMetadataContainer)
+Json::Value serializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayout, LayerMetadataContainer const &layerMetadataContainer)
 {
   Json::Value layerStatusArrayJson(Json::arrayValue);
 

@@ -19,8 +19,9 @@
 #define VOLUMESAMPLER_H
 
 #include <OpenVDS/VolumeData.h>
+#include <OpenVDS/Vector.h>
+
 #include "ValueConversion.h"
-#include <Math/Vector.h>
 
 #include <cmath>
 

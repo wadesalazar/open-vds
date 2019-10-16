@@ -31,8 +31,8 @@ namespace OpenVDS
   bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error);
   bool parseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error);
 
-  Json::Value serializeVolumeDataLayout(VolumeDataLayout const &volumeDataLayout, MetadataContainer const &metadataContainer);
-  Json::Value serializeLayerStatusArray(VolumeDataLayout const &volumeDataLayout, LayerMetadataContainer const &layerMetadataContainer);
+  Json::Value serializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayout, MetadataContainer const &metadataContainer);
+  Json::Value serializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayout, LayerMetadataContainer const &layerMetadataContainer);
 
   std::vector<uint8_t> writeJson(Json::Value root);
 }

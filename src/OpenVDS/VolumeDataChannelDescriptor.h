@@ -19,8 +19,8 @@
 #define VOLUMEDATACHANNELDESCRIPTOR_H
 
 #include <string>
-#include <Math/Range.h>
 
+#include <OpenVDS/Range.h>
 #include <OpenVDS/VolumeData.h>
 
 namespace OpenVDS
