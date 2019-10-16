@@ -123,15 +123,36 @@ inline bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
 
 struct PendingUploadRequest
 {
-  std::shared_ptr<Request> m_request;
+  std::string url;
+  std::string contentDispositionName;
+  std::vector<std::pair<std::string, std::string>> metaMap;
+  std::shared_ptr<std::vector<uint8_t>> data;
+  std::function<void(const Request & request, const Error & error)> completedCallback;
+  uint32_t attempts;
+  std::shared_ptr<Request> request;
 
-  MetadataPage* m_lockedMetadataPage;
-
-  PendingUploadRequest() : m_request(), m_lockedMetadataPage()
+  PendingUploadRequest()
+    : request()
+    , attempts(0)
   {
   }
 
-  PendingUploadRequest(std::shared_ptr<Request> request, MetadataPage* lockedMetadataPage) : m_request(request), m_lockedMetadataPage(lockedMetadataPage) {}
+  PendingUploadRequest(IOManager &ioManager,  const std::string &url, const std::string contentDispositionName,  std::vector<std::pair<std::string, std::string>> &metaMap, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
+    : url(url)
+    , contentDispositionName(contentDispositionName)
+    , metaMap(metaMap)
+    , data(data)
+    , completedCallback(completedCallback)
+    , attempts(0)
+  {
+    startNewUpload(ioManager);
+  }
+
+  void startNewUpload(IOManager &ioManager)
+  {
+    request = ioManager.uploadBinary(url, contentDispositionName, metaMap, data, completedCallback);
+    attempts++;
+  }
 };
 
 struct UploadError
