@@ -55,7 +55,8 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
   int pitch[OpenVDS::Dimensionality_Max] = {}; 
   const void *buffer = page->getBuffer(pitch);
   ASSERT_TRUE(buffer);
-  for (auto p : pitch) ASSERT_NE(p, 0);
+  for (int i = 0; i < layout->getDimensionality(); i++)
+    ASSERT_NE(pitch[i], 0);
 
   int min[6];
   int max[6];
