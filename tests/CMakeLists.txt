@@ -13,14 +13,17 @@ set_target_properties(gtest_main PROPERTIES
 
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/src)
 
-macro(add_test_executable name)
+function(add_test_executable name)
   add_executable(${name} ${ARGN})
   target_link_libraries(${name} openvds_objects gtest gtest_main)
   target_compile_definitions(${name} PRIVATE openvds_EXPORTS)
   copyDllForTarget(${name})
   gtest_discover_tests(${name})
   set_target_properties(${name} PROPERTIES FOLDER tests)
-endmacro()
+  get_target_property(fmt_INCLUDE fmt::fmt INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(json_INCLUDE jsoncpp_lib_static INTERFACE_INCLUDE_DIRECTORIES)
+  target_include_directories(${name} PRIVATE ${fmt_INCLUDE} ${json_INCLUDE})
+endfunction()
 
 add_test_executable(io_tests
   io/filetest.cpp)

@@ -16,12 +16,12 @@ add_executable(SEGYUpload
     )
 	
 target_include_directories(SEGYScan PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
-target_link_libraries(SEGYScan PUBLIC Threads::Threads openvds jsoncpp_lib_static)
+target_link_libraries(SEGYScan PUBLIC Threads::Threads openvds jsoncpp_lib_static fmt::fmt)
 
 copyDllForTarget(SEGYScan)
 
 target_include_directories(SEGYUpload PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
-target_link_libraries(SEGYUpload PUBLIC Threads::Threads openvds jsoncpp_lib_static)
+target_link_libraries(SEGYUpload PUBLIC Threads::Threads openvds jsoncpp_lib_static fmt::fmt)
 
 copyDllForTarget(SEGYUpload)
 

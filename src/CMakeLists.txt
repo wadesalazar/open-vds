@@ -82,11 +82,25 @@ set (EXPORTED_HEADER_FILES
   OpenVDS/Range.h
   OpenVDS/openvds_export.h)
 
+
 add_library(openvds_objects OBJECT
   ${PRIVATE_HEADER_FILES}
   ${EXPORTED_HEADER_FILES}
   ${SOURCE_FILES})
 
+function(compileInTarget to_target source_target)
+  get_target_property(src_sources ${source_target} SOURCES)
+  get_target_property(src_include ${source_target} INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(src_dir ${source_target} SOURCE_DIR)
+  foreach (src_file ${src_sources})
+    set(complete_file "${src_dir}/${src_file}")
+    target_sources(${to_target} PRIVATE ${complete_file})
+  endforeach()
+  target_include_directories(${to_target} PRIVATE ${src_include})
+endfunction()
+
+compileInTarget(openvds_objects fmt::fmt)
+compileInTarget(openvds_objects jsoncpp_lib_static)
 
 if(MSVC_VERSION)
   set_source_files_properties(VDS/VolumeDataAccessor.cpp PROPERTIES COMPILE_FLAGS /bigobj)
@@ -101,24 +115,22 @@ add_dependencies(openvds_objects aws-cpp-sdk)
 target_include_directories(openvds_objects SYSTEM PRIVATE ${include_3rdparty} "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(openvds_objects PRIVATE openvds_EXPORTS)
 
-target_link_libraries(openvds_objects Threads::Threads)
-target_link_libraries(openvds_objects jsoncpp_lib_static)
-target_link_libraries(openvds_objects fmt::fmt)
+target_link_libraries(openvds_objects PUBLIC Threads::Threads)
 
 if (aws-cpp-sdk_EXTERNAL_LIBS)
-  target_link_libraries(openvds_objects ${aws-cpp-sdk_EXTERNAL_LIBS})
+  target_link_libraries(openvds_objects PUBLIC ${aws-cpp-sdk_EXTERNAL_LIBS})
 endif()
-target_link_libraries(openvds_objects $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)
+target_link_libraries(openvds_objects PUBLIC $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)
 
 if (OpenMP_CXX_FOUND)
-    target_link_libraries(openvds_objects OpenMP::OpenMP_CXX)
+    target_link_libraries(openvds_objects PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 if (BUILD_ZLIB)
   add_dependencies(openvds_objects zlib)
 else()
   find_package(ZLIB REQUIRED)
-  target_link_libraries(openvds_objects ZLIB::ZLIB)
+  target_link_libraries(openvds_objects PUBLIC ZLIB::ZLIB)
 endif()
 
 if (WIN32)
@@ -152,7 +164,7 @@ if (${MSVC_TOOLSET_VERSION})
   set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION}")
 endif()
 
-install(TARGETS openvds openvds_objects jsoncpp_lib_static fmt
+install(TARGETS openvds openvds_objects
   EXPORT openvds-export
   ARCHIVE
     DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR}
@@ -185,8 +197,6 @@ export(
     TARGETS
         openvds
         openvds_objects
-        jsoncpp_lib_static
-        fmt
     NAMESPACE
         openvds::
     FILE
