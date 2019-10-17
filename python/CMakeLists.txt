@@ -10,6 +10,12 @@ find_package(PythonInterp REQUIRED)
 set(python ${PYTHON_EXECUTABLE})
 set(setup.py ${CMAKE_CURRENT_SOURCE_DIR}/setup.py)
 
+#this line doesn't work to have inline in add_custom_target so expand it in a variable
+#$<$<BOOL:${zlib_INSTALL_INT_CONFIG}>:-DCMAKE_PREFIX_PATH=${zlib_INSTALL_INT_CONFIG}>
+if (zlib_INSTALL_INT_CONFIG)
+    set(ZLIB_PREFIX_PATH "-DCMAKE_PREFIX_PATH=${zlib_INSTALL_INT_CONFIG}")
+endif()
+
 add_custom_target(
     openvds-python ALL
     COMMENT "Building python library with setup.py"
@@ -28,7 +34,7 @@ add_custom_target(
             $<$<BOOL:$<CONFIG>>:--build-type=$<CONFIG>>
         -- # cmake to the extension
             -Dopenvds_DIR=${OPENVDS_LIB_BINARY_DIR}
-            $<$<BOOL:${zlib_INSTALL_INT_CONFIG}>:-DCMAKE_PREFIX_PATH=${zlib_INSTALL_INT_CONFIG}>
+            ${ZLIB_PREFIX_PATH}
             # "install" to the python/openvds dir with rpath, so there's no need
             # to fiddle with environment in ctest to load the core library from
             # the build tree
