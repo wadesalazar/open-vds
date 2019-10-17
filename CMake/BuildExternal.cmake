@@ -1,14 +1,16 @@
+function(GetRootInstallDir var name version)
+  set(${var} "${PROJECT_BINARY_DIR}/${name}_${version}_install" PARENT_SCOPE)
+endfunction()
+
 function(BuildExternal name version source_dir install_libs_release runtime_libs_release install_libs_debug runtime_libs_debug cmake_args)
 
-  set(INSTALL_INT "${PROJECT_BINARY_DIR}/${name}_${version}_install")
-
+  GetRootInstallDir(INSTALL_INT ${name} ${version})
 
   get_property(_isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
   if (${_isMultiConfig}) ##we don't need build byproducts for visual studio or xcode
-    set(CMAKE_BUILD_TYPE_ARG "-DCMAKE_BUILD_TYPE=$<CONFIG>")
     set(INSTALL_INT_CONFIG "${INSTALL_INT}/$<CONFIG>")
   else()
-    set(CMAKE_BUILD_TYPE_ARG "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+    set(CMAKE_BUILD_TYPE_ARG "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE};")
     set(INSTALL_INT_CONFIG "${INSTALL_INT}/${CMAKE_BUILD_TYPE}")
     foreach (LIB IN LISTS install_libs_release)
       list(APPEND BUILDBYPRODUCTS "${INSTALL_INT_CONFIG}/${LIB}")
@@ -48,14 +50,12 @@ function(BuildExternal name version source_dir install_libs_release runtime_libs
     set(cmake_arg_complete "${cmake_args};")
   endif()
   set(cmake_arg_complete "${cmake_arg_complete}${CMAKE_BUILD_TYPE_ARG}")
-  set(cmake_arg_complete "${cmake_arg_complete};-DCMAKE_INSTALL_PREFIX=${INSTALL_INT_CONFIG}")
+  set(cmake_arg_complete "${cmake_arg_complete}-DCMAKE_INSTALL_PREFIX=${INSTALL_INT_CONFIG}")
   include(ExternalProject)
   ExternalProject_Add(${name}
     PREFIX ${PROJECT_BINARY_DIR}/${name}_${version}
     SOURCE_DIR ${source_dir}
     BUILD_IN_SOURCE OFF
-    URL ""
-    INSTALL_DIR ${INSTALL_INT_CONFIG}
     CMAKE_ARGS ${cmake_arg_complete}
     BUILD_BYPRODUCTS ${BUILDBYPRODUCTS})
 endfunction()
