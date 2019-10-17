@@ -18,3 +18,6 @@ In order to implement these components there are a number of internal components
 - Decompression (Zip, Run-lenght encoding, Bluware Inc. properitary Wavelet compression)
 - VolumeDataLayout (manages how the volume is divided into chunks)
 - File (UTF-8 filenames, thread-safe read/write, possibility to create memory-mapped file views)
+
+
+Licensed under [**Apache 2.0**](https://gitlab.opengroup.org/osdu/open-vds/blob/master/LICENSE)
