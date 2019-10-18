@@ -756,6 +756,7 @@ main(int argc, char *argv[])
   {
     int done = int(double(chunk)/amplitudeAccessor->getChunkCount() * 100);
     fmt::print("\r{:3d}% done.", done);
+    fflush(stdout);
     int32_t errorCount = accessManager->uploadErrorCount();
     for (int i = 0; i < errorCount; i++)
     {
@@ -763,7 +764,7 @@ main(int argc, char *argv[])
       int32_t error_code;
       const char *error_string;
       accessManager->getCurrentUploadError(&object_id, &error_code, &error_string);
-      fprintf(stderr, "Failed to upload object: %s. Error code %d: %s\n", object_id, error_code, error_string);
+      fprintf(stderr, "\nFailed to upload object: %s. Error code %d: %s\n", object_id, error_code, error_string);
     }
     if (errorCount && !force)
     {
@@ -880,6 +881,8 @@ main(int argc, char *argv[])
   amplitudeAccessor->commit();
   traceFlagAccessor->commit();
   segyTraceHeaderAccessor->commit();
+  
+  fmt::print("\r100% done.");
 
   fileView.reset();
   return EXIT_SUCCESS;
