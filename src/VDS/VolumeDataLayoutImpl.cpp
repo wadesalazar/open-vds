@@ -63,6 +63,7 @@ VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDSHandle &handle,
   , m_isCreate2DLODs(layoutDescriptor.isCreate2DLODs())
   , m_actualValueRangeChannel(actualValueRangeChannel)
   , m_contentsHash(volumeDataHash)
+  , m_pendingWriteRequests(0)
   , m_actualValueRange(actualValueRange)
   , m_compressionMethod(compressionMethod)
   , m_compressionTolerance(compressionTolerance)
@@ -191,11 +192,7 @@ void VolumeDataLayoutImpl::completePendingWriteChunkRequests(int32_t maxPendingW
 {
   std::unique_lock<std::mutex> pendingRequestCountMutexLock(staticGetPendingRequestCountMutex());
 
-  while (m_pendingWriteRequests > maxPendingWriteRequests)
-  {
-    staticGetPendingRequestCountChangedCondition().wait_for(pendingRequestCountMutexLock, std::chrono::milliseconds(10));
-  }
-
+  staticGetPendingRequestCountChangedCondition().wait(pendingRequestCountMutexLock, [this, maxPendingWriteRequests] { return m_pendingWriteRequests <= maxPendingWriteRequests; });
 }
 
 bool VolumeDataLayoutImpl::isChannelAvailable(const char *channelName) const

@@ -882,7 +882,7 @@ main(int argc, char *argv[])
   traceFlagAccessor->commit();
   segyTraceHeaderAccessor->commit();
   
-  fmt::print("\r100% done.");
+  fmt::print("\r100% done.\n");
 
   fileView.reset();
   return EXIT_SUCCESS;
