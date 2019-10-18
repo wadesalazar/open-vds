@@ -108,6 +108,8 @@ endif()
 
 get_property(link_3rdparty_release GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_RELEASE)
 get_property(link_3rdparty_debug   GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_DEBUG)
+get_property(runtime_3rdparty_release GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_RELEASE)
+get_property(runtime_3rdparty_debug   GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_DEBUG)
 get_property(include_3rdparty      GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES)
 
 add_dependencies(openvds_objects aws-cpp-sdk)
@@ -179,19 +181,17 @@ install(TARGETS openvds openvds_objects
   PRIVATE_HEADER
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/OpenVDS/private)
 
-  install(FILES ${aws-cpp-sdk_LIBS} ${zlib_LIBS}
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR})
-  if (aws-cpp-sdk_RUNTIME)
-    install(FILES ${aws-cpp-sdk_RUNTIME} ${zlib_RUNTIME}
-      DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
-  endif()
-
 install(
     EXPORT openvds-export
     NAMESPACE openvds::
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openvds/cmake
     FILE openvds-config.cmake
 )
+
+install(FILES ${link_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR})
+install(FILES ${link_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR})
+install(FILES ${runtime_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
+install(FILES ${runtime_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
 
 export(
     TARGETS

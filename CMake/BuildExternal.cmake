@@ -38,10 +38,10 @@ function(BuildExternal name version source_dir install_libs_release runtime_libs
   endforeach()
 
   foreach (LIB IN LISTS runtime_libs_release)
-    set_property(GLOBAL APPEND PROPERTY RUNTIME_LIBS_RELEASE "${INSTALL_INT_CONFIG}/${LIB}")
+    set_property(GLOBAL APPEND PROPERTY OPENVDS_RUNTIME_LIBS_RELEASE "${INSTALL_INT_CONFIG}/${LIB}")
   endforeach()
   foreach (LIB IN LISTS runtime_libs_debug)
-    set_property(GLOBAL APPEND PROPERTY RUNTIME_LIBS_DEBUG "${INSTALL_INT_CONFIG}/${LIB}")
+    set_property(GLOBAL APPEND PROPERTY OPENVDS_RUNTIME_LIBS_DEBUG "${INSTALL_INT_CONFIG}/${LIB}")
   endforeach()
 
   set_property(GLOBAL APPEND PROPERTY OPENVDS_INCLUDE_LIBRARIES "${INSTALL_INT_CONFIG}/include")

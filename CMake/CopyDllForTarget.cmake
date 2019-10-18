@@ -9,8 +9,8 @@ function(copyDllForTarget target)
                   )
       target_sources(${target} PRIVATE ${target}_copy_vds)
 
-      get_property(runtime_release GLOBAL PROPERTY RUNTIME_LIBS_RELEASE)
-      get_property(runtime_debug   GLOBAL PROPERTY RUNTIME_LIBS_DEBUG)
+      get_property(runtime_release GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_RELEASE)
+      get_property(runtime_debug   GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_DEBUG)
       foreach(file ${runtime_release})
         add_custom_command(TARGET ${target}
           POST_BUILD
