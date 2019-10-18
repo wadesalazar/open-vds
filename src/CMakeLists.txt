@@ -202,6 +202,10 @@ export(
     FILE
         openvds-config.cmake
 )
+
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
+include (InstallRequiredSystemLibraries)
+
 set(OPENVDS_LIB_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "")
 
 add_subdirectory(SEG-Y)
