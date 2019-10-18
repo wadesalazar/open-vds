@@ -19,5 +19,33 @@ In order to implement these components there are a number of internal components
 - VolumeDataLayout (manages how the volume is divided into chunks)
 - File (UTF-8 filenames, thread-safe read/write, possibility to create memory-mapped file views)
 
-
 Licensed under [**Apache 2.0**](https://gitlab.opengroup.org/osdu/open-vds/blob/master/LICENSE)
+
+### Building
+By default OpenVDS builds the Python 3 bindings. To install the required dependencies go into ${OpenVDSFolder}/python folder and run:
+`$ pip3 install -r requirements-dev.txt`
+To disable building the Python 3 bindings use the -DBUILD_PYTHON=OFF cmake argument.
+
+#### Linux
+Make a build directory in the OpenVDS folder and change current directory to the created folder.
+Do:
+`$ cmake ..`
+to configure with default build settings. Now its possible to do `$ make -j8`
+to build and `$ make install` to install the package. To specify a custom
+install location specify the -DCMAKE_INSTALL_PREFIX=PATH cmake argument.
+
+#### Windows Visual Studio
+Much like on Linux its possible to generate a project in a build folder and build it using native tools.
+To generate a Visual Studio solution make a build directory in the OpenVDS folder and change current directory to the build folder. Either use `$ cmake ..` or launch cmake-gui and generate a visual studio solution.
+
+OpenVDS also supports using the cmake integration in Visual Studio. Open Visual Studio and use the "Open a local folder" to open the OpenVDS folder.
+
+#### Build options
+- BUILD_PYTHON (ON|OFF)
+- ENABLE_OPENMP (ON|OFF)
+- BUILD_ZLIB (ON|OFF)
+- CMAKE_INSTALL_PREFIX (PATH)
+- CMAKE_BUILD_TYPE (Debug|Release|RelWithDebInfo|MinSizeRel)
+
+Build options are arguments to cmake. `$ cmake -DBUILD_PYTHON=OFF ..` would turn off building python.
+
