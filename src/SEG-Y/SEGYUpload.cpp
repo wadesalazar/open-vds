@@ -359,13 +359,13 @@ createSurveyCoordinateSystemMetadata(SEGYFileInfo const &fileInfo, OpenVDS::Meta
 
   {
     OpenVDS::MetadataKey key = { OpenVDS::MetadataType::DoubleVector2, LATTICE_CATEGORY, LATTICE_INLINE_SPACING };
-    metadataContainer.doubleVector2Data[key] = OpenVDS::DoubleVector2(crosslineSpacing[0], crosslineSpacing[1]);
+    metadataContainer.doubleVector2Data[key] = OpenVDS::DoubleVector2(inlineSpacing[0], inlineSpacing[1]);
     metadataContainer.keys.push_back(key);
   }
 
   {
     OpenVDS::MetadataKey key = { OpenVDS::MetadataType::DoubleVector2, LATTICE_CATEGORY, LATTICE_CROSSLINE_SPACING };
-    metadataContainer.doubleVector2Data[key] = OpenVDS::DoubleVector2(inlineSpacing[0], inlineSpacing[1]);
+    metadataContainer.doubleVector2Data[key] = OpenVDS::DoubleVector2(crosslineSpacing[0], crosslineSpacing[1]);
     metadataContainer.keys.push_back(key);
   }
 }
