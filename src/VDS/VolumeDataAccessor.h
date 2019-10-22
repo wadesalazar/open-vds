@@ -27,7 +27,6 @@
 
 namespace OpenVDS
 {
-
 template <typename INDEX> INDEX ndPosToVector(const int (&pos)[Dimensionality_Max]){ assert(false); } ;
 
 template <> IntVector2 ndPosToVector<IntVector2>(const int (&pos)[Dimensionality_Max]) { return { pos[1], pos[0]}; }

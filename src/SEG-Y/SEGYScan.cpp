@@ -23,6 +23,7 @@
 #include <climits>
 #include <json/json.h>
 #include <assert.h>
+#include <fmt/format.h>
 
 Json::Value
 serializeSEGYBinInfo(SEGYBinInfo const &binInfo)
@@ -91,20 +92,13 @@ serializeSEGYHeaderField(SEGY::HeaderField const &headerField)
   return jsonHeaderField;
 }
 
-std::string to_hexstring(uint64_t value)
-{
-  char buffer[sizeof(value) * 2 + 1];
-  snprintf(buffer, sizeof(buffer), "%llX", value);
-  return std::string(buffer);
-}
-
 Json::Value
 serializeSEGYFileInfo(SEGYFileInfo const &fileInfo)
 {
   Json::Value
     jsonFileInfo;
 
-  jsonFileInfo["persistentID"]         = to_hexstring(fileInfo.m_persistentID);
+  jsonFileInfo["persistentID"]         = fmt::format("{:X}", fileInfo.m_persistentID);
   jsonFileInfo["headerEndianness"]     = to_string(fileInfo.m_headerEndianness);
   jsonFileInfo["dataSampleFormatCode"] = (int)fileInfo.m_dataSampleFormatCode;
   jsonFileInfo["sampleCount"]          = fileInfo.m_sampleCount;

@@ -269,7 +269,9 @@ static void createTransformData(Wavelet_TransformData (&transformData)[TRANSFORM
         else             endWrite[2] = bandSize[i + 1][2];
 
 
-        IntVector3 delta = Subtract(endWrite, startWrite);
+        IntVector3 delta = IntVector3(endWrite.X - startWrite.X,
+                                      endWrite.Y - startWrite.Y,
+                                      endWrite.Z - startWrite.Z);
 
         if (currentTransformMask & 1) delta[0] *= 2;
         if (currentTransformMask & 2) delta[1] *= 2;
@@ -314,7 +316,9 @@ static void createTransformData(Wavelet_TransformData (&transformData)[TRANSFORM
 
           // Are there some places we need to create 3 children along one axis?
 
-          endRead = Subtract(endRead, startRead);
+          endRead = IntVector3(endRead.X - startRead.X,
+                               endRead.Y - startRead.Y,
+                               endRead.Z - startRead.Z);
 
           transformData[i].subBandInfo[iSector].extraChildEdge[iSubBand] = {-1, -1, -1};
           

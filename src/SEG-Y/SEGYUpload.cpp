@@ -26,6 +26,7 @@
 #include <OpenVDS/VolumeDataAccess.h>
 #include <OpenVDS/Range.h>
 #include <OpenVDS/VolumeDataLayout.h>
+#include <OpenVDS/GlobalMetadataCommon.h>
 
 #include "cxxopts.hpp"
 
@@ -249,6 +250,127 @@ analyzeSegment(OpenVDS::File const &file, SEGYFileInfo const &fileInfo, SEGYSegm
 }
 
 bool
+createSEGYHeadersMetadata(OpenVDS::File const &file, OpenVDS::MetadataContainer &metadataContainer, OpenVDS::IOError &error)
+{
+  std::vector<uint8_t> textHeader(SEGY::TextualFileHeaderSize);
+  std::vector<uint8_t> binaryHeader(SEGY::BinaryFileHeaderSize);
+
+  // Read headers
+  bool success = file.read(  textHeader.data(),                           0, SEGY::TextualFileHeaderSize, error) &&
+                 file.read(binaryHeader.data(), SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize,  error);
+
+  if(!success) return false;
+
+  // Create metadata
+  {
+    OpenVDS::MetadataKey key = { OpenVDS::MetadataType::BLOB, "SEGY", "TextHeader" };
+    metadataContainer.blobData[key] = textHeader;
+    metadataContainer.keys.push_back(key);
+  }
+
+  {
+    OpenVDS::MetadataKey key = { OpenVDS::MetadataType::BLOB, "SEGY", "BinaryHeader" };
+    metadataContainer.blobData[key] = binaryHeader;
+    metadataContainer.keys.push_back(key);
+  }
+
+  return success;
+}
+
+void
+createSurveyCoordinateSystemMetadata(SEGYFileInfo const &fileInfo, OpenVDS::MetadataContainer &metadataContainer)
+{
+  if(fileInfo.m_segmentInfo.empty()) return;
+
+  double inlineSpacing[2] = {0, 0};
+  double crosslineSpacing[2] = {0, 0};
+
+  // Determine crossline spacing
+  int countedCrosslineSpacings = 0;
+
+  for(auto const &segmentInfo : fileInfo.m_segmentInfo)
+  {
+    int crosslineCount = segmentInfo.m_binInfoStop.m_crosslineNumber - segmentInfo.m_binInfoStart.m_crosslineNumber;
+
+    if(crosslineCount == 0 || segmentInfo.m_binInfoStart.m_inlineNumber != segmentInfo.m_binInfoStop.m_inlineNumber) continue;
+
+    double segmentCrosslineSpacing[3];
+
+    segmentCrosslineSpacing[0] = (segmentInfo.m_binInfoStop.m_ensembleXCoordinate - segmentInfo.m_binInfoStart.m_ensembleXCoordinate) / crosslineCount;
+    segmentCrosslineSpacing[1] = (segmentInfo.m_binInfoStop.m_ensembleYCoordinate - segmentInfo.m_binInfoStart.m_ensembleYCoordinate) / crosslineCount;
+
+    crosslineSpacing[0] += segmentCrosslineSpacing[0];
+    crosslineSpacing[1] += segmentCrosslineSpacing[1];
+
+    countedCrosslineSpacings++;
+  }
+
+  if(countedCrosslineSpacings > 0)
+  {
+    crosslineSpacing[0] /= countedCrosslineSpacings;
+    crosslineSpacing[1] /= countedCrosslineSpacings;
+  }
+  else
+  {
+    crosslineSpacing[0] = 0;
+    crosslineSpacing[1] = 1;
+  }
+
+  // Determine inline spacing
+  SEGYSegmentInfo const &firstSegmentInfo = fileInfo.m_segmentInfo.front();
+  SEGYSegmentInfo const &lastSegmentInfo = fileInfo.m_segmentInfo.back();
+
+  if(firstSegmentInfo.m_binInfoStart.m_inlineNumber != lastSegmentInfo.m_binInfoStart.m_inlineNumber)
+  {
+    int inlineNunberDelta = lastSegmentInfo.m_binInfoStart.m_inlineNumber - firstSegmentInfo.m_binInfoStart.m_inlineNumber;
+    int crosslineNunberDelta = lastSegmentInfo.m_binInfoStart.m_crosslineNumber - firstSegmentInfo.m_binInfoStart.m_crosslineNumber;
+
+    double offset[2] = { crosslineSpacing[0] * crosslineNunberDelta,
+                         crosslineSpacing[1] * crosslineNunberDelta };
+
+    inlineSpacing[0] = (lastSegmentInfo.m_binInfoStart.m_ensembleXCoordinate - firstSegmentInfo.m_binInfoStart.m_ensembleXCoordinate - offset[0]) / inlineNunberDelta;
+    inlineSpacing[1] = (lastSegmentInfo.m_binInfoStart.m_ensembleYCoordinate - firstSegmentInfo.m_binInfoStart.m_ensembleYCoordinate - offset[1]) / inlineNunberDelta;
+  }
+  else
+  {
+    // make square voxels
+    inlineSpacing[0] =  crosslineSpacing[1];
+    inlineSpacing[1] = -crosslineSpacing[0];
+  }
+ 
+  // Determine origin
+  double origin[2];
+
+  origin[0] = firstSegmentInfo.m_binInfoStart.m_ensembleXCoordinate;
+  origin[1] = firstSegmentInfo.m_binInfoStart.m_ensembleYCoordinate;
+
+  origin[0] -= inlineSpacing[0] * firstSegmentInfo.m_binInfoStart.m_inlineNumber;
+  origin[1] -= inlineSpacing[1] * firstSegmentInfo.m_binInfoStart.m_inlineNumber;
+
+  origin[0] -= crosslineSpacing[0] * firstSegmentInfo.m_binInfoStart.m_crosslineNumber;
+  origin[1] -= crosslineSpacing[1] * firstSegmentInfo.m_binInfoStart.m_crosslineNumber;
+
+  // Set coordinate system
+  {
+    OpenVDS::MetadataKey key = { OpenVDS::MetadataType::DoubleVector2, LATTICE_CATEGORY, LATTICE_ORIGIN };
+    metadataContainer.doubleVector2Data[key] = OpenVDS::DoubleVector2(origin[0], origin[1]);
+    metadataContainer.keys.push_back(key);
+  }
+
+  {
+    OpenVDS::MetadataKey key = { OpenVDS::MetadataType::DoubleVector2, LATTICE_CATEGORY, LATTICE_INLINE_SPACING };
+    metadataContainer.doubleVector2Data[key] = OpenVDS::DoubleVector2(crosslineSpacing[0], crosslineSpacing[1]);
+    metadataContainer.keys.push_back(key);
+  }
+
+  {
+    OpenVDS::MetadataKey key = { OpenVDS::MetadataType::DoubleVector2, LATTICE_CATEGORY, LATTICE_CROSSLINE_SPACING };
+    metadataContainer.doubleVector2Data[key] = OpenVDS::DoubleVector2(inlineSpacing[0], inlineSpacing[1]);
+    metadataContainer.keys.push_back(key);
+  }
+}
+
+bool
 parseSEGYFileInfoFile(OpenVDS::File const &file, SEGYFileInfo &fileInfo)
 {
   OpenVDS::IOError error;
@@ -365,22 +487,15 @@ createChannelDescriptors(SEGYFileInfo const &fileInfo, OpenVDS::FloatRange const
     channelDescriptors;
 
   // Primary channel
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Amplitude", "", valueRange.min, valueRange.max));
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", valueRange.min, valueRange.max));
 
   // Trace defined flag
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Trace", "", 0, 1, OpenVDS::VolumeDataMapping::PerTrace));
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Trace", "", 0, 1, OpenVDS::VolumeDataMapping::PerTrace, OpenVDS::VolumeDataChannelDescriptor::DiscreteData));
 
   // SEG-Y trace headers
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "SEGYTraceHeaders", "", 0, 255, OpenVDS::VolumeDataMapping::PerTrace, SEGY::TraceHeaderSize, OpenVDS::VolumeDataChannelDescriptor::Flags::Default, 1.0f, 0.0f));
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "SEGYTraceHeader", "", 0, 255, OpenVDS::VolumeDataMapping::PerTrace, SEGY::TraceHeaderSize, OpenVDS::VolumeDataChannelDescriptor::DiscreteData, 1.0f, 0.0f));
 
   return channelDescriptors;
-}
-
-std::string to_hexstring(uint64_t value)
-{
-  char buffer[sizeof(value) * 2 + 1];
-  snprintf(buffer, sizeof(buffer), "%llX", value);
-  return std::string(buffer);
 }
 
 class FileViewManager
@@ -659,7 +774,7 @@ main(int argc, char *argv[])
 
   if(persistentID.empty())
   {
-    persistentID = to_hexstring(fileInfo.m_persistentID);
+    persistentID = fmt::format("{:X}", fileInfo.m_persistentID);
   }
 
   OpenVDS::File
@@ -725,6 +840,17 @@ main(int argc, char *argv[])
   OpenVDS::MetadataContainer
     metadataContainer;
 
+  createSEGYHeadersMetadata(file, metadataContainer, error);
+
+  if(error.code != 0)
+  {
+    std::cerr << error.string;
+    return EXIT_FAILURE;
+  }
+
+  createSurveyCoordinateSystemMetadata(fileInfo, metadataContainer);
+
+  // Create the VDS
   OpenVDS::Error
     createError;
 
@@ -881,7 +1007,7 @@ main(int argc, char *argv[])
   amplitudeAccessor->commit();
   traceFlagAccessor->commit();
   segyTraceHeaderAccessor->commit();
-  
+
   fmt::print("\r100% done.\n");
 
   fileView.reset();

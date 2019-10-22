@@ -21,6 +21,73 @@
 
 namespace OpenVDS
 {
+template<typename T>
+struct Vector2
+{
+  typedef T element_type;
+  enum { element_count = 2 };
+
+  union
+  {
+    struct
+    {
+      T X, Y;
+    };
+    T data[2];
+  };
+
+  Vector2() : X(), Y() {}
+  Vector2(T X, T Y) : X(X), Y(Y) {}
+
+  inline       T &operator[] (size_t n)        { return data[n]; }
+  inline const T &operator[] (size_t n) const  { return data[n]; }
+};
+
+template<typename T>
+struct Vector3
+{
+  typedef T element_type;
+  enum { element_count = 3 };
+
+  union
+  {
+    struct
+    {
+      T X, Y, Z;
+    };
+    T data[3];
+  };
+
+  Vector3() : X(), Y(), Z() {}
+  Vector3(T X, T Y, T Z) : X(X), Y(Y), Z(Z) {}
+
+  inline       T &operator[] (size_t n)        { return data[n]; }
+  inline const T &operator[] (size_t n) const  { return data[n]; }
+};
+
+template<typename TYPE>
+struct Vector4
+{
+  typedef TYPE element_type;
+  enum { element_count = 4 };
+
+  union
+  {
+    struct
+    {
+      TYPE X, Y, Z, T;
+    };
+    TYPE data[4];
+  };
+
+  Vector4() : X(), Y(), Z(), T() {}
+  Vector4(TYPE X, TYPE Y, TYPE Z, TYPE T) : X(X), Y(Y), Z(Z), T(T) {}
+
+  inline       TYPE &operator[] (size_t n)        { return data[n]; }
+  inline const TYPE &operator[] (size_t n) const  { return data[n]; }
+};
+
+/*
 template<typename T, size_t N>
 struct Vector
 {
@@ -28,34 +95,8 @@ struct Vector
   inline T & operator[] (size_t n) { return d[n]; }
   inline const T &operator[] (size_t n) const { return d[n]; }
 };
-
-template<typename T, size_t N>
-static inline Vector<T, N> Add(const Vector<T, N> &a, const Vector<T, N> &b)
-{
-  Vector<T,N> ret;
-  for (int i = 0; i < N; i++)
-    ret[i] = a[i] + b[i];
-  return ret;
-}
-
-template<typename T, size_t N>
-static inline Vector<T, N> Subtract(const Vector<T, N> &a, const Vector<T, N> &b)
-{
-  Vector<T,N> ret;
-  for (int i = 0; i < N; i++)
-    ret[i] = a[i] - b[i];
-  return ret;
-}
-
-template<typename T, size_t N>
-static inline Vector<T, N> Multiply(const Vector<T, N> &a, const Vector<T, N> &b)
-{
-  Vector<T,N> ret;
-  for (int i = 0; i < N; i++)
-    ret[i] = a[i] * b[i];
-  return ret;
-}
-
+*/
+/*
 template<typename T, size_t N>
 static inline bool operator==(const Vector<T, N> &a, const Vector<T, N> &b)
 {
@@ -75,14 +116,7 @@ bool operator!=(const Vector<T, N> &a, const Vector<T, N> &b)
 
   return true;
 }
-
-template<typename T>
-using Vector2 = Vector<T, 2>;
-template<typename T>
-using Vector3 = Vector<T, 3>;
-template<typename T>
-using Vector4 = Vector<T, 4>;
-
+*/
 using IntVector2 = Vector2<int>;
 using IntVector3 = Vector3<int>;
 using IntVector4 = Vector4<int>;
