@@ -189,8 +189,10 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
   return page;
 }
 
-VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
+VolumeDataPage* VolumeDataPageAccessorImpl::prepareReadPage(int64_t chunk, bool *needToCallReadPreparePage)
 {
+  assert(needToCallReadPreparePage);
+  *needToCallReadPreparePage = true;
   std::unique_lock<std::mutex> pageMutexLocker(m_pagesMutex);
 
   if(!m_layer)
@@ -226,6 +228,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
       }
 
       m_pagesFound++;
+      *needToCallReadPreparePage = false;
       return *page_it;
     }
   }
@@ -256,17 +259,27 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
     return nullptr;
   }
 
-  pageMutexLocker.unlock();
+  return page;
+}
 
+bool VolumeDataPageAccessorImpl::readPreparedPaged(VolumeDataPage* page)
+{
+  VolumeDataPageImpl *pageImpl = static_cast<VolumeDataPageImpl *>(page);
+  
+  Error error;
+  VolumeDataChunk volumeDataChunk = m_layer->getChunkFromIndex(pageImpl->getChunkIndex());
   std::vector<uint8_t> serialized_data;
   std::vector<uint8_t> metadata;
   CompressionInfo compressionInfo;
+
+
+  std::unique_lock<std::mutex> pageMutexLocker(m_pagesMutex, std::defer_lock);
   if (!m_accessManager->readChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, error))
   {
     pageMutexLocker.lock();
-    page->unPin();
+    pageImpl->unPin();
     fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
-    return nullptr;
+    return false;
   }
 
   std::vector<uint8_t> page_data;
@@ -274,9 +287,9 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
   if (!VolumeDataStore::deserializeVolumeData(volumeDataChunk, serialized_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->getFormat(), dataBlock, page_data, error))
   {
     pageMutexLocker.lock();
-    page->unPin();
+    pageImpl->unPin();
     fprintf(stderr, "Failed when deserializing chunk: %s\n", error.string.c_str());
-    return nullptr;
+    return false;
   }
 
   int pitch[Dimensionality_Max] = {};
@@ -290,19 +303,31 @@ VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
   }
 
   pageMutexLocker.lock();
-  page->setBufferData(dataBlock, pitch, std::move(page_data));
+  pageImpl->setBufferData(dataBlock, pitch, std::move(page_data));
   m_pagesRead++;
 
   m_pageReadCondition.notify_all();
 
   if(!m_layer)
   {
-    page->unPin();
+    pageImpl->unPin();
     page = nullptr;
   }
 
   limitPageListSize(m_maxPages, pageMutexLocker);
+  return m_layer;
+}
 
+VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
+{
+  bool foundExisting;
+  VolumeDataPage *page = prepareReadPage(chunk, &foundExisting);
+  if (!page)
+    return nullptr;
+  if (foundExisting)
+    return page;
+  if (!readPreparedPaged(page))
+    return nullptr;
   return page;
 }
 

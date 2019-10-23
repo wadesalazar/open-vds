@@ -221,6 +221,7 @@ VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDSHandle &handle)
   : m_handle(handle)
   , m_ioManager(handle.ioManager.get())
   , m_currentErrorIndex(0)
+  , m_requestProcessor(*this)
 {
 }
 
@@ -293,18 +294,19 @@ VolumeDataAccessor* VolumeDataAccessManagerImpl::cloneVolumeDataAccessor(VolumeD
 
 bool VolumeDataAccessManagerImpl::isCompleted(int64_t requestID)
 {
-  return false;
+  return m_requestProcessor.isCompleted(requestID);
 }
 bool VolumeDataAccessManagerImpl::isCanceled(int64_t requestID)
 {
-  return false;
+  return m_requestProcessor.isCanceled(requestID);
 }
 bool VolumeDataAccessManagerImpl::waitForCompletion(int64_t requestID, int millisecondsBeforeTimeout)
 {
-  return false;
+  return m_requestProcessor.waitForCompletion(requestID, millisecondsBeforeTimeout);
 }
 void VolumeDataAccessManagerImpl::cancel(int64_t requestID)
 {
+  m_requestProcessor.cancel(requestID);
 }
 float VolumeDataAccessManagerImpl::getCompletionFactor(int64_t requestID)
 {

@@ -26,12 +26,17 @@
 #include <cstdint>
 #include <algorithm>
 #include <atomic>
+#include <thread>
+#include <chrono>
+
+#include <fmt/format.h>
 
 namespace OpenVDS
 {
 
 VolumeDataRequestProcessor::VolumeDataRequestProcessor(VolumeDataAccessManagerImpl& manager)
   : m_manager(manager)
+  , m_threadPool(std::thread::hardware_concurrency())
 {}
 
 static int64_t gen_jobid()
@@ -40,7 +45,49 @@ static int64_t gen_jobid()
   return ++id;
 }
 
-int64_t VolumeDataRequestProcessor::addJob(std::vector<VolumeDataChunk>& chunks, std::function<void(VolumeDataPage* page)> processor)
+struct MarkJobAsDoneOnExit
+{
+  MarkJobAsDoneOnExit(Job *job)
+    : job(job)
+  {}
+  ~MarkJobAsDoneOnExit()
+  {
+    int completed = job->completed.fetch_add(1);
+    if (completed == job->pages.size() - 1)
+    {
+      job->doneNotify.notify_all();
+    }
+  }
+  Job *job;
+};
+
+static Error processPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessorImpl *pageAccessor, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, Error &error)> processor)
+{
+  MarkJobAsDoneOnExit jobDone(job);
+  Error error;
+  JobPage& jobPage = job->pages[pageIndex];
+  if (jobPage.needToReadPage)
+  {
+    if (!pageAccessor->readPreparedPaged(jobPage.page))
+    {
+      error.code = -1;
+      error.string = fmt::format("Failed to read page {}.", jobPage.page->getChunkIndex());
+      return error;
+    }
+  }
+  if (job->cancelled)
+  {
+    error.code = -4;
+    error.string = fmt::format("Request: {} has been cancelled.", job->jobId);
+    return error;
+  }
+
+  processor(jobPage.page, jobPage.chunk, error);
+
+  return error;
+}
+
+int64_t VolumeDataRequestProcessor::addJob(const std::vector<VolumeDataChunk>& chunks, std::function<bool(VolumeDataPageImpl * page, const VolumeDataChunk &volumeDataChunk, Error & error)> processor)
 {
   auto layer = chunks.front().layer;
   DimensionsND dimensions = DimensionGroupUtil::getDimensionsNDFromDimensionGroup(layer->getChunkDimensionGroup());
@@ -48,23 +95,94 @@ int64_t VolumeDataRequestProcessor::addJob(std::vector<VolumeDataChunk>& chunks,
   int lod = layer->getLOD();
   auto layout = layer->getLayout();
 
+  std::unique_lock<std::mutex> lock(m_mutex);
   PageAccessorKey key = { dimensions, lod, channel };
-  auto page_accessor_it = m_page_accessors.find(key);
-  if (page_accessor_it == m_page_accessors.end())
+  auto page_accessor_it = m_pageAccessors.find(key);
+  if (page_accessor_it == m_pageAccessors.end())
   {
     auto pa = static_cast<VolumeDataPageAccessorImpl *>(m_manager.createVolumeDataPageAccessor(layout, dimensions, lod, channel, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly));
-    auto insert_result = m_page_accessors.insert({key, pa});
+    auto insert_result = m_pageAccessors.insert({key, pa});
     assert(insert_result.second);
     page_accessor_it = insert_result.first;
   }
-  m_jobs.emplace_back(gen_jobid());
-  auto job = m_jobs.back();
+  m_jobs.emplace_back(new Job(gen_jobid(), m_jobNotification));
+  auto &job = m_jobs.back();
+  job->pages.reserve(chunks.size());
+  VolumeDataPageAccessorImpl *pageAccessor = page_accessor_it->second;
   for (const auto &c : chunks)
   {
-    job.chunks.push_back(page_accessor_it->second->readPage(c.chunkIndex));
+    job->pages.emplace_back();
+    JobPage &jobPage = job->pages.back();
+    jobPage.page = static_cast<VolumeDataPageImpl *>(pageAccessor->prepareReadPage(c.chunkIndex, &jobPage.needToReadPage));
+    jobPage.chunk = c;
+    size_t index = job->pages.size() - 1;
+    job->future.push_back(m_threadPool.enqueue([&job, index, pageAccessor, processor] { return processPageInJob(job.get(), index, pageAccessor, processor); }));
   }
-  return 0;
+  return job->jobId;
 }
 
+bool  VolumeDataRequestProcessor::isCompleted(int64_t jobID)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](const std::unique_ptr<Job> &job) { return job->jobId == jobID; });
+  if (job_it == m_jobs.end())
+    return false;
+
+  if (job_it->get()->completed == job_it->get()->pages.size() && !job_it->get()->cancelled)
+  {
+    m_jobs.erase(job_it);
+    return true;
+  }
+  return false;
+}
+  
+bool VolumeDataRequestProcessor::isCanceled(int64_t jobID)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](const std::unique_ptr<Job> &job) { return job->jobId == jobID; });
+  if (job_it == m_jobs.end())
+    return false;
+  
+  if (job_it->get()->completed == job_it->get()->pages.size() && job_it->get()->cancelled)
+  {
+    m_jobs.erase(job_it);
+    return true;
+  }
+  return false;
+}
+  
+bool VolumeDataRequestProcessor::waitForCompletion(int64_t jobID, int millisecondsBeforeTimeout)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](const std::unique_ptr<Job> &job) { return job->jobId == jobID; });
+  if (job_it == m_jobs.end())
+    return false;
+
+  Job *job = job_it->get();
+  if (millisecondsBeforeTimeout > 0)
+  {
+    std::chrono::milliseconds toWait(millisecondsBeforeTimeout);
+    job_it->get()->doneNotify.wait_for(lock, toWait, [job]{ return job->completed == job->pages.size();});
+  } else
+  {
+    job_it->get()->doneNotify.wait(lock, [job]{ return job->completed == job->pages.size();});
+  }
+
+  if (job->completed == job->pages.size() && !job->cancelled)
+  {
+    m_jobs.erase(job_it);
+    return true;
+  }
+  return false;
+}
+
+void VolumeDataRequestProcessor::cancel(int64_t jobID)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](std::unique_ptr<Job> &job) { return job->jobId == jobID; });
+  if (job_it == m_jobs.end())
+    return;
+  job_it->get()->cancelled = true;
+}
 
 }

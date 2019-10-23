@@ -19,9 +19,11 @@
 #define VOLUMEDATAREQUESTPROCESSOR_H
 
 #include <OpenVDS/VolumeData.h>
+#include <OpenVDS/OpenVDS.h>
 
 #include "VolumeDataPageAccessorImpl.h"
 #include "VolumeDataChunk.h"
+#include "ThreadPool.h"
 
 #include <stdint.h>
 #include <map>
@@ -44,14 +46,27 @@ struct PageAccessorKey
   }
 };
 
+struct JobPage
+{
+  VolumeDataPageImpl *page;
+  VolumeDataChunk chunk;
+  bool needToReadPage;
+};
+
 struct Job
 {
-  Job(int64_t job_id)
-    : job_id(job_id)
+  Job(int64_t jobId, std::condition_variable &doneNotify)
+    : jobId(jobId)
+    , doneNotify(doneNotify)
   {}
-  int64_t job_id;
-  std::vector<VolumeDataPage *> chunks;
-  std::function<void(VolumeDataPage *page)> processor;
+
+  int64_t jobId;
+  std::condition_variable &doneNotify;
+  std::vector<JobPage> pages;
+  std::vector<std::future<Error>> future;
+  std::atomic_int completed = 0;
+  std::atomic_bool cancelled = false;
+  Error completedError;
 };
 
 class VolumeDataRequestProcessor
@@ -59,12 +74,19 @@ class VolumeDataRequestProcessor
 public:
   VolumeDataRequestProcessor(VolumeDataAccessManagerImpl &manager);
 
-  int64_t addJob(std::vector<VolumeDataChunk> &chunks, std::function<void(VolumeDataPage *page)> processor);
+  int64_t addJob(const std::vector<VolumeDataChunk> &chunks, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &volumeDataChunk, Error &error)> processor);
+  bool  isCompleted(int64_t requestID);
+  bool  isCanceled(int64_t requestID);
+  bool  waitForCompletion(int64_t requestID, int millisecondsBeforeTimeout = 0);
+  void  cancel(int64_t requestID);
+
 private:
   VolumeDataAccessManagerImpl &m_manager;
-  std::map<PageAccessorKey, VolumeDataPageAccessorImpl *> m_page_accessors;
-  std::vector<Job> m_jobs;
-  std::mutex m_map_lock;
+  std::map<PageAccessorKey, VolumeDataPageAccessorImpl *> m_pageAccessors;
+  std::vector<std::unique_ptr<Job>> m_jobs;
+  std::mutex m_mutex;
+  std::condition_variable m_jobNotification;
+  ThreadPool m_threadPool;
 };
 
 }

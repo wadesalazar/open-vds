@@ -26,13 +26,13 @@
 
 #include "VolumeDataChunk.h"
 #include "VolumeDataLayer.h"
+#include "VolumeDataRequestProcessor.h"
 
 #include <map>
 #include "Base64.h"
 
 namespace OpenVDS
 {
-class LayerMetadataContainer;
 class MetadataPage;
 
 class ReadChunkTransfer : public TransferDownloadHandler
@@ -243,7 +243,7 @@ public:
 private:
   VDSHandle &m_handle;
   IOManager *m_ioManager;
-  LayerMetadataContainer *m_layerMetadataContainer;
+  VolumeDataRequestProcessor m_requestProcessor;
   IntrusiveList<VolumeDataPageAccessorImpl, &VolumeDataPageAccessorImpl::m_volumeDataPageAccessorListNode> m_volumeDataPageAccessorList;
   std::mutex m_mutex;
   std::condition_variable m_pendingRequestChangedCondition;
@@ -252,5 +252,6 @@ private:
   std::vector<std::unique_ptr<UploadError>> m_uploadErrors;
   uint32_t m_currentErrorIndex;
 };
+
 }
 #endif //VOLUMEDATAACCESSMANAGERIMPL_H

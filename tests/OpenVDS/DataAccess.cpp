@@ -18,7 +18,11 @@
 #include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/VolumeDataAccess.h>
 #include <OpenVDS/VolumeDataLayout.h>
+#include <OpenVDS/VolumeData.h>
+
 #include <cstdlib>
+
+#include <array>
 
 #include <gtest/gtest.h>
 
@@ -70,4 +74,66 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
   ASSERT_TRUE(pos[2] < max[2]);
 
   OpenVDS::destroy(handle);
+}
+
+template<typename T, size_t N> inline T (&PODArrayReference(std::array<T,N> &a))[N] { return *reinterpret_cast<T (*)[N]>(a.data()); }
+
+GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSubset)
+{
+  OpenVDS::Error error;
+  OpenVDS::AWSOpenOptions options;
+
+  options.region = TEST_AWS_REGION;
+  options.bucket = TEST_AWS_BUCKET;
+  options.key = TEST_AWS_OBJECTID;
+
+  if(options.region.empty() || options.bucket.empty() || options.key.empty())
+  {
+    GTEST_SKIP() << "Environment variables not set";
+  }
+
+  ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
+  OpenVDS::VDSHandle *handle = OpenVDS::open(options, error);
+  ASSERT_TRUE(handle);
+
+  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::getDataAccessManager(handle);
+  ASSERT_TRUE(dataAccessManager);
+
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle);
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::getDataAccessManager(handle);
+
+ 
+  int loopDimension = 4;
+  int groupSize = 100;
+
+  int loopDimensionSize = layout->getDimensionNumSamples(loopDimension);
+
+  int traceDimension = (loopDimension == 0) ? 1 : 0;
+  int traceDimensionSize = layout->getDimensionNumSamples(traceDimension);
+
+  int groupDimension = (loopDimension == traceDimension + 1) ? traceDimension + 2 : traceDimension + 1;
+  int groupDimensionSize = layout->getDimensionNumSamples(groupDimension);
+
+  if(groupSize == 0)
+  {
+    groupSize = groupDimensionSize;
+  }
+
+  int groupCount = (groupDimensionSize + (groupSize - 1)) / groupSize;
+
+  std::array<int, OpenVDS::Dimensionality_Max> voxelMin = { 0, 0, 0, 0, 0, 0};
+  std::array<int, OpenVDS::Dimensionality_Max> voxelMax = { 1, 1, 1, 1, 1, 1};
+
+  voxelMin[traceDimension] = 0;
+  voxelMax[traceDimension] = traceDimensionSize;
+  voxelMin[loopDimension] = 2;
+  voxelMax[loopDimension] = 2 + 1;
+
+  std::vector<float> buffer((voxelMax[groupDimension] - voxelMin[groupDimension]) * traceDimensionSize);
+
+  int64_t iRequestID = accessManager->requestVolumeSubset(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, PODArrayReference(voxelMin), PODArrayReference(voxelMax), OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+  ASSERT_GT(iRequestID, 0);
+  bool returned = accessManager->waitForCompletion(iRequestID);
+  ASSERT_TRUE(returned);
+
 }

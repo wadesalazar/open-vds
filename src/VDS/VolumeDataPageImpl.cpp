@@ -28,15 +28,6 @@
 namespace OpenVDS
 {
 
-template <typename T>
-inline T dataBlock_ReadElement(const T *ptBuffer, size_t iElement) { return ptBuffer[iElement]; }
-template <>
-inline bool dataBlock_ReadElement(const bool *ptBuffer, size_t iElement) { return (reinterpret_cast<const unsigned char *>(ptBuffer)[iElement / 8] & (1 << (iElement % 8))) != 0; }
-
-template <typename T>
-inline void dataBlock_WriteElement(T *ptBuffer, size_t iElement, T tValue) { ptBuffer[iElement] = tValue; }
-template <>
-inline void dataBlock_WriteElement(bool *ptBuffer, size_t iElement, bool tValue) { if(tValue) { reinterpret_cast<unsigned char *>(ptBuffer)[iElement / 8] |= (1 << (iElement % 8)); } else { reinterpret_cast<unsigned char *>(ptBuffer)[iElement / 8] &= ~(1 << (iElement % 8)); } }
 
 template <bool isTargetDim0Contigous, bool isSourceDim0Contigous, typename T>
 static void dataBlock_BlockCopyWithExplicitContiguity(T * __restrict ptTarget, const T * __restrict ptSource, int32_t iTargetIndex, int32_t iSourceIndex, int32_t (&targetPitch)[4], int32_t (&sourcePitch)[4], int32_t (&size)[4])

@@ -82,6 +82,33 @@ public:
 bool initializeDataBlock(const DataBlockDescriptor &descriptor, DataBlock &dataBlock, Error &error);
 bool initializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, Dimensionality dimensionality, int32_t (&size)[DataStoreDimensionality_Max], DataBlock &dataBlock, Error &error);
 
+static int32_t getVoxelFormatByteSize(VolumeDataChannelDescriptor::Format format)
+{
+  int32_t iRetval = -1;
+  switch (format) {
+  case VolumeDataChannelDescriptor::Format_R64:
+  case VolumeDataChannelDescriptor::Format_U64:
+    iRetval = 8;
+    break;
+  case VolumeDataChannelDescriptor::Format_R32:
+  case VolumeDataChannelDescriptor::Format_U32:
+    iRetval = 4;
+    break;
+  case VolumeDataChannelDescriptor::Format_U16:
+    iRetval = 2;
+    break;
+  case VolumeDataChannelDescriptor::Format_U8:
+  case VolumeDataChannelDescriptor::Format_1Bit:
+    iRetval =1;
+    break;
+  default:
+    fprintf(stderr, "Unknown voxel format");
+    abort();
+  }
+
+  return iRetval;
+}
+
 static uint32_t getElementSize(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components)
 {
   switch(format)
@@ -141,6 +168,15 @@ inline int32_t getAllocatedByteSizeForSize(const int32_t size)
   return (size + 7) & -8;
 }
 
+template <typename T>
+inline T dataBlock_ReadElement(const T *ptBuffer, size_t iElement) { return ptBuffer[iElement]; }
+template <>
+inline bool dataBlock_ReadElement(const bool *ptBuffer, size_t iElement) { return (reinterpret_cast<const unsigned char *>(ptBuffer)[iElement / 8] & (1 << (iElement % 8))) != 0; }
+
+template <typename T>
+inline void dataBlock_WriteElement(T *ptBuffer, size_t iElement, T tValue) { ptBuffer[iElement] = tValue; }
+template <>
+inline void dataBlock_WriteElement(bool *ptBuffer, size_t iElement, bool tValue) { if(tValue) { reinterpret_cast<unsigned char *>(ptBuffer)[iElement / 8] |= (1 << (iElement % 8)); } else { reinterpret_cast<unsigned char *>(ptBuffer)[iElement / 8] &= ~(1 << (iElement % 8)); } }
 }
 
 #endif //DATABLOCK_H

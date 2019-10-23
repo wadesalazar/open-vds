@@ -31,7 +31,7 @@ class VolumeDataLayer;
 class VolumeDataPageAccessorImpl;
 class VolumeDataPageImpl : public VolumeDataPage
 {
-public:
+private:
   VolumeDataPageAccessorImpl * m_volumeDataPageAccessor;
 
   int64_t m_chunk;
@@ -58,6 +58,7 @@ public:
   VolumeDataPageImpl(VolumeDataPageImpl const &) = delete;
 
   int64_t getChunkIndex() const { return m_chunk; }
+  const DataBlock &getDataBlock() const { return m_dataBlock;}
 
   // All these methods require the caller to hold a lock
   bool          isPinned();
@@ -72,6 +73,7 @@ public:
   void          setBufferData(const DataBlock& dataBlock, int32_t(&pitch)[Dimensionality_Max], std::vector<uint8_t>&& blob);
   void          writeBack(VolumeDataLayer *volumeDataLayer, std::unique_lock<std::mutex> &pageListMutexLock);
   void *        getBufferInternal(int (&anPitch)[Dimensionality_Max], bool isReadWrite);
+  void *        getRawBufferInternal() { return m_blob.data(); }
   bool          isCopyMarginNeeded(VolumeDataPageImpl *targetPage);
   void          copyMargin(VolumeDataPageImpl *targetPage);
 

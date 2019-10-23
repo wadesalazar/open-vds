@@ -66,6 +66,7 @@ set (PRIVATE_HEADER_FILES
   VDS/ValueConversion.h
   VDS/VolumeSampler.h
   VDS/VolumeDataRequestProcessor.h
+  VDS/ThreadPool.h
   )
 
 set (EXPORTED_HEADER_FILES
