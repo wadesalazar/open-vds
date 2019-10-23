@@ -1,13 +1,13 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.12.0)
 project(OpenVDS-python)
 
 if (NOT BUILD_PYTHON)
     return()
 endif ()
 
-find_package(PythonInterp REQUIRED)
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
-set(python ${PYTHON_EXECUTABLE})
+set(python ${Python3_EXECUTABLE})
 set(setup.py ${CMAKE_CURRENT_SOURCE_DIR}/setup.py)
 
 #this line doesn't work to have inline in add_custom_target so expand it in a variable
