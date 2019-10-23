@@ -806,6 +806,7 @@ struct BoxRequested
   int32_t min[Dimensionality_Max];
   int32_t max[Dimensionality_Max];
 };
+
 static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t(&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], int32_t lod, VolumeDataChannelDescriptor::Format format, bool isReplaceNoValue, float replacementNoValue)
 {
 
@@ -869,11 +870,58 @@ static VolumeDataLayer *getLayer(VolumeDataLayout const *layout, DimensionsND di
 int64_t VolumeDataAccessManagerImpl::requestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format)
 {
   // Initialized unused dimensions
+  int minVoxelCoordinatesFixed[Dimensionality_Max];
+  int maxVoxelCoordinatesFixed[Dimensionality_Max];
 
-  for (int32_t iDimension = volumeDataLayout->getDimensionality(); iDimension < Dimensionality_Max; iDimension++)
+  int layoutDimensionality = volumeDataLayout->getDimensionality();
+  for (int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
   {
-    //cHueNDBox._aiMin[iDimension] = 0;
-    //cHueNDBox._aiMax[iDimension] = 1;
+    if (iDimension < layoutDimensionality)
+    {
+      minVoxelCoordinatesFixed[iDimension] = minVoxelCoordinates[iDimension];
+      maxVoxelCoordinatesFixed[iDimension] = maxVoxelCoordinates[iDimension];
+    }
+    else
+    {
+      minVoxelCoordinatesFixed[iDimension] = 0;
+      maxVoxelCoordinatesFixed[iDimension] = 1;
+    }
+  }
+  
+  VolumeDataLayer *volumeDataLayer = getLayer(volumeDataLayout, dimensionsND, lod, channel);
+
+  std::vector<VolumeDataChunk> chunksInRegion;
+
+  volumeDataLayer->getChunksInRegion(minVoxelCoordinates, maxVoxelCoordinates, &chunksInRegion);
+
+  if (chunksInRegion.empty())
+  {
+    fmt::print("Requested volume subset does not contain any data");
+    abort();
+  }
+
+  return StaticRequestVolumeSubset(m_requestProcessor, buffer, volumeDataLayer, minVoxelCoordinatesFixed, maxVoxelCoordinatesFixed, lod, format, volumeDataLayer->isUseNoValue(), volumeDataLayer->getNoValue());
+}
+
+int64_t VolumeDataAccessManagerImpl::requestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, float replacementNoValue)
+{
+  // Initialized unused dimensions
+  int minVoxelCoordinatesFixed[Dimensionality_Max];
+  int maxVoxelCoordinatesFixed[Dimensionality_Max];
+
+  int layoutDimensionality = volumeDataLayout->getDimensionality();
+  for (int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
+  {
+    if (iDimension < layoutDimensionality)
+    {
+      minVoxelCoordinatesFixed[iDimension] = minVoxelCoordinates[iDimension];
+      maxVoxelCoordinatesFixed[iDimension] = maxVoxelCoordinates[iDimension];
+    }
+    else
+    {
+      minVoxelCoordinatesFixed[iDimension] = 0;
+      maxVoxelCoordinatesFixed[iDimension] = 1;
+    }
   }
 
   VolumeDataLayer *volumeDataLayer = getLayer(volumeDataLayout, dimensionsND, lod, channel);
@@ -888,12 +936,7 @@ int64_t VolumeDataAccessManagerImpl::requestVolumeSubset(void* buffer, VolumeDat
     abort();
   }
 
-  return StaticRequestVolumeSubset(m_requestProcessor, buffer, volumeDataLayer, minVoxelCoordinates, maxVoxelCoordinates, lod, format, false, 0.0f);
-}
-
-int64_t VolumeDataAccessManagerImpl::requestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lOD, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, float replacementNoValue)
-{
-  return int64_t(0);
+  return StaticRequestVolumeSubset(m_requestProcessor, buffer, volumeDataLayer, minVoxelCoordinatesFixed, maxVoxelCoordinatesFixed, lod, format, true, replacementNoValue);
 }
 int64_t VolumeDataAccessManagerImpl::requestProjectedVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const& voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod)
 {
