@@ -49,7 +49,7 @@ public:
 
   void handleMetadata(const std::string& key, const std::string& header) override
   {
-    if (key == "vds-chunk-metadata")
+    if (key == "vdschunkmetadata")
     {
       if (!Base64Decode(header.data(), (int)header.size(), m_metadata))
       {
