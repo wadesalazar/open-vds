@@ -201,7 +201,7 @@ bool VolumeDataLayoutImpl::isChannelAvailable(const char *channelName) const
 
   for(int32_t channel = 0; channel < nChannels; channel++)
   {
-    if(m_volumeDataChannelDescriptor[channel].getName() == channelName) return true;
+    if(strcmp(m_volumeDataChannelDescriptor[channel].getName(), channelName) == 0) return true;
   }
 
   return false;
@@ -213,7 +213,7 @@ int32_t VolumeDataLayoutImpl::getChannelIndex(const char *channelName) const
 
   for(int32_t channel = 0; channel < nChannels; channel++)
   {
-    if(m_volumeDataChannelDescriptor[channel].getName() == channelName) return channel;
+    if(strcmp(m_volumeDataChannelDescriptor[channel].getName(), channelName) == 0) return channel;
   }
   assert(0 && "Should not call this function unless IsChannelAvailable() is true");
   return 0;
