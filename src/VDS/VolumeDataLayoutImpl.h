@@ -173,6 +173,36 @@ public:
 
   bool isDimensionLODDecimated(int32_t dimension) const { return dimension != m_fullResolutionDimension; }
   int32_t getFullResolutionDimension() const { return m_fullResolutionDimension; }
+
+  bool        IsMetadataIntAvailable(const char* category, const char* name) const override;
+  bool        IsMetadataIntVector2Available(const char* category, const char* name) const override;
+  bool        IsMetadataIntVector3Available(const char* category, const char* name) const override;
+  bool        IsMetadataIntVector4Available(const char* category, const char* name) const override;
+  bool        IsMetadataFloatAvailable(const char* category, const char* name) const override;
+  bool        IsMetadataFloatVector2Available(const char* category, const char* name) const override;
+  bool        IsMetadataFloatVector3Available(const char* category, const char* name) const override;
+  bool        IsMetadataFloatVector4Available(const char* category, const char* name) const override;
+  bool        IsMetadataDoubleAvailable(const char* category, const char* name) const override;
+  bool        IsMetadataDoubleVector2Available(const char* category, const char* name) const override;
+  bool        IsMetadataDoubleVector3Available(const char* category, const char* name) const override;
+  bool        IsMetadataDoubleVector4Available(const char* category, const char* name) const override;
+  bool        IsMetadataStringAvailable(const char* category, const char* name) const override;
+  bool        IsMetadataBLOBAvailable(const char* category, const char* name) const override;
+
+  int         GetMetadataInt(const char* category, const char* name) const override;
+  IntVector2  GetMetadataIntVector2(const char* category, const char* name) const override;
+  IntVector3  GetMetadataIntVector3(const char* category, const char* name) const override;
+  IntVector4  GetMetadataIntVector4(const char* category, const char* name) const override;
+  float        GetMetadataFloat(const char* category, const char* name) const override;
+  FloatVector2 GetMetadataFloatVector2(const char* category, const char* name) const override;
+  FloatVector3 GetMetadataFloatVector3(const char* category, const char* name) const override;
+  FloatVector4 GetMetadataFloatVector4(const char* category, const char* name) const override;
+  double        GetMetadataDouble(const char* category, const char* name) const override;
+  DoubleVector2 GetMetadataDoubleVector2(const char* category, const char* name) const override;
+  DoubleVector3 GetMetadataDoubleVector3(const char* category, const char* name) const override;
+  DoubleVector4 GetMetadataDoubleVector4(const char* category, const char* name) const override;
+  const char* GetMetadataString(const char* category, const char* name) const override;
+  void        GetMetadataBLOB(const char* category, const char* name, const void **data, size_t *size)  const override;
 };
 }
 #endif //VOLUMEDATALAYOUTIMPL_H

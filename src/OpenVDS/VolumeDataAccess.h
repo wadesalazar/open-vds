@@ -650,6 +650,9 @@ public:
   virtual int   addReference() = 0;
   virtual int   removeReference() = 0;
 
+  virtual int   getMaxPages() = 0;
+  virtual void  setMaxPages(int maxPages) = 0;
+
   virtual VolumeDataPage *createPage(int64_t chunkIndex) = 0;
   virtual VolumeDataPage *readPage(int64_t chunkIndex) = 0;
 

@@ -20,6 +20,7 @@
 
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/VolumeDataAxisDescriptor.h>
+#include <OpenVDS/Metadata.h>
 
 namespace OpenVDS
 {
@@ -27,7 +28,7 @@ namespace OpenVDS
 /// \brief a class that contains axis and channel information for a VDS
 /// A layout is associated with a VDS object and contains information about axis and channels in the VDS.
 /// A VolumeDataLayout can be invalidated when the VDS is invalidated.
-class VolumeDataLayout //: public MetadataReadAccess
+class VolumeDataLayout : public MetadataReadAccess
 {
 protected:
                 VolumeDataLayout() {};
