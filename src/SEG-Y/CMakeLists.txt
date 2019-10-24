@@ -14,7 +14,13 @@ add_executable(SEGYUpload
   	SEGYFileInfo.cpp
     SEGYUpload.cpp
     )
-	
+
+add_executable(SEGYExport
+    SEGY.h
+    SEGY.cpp
+    SEGYExport.cpp
+    )
+
 target_include_directories(SEGYScan PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(SEGYScan PUBLIC Threads::Threads openvds jsoncpp_lib_static fmt::fmt)
 
@@ -24,6 +30,11 @@ target_include_directories(SEGYUpload PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(SEGYUpload PUBLIC Threads::Threads openvds jsoncpp_lib_static fmt::fmt)
 
 copyDllForTarget(SEGYUpload)
+
+target_include_directories(SEGYExport PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_link_libraries(SEGYExport PUBLIC Threads::Threads openvds jsoncpp_lib_static fmt::fmt)
+
+copyDllForTarget(SEGYExport)
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/Dist/OpenVDS CACHE STRING "" FORCE)
