@@ -73,7 +73,7 @@ void  VolumeDataPageAccessorImpl::getNumSamples(int(&numSamples)[Dimensionality_
     numSamples[i] = m_layer->getDimensionNumSamples(i);
   }
 }
-  
+
 int64_t VolumeDataPageAccessorImpl::getChunkCount() const
 {
   return m_layer->getTotalChunkCount();
@@ -109,9 +109,22 @@ int VolumeDataPageAccessorImpl::removeReference()
   return --m_references;
 }
 
+int VolumeDataPageAccessorImpl::getMaxPages()
+{
+  std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
+  return m_maxPages;
+}
+
+void VolumeDataPageAccessorImpl::setMaxPages(int maxPages)
+{
+  std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
+  m_maxPages = maxPages;
+  limitPageListSize(m_maxPages, pageListMutexLock);
+}
+
 VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
 {
-  std::unique_lock<std::mutex> pageMutexLocker(m_pagesMutex);
+  std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
 
   if(!m_layer)
   {
@@ -133,7 +146,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
   // Wait for commit to finish before inserting a new page
   while(m_isCommitInProgress)
   {
-    m_commitFinishedCondition.wait_for(pageMutexLocker, std::chrono::milliseconds(1000));
+    m_commitFinishedCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
     if(!m_layer)
     {
       return nullptr;
@@ -150,13 +163,13 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
   Error error;
   VolumeDataChunk volumeDataChunk = m_layer->getChunkFromIndex(chunk);
 
-  pageMutexLocker.unlock();
+  pageListMutexLock.unlock();
 
   std::vector<uint8_t> page_data;
   DataBlock dataBlock;
   if (!VolumeDataStore::createConstantValueDataBlock(volumeDataChunk, m_layer->getFormat(), m_layer->getNoValue(), m_layer->getComponents(), m_layer->isUseNoValue() ? VolumeDataHash::NOVALUE : VolumeDataHash(0.0f), dataBlock, page_data, error))
   {
-    pageMutexLocker.lock();
+    pageListMutexLock.lock();
     page->unPin();
     fprintf(stderr, "Failed when creating chunk: %s\n", error.string.c_str());
     return nullptr;
@@ -172,7 +185,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
     pitch[dimension] = dataBlock.pitch[chunkDimension];
   }
 
-  pageMutexLocker.lock();
+  pageListMutexLock.lock();
   page->setBufferData(dataBlock, pitch, std::move(page_data));
   page->makeDirty();
 
@@ -184,7 +197,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
     page = nullptr;
   }
 
-  limitPageListSize(m_maxPages, pageMutexLocker);
+  limitPageListSize(m_maxPages, pageListMutexLock);
 
   return page;
 }
@@ -193,7 +206,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::prepareReadPage(int64_t chunk, bool 
 {
   assert(needToCallReadPreparePage);
   *needToCallReadPreparePage = true;
-  std::unique_lock<std::mutex> pageMutexLocker(m_pagesMutex);
+  std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
 
   if(!m_layer)
   {
@@ -218,7 +231,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::prepareReadPage(int64_t chunk, bool 
 
       while((*page_it)->isEmpty())
       {
-        m_pageReadCondition.wait_for(pageMutexLocker, std::chrono::milliseconds(1000));
+        m_pageReadCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
 
         if(!m_layer)
         {
@@ -236,7 +249,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::prepareReadPage(int64_t chunk, bool 
   // Wait for commit to finish before inserting a new page
   while(m_isCommitInProgress)
   {
-    m_commitFinishedCondition.wait_for(pageMutexLocker, std::chrono::milliseconds(1000));
+    m_commitFinishedCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
     if(!m_layer)
     {
       return nullptr;
@@ -273,10 +286,10 @@ bool VolumeDataPageAccessorImpl::readPreparedPaged(VolumeDataPage* page)
   CompressionInfo compressionInfo;
 
 
-  std::unique_lock<std::mutex> pageMutexLocker(m_pagesMutex, std::defer_lock);
+  std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex, std::defer_lock);
   if (!m_accessManager->readChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, error))
   {
-    pageMutexLocker.lock();
+    pageListMutexLock.lock();
     pageImpl->unPin();
     fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
     return false;
@@ -286,7 +299,7 @@ bool VolumeDataPageAccessorImpl::readPreparedPaged(VolumeDataPage* page)
   DataBlock dataBlock;
   if (!VolumeDataStore::deserializeVolumeData(volumeDataChunk, serialized_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->getFormat(), dataBlock, page_data, error))
   {
-    pageMutexLocker.lock();
+    pageListMutexLock.lock();
     pageImpl->unPin();
     fprintf(stderr, "Failed when deserializing chunk: %s\n", error.string.c_str());
     return false;
@@ -302,7 +315,7 @@ bool VolumeDataPageAccessorImpl::readPreparedPaged(VolumeDataPage* page)
     pitch[dimension] = dataBlock.pitch[chunkDimension];
   }
 
-  pageMutexLocker.lock();
+  pageListMutexLock.lock();
   pageImpl->setBufferData(dataBlock, pitch, std::move(page_data));
   m_pagesRead++;
 
@@ -314,7 +327,7 @@ bool VolumeDataPageAccessorImpl::readPreparedPaged(VolumeDataPage* page)
     page = nullptr;
   }
 
-  limitPageListSize(m_maxPages, pageMutexLocker);
+  limitPageListSize(m_maxPages, pageListMutexLock);
   return m_layer;
 }
 

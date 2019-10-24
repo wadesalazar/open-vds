@@ -95,20 +95,29 @@ int64_t VolumeDataRequestProcessor::addJob(const std::vector<VolumeDataChunk>& c
   int lod = layer->getLOD();
   auto layout = layer->getLayout();
 
+  const int maxPages = std::max(8, (int)chunks.size());
+
   std::unique_lock<std::mutex> lock(m_mutex);
   PageAccessorKey key = { dimensions, lod, channel };
   auto page_accessor_it = m_pageAccessors.find(key);
   if (page_accessor_it == m_pageAccessors.end())
   {
-    auto pa = static_cast<VolumeDataPageAccessorImpl *>(m_manager.createVolumeDataPageAccessor(layout, dimensions, lod, channel, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly));
+    auto pa = static_cast<VolumeDataPageAccessorImpl *>(m_manager.createVolumeDataPageAccessor(layout, dimensions, lod, channel, maxPages, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly));
     auto insert_result = m_pageAccessors.insert({key, pa});
     assert(insert_result.second);
     page_accessor_it = insert_result.first;
   }
+
   m_jobs.emplace_back(new Job(gen_jobid(), m_jobNotification));
   auto &job = m_jobs.back();
   job->pages.reserve(chunks.size());
+
   VolumeDataPageAccessorImpl *pageAccessor = page_accessor_it->second;
+  if(pageAccessor->getMaxPages() < maxPages)
+  {
+    pageAccessor->setMaxPages(maxPages);
+  }
+
   for (const auto &c : chunks)
   {
     job->pages.emplace_back();
