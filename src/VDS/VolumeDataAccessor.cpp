@@ -22,6 +22,7 @@
 #include "VolumeDataRequestProcessor.h"
 #include "DataBlock.h"
 #include "DimensionGroup.h"
+#include "ValueConversion.h"
 
 #include <inttypes.h>
 
@@ -801,16 +802,16 @@ static bool requestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
   return true;
 }
 
-struct BoxRequested
+struct Box
 {
   int32_t min[Dimensionality_Max];
   int32_t max[Dimensionality_Max];
 };
 
-static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t(&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], int32_t lod, VolumeDataChannelDescriptor::Format format, bool isReplaceNoValue, float replacementNoValue)
+static int64_t staticRequestVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t(&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], int32_t lod, VolumeDataChannelDescriptor::Format format, bool isReplaceNoValue, float replacementNoValue)
 {
 
-  BoxRequested boxRequested;
+  Box boxRequested;
   memcpy(boxRequested.min, minRequested, sizeof(boxRequested.min));
   memcpy(boxRequested.max, maxRequested, sizeof(boxRequested.max));
 
@@ -867,85 +868,539 @@ static VolumeDataLayer *getLayer(VolumeDataLayout const *layout, DimensionsND di
   return (volumeDataLayer->getLayerType() != VolumeDataLayer::Virtual) ? volumeDataLayer : NULL;
 }
 
-int64_t VolumeDataAccessManagerImpl::requestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format)
+struct ProjectVars
 {
-  // Initialized unused dimensions
-  int minVoxelCoordinatesFixed[Dimensionality_Max];
-  int maxVoxelCoordinatesFixed[Dimensionality_Max];
+  FloatVector4 voxelPlane;
 
-  int layoutDimensionality = volumeDataLayout->getDimensionality();
-  for (int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
+  int requestedMin[Dimensionality_Max];
+  int requestedMax[Dimensionality_Max];
+  int requestedPitch[Dimensionality_Max];
+  int requestedSizeThisLOD[Dimensionality_Max];
+
+  int lod;
+  int projectionDimension;
+  int projectedDimensions[2];
+
+  int dataIndex(const int32_t (&voxelIndex)[Dimensionality_Max]) const
   {
-    if (iDimension < layoutDimensionality)
+    int dataIndex = 0;
+
+    for (int i = 0; i < 6; i++)
     {
-      minVoxelCoordinatesFixed[iDimension] = minVoxelCoordinates[iDimension];
-      maxVoxelCoordinatesFixed[iDimension] = maxVoxelCoordinates[iDimension];
+      int localChunkIndex = voxelIndex[i] - requestedMin[i];
+      localChunkIndex >>= lod;
+      dataIndex += localChunkIndex * requestedPitch[i];
     }
-    else
+    
+    return dataIndex;
+  }
+
+  void voxelIndex(const int32_t (&localChunkIndex)[Dimensionality_Max], int32_t (&voxelIndexR)[Dimensionality_Max]) const
+  {
+    for (int i = 0; i < 6; i++)
+      voxelIndexR[i] = requestedMin[i] + (localChunkIndex[i] << lod);
+  }
+};
+
+struct IndexValues
+{
+  float valueRangeMin;
+  float valueRangeMax;
+  int32_t lod;
+  int32_t voxelMin[Dimensionality_Max];
+  int32_t voxelMax[Dimensionality_Max];
+  int32_t localChunkSamples[Dimensionality_Max];
+  int32_t localChunkAllocatedSize[Dimensionality_Max];
+  int32_t pitch[Dimensionality_Max];
+  int32_t bitPitch[Dimensionality_Max];
+  int32_t axisNumSamples[Dimensionality_Max];
+
+  int32_t dataBlockSamples[DataStoreDimensionality_Max];
+  int32_t dataBlockAllocatedSize[DataStoreDimensionality_Max];
+  int32_t dataBlockPitch[DataStoreDimensionality_Max];
+  int32_t dataBlockBitPitch[DataStoreDimensionality_Max];
+  int32_t dimensionMap[DataStoreDimensionality_Max];
+
+
+  float coordinateMin[Dimensionality_Max];
+  float coordinateMax[Dimensionality_Max];
+
+  bool isDimensionLODDecimated[Dimensionality_Max];
+
+  void initialize(const VolumeDataChunk &dataChunk, const DataBlock &dataBlock)
+  {
+    const VolumeDataLayout *dataLayout = dataChunk.layer->getLayout();
+
+    valueRangeMin = dataLayout->getChannelDescriptor(dataChunk.chunkIndex).getValueRangeMin();
+    valueRangeMax = dataLayout->getChannelDescriptor(dataChunk.chunkIndex).getValueRangeMax();
+
+    lod = dataChunk.layer->getLOD();
+    dataChunk.layer->getChunkMinMax(dataChunk.chunkIndex, voxelMin, voxelMax, true);
+
+    for (int iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
     {
-      minVoxelCoordinatesFixed[iDimension] = 0;
-      maxVoxelCoordinatesFixed[iDimension] = 1;
+      pitch[iDimension] = 0;
+      bitPitch[iDimension] = 0;
+
+      axisNumSamples[iDimension] = dataLayout->getDimensionNumSamples(iDimension);
+      coordinateMin[iDimension] = (iDimension < dataLayout->getDimensionality()) ? dataLayout->getDimensionMin(iDimension) : 0;
+      coordinateMax[iDimension] = (iDimension < dataLayout->getDimensionality()) ? dataLayout->getDimensionMax(iDimension) : 0;
+
+      localChunkSamples[iDimension] = 1;
+      isDimensionLODDecimated[iDimension] = false;
+
+      localChunkAllocatedSize[iDimension] = 1;
+    }
+
+    for (int iDimension = 0; iDimension < DataStoreDimensionality_Max; iDimension++)
+    {
+      dataBlockPitch[iDimension] = dataBlock.pitch[iDimension];
+      dataBlockAllocatedSize[iDimension] = dataBlock.allocatedSize[iDimension];
+      dataBlockSamples[iDimension] = dataBlock.size[iDimension];
+
+      for (int iDataBlockDim = 0; iDataBlockDim < DataStoreDimensionality_Max; iDataBlockDim++)
+      {
+        dataBlockBitPitch[iDataBlockDim] = dataBlockPitch[iDataBlockDim] * (iDataBlockDim == 0 ? 1 : 8);
+
+        int iDimension = DimensionGroupUtil::getDimension(dataChunk.layer->getChunkDimensionGroup(), iDataBlockDim);
+        dimensionMap[iDataBlockDim] = iDimension;
+        if (iDimension >= 0 && iDimension < Dimensionality_Max)
+        {
+          pitch[iDimension] = dataBlockPitch[iDataBlockDim];
+          bitPitch[iDimension] = dataBlockBitPitch[iDataBlockDim];
+          localChunkAllocatedSize[iDimension] = dataBlockAllocatedSize[iDataBlockDim];
+
+          isDimensionLODDecimated[iDimension] = (dataBlockSamples[iDataBlockDim] < voxelMax[iDimension] - voxelMin[iDimension]);
+          localChunkSamples[iDimension] = dataBlockSamples[iDataBlockDim];
+        }
+      }
     }
   }
-  
-  VolumeDataLayer *volumeDataLayer = getLayer(volumeDataLayout, dimensionsND, lod, channel);
+};
 
-  std::vector<VolumeDataChunk> chunksInRegion;
+static bool voxelIndexInProcessArea(const IndexValues &indexValues, const int32_t (&iVoxelIndex)[Dimensionality_Max])
+{
+  bool ret = true;
 
-  volumeDataLayer->getChunksInRegion(minVoxelCoordinates, maxVoxelCoordinates, &chunksInRegion);
-
-  if (chunksInRegion.empty())
+  for (int i = 0; i < Dimensionality_Max; i++)
   {
-    fmt::print("Requested volume subset does not contain any data");
+    ret = ret && (iVoxelIndex[i] < indexValues.voxelMax[i]) && (iVoxelIndex[i] >= indexValues.voxelMin[i]);
+  }
+
+  return ret;
+}
+  
+static void voxelIndexToLocalIndexFloat(const IndexValues &indexValues, const float (&iVoxelIndex)[Dimensionality_Max], float (&localIndex)[Dimensionality_Max] )
+  {
+    for (int i = 0; i < Dimensionality_Max; i++)
+      localIndex[i] = 0.0f;
+
+    for (int i = 0; i < DataStoreDimensionality_Max; i++)
+    {
+      if (indexValues.dimensionMap[i] >= 0)
+      {
+        localIndex[i] = iVoxelIndex[indexValues.dimensionMap[i]] - indexValues.voxelMin[indexValues.dimensionMap[i]];
+        localIndex[i] /= (1 << (indexValues.isDimensionLODDecimated[indexValues.dimensionMap[i]] ? indexValues.lod : 0));
+      }
+    }
+}
+
+template <typename T, InterpolationMethod INTERPMETHOD, bool isUseNoValue>
+void projectValuesKernel(T *output, const T *input, const ProjectVars &projectVars, const IndexValues &inputIndexer, const int32_t (&voxelOutIndex)[Dimensionality_Max], VolumeSampler<T, INTERPMETHOD, isUseNoValue> &sampler, QuantizingValueConverterWithNoValue<T, typename InterpolatedRealType<T>::type, isUseNoValue> &converter, float voxelCenterOffset)
+{
+  float zValue = (projectVars.voxelPlane.X * (voxelOutIndex[projectVars.projectedDimensions[0]] + voxelCenterOffset) + projectVars.voxelPlane.Y * (voxelOutIndex[projectVars.projectedDimensions[1]] + voxelCenterOffset) + projectVars.voxelPlane.T) / (-projectVars.voxelPlane.Z);
+
+  //clamp so it's inside the volume
+  if (zValue < 0) zValue = 0;
+  else if (zValue >= inputIndexer.axisNumSamples[projectVars.projectionDimension]) zValue = (float)(inputIndexer.axisNumSamples[projectVars.projectionDimension] - 1);
+
+  float voxelCenterInIndex[Dimensionality_Max];
+  voxelCenterInIndex[0] = (float)voxelOutIndex[0] + voxelCenterOffset;
+  voxelCenterInIndex[1] = (float)voxelOutIndex[1] + voxelCenterOffset;
+  voxelCenterInIndex[2] = (float)voxelOutIndex[2] + voxelCenterOffset;
+  voxelCenterInIndex[3] = (float)voxelOutIndex[3] + voxelCenterOffset;
+  voxelCenterInIndex[4] = (float)voxelOutIndex[4] + voxelCenterOffset;
+  voxelCenterInIndex[5] = (float)voxelOutIndex[5] + voxelCenterOffset;
+
+  voxelCenterInIndex[projectVars.projectionDimension] = zValue;
+
+  int32_t voxelInIndexInt[Dimensionality_Max]; 
+  voxelInIndexInt[0] = voxelOutIndex[0];
+  voxelInIndexInt[1] = voxelOutIndex[1];
+  voxelInIndexInt[2] = voxelOutIndex[2];
+  voxelInIndexInt[3] = voxelOutIndex[3];
+  voxelInIndexInt[4] = voxelOutIndex[4];
+  voxelInIndexInt[5] = voxelOutIndex[5];
+
+  voxelInIndexInt[projectVars.projectionDimension] = (int)zValue;
+
+  if (voxelIndexInProcessArea(inputIndexer, voxelInIndexInt))
+  {
+    float localInIndex[Dimensionality_Max];
+    voxelIndexToLocalIndexFloat(inputIndexer, voxelCenterInIndex, localInIndex);
+    FloatVector3 localInIndex3D(localInIndex[0], localInIndex[1], localInIndex[2]);
+
+    typedef typename InterpolatedRealType<T>::type TREAL;
+    TREAL value = sampler.sample3D(input, localInIndex3D);
+
+    //TODO - 1Bit
+    output[projectVars.dataIndex(voxelOutIndex)] = converter.convertValue(value);
+  }
+}
+
+template <typename T, InterpolationMethod INTERPMETHOD, bool isUseNoValue>
+void projectValuesKernelCPU(T *pxOutput, const T *pxInput, const ProjectVars &projectVars, const IndexValues &indexValues, float scale, float offset, float noValue)
+{
+  VolumeSampler<T, INTERPMETHOD, isUseNoValue> sampler(indexValues.dataBlockSamples, indexValues.dataBlockPitch, indexValues.valueRangeMin, indexValues.valueRangeMax, scale, offset, noValue, noValue);
+  QuantizingValueConverterWithNoValue<T, typename InterpolatedRealType<T>::type, isUseNoValue> converter(indexValues.valueRangeMin, indexValues.valueRangeMax, scale, offset, noValue, noValue, false);
+
+  int32_t numSamples[2];
+  int32_t offsetPair[2];
+
+  for (int i = 0; i < 2; i++)
+  {
+    int nMin = std::max(projectVars.requestedMin[projectVars.projectedDimensions[i]], indexValues.voxelMin[projectVars.projectedDimensions[i]]);
+    int nMax = std::min(projectVars.requestedMax[projectVars.projectedDimensions[i]], indexValues.voxelMax[projectVars.projectedDimensions[i]]);
+
+    numSamples[i] = (nMax - nMin + (1 << projectVars.lod) - 1) >> projectVars.lod;
+    offsetPair[i] = (nMin - projectVars.requestedMin[projectVars.projectedDimensions[i]] + (1 << projectVars.lod) - 1) >> projectVars.lod;
+  }
+
+  float voxelCenterOffset = (1 << projectVars.lod) / 2.0f;
+
+  // we can keep this to two dimensions because we know the input chunk is 3D
+//#pragma omp parallel for
+  for (int iDim1 = 0; iDim1 < numSamples[1]; iDim1++)
+  for (int iDim0 = 0; iDim0 < numSamples[0]; iDim0++)
+  {
+    // this looks really strange, but since we know that the chunk dimension group for the input is always the projected and projection dimensions, this works
+    int32_t localChunkIndex[Dimensionality_Max];
+    for (int i = 0; i < 6; i++)
+      localChunkIndex[i] = (indexValues.voxelMin[i] - projectVars.requestedMin[i]) >> projectVars.lod;
+    
+    localChunkIndex[projectVars.projectedDimensions[0]] = iDim0 + offsetPair[0];
+    localChunkIndex[projectVars.projectedDimensions[1]] = iDim1 + offsetPair[1];
+    localChunkIndex[projectVars.projectionDimension] = 0;
+
+    int32_t voxelIndex[Dimensionality_Max];
+    projectVars.voxelIndex(localChunkIndex, voxelIndex);
+    projectValuesKernel<T, INTERPMETHOD, isUseNoValue>(pxOutput, pxInput, projectVars, indexValues, voxelIndex, sampler, converter, voxelCenterOffset);
+  }
+}
+
+template <typename T, bool isUseNoValue>
+static void projectValuesInitCPU(T *output, const T *input, const ProjectVars &projectVars, const IndexValues &indexValues, float scale, float offset, float noValue, InterpolationMethod interpolationMethod)
+{
+  switch(interpolationMethod)
+  {
+  case InterpolationMethod::Nearest: projectValuesKernelCPU<T, InterpolationMethod::Nearest, isUseNoValue>(output, input, projectVars, indexValues, scale, offset, noValue); break;
+  case InterpolationMethod::Linear:  projectValuesKernelCPU<T, InterpolationMethod::Linear,  isUseNoValue>(output, input, projectVars, indexValues, scale, offset, noValue); break;
+  case InterpolationMethod::Cubic:   projectValuesKernelCPU<T, InterpolationMethod::Cubic,   isUseNoValue>(output, input, projectVars, indexValues, scale, offset, noValue); break;
+  case InterpolationMethod::Angular: projectValuesKernelCPU<T, InterpolationMethod::Angular, isUseNoValue>(output, input, projectVars, indexValues, scale, offset, noValue); break;
+  case InterpolationMethod::Triangular: projectValuesKernelCPU<T, InterpolationMethod::Triangular, isUseNoValue>(output, input, projectVars, indexValues, scale, offset, noValue); break;
+  //case InterpolationMethod::TriangularExcludingValuerangeMinAndLess: ProjectValuesKernelCPU<T, InterpolationMethod::TriangularExcludingValuerangeMinAndLess, isUseNoValue>(output, input, projectVars, scale, offset, noValue); break;
+  }
+}
+
+static void projectValuesCPU(void *output, const void *input, const ProjectVars &projectVars, const IndexValues &indexValues, VolumeDataChannelDescriptor::Format format, InterpolationMethod eInterpolationMethod, float scale, float offset, bool isUseNoValue, float noValue)
+{
+  if (isUseNoValue)
+  {
+    switch(format)
+    {
+    case VolumeDataChannelDescriptor::Format_U8:  projectValuesInitCPU<unsigned char, true>((unsigned char*)output, (const unsigned char*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    case VolumeDataChannelDescriptor::Format_U16: projectValuesInitCPU<unsigned short, true>((unsigned short*)output, (const unsigned short*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    case VolumeDataChannelDescriptor::Format_R32: projectValuesInitCPU<float, true>((float*)output, (const float*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    case VolumeDataChannelDescriptor::Format_U32: projectValuesInitCPU<unsigned int, true>((unsigned int*)output, (const unsigned int*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    case VolumeDataChannelDescriptor::Format_R64: projectValuesInitCPU<double, true>((double*)output, (const double*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    case VolumeDataChannelDescriptor::Format_U64: projectValuesInitCPU<uint64_t, true>((uint64_t *)output, (const uint64_t *)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    }
+  }
+  else
+  {
+    switch(format)
+    {
+    case VolumeDataChannelDescriptor::Format_U8:  projectValuesInitCPU<unsigned char, false>((unsigned char*)output, (const unsigned char*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    case VolumeDataChannelDescriptor::Format_U16: projectValuesInitCPU<unsigned short, false>((unsigned short*)output, (const unsigned short*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    case VolumeDataChannelDescriptor::Format_R32: projectValuesInitCPU<float, false>((float*)output, (const float*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    case VolumeDataChannelDescriptor::Format_U32: projectValuesInitCPU<unsigned int, false>((unsigned int*)output, (const unsigned int*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    case VolumeDataChannelDescriptor::Format_R64: projectValuesInitCPU<double, false>((double*)output, (const double*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    case VolumeDataChannelDescriptor::Format_U64: projectValuesInitCPU<uint64_t, false>((uint64_t *)output, (const uint64_t *)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
+    }
+  }
+}
+
+static bool requestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataChunk &chunk, const int32_t (&destMin)[Dimensionality_Max], const int32_t (&destMax)[Dimensionality_Max], DimensionGroup projectedDimensionsEnum, FloatVector4 voxelPlane, InterpolationMethod interpolationMethod, bool useNoValue, float noValue, void *destBuffer, Error &error)
+{
+  VolumeDataChannelDescriptor::Format voxelFormat = chunk.layer->getFormat();
+
+  VolumeDataLayer const *volumeDataLayer = chunk.layer;
+
+  DataBlock const &dataBlock = page->getDataBlock();
+
+  if (dataBlock.components != VolumeDataChannelDescriptor::Components_1)
+  {
+    fmt::print(stderr, "Cannot request volume subset from multi component VDSs");
     abort();
   }
 
-  return StaticRequestVolumeSubset(m_requestProcessor, buffer, volumeDataLayer, minVoxelCoordinatesFixed, maxVoxelCoordinatesFixed, lod, format, volumeDataLayer->isUseNoValue(), volumeDataLayer->getNoValue());
+  int32_t iLOD = volumeDataLayer->getLOD();
+
+  int32_t projectionDimension = -1;
+  int32_t projectedDimensions[2] = { -1, -1 };
+
+  if (DimensionGroupUtil::getDimensionality(volumeDataLayer->getChunkDimensionGroup()) < 3)
+  {
+    fmt::print(stderr,"The requested dimension group must contain at least 3 dimensions.");
+    abort();
+  }
+
+  if (DimensionGroupUtil::getDimensionality(projectedDimensionsEnum) != 2)
+  {
+    fmt::print(stderr, "The projected dimension group must contain 2 dimensions.");
+    abort();
+  }
+
+  for (int iDimIndex = 0; iDimIndex < DimensionGroupUtil::getDimensionality(volumeDataLayer->getChunkDimensionGroup()); iDimIndex++)
+  {
+    int32_t iDim = DimensionGroupUtil::getDimension(volumeDataLayer->getChunkDimensionGroup(), iDimIndex);
+
+    if (!DimensionGroupUtil::isDimensionInGroup(projectedDimensionsEnum, iDim))
+    {
+      projectionDimension = iDim;
+    }
+  }
+
+  assert(projectionDimension != -1);
+  
+  for (int32_t iDimIndex = 0, projectionDimensionality = DimensionGroupUtil::getDimensionality(projectedDimensionsEnum); iDimIndex < projectionDimensionality; iDimIndex++)
+  {
+    int32_t iDim = DimensionGroupUtil::getDimension(projectedDimensionsEnum, iDimIndex);
+    projectedDimensions[iDimIndex] = iDim;
+
+    if (!DimensionGroupUtil::isDimensionInGroup(volumeDataLayer->getChunkDimensionGroup(), iDim))
+    {
+      fmt::print(stderr,"The requested dimension group must contain the dimensions of the projected dimension group.");
+      abort();
+    }
+  }
+
+  int32_t sizeThisLod[Dimensionality_Max];
+  for (int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
+  {
+    if (chunk.layer->getLayout()->getFullResolutionDimension())
+    {
+      sizeThisLod[iDimension] = destMax[iDimension] - destMin[iDimension];
+    }
+    else
+    {
+      sizeThisLod[iDimension] = (destMax[iDimension] - destMin[iDimension] + (1 << iLOD) - 1) >> iLOD;
+    }
+  }
+
+  ProjectVars projectVars;
+  for (int iDim = 0; iDim < Dimensionality_Max; iDim++)
+  {
+    projectVars.requestedMin[iDim] = destMin[iDim];
+    projectVars.requestedMax[iDim] = destMax[iDim];
+    projectVars.requestedSizeThisLOD[iDim] = sizeThisLod[iDim];
+    projectVars.requestedPitch[iDim] = iDim == 0 ? 1 : projectVars.requestedPitch[iDim - 1] * projectVars.requestedSizeThisLOD[iDim - 1];
+  }
+
+  projectVars.lod = iLOD;
+  projectVars.voxelPlane = FloatVector4(voxelPlane.X, voxelPlane.Y, voxelPlane.Z, voxelPlane.T);
+  projectVars.projectionDimension = projectionDimension;
+  projectVars.projectedDimensions[0] = projectedDimensions[0];
+  projectVars.projectedDimensions[1] = projectedDimensions[1];
+
+  const void* sourceBuffer = page->getRawBufferInternal();
+
+  IndexValues indexValues;
+  indexValues.initialize(chunk, page->getDataBlock());
+
+  projectValuesCPU(destBuffer, sourceBuffer, projectVars, indexValues, voxelFormat, interpolationMethod, volumeDataLayer->getIntegerScale(), volumeDataLayer->getIntegerOffset(), useNoValue, noValue);
+}
+
+int64_t staticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t (&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionGroup projectedDimensions, int32_t iLOD, VolumeDataChannelDescriptor::Format eFormat, InterpolationMethod interpolationMethod, bool isReplaceNoValue, float replacementNoValue)
+{
+  Box boxRequested;
+  memcpy(boxRequested.min, minRequested, sizeof(boxRequested.min));
+  memcpy(boxRequested.max, maxRequested, sizeof(boxRequested.max));
+
+  // Initialized unused dimensions
+  for (int32_t iDimension = volumeDataLayer->getLayout()->getDimensionality(); iDimension < Dimensionality_Max; iDimension++)
+  {
+    boxRequested.min[iDimension] = 0;
+    boxRequested.min[iDimension] = 1;
+  }
+
+  std::vector<VolumeDataChunk> chunksInRegion;
+
+  int32_t projectionDimension = -1;
+  int32_t projectionDimensionPosition;
+  int32_t projectedDimensionsPair[2] = { -1, -1 };
+
+  int32_t layerDimensionGroup = DimensionGroupUtil::getDimensionality(volumeDataLayer->getChunkDimensionGroup());
+  if (layerDimensionGroup < 3)
+  {
+    fmt::print(stderr, "The requested dimension group must contain at least 3 dimensions.");
+    abort();
+  }
+
+  if (DimensionGroupUtil::getDimensionality(projectedDimensions) != 2)
+  {
+    fmt::print(stderr, "The projected dimension group must contain 2 dimensions.");
+    abort();
+  }
+
+  for (int iDimIndex = 0; iDimIndex < layerDimensionGroup; iDimIndex++)
+  {
+    int32_t iDim = DimensionGroupUtil::getDimension(volumeDataLayer->getChunkDimensionGroup(), iDimIndex);
+
+    if (!DimensionGroupUtil::isDimensionInGroup(projectedDimensions, iDim))
+    {
+      projectionDimension = iDim;
+      projectionDimensionPosition = iDimIndex;
+
+      // min/max in the projection dimension is not used
+      boxRequested.min[iDim] = 0;
+      boxRequested.max[iDim] = 1;
+    }
+  }
+
+  assert(projectionDimension != -1);
+
+  for (int iDimIndex = 0; iDimIndex < DimensionGroupUtil::getDimensionality(projectedDimensions); iDimIndex++)
+  {
+    int32_t iDim = DimensionGroupUtil::getDimension(projectedDimensions, iDimIndex);
+    projectedDimensionsPair[iDimIndex] = iDim;
+
+    if (!DimensionGroupUtil::isDimensionInGroup(volumeDataLayer->getChunkDimensionGroup(), iDim))
+    {
+      fmt::print(stderr,"The requested dimension group must contain the dimensions of the projected dimension group.");
+      abort();
+    }
+  }
+
+  //Swap components of VoxelPlane based on projection dimension
+  FloatVector4 voxelPlaneSwapped(voxelPlane);
+
+  if (projectionDimensionPosition < 2)
+  {
+    //need to swap
+    if (projectionDimensionPosition == 1)
+    {
+      voxelPlaneSwapped.Y = voxelPlane.Z;
+      voxelPlaneSwapped.Z = voxelPlane.Y;
+    }
+    else
+    {
+      voxelPlaneSwapped.X = voxelPlane.Y;
+      voxelPlaneSwapped.Y = voxelPlane.Z;
+      voxelPlaneSwapped.Z = voxelPlane.X;
+    }
+  }
+
+  if (voxelPlaneSwapped.Z == 0)
+  {
+    fmt::print(stderr, "The Voxel plane cannot be perpindicular to the projected dimensions.");
+    abort();
+  }
+
+  std::vector<VolumeDataChunk> chunksInProjectedRegion;
+  std::vector<VolumeDataChunk> chunksIntersectingPlane;
+
+  volumeDataLayer->getChunksInRegion(boxRequested.min,
+                                     boxRequested.max,
+                                     &chunksInProjectedRegion);
+
+  for (int iChunk = 0; iChunk < chunksInProjectedRegion.size(); iChunk++)
+  {
+    int32_t min[Dimensionality_Max];
+    int32_t max[Dimensionality_Max];
+
+    chunksInProjectedRegion[iChunk].layer->getChunkMinMax(chunksInProjectedRegion[iChunk].chunkIndex, min, max, true);
+
+    for (int iDimIndex = 0; iDimIndex < 2; iDimIndex++)
+    {
+      int32_t iDim = projectedDimensionsPair[iDimIndex];
+
+      if (min[iDim] < minRequested[iDim]) min[iDim] = minRequested[iDim];
+      if (max[iDim] > maxRequested[iDim]) max[iDim] = maxRequested[iDim];
+    }
+
+    int32_t corners[4];
+
+    corners[0] = (int32_t)(((voxelPlaneSwapped.X * min[projectedDimensionsPair[0]] + voxelPlaneSwapped.Y * min[projectedDimensionsPair[1]] + voxelPlaneSwapped.T) / (-voxelPlaneSwapped.Z)) + 0.5f);
+    corners[1] = (int32_t)(((voxelPlaneSwapped.X * min[projectedDimensionsPair[0]] + voxelPlaneSwapped.Y * max[projectedDimensionsPair[1]] + voxelPlaneSwapped.T) / (-voxelPlaneSwapped.Z)) + 0.5f);
+    corners[2] = (int32_t)(((voxelPlaneSwapped.X * max[projectedDimensionsPair[0]] + voxelPlaneSwapped.Y * min[projectedDimensionsPair[1]] + voxelPlaneSwapped.T) / (-voxelPlaneSwapped.Z)) + 0.5f);
+    corners[3] = (int32_t)(((voxelPlaneSwapped.X * max[projectedDimensionsPair[0]] + voxelPlaneSwapped.Y * max[projectedDimensionsPair[1]] + voxelPlaneSwapped.T) / (-voxelPlaneSwapped.Z)) + 0.5f);
+
+    int32_t nMin = corners[0];
+    int32_t nMax = corners[0] + 1;
+
+    for (int i = 1; i < 4; i++)
+    {
+      if (corners[i] < nMin) nMin = corners[i];
+      if (corners[i] + 1 > nMax) nMax = corners[i] + 1;
+    }
+
+    Box boxProjected = boxRequested;
+
+    boxProjected.min[projectionDimension] = nMin;
+    boxProjected.max[projectionDimension] = nMax;
+
+    boxProjected.min[projectedDimensionsPair[0]] = min[projectedDimensionsPair[0]];
+    boxProjected.max[projectedDimensionsPair[0]] = max[projectedDimensionsPair[0]];
+
+    boxProjected.min[projectedDimensionsPair[1]] = min[projectedDimensionsPair[1]];
+    boxProjected.max[projectedDimensionsPair[1]] = max[projectedDimensionsPair[1]];
+
+    volumeDataLayer->getChunksInRegion(boxProjected.min,
+                                       boxProjected.max,
+                                            &chunksIntersectingPlane);
+
+    for (int iChunkInPlane = 0; iChunkInPlane < chunksIntersectingPlane.size(); iChunkInPlane++)
+    {
+      VolumeDataChunk &chunkInIntersectingPlane = chunksIntersectingPlane[iChunkInPlane];
+      auto chunk_it = std::find_if(chunksInRegion.begin(), chunksInRegion.end(), [&chunkInIntersectingPlane] (const VolumeDataChunk &a) { return a.chunkIndex == chunkInIntersectingPlane.chunkIndex && a.layer == chunkInIntersectingPlane.layer; });
+      if (chunk_it == chunksInRegion.end())
+      {
+        chunksInRegion.push_back(chunkInIntersectingPlane);
+      }
+    }
+
+    chunksIntersectingPlane.clear();
+  }
+
+  if(chunksInRegion.size() == 0)
+  {
+    fmt::print(stderr, "Requested volume subset does not contain any data");
+    abort();
+  }
+
+  return request_processor.addJob(chunksInRegion, [boxRequested, buffer, projectedDimensions, voxelPlaneSwapped, interpolationMethod, isReplaceNoValue, replacementNoValue](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) { return requestProjectedVolumeSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, projectedDimensions, voxelPlaneSwapped, interpolationMethod, isReplaceNoValue, replacementNoValue, buffer, error);});
+}
+
+int64_t VolumeDataAccessManagerImpl::requestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format)
+{
+  return staticRequestVolumeSubset(m_requestProcessor, buffer, getLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, lod, format, false, 0.0f);
 }
 
 int64_t VolumeDataAccessManagerImpl::requestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, float replacementNoValue)
 {
-  // Initialized unused dimensions
-  int minVoxelCoordinatesFixed[Dimensionality_Max];
-  int maxVoxelCoordinatesFixed[Dimensionality_Max];
-
-  int layoutDimensionality = volumeDataLayout->getDimensionality();
-  for (int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
-  {
-    if (iDimension < layoutDimensionality)
-    {
-      minVoxelCoordinatesFixed[iDimension] = minVoxelCoordinates[iDimension];
-      maxVoxelCoordinatesFixed[iDimension] = maxVoxelCoordinates[iDimension];
-    }
-    else
-    {
-      minVoxelCoordinatesFixed[iDimension] = 0;
-      maxVoxelCoordinatesFixed[iDimension] = 1;
-    }
-  }
-
-  VolumeDataLayer *volumeDataLayer = getLayer(volumeDataLayout, dimensionsND, lod, channel);
-
-  std::vector<VolumeDataChunk> chunksInRegion;
-
-  volumeDataLayer->getChunksInRegion(minVoxelCoordinates, maxVoxelCoordinates, &chunksInRegion);
-
-  if (chunksInRegion.empty())
-  {
-    fmt::print("Requested volume subset does not contain any data");
-    abort();
-  }
-
-  return StaticRequestVolumeSubset(m_requestProcessor, buffer, volumeDataLayer, minVoxelCoordinatesFixed, maxVoxelCoordinatesFixed, lod, format, true, replacementNoValue);
+  return staticRequestVolumeSubset(m_requestProcessor, buffer, getLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, lod, format, true, replacementNoValue);
 }
 int64_t VolumeDataAccessManagerImpl::requestProjectedVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const& voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod)
 {
-  return int64_t(0);
+  return staticRequestProjectedVolumeSubset(m_requestProcessor, buffer, getLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, DimensionGroupUtil::getDimensionGroupFromDimensionsND(projectedDimensions), lod, format, interpolationMethod, false, 0.0f);
 }
+
 int64_t VolumeDataAccessManagerImpl::requestProjectedVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const& voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod, float replacementNoValue)
 {
-  return int64_t(0);
+  return staticRequestProjectedVolumeSubset(m_requestProcessor, buffer, getLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, DimensionGroupUtil::getDimensionGroupFromDimensionsND(projectedDimensions), lod, format, interpolationMethod, true, replacementNoValue);
 }
+
 int64_t VolumeDataAccessManagerImpl::requestVolumeSamples(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*samplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod)
 {
   return int64_t(0);

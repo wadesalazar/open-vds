@@ -333,14 +333,12 @@ bool VolumeDataPageAccessorImpl::readPreparedPaged(VolumeDataPage* page)
 
 VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
 {
-  bool foundExisting;
-  VolumeDataPage *page = prepareReadPage(chunk, &foundExisting);
+  bool needToRead;
+  VolumeDataPage *page = prepareReadPage(chunk, &needToRead);
   if (!page)
     return nullptr;
-  if (foundExisting)
-    return page;
-  if (!readPreparedPaged(page))
-    return nullptr;
+  if (needToRead && !readPreparedPaged(page))
+      return nullptr;
   return page;
 }
 

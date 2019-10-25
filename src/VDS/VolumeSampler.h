@@ -116,7 +116,7 @@ public:
   /// \param rangemax the value range maximum of the data to be sampled
   /// \param noValalue the no value for the data to be sampled
   /// \param replacementNoValue the value to replace any NoValues with
-    VolumeSampler(const int(&anSize)[Dimensionality_Max], const int(&anPitch)[Dimensionality_Max], float rangeMin, float rangeMax, float integerScale, float integerOffset, float noValalue, float replacementNoValue)
+    VolumeSampler(const int(&anSize)[DataStoreDimensionality_Max], const int(&anPitch)[DataStoreDimensionality_Max], float rangeMin, float rangeMax, float integerScale, float integerOffset, float noValalue, float replacementNoValue)
       : m_sizeX(anSize[0])
       , m_sizeY(anSize[1])
       , m_sizeZ(anSize[2])
