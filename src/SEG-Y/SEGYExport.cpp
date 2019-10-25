@@ -15,17 +15,20 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#include "SEGY.h"
 #include "IO/File.h"
-#include "cxxopts.hpp"
-#include <fmt/format.h>
 
 #include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/VolumeDataAccess.h>
 #include <OpenVDS/VolumeDataLayout.h>
+
+#include "cxxopts.hpp"
+
 #include <cstdlib>
 #include <climits>
 #include <json/json.h>
 #include <assert.h>
+#include <fmt/format.h>
 
 int
 main(int argc, char *argv[])
@@ -101,21 +104,6 @@ main(int argc, char *argv[])
   auto dataAccessManager = OpenVDS::getDataAccessManager(vds);
   auto volumeDataLayout = dataAccessManager->getVolumeDataLayout();
 
-  int dimensionality = dataAccessManager->getVolumeDataLayout()->getDimensionality();
-  int outerDimension = std::max(2, dimensionality - 1);
-  int lineCount = volumeDataLayout->getDimensionNumSamples(outerDimension);
-
-  int64_t traceCount = 1;
-  for(int dimension = 1; dimension < outerDimension; dimension++)
-  {
-    traceCount *= volumeDataLayout->getDimensionNumSamples(dimension);
-  }
-
-  const int elementSize = 4;
-  std::unique_ptr<char[]> buffer(new char[traceCount * volumeDataLayout->getDimensionNumSamples(0) *elementSize]);
-  std::unique_ptr<char[]> traceFlag(new char[traceCount]);
-  std::unique_ptr<char[]> segyTraceHeader(new char[traceCount * 240]);
-
   if(!volumeDataLayout->isChannelAvailable("Trace"))
   {
     fmt::print(stderr, "VDS has no \"Trace\" channel");
@@ -130,6 +118,53 @@ main(int argc, char *argv[])
   }
   int segyTraceHeaderChannel = volumeDataLayout->getChannelIndex("SEGYTraceHeader");
 
+  if(!volumeDataLayout->IsMetadataBLOBAvailable("SEGY", "TextHeader") || !volumeDataLayout->IsMetadataBLOBAvailable("SEGY", "BinaryHeader"))
+  {
+    fmt::print(stderr, "SEG-Y Text/Binary headers not found");
+    return EXIT_FAILURE;
+  }
+
+  // Write headers
+  std::vector<uint8_t> textHeader;
+  std::vector<uint8_t> binaryHeader;
+
+  volumeDataLayout->GetMetadataBLOB("SEGY", "TextHeader", textHeader);
+  volumeDataLayout->GetMetadataBLOB("SEGY", "BinaryHeader", binaryHeader);
+
+  if(textHeader.size() != SEGY::TextualFileHeaderSize || binaryHeader.size() != SEGY::BinaryFileHeaderSize)
+  {
+    fmt::print(stderr, "Invalid SEG-Y Text/Binary headers");
+    return EXIT_FAILURE;
+  }
+
+  file.write(textHeader.data(), 0, SEGY::TextualFileHeaderSize, error) && file.write(binaryHeader.data(), SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize, error);
+  if(error.code != 0)
+  {
+    fmt::print(stderr, "Error writing SEG-Y headers to file: {}", fileName);
+    return EXIT_FAILURE;
+  }
+
+  int dimensionality = dataAccessManager->getVolumeDataLayout()->getDimensionality();
+  int outerDimension = std::max(2, dimensionality - 1);
+  int lineCount = volumeDataLayout->getDimensionNumSamples(outerDimension);
+
+  int64_t traceCount = 1;
+  for(int dimension = 1; dimension < outerDimension; dimension++)
+  {
+    traceCount *= volumeDataLayout->getDimensionNumSamples(dimension);
+  }
+
+  const int sampleFormatSize = 4;
+  const int sampleCount = volumeDataLayout->getDimensionNumSamples(0);
+  const int traceDataSize = sampleCount * sampleFormatSize;
+
+  std::unique_ptr<char[]> data(new char[traceCount * traceDataSize]);
+  std::unique_ptr<char[]> traceFlag(new char[traceCount]);
+  std::unique_ptr<char[]> segyTraceHeader(new char[traceCount * SEGY::TraceHeaderSize]);
+
+  int64_t
+    offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize;
+
   for(int line = 0; line < lineCount; line++)
   {
     int min[OpenVDS::Dimensionality_Max] = {},
@@ -143,13 +178,57 @@ main(int argc, char *argv[])
     min[outerDimension] = line;
     max[outerDimension] = line + 1;
 
-    int64_t dataRequestID = dataAccessManager->requestVolumeSubset(buffer.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, 0, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+    int64_t dataRequestID = dataAccessManager->requestVolumeSubset(data.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, 0, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
 
     max[0] = 1;
-    int64_t traceFlagRequestID = dataAccessManager->requestVolumeSubset(buffer.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, traceFlagChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+    int64_t traceFlagRequestID = dataAccessManager->requestVolumeSubset(traceFlag.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, traceFlagChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
 
     max[0] = 240;
-    int64_t segyTraceHaderRequestID = dataAccessManager->requestVolumeSubset(buffer.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, segyTraceHeaderChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+    int64_t segyTraceHaderRequestID = dataAccessManager->requestVolumeSubset(segyTraceHeader.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, segyTraceHeaderChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+
+    // Need to queue the writing on another thread to get max. performance
+    dataAccessManager->waitForCompletion(dataRequestID);
+    dataAccessManager->waitForCompletion(traceFlagRequestID);
+    dataAccessManager->waitForCompletion(segyTraceHaderRequestID);
+
+    std::unique_ptr<char[]> writeBuffer(new char[traceCount * (traceDataSize + SEGY::TraceHeaderSize)]);
+    int activeTraceCount = 0;
+
+    SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian;
+
+    auto dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(readFieldFromHeader(binaryHeader.data(), SEGY::BinaryHeader::DataSampleFormatCodeHeaderField, headerEndianness));
+
+    for(int trace = 0; trace < traceCount; trace++)
+    {
+      if(traceFlag[trace])
+      {
+        // Copy trace header
+        memcpy(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize), segyTraceHeader.get() + trace * SEGY::TraceHeaderSize, SEGY::TraceHeaderSize);
+
+        // Convert trace data
+        if(dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
+        {
+          SEGY::ieee2ibm(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, data.get() + trace * traceDataSize, sampleCount);
+        }
+        else if(dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat)
+        {
+          memcpy(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, data.get() + trace * traceDataSize, traceDataSize);
+        }
+        else
+        {
+          assert(0 && "other formats not implemented yet");
+        }
+
+        activeTraceCount++;
+      }
+    }
+
+    file.write(writeBuffer.get(), offset, activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize), error);
+    if(error.code != 0)
+    {
+      fmt::print(stderr, "Error writing SEG-Y traces to file: {}", fileName);
+      return EXIT_FAILURE;
+    }
   }
 
   return EXIT_SUCCESS;
