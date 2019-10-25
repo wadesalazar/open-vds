@@ -229,6 +229,7 @@ main(int argc, char *argv[])
       fmt::print(stderr, "Error writing SEG-Y traces to file: {}", fileName);
       return EXIT_FAILURE;
     }
+    offset += activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize);
   }
 
   return EXIT_SUCCESS;
