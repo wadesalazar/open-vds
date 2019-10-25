@@ -197,6 +197,6 @@ void ieee2ibm(void *to, const void *from, size_t len);
 
 // Read field from header
 
-int readFieldFromHeader(const char *header, HeaderField const &headerField, Endianness endianness);
+int readFieldFromHeader(const void *header, HeaderField const &headerField, Endianness endianness);
 
 } // end namespace SEGY

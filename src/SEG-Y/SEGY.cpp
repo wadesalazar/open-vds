@@ -230,7 +230,7 @@ ieee2ibm(void *to, const void *from, size_t len)
 }
 
 int
-readFieldFromHeader(const char *header, HeaderField const &headerField, Endianness endianness)
+readFieldFromHeader(const void *header, HeaderField const &headerField, Endianness endianness)
 {
   if(!headerField.defined())
   {
