@@ -83,6 +83,7 @@ static Error processPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessor
   }
 
   processor(jobPage.page, jobPage.chunk, error);
+  jobPage.page->unPin();
 
   return error;
 }
@@ -90,7 +91,7 @@ static Error processPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessor
 int64_t VolumeDataRequestProcessor::addJob(const std::vector<VolumeDataChunk>& chunks, std::function<bool(VolumeDataPageImpl * page, const VolumeDataChunk &volumeDataChunk, Error & error)> processor)
 {
   auto layer = chunks.front().layer;
-  DimensionsND dimensions = DimensionGroupUtil::getDimensionsNDFromDimensionGroup(layer->getChunkDimensionGroup());
+  DimensionsND dimensions = DimensionGroupUtil::getDimensionsNDFromDimensionGroup(layer->getPrimaryChannelLayer().getChunkDimensionGroup());
   int channel = layer->getChannelIndex();
   int lod = layer->getLOD();
   auto layout = layer->getLayout();
@@ -123,9 +124,11 @@ int64_t VolumeDataRequestProcessor::addJob(const std::vector<VolumeDataChunk>& c
     job->pages.emplace_back();
     JobPage &jobPage = job->pages.back();
     jobPage.page = static_cast<VolumeDataPageImpl *>(pageAccessor->prepareReadPage(c.chunkIndex, &jobPage.needToReadPage));
+    assert(jobPage.page && "Need to add error handling here when the page cannot be read");
     jobPage.chunk = c;
     size_t index = job->pages.size() - 1;
-    job->future.push_back(m_threadPool.enqueue([&job, index, pageAccessor, processor] { return processPageInJob(job.get(), index, pageAccessor, processor); }));
+    auto job_ptr = job.get();
+    job->future.push_back(m_threadPool.enqueue([job_ptr, index, pageAccessor, processor] { return processPageInJob(job_ptr, index, pageAccessor, processor); }));
   }
   return job->jobId;
 }
