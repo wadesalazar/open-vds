@@ -931,8 +931,8 @@ struct IndexValues
   {
     const VolumeDataLayout *dataLayout = dataChunk.layer->getLayout();
 
-    valueRangeMin = dataLayout->getChannelDescriptor(dataChunk.chunkIndex).getValueRangeMin();
-    valueRangeMax = dataLayout->getChannelDescriptor(dataChunk.chunkIndex).getValueRangeMax();
+    valueRangeMin = dataLayout->getChannelDescriptor(dataChunk.layer->getChannelIndex()).getValueRangeMin();
+    valueRangeMax = dataLayout->getChannelDescriptor(dataChunk.layer->getChannelIndex()).getValueRangeMax();
 
     lod = dataChunk.layer->getLOD();
     dataChunk.layer->getChunkMinMax(dataChunk.chunkIndex, voxelMin, voxelMax, true);
@@ -1140,8 +1140,9 @@ static bool requestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
 
   if (dataBlock.components != VolumeDataChannelDescriptor::Components_1)
   {
-    fmt::print(stderr, "Cannot request volume subset from multi component VDSs");
-    abort();
+    error.string = "Cannot request volume subset from multi component VDSs";
+    error.code = -1;
+    return false;
   }
 
   int32_t iLOD = volumeDataLayer->getLOD();
@@ -1151,14 +1152,16 @@ static bool requestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
 
   if (DimensionGroupUtil::getDimensionality(volumeDataLayer->getChunkDimensionGroup()) < 3)
   {
-    fmt::print(stderr,"The requested dimension group must contain at least 3 dimensions.");
-    abort();
+    error.string = "The requested dimension group must contain at least 3 dimensions.";
+    error.code = -1;
+    return false;
   }
 
   if (DimensionGroupUtil::getDimensionality(projectedDimensionsEnum) != 2)
   {
-    fmt::print(stderr, "The projected dimension group must contain 2 dimensions.");
-    abort();
+    error.string = "The projected dimension group must contain 2 dimensions.";
+    error.code = -1;
+    return false;
   }
 
   for (int iDimIndex = 0; iDimIndex < DimensionGroupUtil::getDimensionality(volumeDataLayer->getChunkDimensionGroup()); iDimIndex++)
@@ -1180,8 +1183,9 @@ static bool requestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
 
     if (!DimensionGroupUtil::isDimensionInGroup(volumeDataLayer->getChunkDimensionGroup(), iDim))
     {
-      fmt::print(stderr,"The requested dimension group must contain the dimensions of the projected dimension group.");
-      abort();
+      error.string = "The requested dimension group must contain the dimensions of the projected dimension group.";
+      error.code = -1;
+      return false;
     }
   }
 
@@ -1219,6 +1223,7 @@ static bool requestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
   indexValues.initialize(chunk, page->getDataBlock());
 
   projectValuesCPU(destBuffer, sourceBuffer, projectVars, indexValues, voxelFormat, interpolationMethod, volumeDataLayer->getIntegerScale(), volumeDataLayer->getIntegerOffset(), useNoValue, noValue);
+  return true;
 }
 
 int64_t staticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t (&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionGroup projectedDimensions, int32_t iLOD, VolumeDataChannelDescriptor::Format eFormat, InterpolationMethod interpolationMethod, bool isReplaceNoValue, float replacementNoValue)
