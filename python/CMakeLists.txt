@@ -40,6 +40,8 @@ add_custom_target(
             # the build tree
             -DENABLE_OPENMP=${ENABLE_OPENMP}
             -DCMAKE_BUILD_TYPE=$<CONFIG>
+            -DCMAKE_GENERATOR=${CMAKE_GENERATOR}
+            -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
             $<$<BOOL:$<CONFIG>>:-DCMAKE_BUILD_TYPE=$<CONFIG>>
             -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
             -DCMAKE_INSTALL_RPATH=$<TARGET_FILE_DIR:openvds>
