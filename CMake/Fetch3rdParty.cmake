@@ -16,7 +16,7 @@ function(Fetch3rdParty)
   include(CMake/FetchContentLocal.cmake)
   set(FETCHCONTENT_QUIET OFF)
 
-  Fetch3rdParty_Package(aws-cpp-sdk 1.7.109    https://codeload.github.com/aws/aws-sdk-cpp/tar.gz/1.7.109                                             MD5=7496040c6a5d3681d1edf356d6ccfbd7)
+  Fetch3rdParty_Package(aws-cpp-sdk 1.7.213    https://codeload.github.com/aws/aws-sdk-cpp/tar.gz/1.7.213                                             SHA256=dd0485837ee2b3b46a98f439fb6799e2bb63d9a0038b0de1c2173181630b775c)
   Fetch3rdParty_Package(gtest       1.9.0      https://codeload.github.com/google/googletest/legacy.tar.gz/33a0d4f6d76a0ed6061e612848532cba82d42870   MD5=5226644d616f5a00b436b487bf0a1dde)
   Fetch3rdParty_Package(jsoncpp     1.8.4      https://github.com/open-source-parsers/jsoncpp/archive/1.8.4.tar.gz                                    MD5=fa47a3ab6b381869b6a5f20811198662)
   Fetch3rdParty_Package(fmt         6.0.0      https://github.com/fmtlib/fmt/archive/6.0.0.tar.gz                                                     SHA256=f1907a58d5e86e6c382e51441d92ad9e23aea63827ba47fd647eacc0d3a16c78)
