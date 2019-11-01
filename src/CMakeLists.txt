@@ -5,6 +5,7 @@ set(SOURCE_FILES
   IO/Win_File.cpp
   IO/IOManager.cpp
   IO/IOManagerAWS.cpp
+  IO/IOManagerAzure.cpp
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
@@ -33,6 +34,7 @@ set (PRIVATE_HEADER_FILES
   IO/File.h
   IO/IOManager.h
   IO/IOManagerAWS.h
+  IO/IOManagerAzure.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataChannelMapping.h
   VDS/VolumeDataLayer.h
@@ -124,6 +126,11 @@ if (aws-cpp-sdk_EXTERNAL_LIBS)
   target_link_libraries(openvds_objects PUBLIC ${aws-cpp-sdk_EXTERNAL_LIBS})
 endif()
 target_link_libraries(openvds_objects PUBLIC $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)
+
+#Azure storage exposes boost_system on linux et al.
+if (UNIX)
+    target_link_libraries(openvds_objects PUBLIC boost_system)
+endif()
 
 if (OpenMP_CXX_FOUND)
     target_link_libraries(openvds_objects PUBLIC OpenMP::OpenMP_CXX)

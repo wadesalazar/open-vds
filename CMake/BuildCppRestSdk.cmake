@@ -1,0 +1,25 @@
+function(BuildCppRestSdk)
+    get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
+
+    if ("${LIB64}" STREQUAL "TRUE")
+        set(LIBSUFFIX 64)
+    else()
+        set(LIBSUFFIX "")
+    endif()
+
+  if (WIN32)
+    list(APPEND CPPRESTSDK_LIBS_LIST "lib/cpprest${MSVC_TOOLSET_VERSION}_2_10.lib")
+
+    list(APPEND CPPRESTSDK_DLLS_LIST "bin/cpprest${MSVC_TOOLSET_VERSION}_2_10.dll")
+  elseif (APPLE)
+    list(APPEND CPPRESTSDK_LIBS_LIST "lib/libcpprest.dylib.2.10")
+    list(APPEND CPPRESTSDK_LIBS_LIST "lib/libcpprest.dylib")
+  else()
+    list(APPEND CPPRESTSDK_LIBS_LIST "lib${LIBSUFFIX}/libcpprest.so.2.10")
+    list(APPEND CPPRESTSDK_LIBS_LIST "lib${LIBSUFFIX}/libcpprest.so")
+  endif()
+  BuildExternal(cpp-rest-api ${cpprestapi_VERSION} "" ${cpprestapi_SOURCE_DIR} "${CPPRESTSDK_LIBS_LIST}" "${CPPRESTSDK_DLLS_LIST}" "" "" "-DCPPREST_EXCLUDE_WEBSOCKETS=ON;-DCPPREST_EXCLUDE_COMPRESSION=ON;-DCPPREST_EXCLUDE_BROTLI=ON")
+  set(cpp-rest-api_INSTALL_INT_CONFIG ${cpp-rest-api_INSTALL_INT_CONFIG} PARENT_SCOPE)
+  #add_definitions(-DUSE_IMPORT_EXPORT)
+
+endfunction()

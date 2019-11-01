@@ -2,7 +2,7 @@ function(GetRootInstallDir var name version)
   set(${var} "${PROJECT_BINARY_DIR}/${name}_${version}_install" PARENT_SCOPE)
 endfunction()
 
-function(BuildExternal name version source_dir install_libs_release runtime_libs_release install_libs_debug runtime_libs_debug cmake_args)
+function(BuildExternal name version depends source_dir install_libs_release runtime_libs_release install_libs_debug runtime_libs_debug cmake_args)
 
   GetRootInstallDir(INSTALL_INT ${name} ${version})
 
@@ -59,6 +59,7 @@ function(BuildExternal name version source_dir install_libs_release runtime_libs
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
     CMAKE_ARGS ${cmake_arg_complete}
-    BUILD_BYPRODUCTS ${BUILDBYPRODUCTS})
+    BUILD_BYPRODUCTS ${BUILDBYPRODUCTS}
+    DEPENDS ${depends})
 endfunction()
 

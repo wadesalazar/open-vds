@@ -34,7 +34,7 @@ macro(BuildAWSSDK)
     list(APPEND AWS_LIBS_LIST "lib${LIBSUFFIX}/libaws-cpp-sdk-s3.so")
   endif()
 
-  BuildExternal(aws-cpp-sdk ${aws-cpp-sdk_VERSION} ${aws-cpp-sdk_SOURCE_DIR} "${AWS_LIBS_LIST}" "${AWS_DLLS_LIST}" "" "" "-DBUILD_ONLY=s3;-DENABLE_TESTING=OFF")
+  BuildExternal(aws-cpp-sdk ${aws-cpp-sdk_VERSION} "" ${aws-cpp-sdk_SOURCE_DIR} "${AWS_LIBS_LIST}" "${AWS_DLLS_LIST}" "" "" "-DBUILD_ONLY=s3;-DENABLE_TESTING=OFF")
 
   add_definitions(-DUSE_IMPORT_EXPORT)
 
