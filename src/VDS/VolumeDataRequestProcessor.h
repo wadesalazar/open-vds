@@ -58,14 +58,16 @@ struct Job
   Job(int64_t jobId, std::condition_variable &doneNotify)
     : jobId(jobId)
     , doneNotify(doneNotify)
+    , completed(0)
+    , cancelled(false)
   {}
 
   int64_t jobId;
   std::condition_variable &doneNotify;
   std::vector<JobPage> pages;
   std::vector<std::future<Error>> future;
-  std::atomic_int completed = 0;
-  std::atomic_bool cancelled = false;
+  std::atomic_int completed;
+  std::atomic_bool cancelled;
   Error completedError;
 };
 
