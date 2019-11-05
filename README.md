@@ -33,6 +33,12 @@ Do:
 to configure with default build settings. Now its possible to do `$ make -j8`
 to build and `$ make install` to install the package. To specify a custom
 install location specify the -DCMAKE_INSTALL_PREFIX=PATH cmake argument.
+OpenVDS requires some dependencies on linux. These dependencies are transient
+from the different network storage integrations. Currently these packages are required:
+- curl
+- openssl
+- boost
+- xml2
 
 #### Windows Visual Studio
 Much like on Linux its possible to generate a project in a build folder and build it using native tools.
