@@ -5,7 +5,6 @@ if (NOT BUILD_PYTHON)
     return()
 endif ()
 
-find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 set(python ${Python3_EXECUTABLE})
 set(setup.py ${CMAKE_CURRENT_SOURCE_DIR}/setup.py)
