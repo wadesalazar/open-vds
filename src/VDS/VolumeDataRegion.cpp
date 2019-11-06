@@ -119,34 +119,36 @@ VolumeDataRegion VolumeDataRegion::VolumeDataRegionOverlappingChunk(VolumeDataLa
   IndexArray validMin;
   IndexArray validMax;
 
-  for(int32_t iDimension = 0; iDimension < array_size(validMin); iDimension++)
+  for (int dimension = 0; dimension < array_size(validMin); dimension++)
   {
-    int32_t nNeededExtraValidVoxelsNegative = 0;
-    int32_t nNeededExtraValidVoxelsPositive = 0;
+    int neededExtraValidVoxelsNegative = 0,
+        neededExtraValidVoxelsPositive = 0;
 
-    if(DimensionGroupUtil::isDimensionInGroup(targetLayer->m_originalDimensionGroup, iDimension))
+    // Do we have a render margin in this dimension?
+    if (DimensionGroupUtil::isDimensionInGroup(targetLayer->getOriginalDimensionGroup(), dimension))
     {
-      nNeededExtraValidVoxelsNegative += volumeDataLayer.getNegativeRenderMargin();
-      nNeededExtraValidVoxelsPositive += volumeDataLayer.getPositiveRenderMargin();
-
-      if(DimensionGroupUtil::isDimensionInGroup(volumeDataLayer.getOriginalDimensionGroup(), iDimension))
+      // Can we copy from source's render margin in this dimension?
+      if (DimensionGroupUtil::isDimensionInGroup(volumeDataLayer.getOriginalDimensionGroup(), dimension))
       {
-        // How much can we copy from render margin to render margin?
-        nNeededExtraValidVoxelsNegative -= volumeDataLayer.getNegativeRenderMargin();
-        nNeededExtraValidVoxelsPositive -= volumeDataLayer.getPositiveRenderMargin();
+        neededExtraValidVoxelsNegative = std::max(0, targetLayer->getNegativeRenderMargin() - volumeDataLayer.getNegativeRenderMargin());
+        neededExtraValidVoxelsPositive = std::max(0, targetLayer->getPositiveRenderMargin() - volumeDataLayer.getPositiveRenderMargin());
+      }
+      else
+      {
+        neededExtraValidVoxelsNegative = targetLayer->getNegativeRenderMargin();
+        neededExtraValidVoxelsPositive = targetLayer->getPositiveRenderMargin();
       }
     }
 
-    nNeededExtraValidVoxelsNegative += targetLayer->getNegativeMargin(iDimension) - volumeDataLayer.getNegativeMargin(iDimension);
-    nNeededExtraValidVoxelsNegative += targetLayer->getNegativeMargin(iDimension) - volumeDataLayer.getNegativeMargin(iDimension);
-    nNeededExtraValidVoxelsPositive += targetLayer->getPositiveMargin(iDimension) - volumeDataLayer.getPositiveMargin(iDimension);
+    neededExtraValidVoxelsNegative += targetLayer->getNegativeMargin(dimension) - volumeDataLayer.getNegativeMargin(dimension);
+    neededExtraValidVoxelsPositive += targetLayer->getPositiveMargin(dimension) - volumeDataLayer.getPositiveMargin(dimension);
 
-    validMin[iDimension] = min[iDimension] - offset[iDimension] - std::max(0, nNeededExtraValidVoxelsNegative),
-    validMax[iDimension] = max[iDimension] - offset[iDimension] + std::max(0, nNeededExtraValidVoxelsPositive);
+    validMin[dimension] = min[dimension] - offset[dimension] - std::max(0, neededExtraValidVoxelsNegative),
+    validMax[dimension] = max[dimension] - offset[dimension] + std::max(0, neededExtraValidVoxelsPositive);
 
     // Limit the valid area so it doesn't extend into the border
-    validMin[iDimension] = std::max(validMin[iDimension], targetLayer->getDimensionFirstSample(iDimension));
-    validMax[iDimension] = std::min(validMax[iDimension], targetLayer->getDimensionFirstSample(iDimension) + targetLayer->getDimensionNumSamples(iDimension));
+    validMin[dimension] = std::max(validMin[dimension], targetLayer->getDimensionFirstSample(dimension));
+    validMax[dimension] = std::min(validMax[dimension], targetLayer->getDimensionFirstSample(dimension) + targetLayer->getDimensionNumSamples(dimension));
   }
 
   return VolumeDataRegion(volumeDataLayer, validMin, validMax);
