@@ -66,12 +66,12 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
   int max[6];
   page->getMinMax(min, max);
 
-  ASSERT_TRUE(min[0] < pos[0]);
-  ASSERT_TRUE(min[1] < pos[1]);
-  ASSERT_TRUE(min[2] < pos[2]);
-  ASSERT_TRUE(pos[0] < max[0]);
-  ASSERT_TRUE(pos[1] < max[1]);
-  ASSERT_TRUE(pos[2] < max[2]);
+  ASSERT_TRUE(min[0] <=  pos[0]);
+  ASSERT_TRUE(min[1] <=  pos[1]);
+  ASSERT_TRUE(min[2] <=  pos[2]);
+  ASSERT_TRUE(pos[0] <  max[0]);
+  ASSERT_TRUE(pos[1] <  max[1]);
+  ASSERT_TRUE(pos[2] <  max[2]);
 
   OpenVDS::destroy(handle);
 }

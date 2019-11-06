@@ -56,6 +56,7 @@ target_compile_definitions(vds_integration_tests PRIVATE -DTEST_AWS_OBJECTID="${
 
 add_test_executable(openvds_integration_tests
   OpenVDS/DataAccess.cpp
+  OpenVDS/RequestVolumeSamples.cpp
   )
 target_compile_definitions(openvds_integration_tests PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
 target_compile_definitions(openvds_integration_tests PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
