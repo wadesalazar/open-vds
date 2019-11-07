@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.12.0)
 project(Open-VDS)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+  "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+
 include(GNUInstallDirs)
 
 set (TEST_DATA_PATH "" CACHE PATH "Test data path")
@@ -66,6 +69,7 @@ build3rdparty()
 
 add_subdirectory(src)
 add_subdirectory(python)
+add_subdirectory(docs)
 
 enable_testing()
 add_subdirectory(tests)
