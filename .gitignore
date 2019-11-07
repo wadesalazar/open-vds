@@ -1,5 +1,7 @@
 .vs
 Builds
 Dist
-/python/_skbuild/win-amd64-2.7/cmake-build
+/python/_skbuild/
 /CMakeSettings.json
+/python/.eggs
+/python/openvds/core.pyd
