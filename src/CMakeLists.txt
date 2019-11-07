@@ -170,8 +170,8 @@ target_include_directories(openvds
         $<INSTALL_INTERFACE:include>
 )
 
-if (${MSVC_TOOLSET_VERSION})
-  set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION}")
+if (${MSVC_TOOLSET_VERSION_LOCAL})
+  set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION_LOCAL}")
 endif()
 
 install(TARGETS openvds openvds_objects
