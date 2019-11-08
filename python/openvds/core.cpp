@@ -20,12 +20,21 @@
 
 #include <OpenVDS/VolumeDataAxisDescriptor.h>
 
+#include "SharedLibrary.h"
+
+using namespace PyOpenVDS;
 namespace py = pybind11;
 
+#if PY_MAJOR_VERSION < 2
+dfafa
+#endif
+
 PYBIND11_MODULE(core, m) {
-    py::class_< OpenVDS::VolumeDataAxisDescriptor >(m, "Axis")
-        .def(py::init<>())
-        .def(py::init<int, const char*, const char*, float, float>())
-        .def_property_readonly("name", &OpenVDS::VolumeDataAxisDescriptor::GetName)
-    ;
+  SharedLibrary lib;
+  lib.loadLibrary("openvds.dll");
+  py::class_< OpenVDS::VolumeDataAxisDescriptor >(m, "Axis")
+      .def(py::init<>())
+      .def(py::init<int, const char*, const char*, float, float>())
+      .def_property_readonly("name", &OpenVDS::VolumeDataAxisDescriptor::getName)
+  ;
 }
