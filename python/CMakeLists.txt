@@ -28,6 +28,7 @@ add_custom_target(
             $<$<BOOL:$<CONFIG>>:--build-type=$<CONFIG>>
         -- # cmake to the extension
             -Dopenvds_DIR=${OPENVDS_LIB_BINARY_DIR}
+			-Dpython3_EXE=${Python3_EXECUTABLE}
             ${ZLIB_PREFIX_PATH}
             # "install" to the python/openvds dir with rpath, so there's no need
             # to fiddle with environment in ctest to load the core library from

@@ -15,7 +15,16 @@ endif()
 find_package(ZLIB REQUIRED)
 find_package(openvds REQUIRED)
 
-add_library(core MODULE core.cpp)
+if ("${CMAKE_GENERATOR}" MATCHES "Visual Studio")
+	# Set up debugging environment for "core" project in Visual Studio
+    set(PYTHONEXE "${python3_EXE}")
+    set(BINDIR "${openvds_DIR}/SEG-Y") # A bit of a hack to get all the dependent dlls
+    configure_file("../core.vcxproj.user.txt" "${CMAKE_CURRENT_BINARY_DIR}/core.vcxproj.user" @ONLY)
+endif()	
+
+add_library(core MODULE 
+    core.cpp
+  )
 target_include_directories(core
     PRIVATE
         ${PYBIND11_INCLUDE_DIRS}
