@@ -24,6 +24,7 @@ endif()
 
 add_library(core MODULE 
     core.cpp
+    SharedLibrary.cpp
   )
 target_include_directories(core
     PRIVATE
