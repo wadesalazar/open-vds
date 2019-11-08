@@ -1,7 +1,10 @@
 .vs
 Builds
 Dist
-/python/_skbuild/
-/CMakeSettings.json
-/python/.eggs
-/python/openvds/core.pyd
+CMakeSettings.json
+python/.eggs
+python/_skbuild
+python/**/*.pyd
+CMakeSettings.json
+out
+
