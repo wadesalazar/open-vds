@@ -857,7 +857,7 @@ main(int argc, char *argv[])
   std::string
     key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
 
-  auto vds = OpenVDS::create(OpenVDS::AWSOpenOptions(bucket, key, region), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> vds(OpenVDS::create(OpenVDS::AWSOpenOptions(bucket, key, region), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError), &OpenVDS::destroy);
 
   if(createError.code != 0)
   {
@@ -867,7 +867,7 @@ main(int argc, char *argv[])
 
   FileViewManager fileViewManager(file);
 
-  auto accessManager = OpenVDS::getDataAccessManager(vds);
+  auto accessManager = OpenVDS::getDataAccessManager(vds.get());
   auto layout = accessManager->getVolumeDataLayout();
 
   auto amplitudeAccessor       = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);

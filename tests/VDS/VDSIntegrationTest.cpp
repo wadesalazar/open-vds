@@ -36,7 +36,6 @@ GTEST_TEST(OpenVDS_integration, DownloadJson)
   }
 
   ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
-  OpenVDS::VDSHandle *handle = OpenVDS::open(options, error);
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> handle(OpenVDS::open(options, error), &OpenVDS::destroy);
   ASSERT_TRUE(handle);
-  OpenVDS::destroy(handle);
 }

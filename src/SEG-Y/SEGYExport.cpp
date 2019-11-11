@@ -79,7 +79,7 @@ main(int argc, char *argv[])
   std::string
     key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
 
-  auto vds = OpenVDS::open(OpenVDS::AWSOpenOptions(bucket, key, region), openError);
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> vds(OpenVDS::open(OpenVDS::AWSOpenOptions(bucket, key, region), openError), &OpenVDS::destroy);
 
   if(openError.code != 0)
   {
@@ -101,7 +101,7 @@ main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  auto dataAccessManager = OpenVDS::getDataAccessManager(vds);
+  auto dataAccessManager = OpenVDS::getDataAccessManager(vds.get());
   auto volumeDataLayout = dataAccessManager->getVolumeDataLayout();
 
   if(!volumeDataLayout->isChannelAvailable("Trace"))

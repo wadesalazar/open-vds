@@ -41,13 +41,13 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
   }
 
   ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
-  OpenVDS::VDSHandle *handle = OpenVDS::open(options, error);
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> handle(OpenVDS::open(options, error), &OpenVDS::destroy);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::getDataAccessManager(handle);
+  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::getDataAccessManager(handle.get());
   ASSERT_TRUE(dataAccessManager);
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle);
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle.get());
 
   OpenVDS::VolumeDataPageAccessor *pageAccessor = dataAccessManager->createVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   ASSERT_TRUE(pageAccessor);
@@ -73,7 +73,6 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
   ASSERT_TRUE(pos[1] <  max[1]);
   ASSERT_TRUE(pos[2] <  max[2]);
 
-  OpenVDS::destroy(handle);
 }
 
 template<typename T, size_t N> inline T (&PODArrayReference(std::array<T,N> &a))[N] { return *reinterpret_cast<T (*)[N]>(a.data()); }
@@ -93,14 +92,14 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSubset)
   }
 
   ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
-  OpenVDS::VDSHandle *handle = OpenVDS::open(options, error);
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> handle(OpenVDS::open(options, error), &OpenVDS::destroy);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::getDataAccessManager(handle);
+  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::getDataAccessManager(handle.get());
   ASSERT_TRUE(dataAccessManager);
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle);
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::getDataAccessManager(handle);
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle.get());
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::getDataAccessManager(handle.get());
 
  
   int loopDimension = 4;

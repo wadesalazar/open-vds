@@ -49,13 +49,13 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
   }
 
   ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
-  OpenVDS::VDSHandle *handle = OpenVDS::open(options, error);
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> handle(OpenVDS::open(options, error), &OpenVDS::destroy);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::getDataAccessManager(handle);
+  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::getDataAccessManager(handle.get());
   ASSERT_TRUE(dataAccessManager);
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle);
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle.get());
 
   int32_t dimension = layout->getDimensionality();
 
@@ -95,6 +95,4 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
     float diff = std::abs(buffer[i] - verifyBuffer[i]);
     ASSERT_EQ(diff, 0.0f);
   }
-
-  OpenVDS::destroy(handle);
 }
