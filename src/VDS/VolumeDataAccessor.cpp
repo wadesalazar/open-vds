@@ -1611,6 +1611,260 @@ int64_t StaticRequestVolumeSamples(VolumeDataRequestProcessor &request_processor
     });
 }
 
+template <typename T, InterpolationMethod INTERPMETHOD, bool isUseNoValue>
+void TraceVolume(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, const std::vector<VolumeDataSamplePos> &volumeDataSamplePositions, int32_t traceDimension, float noValue, void *targetBuffer)
+{
+  int32_t traceSize = chunk.layer->getDimensionNumSamples(traceDimension);
+
+  float *traceBuffer = reinterpret_cast<float *>(targetBuffer);
+
+  const DataBlock & dataBlock = page->getDataBlock();
+
+  const VolumeDataLayer *volumeDataLayer = chunk.layer;
+
+  int32_t chunkDimension0 = volumeDataLayer->getChunkDimension(0);
+  int32_t chunkDimension1 = volumeDataLayer->getChunkDimension(1);
+  int32_t chunkDimension2 = volumeDataLayer->getChunkDimension(2);
+
+  assert(chunkDimension0 >= 0 && chunkDimension1 >= 0);
+
+  int32_t  traceDimensionInChunk = -1;
+
+  if (chunkDimension0 == traceDimension)
+    traceDimensionInChunk = 0;
+  else if (chunkDimension1 == traceDimension)
+    traceDimensionInChunk = 1;
+  else if (chunkDimension2 == traceDimension)
+    traceDimensionInChunk = 2;
+
+  int32_t min[Dimensionality_Max];
+  int32_t max[Dimensionality_Max];
+  int32_t minExcludingMargin[Dimensionality_Max];
+  int32_t maxExcludingMargin[Dimensionality_Max];
+
+  volumeDataLayer->getChunkMinMax(chunk.chunkIndex, min, max, true);
+  volumeDataLayer->getChunkMinMax(chunk.chunkIndex, minExcludingMargin, maxExcludingMargin, false);
+
+  int32_t lod = volumeDataLayer->getLOD();
+
+  float lodScale = 1.0f / (1 << lod);
+
+  int32_t fullResolutionDimension = volumeDataLayer->getLayout()->getFullResolutionDimension();
+
+  VolumeSampler<T, INTERPMETHOD, isUseNoValue> volumeSampler(dataBlock.size, dataBlock.pitch, volumeDataLayer->getValueRange().min, volumeDataLayer->getValueRange().max, volumeDataLayer->getIntegerScale(), volumeDataLayer->getIntegerOffset(), noValue, noValue);
+
+  const T* pBuffer = (const T*) page->getRawBufferInternal();
+
+  int32_t overlapCount = (maxExcludingMargin[traceDimension] - minExcludingMargin[traceDimension] + (1 << lod) - 1) >> lod;
+
+  int32_t offsetSource = (minExcludingMargin[traceDimension] - min[traceDimension]) >> lod;
+  int32_t offsetTarget = (minExcludingMargin[traceDimension]) >> lod;
+
+  int32_t traceCount = int32_t(volumeDataSamplePositions.size());
+
+  for (int32_t trace = 0; trace < traceCount; trace++)
+  {
+    const VolumeDataSamplePos &volumeDataSamplePos = volumeDataSamplePositions[trace];
+
+    bool isInside = true;
+
+    for (int dim = 0; dim < Dimensionality_Max; dim++)
+    {
+      if (dim != traceDimension &&
+        ((int32_t)volumeDataSamplePos.pos.data[dim] < minExcludingMargin[dim] ||
+         (int32_t)volumeDataSamplePos.pos.data[dim] >= maxExcludingMargin[dim]))
+      {
+        isInside = false;
+        break;
+      }
+    }
+
+    if (!isInside) continue;
+
+    FloatVector3 pos((volumeDataSamplePos.pos.data[chunkDimension0] - min[chunkDimension0]) * (chunkDimension0 == fullResolutionDimension ? 1 : lodScale),
+      (volumeDataSamplePos.pos.data[chunkDimension1] - min[chunkDimension1]) * (chunkDimension1 == fullResolutionDimension ? 1 : lodScale),
+      0.5f);
+
+    if (chunkDimension2 >= 0)
+    {
+      pos[2] = (volumeDataSamplePos.pos.data[chunkDimension2] - min[chunkDimension2]) * (chunkDimension2 == fullResolutionDimension ? 1 : lodScale);
+    }
+
+    for (int overlap = 0; overlap < overlapCount; overlap++)
+    {
+      if (traceDimensionInChunk != -1)
+      {
+        pos[traceDimensionInChunk] = overlap + offsetSource + 0.5f; // so that we sample the center of the voxel
+      }
+
+      typename InterpolatedRealType<T>::type value = volumeSampler.sample3D(pBuffer, pos);
+
+      traceBuffer[traceSize * volumeDataSamplePos.originalSample + overlap + offsetTarget] = (float)value;
+    }
+  }
+}
+
+template <typename T>
+static void TraceVolumeInit(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, const std::vector<VolumeDataSamplePos> &volumeDataSamplePositions, InterpolationMethod interpolationMethod, int32_t traceDimension, float noValue, void *targetBuffer)
+{
+  if (chunk.layer->isUseNoValue())
+  {
+    switch (interpolationMethod)
+    {
+    case InterpolationMethod::Nearest:
+      TraceVolume<T, InterpolationMethod::Nearest, true>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+      break;
+    case InterpolationMethod::Linear:
+      TraceVolume<T, InterpolationMethod::Linear, true>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+      break;
+    case InterpolationMethod::Cubic:
+      TraceVolume<T, InterpolationMethod::Cubic, true>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+      break;
+    case InterpolationMethod::Angular:
+      TraceVolume<T, InterpolationMethod::Angular, true>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+      break;
+    case InterpolationMethod::Triangular:
+      TraceVolume<T, InterpolationMethod::Triangular, true>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+      break;
+//    case InterpolationMethod::TriangularExcludingValuerangeMinAndLess:
+//      TraceVolume<T, InterpolationMethod::TriangularExcludingValuerangeMinAndLess, true>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+//      break;
+    default:
+      fmt::print(stderr, "Unknown interpolation method");
+      abort();
+      break;
+    }
+  }
+  else
+  {
+    switch (interpolationMethod)
+    {
+    case InterpolationMethod::Nearest:
+      TraceVolume<T, InterpolationMethod::Nearest, false>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+      break;
+    case InterpolationMethod::Linear:
+      TraceVolume<T, InterpolationMethod::Linear, false>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+      break;
+    case InterpolationMethod::Cubic:
+      TraceVolume<T, InterpolationMethod::Cubic, false>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+      break;
+    case InterpolationMethod::Angular:
+      TraceVolume<T, InterpolationMethod::Angular, false>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+      break;
+    case InterpolationMethod::Triangular:
+      TraceVolume<T, InterpolationMethod::Triangular, false>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+      break;
+//    case InterpolationMethod::TriangularExcludingValuerangeMinAndLess:
+//      TraceVolume<T, InterpolationMethod::TriangularExcludingValuerangeMinAndLess, false>(page, chunk, volumeDataSamplePositions, traceDimension, noValue, targetBuffer);
+//      break;
+    default:
+      fmt::print(stderr, "Unknown interpolation method");
+      abort();
+      break;
+    }
+  }
+}
+
+static bool requestVolumeTracesProcessPage (VolumeDataPageImpl *page, VolumeDataChunk &dataChunk, const std::vector<VolumeDataSamplePos> &volumeDataSamplePositions, InterpolationMethod interpolationMethod, int32_t traceDimension, float noValue, void *buffer, Error &error)
+{
+  VolumeDataChannelDescriptor::Format format = dataChunk.layer->getFormat();
+  switch (format)
+  {
+  case VolumeDataChannelDescriptor::Format_1Bit:
+    TraceVolumeInit<bool>(page, dataChunk, volumeDataSamplePositions, interpolationMethod, traceDimension, noValue, buffer);
+    break;
+  case VolumeDataChannelDescriptor::Format_U8:
+    TraceVolumeInit<uint8_t>(page, dataChunk, volumeDataSamplePositions, interpolationMethod, traceDimension, noValue, buffer);
+    break;
+  case VolumeDataChannelDescriptor::Format_U16:
+    TraceVolumeInit<uint16_t>(page, dataChunk, volumeDataSamplePositions, interpolationMethod, traceDimension, noValue, buffer);
+    break;
+  case VolumeDataChannelDescriptor::Format_U32:
+    TraceVolumeInit<uint32_t>(page, dataChunk, volumeDataSamplePositions, interpolationMethod, traceDimension, noValue, buffer);
+    break;
+  case VolumeDataChannelDescriptor::Format_R32:
+    TraceVolumeInit<float>(page, dataChunk, volumeDataSamplePositions, interpolationMethod, traceDimension, noValue, buffer);
+    break;
+  case VolumeDataChannelDescriptor::Format_U64:
+    TraceVolumeInit<uint64_t>(page, dataChunk, volumeDataSamplePositions, interpolationMethod, traceDimension, noValue, buffer);
+    break;
+  case VolumeDataChannelDescriptor::Format_R64:
+    TraceVolumeInit<double>(page, dataChunk, volumeDataSamplePositions, interpolationMethod, traceDimension, noValue, buffer);
+    break;
+  }
+  return true;
+}
+
+static int64_t StaticRequestVolumeTraces(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const float(*tracePositions)[Dimensionality_Max], int32_t tracePositionsCount, int32_t lod, InterpolationMethod interpolationMethod, int32_t traceDimension, bool isReplaceNoValue, float replacementNoValue)
+{
+  if (traceDimension < 0 || traceDimension >= Dimensionality_Max)
+  {
+    fmt::print("The trace dimension must be a valid dimension.");
+    abort();
+  }
+
+  std::shared_ptr<std::vector<VolumeDataSamplePos>> volumeDataSamplePositions = std::make_shared<std::vector<VolumeDataSamplePos>>();
+  volumeDataSamplePositions->resize(tracePositionsCount);
+
+  for (int32_t tracePos = 0; tracePos < tracePositionsCount; tracePos++)
+  {
+    VolumeDataSamplePos &volumeDataSamplePos = volumeDataSamplePositions->at(tracePos);
+
+    std::copy(&tracePositions[tracePos][0], &tracePositions[tracePos][Dimensionality_Max], volumeDataSamplePos.pos.data);
+    volumeDataSamplePos.chunkIndex = volumeDataLayer->getChunkIndexFromNDPos(volumeDataSamplePos.pos);
+    volumeDataSamplePos.originalSample = tracePos;
+  }
+
+  std::sort(volumeDataSamplePositions->begin(), volumeDataSamplePositions->end());
+
+  // Force NEAREST interpolation for discrete volume data
+  if (volumeDataLayer->isDiscrete())
+  {
+    interpolationMethod = InterpolationMethod::Nearest;
+  }
+
+  int64_t currentChunkIndex = -1;
+  int32_t totalChunks = 0;
+  
+  std::vector<VolumeDataChunk> volumeDataChunks;
+  int32_t traceMin[Dimensionality_Max];
+  memset(traceMin, 0, sizeof(traceMin));
+  int32_t traceMax[Dimensionality_Max];
+  memset(traceMax, 0, sizeof(traceMax));
+
+  for (int32_t tracePos = 0; tracePos < tracePositionsCount; tracePos++)
+  {
+    VolumeDataSamplePos &volumeDataSamplePos = volumeDataSamplePositions->at(tracePos);
+    if (volumeDataSamplePos.chunkIndex != currentChunkIndex)
+    {
+      currentChunkIndex = volumeDataSamplePos.chunkIndex;
+
+      VolumeDataChunk volumeDataChunk(volumeDataLayer->getChunkFromIndex(currentChunkIndex));
+      volumeDataChunks.push_back(volumeDataChunk); 
+      
+      for (int dim = 0; dim < Dimensionality_Max; dim++)
+      {
+        traceMin[dim] = (int32_t)volumeDataSamplePos.pos.data[dim];
+        traceMax[dim] = (int32_t)volumeDataSamplePos.pos.data[dim] + 1;
+      }
+
+      traceMin[traceDimension] = 0;
+      traceMax[traceDimension] = volumeDataLayer->getDimensionNumSamples(traceDimension);
+
+      int32_t currentChunksCount = int32_t(volumeDataChunks.size());
+
+      volumeDataLayer->getChunksInRegion(traceMin, traceMax, &volumeDataChunks, true);
+
+      totalChunks += int32_t(volumeDataChunks.size()) - currentChunksCount;
+    }
+  }
+
+  return request_processor.addJob(volumeDataChunks, [buffer, volumeDataSamplePositions, interpolationMethod, traceDimension, replacementNoValue](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error& error)
+    {
+      return requestVolumeTracesProcessPage(page, dataChunk,  *volumeDataSamplePositions, interpolationMethod, traceDimension, replacementNoValue, buffer, error);
+    });
+}
+
 int64_t VolumeDataAccessManagerImpl::requestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format)
 {
   return staticRequestVolumeSubset(m_requestProcessor, buffer, getLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, lod, format, false, 0.0f);
@@ -1636,15 +1890,15 @@ int64_t VolumeDataAccessManagerImpl::requestVolumeSamples(float* buffer, VolumeD
 }
 int64_t VolumeDataAccessManagerImpl::requestVolumeSamples(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*samplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod, float replacementNoValue)
 {
-  return StaticRequestVolumeSamples(m_requestProcessor, buffer, getLayer(volumeDataLayout, dimensionsND, lod, channel), samplePositions, sampleCount, interpolationMethod, false, 0.0f);
+  return StaticRequestVolumeSamples(m_requestProcessor, buffer, getLayer(volumeDataLayout, dimensionsND, lod, channel), samplePositions, sampleCount, interpolationMethod, true, replacementNoValue);
 }
-int64_t VolumeDataAccessManagerImpl::requestVolumeTraces(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int iTraceDimension)
+int64_t VolumeDataAccessManagerImpl::requestVolumeTraces(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int traceDimension)
 {
-  return int64_t(0);
+  return StaticRequestVolumeTraces(m_requestProcessor, buffer, getLayer(volumeDataLayout, dimensionsND, lod, channel), tracePositions, traceCount, lod, interpolationMethod, traceDimension, false, 0.0f);
 }
-int64_t VolumeDataAccessManagerImpl::requestVolumeTraces(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int nTraceCount, InterpolationMethod interpolationMethod, int iTraceDimension, float rReplacementNoValue)
+int64_t VolumeDataAccessManagerImpl::requestVolumeTraces(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int traceDimension, float replacementNoValue)
 {
-  return int64_t(0);
+  return StaticRequestVolumeTraces(m_requestProcessor, buffer, getLayer(volumeDataLayout, dimensionsND, lod, channel), tracePositions, traceCount, lod, interpolationMethod, traceDimension, true, replacementNoValue);
 }
 int64_t VolumeDataAccessManagerImpl::prefetchVolumeChunk(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk)
 {
