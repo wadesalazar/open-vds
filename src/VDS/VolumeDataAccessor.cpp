@@ -1902,6 +1902,9 @@ int64_t VolumeDataAccessManagerImpl::RequestVolumeTraces(float* buffer, VolumeDa
 }
 int64_t VolumeDataAccessManagerImpl::PrefetchVolumeChunk(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk)
 {
-  return int64_t(0);
+  auto layer = getLayer(volumeDataLayout, dimensionsND, lod, channel);
+  std::vector<VolumeDataChunk> chunks;
+  chunks.push_back(layer->getChunkFromIndex(chunk));
+  return m_requestProcessor.addJob(chunks, [](VolumeDataPageImpl *page, VolumeDataChunk dataChunk, Error &error) {return true;});
 }
 }
