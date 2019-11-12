@@ -1,0 +1,30 @@
+stages:
+  - prepare
+  - build
+
+variables:
+    SHA_IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+
+# --------------------------------------------------------------------------------
+
+devel-container:
+  stage: prepare
+  image: docker:19.03
+  tags: ['docker-runner']
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $SHA_IMAGE_TAG -f build-environment.Dockerfile .
+    - docker push $SHA_IMAGE_TAG
+
+compile:
+  stage: build
+  image: $SHA_IMAGE_TAG
+  tags: ['docker-runner']
+  cache:
+    paths:
+      - build
+  script:
+    - mkdir -p build
+    - cd build
+    - cmake ..
+    - make -j8
