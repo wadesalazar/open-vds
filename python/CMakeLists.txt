@@ -29,6 +29,10 @@ add_custom_target(
         -- # cmake to the extension
             -Dopenvds_DIR=${OPENVDS_LIB_BINARY_DIR}
 			-Dpython3_EXE=${Python3_EXECUTABLE}
+			-Dpackage_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+			-DTEST_AWS_BUCKET=${TEST_AWS_BUCKET}
+			-DTEST_AWS_OBJECTID=${TEST_AWS_OBJECTID}
+			-DTEST_AWS_REGION=${TEST_AWS_REGION}
             ${ZLIB_PREFIX_PATH}
             # "install" to the python/openvds dir with rpath, so there's no need
             # to fiddle with environment in ctest to load the core library from
