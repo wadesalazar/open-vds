@@ -487,7 +487,7 @@ createChannelDescriptors(SEGYFileInfo const &fileInfo, OpenVDS::FloatRange const
     channelDescriptors;
 
   // Primary channel
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", valueRange.min, valueRange.max));
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", valueRange.Min, valueRange.Max));
 
   // Trace defined flag
   channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Trace", "", 0, 1, OpenVDS::VolumeDataMapping::PerTrace, OpenVDS::VolumeDataChannelDescriptor::DiscreteData));
@@ -857,39 +857,39 @@ main(int argc, char *argv[])
   std::string
     key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
 
-  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> vds(OpenVDS::create(OpenVDS::AWSOpenOptions(bucket, key, region), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError), &OpenVDS::destroy);
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::Destroy)> vds(OpenVDS::Create(OpenVDS::AWSOpenOptions(bucket, key, region), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError), &OpenVDS::Destroy);
 
-  if(createError.code != 0)
+  if(createError.Code != 0)
   {
-    std::cerr << std::string("Create error: " + createError.string);
+    std::cerr << std::string("Create error: " + createError.String);
     return EXIT_FAILURE;
   }
 
   FileViewManager fileViewManager(file);
 
-  auto accessManager = OpenVDS::getDataAccessManager(vds.get());
-  auto layout = accessManager->getVolumeDataLayout();
+  auto accessManager = OpenVDS::GetDataAccessManager(vds.get());
+  auto layout = accessManager->GetVolumeDataLayout();
 
-  auto amplitudeAccessor       = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto traceFlagAccessor       = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto segyTraceHeaderAccessor = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto amplitudeAccessor       = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto traceFlagAccessor       = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto segyTraceHeaderAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
 
   int64_t traceByteSize = fileInfo.traceByteSize();
 
   std::shared_ptr<OpenVDS::FileView> fileView;
 
-  for(int64_t chunk = 0; chunk < amplitudeAccessor->getChunkCount(); chunk++)
+  for(int64_t chunk = 0; chunk < amplitudeAccessor->GetChunkCount(); chunk++)
   {
-    int done = int(double(chunk)/amplitudeAccessor->getChunkCount() * 100);
+    int done = int(double(chunk)/amplitudeAccessor->GetChunkCount() * 100);
     fmt::print("\r{:3d}% done.", done);
     fflush(stdout);
-    int32_t errorCount = accessManager->uploadErrorCount();
+    int32_t errorCount = accessManager->UploadErrorCount();
     for (int i = 0; i < errorCount; i++)
     {
       const char *object_id;
       int32_t error_code;
       const char *error_string;
-      accessManager->getCurrentUploadError(&object_id, &error_code, &error_string);
+      accessManager->GetCurrentUploadError(&object_id, &error_code, &error_string);
       fprintf(stderr, "\nFailed to upload object: %s. Error code %d: %s\n", object_id, error_code, error_string);
     }
     if (errorCount && !force)
@@ -899,16 +899,16 @@ main(int argc, char *argv[])
     int
       min[OpenVDS::Dimensionality_Max], max[OpenVDS::Dimensionality_Max];
 
-    amplitudeAccessor->getChunkMinMax(chunk, min, max);
+    amplitudeAccessor->GetChunkMinMax(chunk, min, max);
 
     int sampleStart = min[0];
     int sampleCount = max[0] - min[0];
 
-    int secondaryKeyStart = (int)floorf(layout->getAxisDescriptor(1).sampleIndexToCoordinate(min[1]) + 0.5f);
-    int secondaryKeyStop  = (int)floorf(layout->getAxisDescriptor(1).sampleIndexToCoordinate(max[1] - 1) + 0.5f);
+    int secondaryKeyStart = (int)floorf(layout->GetAxisDescriptor(1).SampleIndexToCoordinate(min[1]) + 0.5f);
+    int secondaryKeyStop  = (int)floorf(layout->GetAxisDescriptor(1).SampleIndexToCoordinate(max[1] - 1) + 0.5f);
 
-    int primaryKeyStart = (int)floorf(layout->getAxisDescriptor(2).sampleIndexToCoordinate(min[2]) + 0.5f);
-    int primaryKeyStop  = (int)floorf(layout->getAxisDescriptor(2).sampleIndexToCoordinate(max[2] - 1) + 0.5f);
+    int primaryKeyStart = (int)floorf(layout->GetAxisDescriptor(2).SampleIndexToCoordinate(min[2]) + 0.5f);
+    int primaryKeyStop  = (int)floorf(layout->GetAxisDescriptor(2).SampleIndexToCoordinate(max[2] - 1) + 0.5f);
 
     auto lower = std::lower_bound(fileInfo.m_segmentInfo.begin(), fileInfo.m_segmentInfo.end(), primaryKeyStart, [](SEGYSegmentInfo const &segmentInfo, int primaryKey)->bool { return segmentInfo.m_primaryKey < primaryKey; });
     auto upper = std::upper_bound(fileInfo.m_segmentInfo.begin(), fileInfo.m_segmentInfo.end(), primaryKeyStop,  [](int primaryKey, SEGYSegmentInfo const &segmentInfo)->bool { return primaryKey < segmentInfo.m_primaryKey; });
@@ -926,23 +926,23 @@ main(int argc, char *argv[])
 
     if(error.code == 0)
     {
-      OpenVDS::VolumeDataPage * amplitudePage = amplitudeAccessor->createPage(chunk);
+      OpenVDS::VolumeDataPage * amplitudePage = amplitudeAccessor->CreatePage(chunk);
       OpenVDS::VolumeDataPage * traceFlagPage = nullptr;
       OpenVDS::VolumeDataPage * segyTraceHeaderPage = nullptr;
 
       if(min[0] == 0)
       {
-        traceFlagPage = traceFlagAccessor->createPage(traceFlagAccessor->getChunkIndex(min));
-        segyTraceHeaderPage = segyTraceHeaderAccessor->createPage(segyTraceHeaderAccessor->getChunkIndex(min));
+        traceFlagPage = traceFlagAccessor->CreatePage(traceFlagAccessor->GetChunkIndex(min));
+        segyTraceHeaderPage = segyTraceHeaderAccessor->CreatePage(segyTraceHeaderAccessor->GetChunkIndex(min));
       }
 
       int amplitudePitch[OpenVDS::Dimensionality_Max];
       int traceFlagPitch[OpenVDS::Dimensionality_Max];
       int segyTraceHeaderPitch[OpenVDS::Dimensionality_Max];
 
-      void *amplitudeBuffer = amplitudePage->getWritableBuffer(amplitudePitch);
-      void *traceFlagBuffer = traceFlagPage ? traceFlagPage->getWritableBuffer(traceFlagPitch) : nullptr;
-      void *segyTraceHeaderBuffer = segyTraceHeaderPage ? segyTraceHeaderPage->getWritableBuffer(segyTraceHeaderPitch) : nullptr;
+      void *amplitudeBuffer = amplitudePage->GetWritableBuffer(amplitudePitch);
+      void *traceFlagBuffer = traceFlagPage ? traceFlagPage->GetWritableBuffer(traceFlagPitch) : nullptr;
+      void *segyTraceHeaderBuffer = segyTraceHeaderPage ? segyTraceHeaderPage->GetWritableBuffer(segyTraceHeaderPitch) : nullptr;
 
       assert(amplitudePitch[0] == 1);
       assert(!traceFlagBuffer || traceFlagPitch[1] == 1);
@@ -970,8 +970,8 @@ main(int argc, char *argv[])
             break;
           }
 
-          int primaryIndex = layout->getAxisDescriptor(2).coordinateToSampleIndex((float)segment->m_primaryKey);
-          int secondaryIndex = layout->getAxisDescriptor(1).coordinateToSampleIndex((float)secondaryTest);
+          int primaryIndex = layout->GetAxisDescriptor(2).CoordinateToSampleIndex((float)segment->m_primaryKey);
+          int secondaryIndex = layout->GetAxisDescriptor(1).CoordinateToSampleIndex((float)secondaryTest);
 
           assert(primaryIndex >= min[2] && primaryIndex < max[2]);
           assert(secondaryIndex >= min[1] && secondaryIndex < max[1]);
@@ -998,15 +998,15 @@ main(int argc, char *argv[])
         }
       }
 
-      amplitudePage->release();
-      if(traceFlagPage) traceFlagPage->release();
-      if(segyTraceHeaderPage) segyTraceHeaderPage->release();
+      amplitudePage->Release();
+      if(traceFlagPage) traceFlagPage->Release();
+      if(segyTraceHeaderPage) segyTraceHeaderPage->Release();
     }
   }
 
-  amplitudeAccessor->commit();
-  traceFlagAccessor->commit();
-  segyTraceHeaderAccessor->commit();
+  amplitudeAccessor->Commit();
+  traceFlagAccessor->Commit();
+  segyTraceHeaderAccessor->Commit();
 
   fmt::print("\r100% done.\n");
 

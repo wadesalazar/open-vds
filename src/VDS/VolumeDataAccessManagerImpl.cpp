@@ -189,7 +189,7 @@ static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayoutImpl const *layout, D
     return nullptr;
   }
 
-  if(channel > layout->getChannelCount())
+  if(channel > layout->GetChannelCount())
   {
     throw std::runtime_error("Specified channel doesn't exist");
     return nullptr;
@@ -233,7 +233,7 @@ VolumeDataAccessManagerImpl::~VolumeDataAccessManagerImpl()
   }
 }
 
-VolumeDataLayout const* VolumeDataAccessManagerImpl::getVolumeDataLayout() const
+VolumeDataLayout const* VolumeDataAccessManagerImpl::GetVolumeDataLayout() const
 {
   return m_handle.volumeDataLayout.get();
 }
@@ -243,7 +243,7 @@ VolumeDataLayoutImpl const* VolumeDataAccessManagerImpl::getVolumeDataLayoutImpl
   return m_handle.volumeDataLayout.get();
 }
 
-VolumeDataPageAccessor* VolumeDataAccessManagerImpl::createVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode)
+VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -271,7 +271,7 @@ VolumeDataPageAccessor* VolumeDataAccessManagerImpl::createVolumeDataPageAccesso
   return accessor;
 }
 
-void  VolumeDataAccessManagerImpl::destroyVolumeDataPageAccessor(VolumeDataPageAccessor* volumeDataPageAccessor)
+void  VolumeDataAccessManagerImpl::DestroyVolumeDataPageAccessor(VolumeDataPageAccessor* volumeDataPageAccessor)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   VolumeDataPageAccessorImpl *pageAccessorImpl = static_cast<VolumeDataPageAccessorImpl *>(volumeDataPageAccessor);
@@ -279,36 +279,36 @@ void  VolumeDataAccessManagerImpl::destroyVolumeDataPageAccessor(VolumeDataPageA
   delete  pageAccessorImpl;
 }
 
-void VolumeDataAccessManagerImpl::destroyVolumeDataAccessor(VolumeDataAccessor* accessor)
+void VolumeDataAccessManagerImpl::DestroyVolumeDataAccessor(VolumeDataAccessor* accessor)
 {
   //TODO
   assert(false);
   //VolumeDataAccessorBase *imple = static_cast<VolumeDataAccessorBase *>(accessor);
 }
 
-VolumeDataAccessor* VolumeDataAccessManagerImpl::cloneVolumeDataAccessor(VolumeDataAccessor const& accessor)
+VolumeDataAccessor* VolumeDataAccessManagerImpl::CloneVolumeDataAccessor(VolumeDataAccessor const& accessor)
 {
   assert(false);
   return nullptr;
 }
 
-bool VolumeDataAccessManagerImpl::isCompleted(int64_t requestID)
+bool VolumeDataAccessManagerImpl::IsCompleted(int64_t requestID)
 {
   return m_requestProcessor.isCompleted(requestID);
 }
-bool VolumeDataAccessManagerImpl::isCanceled(int64_t requestID)
+bool VolumeDataAccessManagerImpl::IsCanceled(int64_t requestID)
 {
   return m_requestProcessor.isCanceled(requestID);
 }
-bool VolumeDataAccessManagerImpl::waitForCompletion(int64_t requestID, int millisecondsBeforeTimeout)
+bool VolumeDataAccessManagerImpl::WaitForCompletion(int64_t requestID, int millisecondsBeforeTimeout)
 {
   return m_requestProcessor.waitForCompletion(requestID, millisecondsBeforeTimeout);
 }
-void VolumeDataAccessManagerImpl::cancel(int64_t requestID)
+void VolumeDataAccessManagerImpl::Cancel(int64_t requestID)
 {
   m_requestProcessor.cancel(requestID);
 }
-float VolumeDataAccessManagerImpl::getCompletionFactor(int64_t requestID)
+float VolumeDataAccessManagerImpl::GetCompletionFactor(int64_t requestID)
 {
   return 0.0f;
 }
@@ -340,8 +340,8 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
   //do fallback
   if (!metadataManager)
   {
-    error.code = -1;
-    error.string = "No metdadataManager";
+    error.Code = -1;
+    error.String = "No metdadataManager";
     return false;
   }
   
@@ -399,8 +399,8 @@ bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::v
 
   if(pendingRequestIterator == m_pendingDownloadRequests.end())
   {
-    error.code = -1;
-    error.string = "Missing request for chunk: " + std::to_string(chunk.chunkIndex);
+    error.Code = -1;
+    error.String = "Missing request for chunk: " + std::to_string(chunk.chunkIndex);
     return false;
   }
   PendingDownloadRequest& pendingRequest = pendingRequestIterator->second;
@@ -418,7 +418,7 @@ bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::v
   lock.unlock();
 
   activeTransfer->waitForFinish();
-  if (transferHandler->m_error.code)
+  if (transferHandler->m_error.Code)
   {
     error = transferHandler->m_error;
     return false;
@@ -497,7 +497,7 @@ bool VolumeDataAccessManagerImpl::writeMetadataPage(MetadataPage* metadataPage, 
   req->waitForFinish();
   bool success = req->isSuccess(error);
 
-  if(error.code != 0)
+  if(error.Code != 0)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_uploadErrors.emplace_back(new UploadError(error, "LayerStatus"));
@@ -554,7 +554,7 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
   {
     std::unique_lock<std::mutex> lock(m_mutex);
 
-    if(error.code != 0)
+    if(error.Code != 0)
     {
       auto &uploadRequest = m_pendingUploadRequests[jobId];
       if (uploadRequest.attempts < 2)
@@ -587,7 +587,7 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
   return jobId;
 }
 
-void VolumeDataAccessManagerImpl::flushUploadQueue()
+void VolumeDataAccessManagerImpl::FlushUploadQueue()
 {
   while(true)
   {
@@ -608,21 +608,21 @@ void VolumeDataAccessManagerImpl::flushUploadQueue()
   Error error;
   serializeAndUploadLayerStatus(m_handle, error);
 
-  if(error.code != 0)
+  if(error.Code != 0)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_uploadErrors.emplace_back(new UploadError(error, "LayerStatus"));
   }
 }
 
-void VolumeDataAccessManagerImpl::clearUploadErrors()
+void VolumeDataAccessManagerImpl::ClearUploadErrors()
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_uploadErrors.erase(m_uploadErrors.begin(), m_uploadErrors.begin() + m_currentErrorIndex);
   m_currentErrorIndex = 0;
 }
 
-void VolumeDataAccessManagerImpl::forceClearAllUploadErrors()
+void VolumeDataAccessManagerImpl::ForceClearAllUploadErrors()
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_uploadErrors.clear();
@@ -630,13 +630,13 @@ void VolumeDataAccessManagerImpl::forceClearAllUploadErrors()
 }
 
 
-int32_t VolumeDataAccessManagerImpl::uploadErrorCount()
+int32_t VolumeDataAccessManagerImpl::UploadErrorCount()
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   return int32_t(m_uploadErrors.size() - m_currentErrorIndex);
 }
 
-void VolumeDataAccessManagerImpl::getCurrentUploadError(const char** objectId, int32_t* errorCode, const char** errorString)
+void VolumeDataAccessManagerImpl::GetCurrentUploadError(const char** objectId, int32_t* errorCode, const char** errorString)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   if (m_currentErrorIndex >= m_uploadErrors.size())
@@ -654,9 +654,9 @@ void VolumeDataAccessManagerImpl::getCurrentUploadError(const char** objectId, i
   if (objectId)
     *objectId = error->urlObject.c_str();
   if (errorCode)
-    *errorCode = error->error.code;
+    *errorCode = error->error.Code;
   if (errorString)
-    *errorString = error->error.string.c_str();
+    *errorString = error->error.String.c_str();
   lock.unlock();
 }
 }

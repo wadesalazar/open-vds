@@ -31,40 +31,40 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
   OpenVDS::Error error;
   OpenVDS::AWSOpenOptions options;
 
-  options.region = TEST_AWS_REGION;
-  options.bucket = TEST_AWS_BUCKET;
-  options.key = TEST_AWS_OBJECTID;
+  options.Region = TEST_AWS_REGION;
+  options.Bucket = TEST_AWS_BUCKET;
+  options.Key = TEST_AWS_OBJECTID;
 
-  if(options.region.empty() || options.bucket.empty() || options.key.empty())
+  if(options.Region.empty() || options.Bucket.empty() || options.Key.empty())
   {
     GTEST_SKIP() << "Environment variables not set";
   }
 
-  ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
-  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> handle(OpenVDS::open(options, error), &OpenVDS::destroy);
+  ASSERT_TRUE(options.Region.size() && options.Bucket.size() && options.Key.size());
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::Destroy)> handle(OpenVDS::Open(options, error), &OpenVDS::Destroy);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::getDataAccessManager(handle.get());
+  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::GetDataAccessManager(handle.get());
   ASSERT_TRUE(dataAccessManager);
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle.get());
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
 
-  OpenVDS::VolumeDataPageAccessor *pageAccessor = dataAccessManager->createVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = dataAccessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   ASSERT_TRUE(pageAccessor);
 
-  int pos[OpenVDS::Dimensionality_Max] = {layout->getDimensionNumSamples(0) / 2, layout->getDimensionNumSamples(1) /2, layout->getDimensionNumSamples(2) / 2};
-  OpenVDS::VolumeDataPage *page = pageAccessor->readPageAtPosition(pos);
+  int pos[OpenVDS::Dimensionality_Max] = {layout->GetDimensionNumSamples(0) / 2, layout->GetDimensionNumSamples(1) /2, layout->GetDimensionNumSamples(2) / 2};
+  OpenVDS::VolumeDataPage *page = pageAccessor->ReadPageAtPosition(pos);
   ASSERT_TRUE(page);
 
   int pitch[OpenVDS::Dimensionality_Max] = {}; 
-  const void *buffer = page->getBuffer(pitch);
+  const void *buffer = page->GetBuffer(pitch);
   ASSERT_TRUE(buffer);
-  for (int i = 0; i < layout->getDimensionality(); i++)
+  for (int i = 0; i < layout->GetDimensionality(); i++)
     ASSERT_NE(pitch[i], 0);
 
   int min[6];
   int max[6];
-  page->getMinMax(min, max);
+  page->GetMinMax(min, max);
 
   ASSERT_TRUE(min[0] <=  pos[0]);
   ASSERT_TRUE(min[1] <=  pos[1]);
@@ -82,36 +82,36 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSubset)
   OpenVDS::Error error;
   OpenVDS::AWSOpenOptions options;
 
-  options.region = TEST_AWS_REGION;
-  options.bucket = TEST_AWS_BUCKET;
-  options.key = TEST_AWS_OBJECTID;
+  options.Region = TEST_AWS_REGION;
+  options.Bucket = TEST_AWS_BUCKET;
+  options.Key = TEST_AWS_OBJECTID;
 
-  if(options.region.empty() || options.bucket.empty() || options.key.empty())
+  if(options.Region.empty() || options.Bucket.empty() || options.Key.empty())
   {
     GTEST_SKIP() << "Environment variables not set";
   }
 
-  ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
-  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> handle(OpenVDS::open(options, error), &OpenVDS::destroy);
+  ASSERT_TRUE(options.Region.size() && options.Bucket.size() && options.Key.size());
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::Destroy)> handle(OpenVDS::Open(options, error), &OpenVDS::Destroy);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::getDataAccessManager(handle.get());
+  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::GetDataAccessManager(handle.get());
   ASSERT_TRUE(dataAccessManager);
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle.get());
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::getDataAccessManager(handle.get());
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetDataAccessManager(handle.get());
 
  
   int loopDimension = 4;
   int groupSize = 100;
 
-  int loopDimensionSize = layout->getDimensionNumSamples(loopDimension);
+  int loopDimensionSize = layout->GetDimensionNumSamples(loopDimension);
 
   int traceDimension = (loopDimension == 0) ? 1 : 0;
-  int traceDimensionSize = layout->getDimensionNumSamples(traceDimension);
+  int traceDimensionSize = layout->GetDimensionNumSamples(traceDimension);
 
   int groupDimension = (loopDimension == traceDimension + 1) ? traceDimension + 2 : traceDimension + 1;
-  int groupDimensionSize = layout->getDimensionNumSamples(groupDimension);
+  int groupDimensionSize = layout->GetDimensionNumSamples(groupDimension);
 
   if(groupSize == 0)
   {
@@ -130,9 +130,9 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSubset)
 
   std::vector<float> buffer((voxelMax[groupDimension] - voxelMin[groupDimension]) * traceDimensionSize);
 
-  int64_t iRequestID = accessManager->requestVolumeSubset(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, PODArrayReference(voxelMin), PODArrayReference(voxelMax), OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+  int64_t iRequestID = accessManager->RequestVolumeSubset(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, PODArrayReference(voxelMin), PODArrayReference(voxelMax), OpenVDS::VolumeDataChannelDescriptor::Format_R32);
   ASSERT_GT(iRequestID, 0);
-  bool returned = accessManager->waitForCompletion(iRequestID);
+  bool returned = accessManager->WaitForCompletion(iRequestID);
   ASSERT_TRUE(returned);
 
 }

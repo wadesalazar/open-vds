@@ -216,13 +216,13 @@ static uint64_t getConstantValueVolumeDataHash(T value, const Range<float> &valu
     }
     else
     {
-      QuantizingValueConverterWithNoValue<float, T, true> converter(valueRange.min, valueRange.max, integerScale, integerOffset, noValue, noValue, false);
+      QuantizingValueConverterWithNoValue<float, T, true> converter(valueRange.Min, valueRange.Max, integerScale, integerOffset, noValue, noValue, false);
       return VolumeDataHash(converter.convertValue(value)).calculateHash();
     }
   }
   else
   {
-    QuantizingValueConverterWithNoValue<float, T, false> converter(valueRange.min, valueRange.max, integerScale, integerOffset, noValue, noValue, false);
+    QuantizingValueConverterWithNoValue<float, T, false> converter(valueRange.Min, valueRange.Max, integerScale, integerOffset, noValue, noValue, false);
     return VolumeDataHash(converter.convertValue(value)).calculateHash();
   }
 }
@@ -293,8 +293,8 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
 
     if(!dataBlockDescriptor->isValid())
     {
-      error.code = -1;
-      error.string = "Failed to decode DataBlockDescriptor";
+      error.Code = -1;
+      error.String = "Failed to decode DataBlockDescriptor";
       return false;
     }
 
@@ -319,8 +319,8 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
 
     if(!dataBlockDescriptor->isValid())
     {
-      error.code = -1;
-      error.string = "Failed to decode DataBlockDescriptor";
+      error.Code = -1;
+      error.String = "Failed to decode DataBlockDescriptor";
       return false;
     }
     if (!initializeDataBlock(*dataBlockDescriptor, dataBlock, error))
@@ -351,8 +351,8 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
 
     if(!dataBlockDescriptor->isValid())
     {
-      error.code = -1;
-      error.string = "Failed to decode DataBlockDescriptor";
+      error.Code = -1;
+      error.String = "Failed to decode DataBlockDescriptor";
       return false;
     }
     if (!initializeDataBlock(*dataBlockDescriptor, dataBlock, error))
@@ -367,8 +367,8 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
 
   if(dataBlock.format != format)
   {
-    error.string = "Formats doesn't match in deserialization\n";
-    error.code = -2;
+    error.String = "Formats doesn't match in deserialization\n";
+    error.Code = -2;
     return false;
   }
   return true;
@@ -395,20 +395,20 @@ static float getConvertedConstantValue(VolumeDataChannelDescriptor const &volume
       }
     }
 
-    int32_t buckets = (format == VolumeDataChannelDescriptor::Format_U8 ? 256 : 65536) - volumeDataChannelDescriptor.isUseNoValue();
+    int32_t buckets = (format == VolumeDataChannelDescriptor::Format_U8 ? 256 : 65536) - volumeDataChannelDescriptor.IsUseNoValue();
 
     float reciprocalScale;
     float offset;
 
-    if(volumeDataChannelDescriptor.getFormat() != VolumeDataChannelDescriptor::Format_U8 && volumeDataChannelDescriptor.getFormat() != VolumeDataChannelDescriptor::Format_U16)
+    if(volumeDataChannelDescriptor.GetFormat() != VolumeDataChannelDescriptor::Format_U8 && volumeDataChannelDescriptor.GetFormat() != VolumeDataChannelDescriptor::Format_U16)
     {
-      offset = volumeDataChannelDescriptor.getValueRange().min;
-      reciprocalScale = float(buckets - 1) / rangeSize(volumeDataChannelDescriptor.getValueRange());
+      offset = volumeDataChannelDescriptor.GetValueRange().Min;
+      reciprocalScale = float(buckets - 1) / rangeSize(volumeDataChannelDescriptor.GetValueRange());
     }
     else
     {
-      offset = volumeDataChannelDescriptor.getIntegerOffset();
-      reciprocalScale = 1.0f / volumeDataChannelDescriptor.getIntegerScale();
+      offset = volumeDataChannelDescriptor.GetIntegerOffset();
+      reciprocalScale = 1.0f / volumeDataChannelDescriptor.GetIntegerScale();
     }
 
     return (float)quantizeValueWithReciprocalScale(constantValueVolumeDataHash.getConstantValue(noValue), offset, reciprocalScale, buckets);
@@ -461,8 +461,8 @@ bool VolumeDataStore::createConstantValueDataBlock(VolumeDataChunk const &volume
   switch (effectiveFormat)
   {
   default:
-    error.code = -3;
-    error.string = "Invalid format in createConstantValuedataBlock";
+    error.Code = -3;
+    error.String = "Invalid format in createConstantValuedataBlock";
     return false;
   case VolumeDataChannelDescriptor::Format_U8:  fillConstantValueBuffer<uint8_t>(buffer, allocatedElements, convertedConstantValue); break;
   case VolumeDataChannelDescriptor::Format_U16: fillConstantValueBuffer<uint16_t>(buffer, allocatedElements, convertedConstantValue); break;
@@ -513,13 +513,13 @@ bool VolumeDataStore::deserializeVolumeData(const VolumeDataChunk &volumeDataChu
       {
         if (loadFormat == VolumeDataChannelDescriptor::Format_U16)
         {
-          deserializeValueRange.min = volumeDataLayer->getIntegerOffset();
-          deserializeValueRange.max = volumeDataLayer->getIntegerScale() * (volumeDataLayer->isUseNoValue() ? 65534.0f : 65535.0f) + volumeDataLayer->getIntegerOffset();
+          deserializeValueRange.Min = volumeDataLayer->getIntegerOffset();
+          deserializeValueRange.Max = volumeDataLayer->getIntegerScale() * (volumeDataLayer->isUseNoValue() ? 65534.0f : 65535.0f) + volumeDataLayer->getIntegerOffset();
         }
         else if (loadFormat == VolumeDataChannelDescriptor::Format_U8 && volumeDataLayer->getFormat() != VolumeDataChannelDescriptor::Format_U16)
         {
-          deserializeValueRange.min = volumeDataLayer->getIntegerOffset();
-          deserializeValueRange.max = volumeDataLayer->getIntegerScale() * (volumeDataLayer->isUseNoValue() ? 254.0f : 255.0f) + volumeDataLayer->getIntegerOffset();
+          deserializeValueRange.Min = volumeDataLayer->getIntegerOffset();
+          deserializeValueRange.Max = volumeDataLayer->getIntegerScale() * (volumeDataLayer->isUseNoValue() ? 254.0f : 255.0f) + volumeDataLayer->getIntegerOffset();
         }
       }
 
@@ -589,15 +589,15 @@ bool VolumeDataStore::serializeVolumeData(const VolumeDataChunk& chunk, const Da
 
     if (status != Z_OK)
     {
-      error.code = -100;
-      error.string = "zlib compression failed";
+      error.Code = -100;
+      error.String = "zlib compression failed";
       return false;
     }
     break;
   }
   default:
-    error.code = -2;
-    error.string = "Invalid compression method specified when serializing a VolumeDataChunk";
+    error.Code = -2;
+    error.String = "Invalid compression method specified when serializing a VolumeDataChunk";
     return false;
   }
   outputHash = VolumeDataHash::UNKNOWN;

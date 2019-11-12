@@ -179,17 +179,17 @@ FloatRange const &VolumeDataLayer::getActualValueRange() const
 
 VolumeDataChannelDescriptor::Format VolumeDataLayer::getFormat() const
 {
-  return m_volumeDataLayout->getChannelFormat(m_channel);
+  return m_volumeDataLayout->GetChannelFormat(m_channel);
 }
 
 VolumeDataChannelDescriptor::Components VolumeDataLayer::getComponents() const
 {
-  return m_volumeDataLayout->getChannelComponents(m_channel);
+  return m_volumeDataLayout->GetChannelComponents(m_channel);
 }
 
 bool VolumeDataLayer::isDiscrete() const
 {
-  return m_volumeDataLayout->isChannelDiscrete(m_channel);
+  return m_volumeDataLayout->IsChannelDiscrete(m_channel);
 }
 
 uint64_t VolumeDataLayer::getFormatHash(VolumeDataChannelDescriptor::Format actualFormat, bool isReplaceNoValue, float replacementNoValue) const
@@ -198,30 +198,30 @@ uint64_t VolumeDataLayer::getFormatHash(VolumeDataChannelDescriptor::Format actu
 
   if(actualFormat == VolumeDataChannelDescriptor::Format_Any)
   {
-    actualFormat = volumeDataChannelDescriptor.getFormat();
+    actualFormat = volumeDataChannelDescriptor.GetFormat();
   }
 
   HashCombiner hashCombiner(actualFormat);
 
-  hashCombiner.add(volumeDataChannelDescriptor.getComponents());
+  hashCombiner.add(volumeDataChannelDescriptor.GetComponents());
 
   bool isConvertWithValueRange = (actualFormat == VolumeDataChannelDescriptor::Format_U8 || actualFormat == VolumeDataChannelDescriptor::Format_U16) &&
-                                 (volumeDataChannelDescriptor.getFormat() != VolumeDataChannelDescriptor::Format_U8 && volumeDataChannelDescriptor.getFormat() != VolumeDataChannelDescriptor::Format_U16);
+                                 (volumeDataChannelDescriptor.GetFormat() != VolumeDataChannelDescriptor::Format_U8 && volumeDataChannelDescriptor.GetFormat() != VolumeDataChannelDescriptor::Format_U16);
 
   if(isConvertWithValueRange)
   {
-    hashCombiner.add(volumeDataChannelDescriptor.getValueRange());
+    hashCombiner.add(volumeDataChannelDescriptor.GetValueRange());
   }
 
-  if(volumeDataChannelDescriptor.getFormat() == VolumeDataChannelDescriptor::Format_U8 || volumeDataChannelDescriptor.getFormat() == VolumeDataChannelDescriptor::Format_U16)
+  if(volumeDataChannelDescriptor.GetFormat() == VolumeDataChannelDescriptor::Format_U8 || volumeDataChannelDescriptor.GetFormat() == VolumeDataChannelDescriptor::Format_U16)
   {
-    hashCombiner.add(volumeDataChannelDescriptor.getIntegerScale());
-    hashCombiner.add(volumeDataChannelDescriptor.getIntegerOffset());
+    hashCombiner.add(volumeDataChannelDescriptor.GetIntegerScale());
+    hashCombiner.add(volumeDataChannelDescriptor.GetIntegerOffset());
   }
 
-  hashCombiner.add(volumeDataChannelDescriptor.isUseNoValue());
+  hashCombiner.add(volumeDataChannelDescriptor.IsUseNoValue());
 
-  if(volumeDataChannelDescriptor.isUseNoValue() && isReplaceNoValue)
+  if(volumeDataChannelDescriptor.IsUseNoValue() && isReplaceNoValue)
   {
     hashCombiner.add(replacementNoValue);
   }
@@ -231,12 +231,12 @@ uint64_t VolumeDataLayer::getFormatHash(VolumeDataChannelDescriptor::Format actu
 
 bool VolumeDataLayer::isUseNoValue() const
 {
-  return m_volumeDataLayout->isChannelUseNoValue(m_channel);
+  return m_volumeDataLayout->IsChannelUseNoValue(m_channel);
 }
 
 float VolumeDataLayer::getNoValue() const
 {
-  return m_volumeDataLayout->getChannelNoValue(m_channel);
+  return m_volumeDataLayout->GetChannelNoValue(m_channel);
 }
 
 static bool CompressionMethod_IsWavelet(CompressionMethod compressionMethod)
@@ -251,9 +251,9 @@ CompressionMethod VolumeDataLayer::getEffectiveCompressionMethod() const
 {
   auto &channelDescriptor = m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel);
 
-  if(!channelDescriptor.isAllowLossyCompression() && CompressionMethod_IsWavelet(m_volumeDataLayout->getCompressionMethod()))
+  if(!channelDescriptor.IsAllowLossyCompression() && CompressionMethod_IsWavelet(m_volumeDataLayout->getCompressionMethod()))
   {
-    if(m_volumeDataLayout->isZipLosslessChannels() || channelDescriptor.isUseZipForLosslessCompression())
+    if(m_volumeDataLayout->isZipLosslessChannels() || channelDescriptor.IsUseZipForLosslessCompression())
     {
       return CompressionMethod::Zip;
     }
@@ -282,7 +282,7 @@ float VolumeDataLayer::getEffectiveCompressionTolerance() const
 { 
   auto &channelDescriptor = m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel);
   //return m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel).getEffectiveCompressionTolerance(m_volumeDataLayout->m_compressionTolerance, getLOD());
-  if(!channelDescriptor.isAllowLossyCompression())
+  if(!channelDescriptor.IsAllowLossyCompression())
   {
     return 0.0f;
   }
@@ -339,12 +339,12 @@ int32_t VolumeDataLayer::getEffectiveWaveletAdaptiveLoadLevel() const
 
 float VolumeDataLayer::getIntegerScale() const
 {
-  return m_volumeDataLayout->getChannelIntegerScale(m_channel);
+  return m_volumeDataLayout->GetChannelIntegerScale(m_channel);
 }
 
 float VolumeDataLayer::getIntegerOffset() const
 {
-  return m_volumeDataLayout->getChannelIntegerOffset(m_channel);
+  return m_volumeDataLayout->GetChannelIntegerOffset(m_channel);
 }
 
 void VolumeDataLayer::setProduceStatus(ProduceStatus produceStatus)

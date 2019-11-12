@@ -59,34 +59,34 @@ private:
 public:
   VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl *acccessManager, VolumeDataLayer* layer, int maxPages, bool isReadWrite);
 
-  VolumeDataLayout const* getLayout() const override;
+  VolumeDataLayout const* GetLayout() const override;
   VolumeDataLayer const * getLayer() const { return m_layer; }
 
-  int   getLOD() const override;
-  int   getChannelIndex() const override;
-  VolumeDataChannelDescriptor const& getChannelDescriptor() const override;
-  void  getNumSamples(int(&numSamples)[Dimensionality_Max]) const override;
+  int   GetLOD() const override;
+  int   GetChannelIndex() const override;
+  VolumeDataChannelDescriptor const& GetChannelDescriptor() const override;
+  void  GetNumSamples(int(&numSamples)[Dimensionality_Max]) const override;
 
-  int64_t getChunkCount() const override;
-  void  getChunkMinMax(int64_t chunk, int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const override;
-  void  getChunkMinMaxExcludingMargin(int64_t iChunk, int(&minExcludingMargin)[Dimensionality_Max], int(&maxExcludingMargin)[Dimensionality_Max]) const override;
-  int64_t getChunkIndex(const int(&position)[Dimensionality_Max]) const override;
+  int64_t GetChunkCount() const override;
+  void  GetChunkMinMax(int64_t chunk, int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const override;
+  void  GetChunkMinMaxExcludingMargin(int64_t iChunk, int(&minExcludingMargin)[Dimensionality_Max], int(&maxExcludingMargin)[Dimensionality_Max]) const override;
+  int64_t GetChunkIndex(const int(&position)[Dimensionality_Max]) const override;
 
-  int   addReference() override;
-  int   removeReference() override;
+  int   AddReference() override;
+  int   RemoveReference() override;
 
   VolumeDataPage* prepareReadPage(int64_t chunk, bool *needToCallReadPreparePage);
   bool readPreparedPaged(VolumeDataPage *page);
 
-  int   getMaxPages() override;
-  void  setMaxPages(int maxPages) override;
+  int   GetMaxPages() override;
+  void  SetMaxPages(int maxPages) override;
 
-  VolumeDataPage *createPage(int64_t chunk) override;
-  VolumeDataPage *readPage(int64_t chunk) override;
+  VolumeDataPage *CreatePage(int64_t chunk) override;
+  VolumeDataPage *ReadPage(int64_t chunk) override;
  
   int64_t requestWritePage(int64_t chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data);
 
-  void  commit() override;
+  void  Commit() override;
 
   bool isReadWrite() const { return m_isReadWrite; }
 

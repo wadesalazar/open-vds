@@ -34,11 +34,11 @@
 
 namespace OpenVDS
 {
-VDSHandle *open(const OpenOptions &options, Error &error)
+VDSHandle *Open(const OpenOptions &options, Error &error)
 {
   error = Error();
   std::unique_ptr<VDSHandle> ret(new VDSHandle(options, error));
-  if (error.code)
+  if (error.Code)
     return nullptr;
 
   if (!downloadAndParseVolumeDataLayoutAndLayerStatus(*ret.get(), error))
@@ -50,14 +50,14 @@ VDSHandle *open(const OpenOptions &options, Error &error)
   return ret.release();
 }
 
-VolumeDataLayout *getLayout(VDSHandle *handle)
+VolumeDataLayout *GetLayout(VDSHandle *handle)
 {
   if (!handle)
     return nullptr;
   return handle->volumeDataLayout.get();
 }
 
-VolumeDataAccessManager *getDataAccessManager(VDSHandle *handle)
+VolumeDataAccessManager *GetDataAccessManager(VDSHandle *handle)
 {
   if (!handle)
     return nullptr;
@@ -75,10 +75,10 @@ const char *addDescriptorString(std::string const &descriptorString, VDSHandle &
 
 static int32_t getInternalCubeSizeLOD0(const VolumeDataLayoutDescriptor &desc)
 {
-  int32_t size = int32_t(1) << desc.getBrickSize();
+  int32_t size = int32_t(1) << desc.GetBrickSize();
 
-  size -= desc.getNegativeMargin();
-  size -= desc.getPositiveMargin();
+  size -= desc.GetNegativeMargin();
+  size -= desc.GetPositiveMargin();
 
   assert(size > 0);
 
@@ -87,7 +87,7 @@ static int32_t getInternalCubeSizeLOD0(const VolumeDataLayoutDescriptor &desc)
 
 static int32_t getLODCount(const VolumeDataLayoutDescriptor &desc)
 {
-  return desc.getLODLevels() + 1;
+  return desc.GetLODLevels() + 1;
 }
 
 std::string getLayerName(VolumeDataLayer const &volumeDataLayer)
@@ -98,8 +98,8 @@ std::string getLayerName(VolumeDataLayer const &volumeDataLayer)
   }
   else
   {
-    assert(std::string(volumeDataLayer.getVolumeDataChannelDescriptor().getName()) != "");
-    return fmt::format("{}{}LOD{}", volumeDataLayer.getVolumeDataChannelDescriptor().getName(), DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getPrimaryChannelLayer().getChunkDimensionGroup()), volumeDataLayer.getLOD());
+    assert(std::string(volumeDataLayer.getVolumeDataChannelDescriptor().GetName()) != "");
+    return fmt::format("{}{}LOD{}", volumeDataLayer.getVolumeDataChannelDescriptor().GetName(), DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getPrimaryChannelLayer().getChunkDimensionGroup()), volumeDataLayer.getLOD());
   }
 }
 
@@ -160,14 +160,14 @@ void createVolumeDataLayout(VDSHandle &handle)
 
     assert(nChunkDimensionality == 2 || nChunkDimensionality == 3);
 
-    int32_t physicalLODLevels = (nChunkDimensionality == 3 || handle.layoutDescriptor.isCreate2DLODs()) ? getLODCount(handle.layoutDescriptor) : 1;
-    int32_t brickSize = getInternalCubeSizeLOD0(handle.layoutDescriptor) * (nChunkDimensionality == 2 ? handle.layoutDescriptor.getBrickSizeMultiplier2D() : 1);
+    int32_t physicalLODLevels = (nChunkDimensionality == 3 || handle.layoutDescriptor.IsCreate2DLODs()) ? getLODCount(handle.layoutDescriptor) : 1;
+    int32_t brickSize = getInternalCubeSizeLOD0(handle.layoutDescriptor) * (nChunkDimensionality == 2 ? handle.layoutDescriptor.GetBrickSizeMultiplier2D() : 1);
 
     handle.volumeDataLayout->createLayers(dimensionGroup, brickSize, physicalLODLevels, handle.produceStatuses[DimensionGroupUtil::getDimensionsNDFromDimensionGroup(dimensionGroup)]);
   }
 }
 
-VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error)
+VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error)
 {
   error = Error();
   std::unique_ptr<VDSHandle> handle(new VDSHandle(options, error));
@@ -176,25 +176,25 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
 
   for(auto axisDescriptor : axisDescriptors)
   {
-    handle->axisDescriptors.push_back(VolumeDataAxisDescriptor(axisDescriptor.getNumSamples(), addDescriptorString(axisDescriptor.getName(), *handle), addDescriptorString(axisDescriptor.getUnit(), *handle), axisDescriptor.getCoordinateMin(), axisDescriptor.getCoordinateMax()));
+    handle->axisDescriptors.push_back(VolumeDataAxisDescriptor(axisDescriptor.GetNumSamples(), addDescriptorString(axisDescriptor.GetName(), *handle), addDescriptorString(axisDescriptor.GetUnit(), *handle), axisDescriptor.GetCoordinateMin(), axisDescriptor.GetCoordinateMax()));
   }
 
   for(auto channelDescriptor : channelDescriptors)
   {
     VolumeDataChannelDescriptor::Flags flags = VolumeDataChannelDescriptor::Default;
 
-    if(channelDescriptor.isDiscrete())                     flags = flags | VolumeDataChannelDescriptor::DiscreteData;
-    if(!channelDescriptor.isAllowLossyCompression())       flags = flags | VolumeDataChannelDescriptor::NoLossyCompression;
-    if(channelDescriptor.isUseZipForLosslessCompression()) flags = flags | VolumeDataChannelDescriptor::NoLossyCompressionUseZip;
-    if(!channelDescriptor.isRenderable())                  flags = flags | VolumeDataChannelDescriptor::NotRenderable;
+    if(channelDescriptor.IsDiscrete())                     flags = flags | VolumeDataChannelDescriptor::DiscreteData;
+    if(!channelDescriptor.IsAllowLossyCompression())       flags = flags | VolumeDataChannelDescriptor::NoLossyCompression;
+    if(channelDescriptor.IsUseZipForLosslessCompression()) flags = flags | VolumeDataChannelDescriptor::NoLossyCompressionUseZip;
+    if(!channelDescriptor.IsRenderable())                  flags = flags | VolumeDataChannelDescriptor::NotRenderable;
 
-    if(channelDescriptor.isUseNoValue())
+    if(channelDescriptor.IsUseNoValue())
     {
-      handle->channelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.getFormat(), channelDescriptor.getComponents(), addDescriptorString(channelDescriptor.getName(), *handle), addDescriptorString(channelDescriptor.getUnit(), *handle), channelDescriptor.getValueRangeMin(), channelDescriptor.getValueRangeMax(), channelDescriptor.getMapping(), channelDescriptor.getMappedValueCount(), flags, channelDescriptor.getNoValue(), channelDescriptor.getIntegerScale(), channelDescriptor.getIntegerOffset()));
+      handle->channelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.GetFormat(), channelDescriptor.GetComponents(), addDescriptorString(channelDescriptor.GetName(), *handle), addDescriptorString(channelDescriptor.GetUnit(), *handle), channelDescriptor.GetValueRangeMin(), channelDescriptor.GetValueRangeMax(), channelDescriptor.GetMapping(), channelDescriptor.GetMappedValueCount(), flags, channelDescriptor.GetNoValue(), channelDescriptor.GetIntegerScale(), channelDescriptor.GetIntegerOffset()));
     }
     else
     {
-      handle->channelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.getFormat(), channelDescriptor.getComponents(), addDescriptorString(channelDescriptor.getName(), *handle), addDescriptorString(channelDescriptor.getUnit(), *handle), channelDescriptor.getValueRangeMin(), channelDescriptor.getValueRangeMax(), channelDescriptor.getMapping(), channelDescriptor.getMappedValueCount(), flags, channelDescriptor.getIntegerScale(), channelDescriptor.getIntegerOffset()));
+      handle->channelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.GetFormat(), channelDescriptor.GetComponents(), addDescriptorString(channelDescriptor.GetName(), *handle), addDescriptorString(channelDescriptor.GetUnit(), *handle), channelDescriptor.GetValueRangeMin(), channelDescriptor.GetValueRangeMax(), channelDescriptor.GetMapping(), channelDescriptor.GetMappedValueCount(), flags, channelDescriptor.GetIntegerScale(), channelDescriptor.GetIntegerOffset()));
     }
   }
 
@@ -205,7 +205,7 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
 
   createVolumeDataLayout(*handle);
 
-  if (error.code)
+  if (error.Code)
     return nullptr;
 
   if (!serializeAndUploadVolumeDataLayout(*handle, error))
@@ -217,7 +217,7 @@ VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
   return handle.release();
 }
 
-void destroy(VDSHandle *handle)
+void Destroy(VDSHandle *handle)
 {
   delete handle;
 }

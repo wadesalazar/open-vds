@@ -56,8 +56,8 @@ bool initializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataC
     dataBlock.size[3] = 1;
     break;
   default:
-    error.string = "Serialized datablock has illegal dimensionality";
-    error.code = -1;
+    error.String = "Serialized datablock has illegal dimensionality";
+    error.Code = -1;
     return false;
   }
 
@@ -82,8 +82,8 @@ bool initializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataC
   {
     char buffer[4096];
     snprintf(buffer, sizeof(buffer), "Datablock is too big (%d x %d x %d x %d x %d bytes)", dataBlock.allocatedSize[0], dataBlock.allocatedSize[1], dataBlock.allocatedSize[2], dataBlock.allocatedSize[3], getElementSize(dataBlock.format, dataBlock.components));
-    error.string = buffer;
-    error.code = -1;
+    error.String = buffer;
+    error.Code = -1;
     return false;
   }
   return true;

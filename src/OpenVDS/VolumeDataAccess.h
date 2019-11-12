@@ -34,11 +34,11 @@ template <typename INDEX, typename T> class VolumeDataReadWriteAccessor;
 template <typename T>
 struct IndexRegion
 {
-    T min;
-    T max;
+    T Min;
+    T Max;
 
     IndexRegion() {}
-    IndexRegion(T min, T max) : min(min), max(max) {}
+    IndexRegion(T Min, T Max) : Min(Min), Max(Max) {}
 };
 
 class VolumeDataAccessManager;
@@ -60,9 +60,9 @@ public:
 //    virtual VolumeDataAccessor *cloneVolumeDataAccessor(VolumeDataAccessor const &accessor) = 0;
 //  };
 
-  virtual VolumeDataAccessManager &getManager() = 0;
+  virtual VolumeDataAccessManager &GetManager() = 0;
 
-  virtual VolumeDataLayout const *getLayout() = 0;
+  virtual VolumeDataLayout const *GetLayout() = 0;
 
   struct IndexOutOfRangeException {};
 };
@@ -89,7 +89,7 @@ public:
   /// <returns>
   /// The VolumeDataLayout object associated with the VDS or NULL if there is no valid VolumeDataLayout.
   /// </returns>
-  virtual VolumeDataLayout const *getVolumeDataLayout() const = 0;
+  virtual VolumeDataLayout const *GetVolumeDataLayout() const = 0;
 
   /// <summary>
   /// Create a volume data page accessor object for the VDS associated with the given VolumeDataLayout object.
@@ -115,7 +115,7 @@ public:
   /// <returns>
   /// A VolumeDataPageAccessor object for the VDS associated with the given VolumeDataLayout object.
   /// </returns>
-  virtual VolumeDataPageAccessor *createVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) = 0;
+  virtual VolumeDataPageAccessor *CreateVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) = 0;
 
   /// <summary>
   /// Destroy a volume data page accessor object.
@@ -123,48 +123,48 @@ public:
   /// <param name="pVolumeDataPageAccessor">
   /// The VolumeDataPageAccessor object to destroy.
   /// </param>
-  virtual void  destroyVolumeDataPageAccessor(VolumeDataPageAccessor *volumeDataPageAccessor) = 0;
+  virtual void  DestroyVolumeDataPageAccessor(VolumeDataPageAccessor *volumeDataPageAccessor) = 0;
 
-  virtual void  destroyVolumeDataAccessor(VolumeDataAccessor *accessor) = 0;
+  virtual void  DestroyVolumeDataAccessor(VolumeDataAccessor *accessor) = 0;
 
-  virtual VolumeDataAccessor * cloneVolumeDataAccessor(VolumeDataAccessor const &accessor) = 0;
-
-  template<typename INDEX, typename T>
-  VolumeDataReadWriteAccessor<INDEX, T> *createVolumeDataAccessor(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue);
+  virtual VolumeDataAccessor * CloneVolumeDataAccessor(VolumeDataAccessor const &accessor) = 0;
 
   template<typename INDEX, typename T>
-  VolumeDataReadAccessor<INDEX, T > *createInterpolatingVolumeDataAccessor(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod);
+  VolumeDataReadWriteAccessor<INDEX, T> *CreateVolumeDataAccessor(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue);
 
-  virtual VolumeDataReadWriteAccessor<IntVector2, bool>     *create2DVolumeDataAccessor1Bit(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector2, uint8_t>  *create2DVolumeDataAccessorU8  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector2, uint16_t> *create2DVolumeDataAccessorU16 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector2, uint32_t> *create2DVolumeDataAccessorU32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector2, uint64_t> *create2DVolumeDataAccessorU64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector2, float>    *create2DVolumeDataAccessorR32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector2, double>   *create2DVolumeDataAccessorR64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  template<typename INDEX, typename T>
+  VolumeDataReadAccessor<INDEX, T > *CreateInterpolatingVolumeDataAccessor(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod);
 
-  virtual VolumeDataReadWriteAccessor<IntVector3, bool>     *create3DVolumeDataAccessor1Bit(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector3, uint8_t>  *create3DVolumeDataAccessorU8  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector3, uint16_t> *create3DVolumeDataAccessorU16 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector3, uint32_t> *create3DVolumeDataAccessorU32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector3, uint64_t> *create3DVolumeDataAccessorU64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector3, float>    *create3DVolumeDataAccessorR32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector3, double>   *create3DVolumeDataAccessorR64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector2, bool>     *Create2DVolumeDataAccessor1Bit(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector2, uint8_t>  *Create2DVolumeDataAccessorU8  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector2, uint16_t> *Create2DVolumeDataAccessorU16 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector2, uint32_t> *Create2DVolumeDataAccessorU32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector2, uint64_t> *Create2DVolumeDataAccessorU64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector2, float>    *Create2DVolumeDataAccessorR32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector2, double>   *Create2DVolumeDataAccessorR64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
 
-  virtual VolumeDataReadWriteAccessor<IntVector4, bool>     *create4DVolumeDataAccessor1Bit(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector4, uint8_t>  *create4DVolumeDataAccessorU8  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector4, uint16_t> *create4DVolumeDataAccessorU16 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector4, uint32_t> *create4DVolumeDataAccessorU32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector4, uint64_t> *create4DVolumeDataAccessorU64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector4, float>    *create4DVolumeDataAccessorR32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
-  virtual VolumeDataReadWriteAccessor<IntVector4, double>   *create4DVolumeDataAccessorR64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector3, bool>     *Create3DVolumeDataAccessor1Bit(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector3, uint8_t>  *Create3DVolumeDataAccessorU8  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector3, uint16_t> *Create3DVolumeDataAccessorU16 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector3, uint32_t> *Create3DVolumeDataAccessorU32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector3, uint64_t> *Create3DVolumeDataAccessorU64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector3, float>    *Create3DVolumeDataAccessorR32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector3, double>   *Create3DVolumeDataAccessorR64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
 
-  virtual VolumeDataReadAccessor<FloatVector2, float > *create2DInterpolatingVolumeDataAccessorR32(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
-  virtual VolumeDataReadAccessor<FloatVector2, double> *create2DInterpolatingVolumeDataAccessorR64(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
-  virtual VolumeDataReadAccessor<FloatVector3, float > *create3DInterpolatingVolumeDataAccessorR32(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
-  virtual VolumeDataReadAccessor<FloatVector3, double> *create3DInterpolatingVolumeDataAccessorR64(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
-  virtual VolumeDataReadAccessor<FloatVector4, float > *create4DInterpolatingVolumeDataAccessorR32(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
-  virtual VolumeDataReadAccessor<FloatVector4, double> *create4DInterpolatingVolumeDataAccessorR64(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector4, bool>     *Create4DVolumeDataAccessor1Bit(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector4, uint8_t>  *Create4DVolumeDataAccessorU8  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector4, uint16_t> *Create4DVolumeDataAccessorU16 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector4, uint32_t> *Create4DVolumeDataAccessorU32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector4, uint64_t> *Create4DVolumeDataAccessorU64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector4, float>    *Create4DVolumeDataAccessorR32 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+  virtual VolumeDataReadWriteAccessor<IntVector4, double>   *Create4DVolumeDataAccessorR64 (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) = 0;
+
+  virtual VolumeDataReadAccessor<FloatVector2, float > *Create2DInterpolatingVolumeDataAccessorR32(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
+  virtual VolumeDataReadAccessor<FloatVector2, double> *Create2DInterpolatingVolumeDataAccessorR64(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
+  virtual VolumeDataReadAccessor<FloatVector3, float > *Create3DInterpolatingVolumeDataAccessorR32(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
+  virtual VolumeDataReadAccessor<FloatVector3, double> *Create3DInterpolatingVolumeDataAccessorR64(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
+  virtual VolumeDataReadAccessor<FloatVector4, float > *Create4DInterpolatingVolumeDataAccessorR32(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
+  virtual VolumeDataReadAccessor<FloatVector4, double> *Create4DInterpolatingVolumeDataAccessorR64(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
 
   /// <summary>
   /// Request a subset of the input VDS.
@@ -196,7 +196,7 @@ public:
   /// <returns>
   /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t requestVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format) = 0;
+  virtual int64_t RequestVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format) = 0;
 
   /// <summary>
   /// Request a subset of the input VDS.
@@ -231,7 +231,7 @@ public:
   /// <returns>
   /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t requestVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lOD, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, float replacementNoValue) = 0;
+  virtual int64_t RequestVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lOD, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, float replacementNoValue) = 0;
 
   /// <summary>
   /// Request a subset projected from an arbitrary 3D plane through the subset onto one of the sides of the subset.
@@ -272,7 +272,7 @@ public:
   /// <returns>
   /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t requestProjectedVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod) = 0;
+  virtual int64_t RequestProjectedVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod) = 0;
 
   /// <summary>
   /// Request a subset projected from an arbitrary 3D plane through the subset onto one of the sides of the subset.
@@ -316,7 +316,7 @@ public:
   /// <returns>
   /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t requestProjectedVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod, float replacementNoValue) = 0;
+  virtual int64_t RequestProjectedVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod, float replacementNoValue) = 0;
 
   /// <summary>
   /// Request sampling of the input VDS at the specified coordinates.
@@ -348,7 +348,7 @@ public:
   /// <returns>
   /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t requestVolumeSamples(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float (*samplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod) = 0;
+  virtual int64_t RequestVolumeSamples(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float (*samplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod) = 0;
 
   /// <summary>
   /// Request sampling of the input VDS at the specified coordinates.
@@ -383,7 +383,7 @@ public:
   /// <returns>
   /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t requestVolumeSamples(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float (*SamplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod, float replacementNoValue) = 0;
+  virtual int64_t RequestVolumeSamples(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float (*SamplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod, float replacementNoValue) = 0;
 
   /// <summary>
   /// Request traces from the input VDS.
@@ -418,7 +418,7 @@ public:
   /// <returns>
   /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t requestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int iTraceDimension) = 0;
+  virtual int64_t RequestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int iTraceDimension) = 0;
 
   /// <summary>
   /// Request traces from the input VDS.
@@ -456,7 +456,7 @@ public:
   /// <returns>
   /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t requestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int nTraceCount, InterpolationMethod eInterpolationMethod, int iTraceDimension, float rReplacementNoValue) = 0;
+  virtual int64_t RequestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int nTraceCount, InterpolationMethod eInterpolationMethod, int iTraceDimension, float rReplacementNoValue) = 0;
 
   /// <summary>
   /// Force production of a specific volume data chunk
@@ -479,7 +479,7 @@ public:
   /// <returns>
   /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t prefetchVolumeChunk(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk) = 0;
+  virtual int64_t PrefetchVolumeChunk(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk) = 0;
 
   /// <summary>
   /// Check if a request completed successfully. If the request completed, the buffer now contains valid data.
@@ -490,7 +490,7 @@ public:
   /// <returns>
   /// Either IsCompleted, IsCanceled or WaitForCompletion will return true a single time, after that the request is taken out of the system.
   /// </returns>
-  virtual bool  isCompleted(int64_t requestID) = 0;
+  virtual bool  IsCompleted(int64_t requestID) = 0;
 
   /// <summary>
   /// Check if a request was canceled (e.g. the VDS was invalidated before the request was processed). If the request was canceled, the buffer does not contain valid data.
@@ -501,7 +501,7 @@ public:
   /// <returns>
   /// Either IsCompleted, IsCanceled or WaitForCompletion will return true a single time, after that the request is taken out of the system.
   /// </returns>
-  virtual bool  isCanceled(int64_t requestID) = 0;
+  virtual bool  IsCanceled(int64_t requestID) = 0;
 
   /// <summary>
   /// Wait for a request to complete successfully. If the request completed, the buffer now contains valid data.
@@ -519,7 +519,7 @@ public:
   /// Either IsCompleted, IsCanceled or WaitForCompletion will return true a single time, after that the request is taken out of the system.
   /// Whenever WaitForCompletion returns false you need to call IsCanceled() to know if that was because of a timeout or if the request was canceled.
   /// </returns>
-  virtual bool  waitForCompletion(int64_t requestID, int millisecondsBeforeTimeout = 0) = 0;
+  virtual bool  WaitForCompletion(int64_t requestID, int millisecondsBeforeTimeout = 0) = 0;
 
   /// <summary>
   /// Try to cancel the request. You still have to call WaitForCompletion/IsCanceled to make sure the buffer is not being written to and to take the job out of the system.
@@ -528,7 +528,7 @@ public:
   /// <param name="iRequestID">
   /// The RequestID to cancel.
   /// </param>
-  virtual void  cancel(int64_t requestID) = 0;
+  virtual void  Cancel(int64_t requestID) = 0;
 
   /// <summary>
   /// Get the completion factor (between 0 and 1) of the request.
@@ -539,43 +539,43 @@ public:
   /// <returns>
   /// A factor (between 0 and 1) indicating how much of the request has been completed.
   /// </returns>
-  virtual float getCompletionFactor(int64_t requestID) = 0;
+  virtual float GetCompletionFactor(int64_t requestID) = 0;
   
-  virtual void flushUploadQueue() = 0;
-  virtual void clearUploadErrors() = 0;
-  virtual void forceClearAllUploadErrors() = 0;
-  virtual int32_t uploadErrorCount() = 0;
-  virtual void getCurrentUploadError(const char **objectId, int32_t *errorCode, const char **errorString) = 0;
+  virtual void FlushUploadQueue() = 0;
+  virtual void ClearUploadErrors() = 0;
+  virtual void ForceClearAllUploadErrors() = 0;
+  virtual int32_t UploadErrorCount() = 0;
+  virtual void GetCurrentUploadError(const char **objectId, int32_t *errorCode, const char **errorString) = 0;
 };
 
-template<> inline VolumeDataReadWriteAccessor<IntVector4, double>   *VolumeDataAccessManager::createVolumeDataAccessor<IntVector4, double>  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create4DVolumeDataAccessorR64 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector3, double>   *VolumeDataAccessManager::createVolumeDataAccessor<IntVector3, double>  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create3DVolumeDataAccessorR64 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector2, double>   *VolumeDataAccessManager::createVolumeDataAccessor<IntVector2, double>  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create2DVolumeDataAccessorR64 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector4, float>    *VolumeDataAccessManager::createVolumeDataAccessor<IntVector4, float>   (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create4DVolumeDataAccessorR32 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector3, float>    *VolumeDataAccessManager::createVolumeDataAccessor<IntVector3, float>   (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create3DVolumeDataAccessorR32 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector2, float>    *VolumeDataAccessManager::createVolumeDataAccessor<IntVector2, float>   (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create2DVolumeDataAccessorR32 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector4, uint64_t> *VolumeDataAccessManager::createVolumeDataAccessor<IntVector4, uint64_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create4DVolumeDataAccessorU64 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector3, uint64_t> *VolumeDataAccessManager::createVolumeDataAccessor<IntVector3, uint64_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create3DVolumeDataAccessorU64 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector2, uint64_t> *VolumeDataAccessManager::createVolumeDataAccessor<IntVector2, uint64_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create2DVolumeDataAccessorU64 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector4, uint32_t> *VolumeDataAccessManager::createVolumeDataAccessor<IntVector4, uint32_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create4DVolumeDataAccessorU32 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector3, uint32_t> *VolumeDataAccessManager::createVolumeDataAccessor<IntVector3, uint32_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create3DVolumeDataAccessorU32 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector2, uint32_t> *VolumeDataAccessManager::createVolumeDataAccessor<IntVector2, uint32_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create2DVolumeDataAccessorU32 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector4, uint16_t> *VolumeDataAccessManager::createVolumeDataAccessor<IntVector4, uint16_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create4DVolumeDataAccessorU16 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector3, uint16_t> *VolumeDataAccessManager::createVolumeDataAccessor<IntVector3, uint16_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create3DVolumeDataAccessorU16 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector2, uint16_t> *VolumeDataAccessManager::createVolumeDataAccessor<IntVector2, uint16_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create2DVolumeDataAccessorU16 (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector4, uint8_t>  *VolumeDataAccessManager::createVolumeDataAccessor<IntVector4, uint8_t> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create4DVolumeDataAccessorU8  (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector3, uint8_t>  *VolumeDataAccessManager::createVolumeDataAccessor<IntVector3, uint8_t> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create3DVolumeDataAccessorU8  (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector2, uint8_t>  *VolumeDataAccessManager::createVolumeDataAccessor<IntVector2, uint8_t> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create2DVolumeDataAccessorU8  (volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector4, bool>     *VolumeDataAccessManager::createVolumeDataAccessor<IntVector4, bool>    (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create4DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector3, bool>     *VolumeDataAccessManager::createVolumeDataAccessor<IntVector3, bool>    (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create3DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue); }
-template<> inline VolumeDataReadWriteAccessor<IntVector2, bool>     *VolumeDataAccessManager::createVolumeDataAccessor<IntVector2, bool>    (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return create2DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector4, double>   *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector4, double>  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create4DVolumeDataAccessorR64 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector3, double>   *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector3, double>  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create3DVolumeDataAccessorR64 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector2, double>   *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector2, double>  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create2DVolumeDataAccessorR64 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector4, float>    *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector4, float>   (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create4DVolumeDataAccessorR32 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector3, float>    *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector3, float>   (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create3DVolumeDataAccessorR32 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector2, float>    *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector2, float>   (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create2DVolumeDataAccessorR32 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector4, uint64_t> *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector4, uint64_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create4DVolumeDataAccessorU64 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector3, uint64_t> *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector3, uint64_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create3DVolumeDataAccessorU64 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector2, uint64_t> *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector2, uint64_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create2DVolumeDataAccessorU64 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector4, uint32_t> *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector4, uint32_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create4DVolumeDataAccessorU32 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector3, uint32_t> *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector3, uint32_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create3DVolumeDataAccessorU32 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector2, uint32_t> *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector2, uint32_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create2DVolumeDataAccessorU32 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector4, uint16_t> *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector4, uint16_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create4DVolumeDataAccessorU16 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector3, uint16_t> *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector3, uint16_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create3DVolumeDataAccessorU16 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector2, uint16_t> *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector2, uint16_t>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create2DVolumeDataAccessorU16 (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector4, uint8_t>  *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector4, uint8_t> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create4DVolumeDataAccessorU8  (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector3, uint8_t>  *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector3, uint8_t> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create3DVolumeDataAccessorU8  (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector2, uint8_t>  *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector2, uint8_t> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create2DVolumeDataAccessorU8  (volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector4, bool>     *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector4, bool>    (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create4DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector3, bool>     *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector3, bool>    (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create3DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue); }
+template<> inline VolumeDataReadWriteAccessor<IntVector2, bool>     *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector2, bool>    (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create2DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue); }
 
-template<> inline VolumeDataReadAccessor<FloatVector4, double> *VolumeDataAccessManager::createInterpolatingVolumeDataAccessor<FloatVector4, double>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return create4DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
-template<> inline VolumeDataReadAccessor<FloatVector3, double> *VolumeDataAccessManager::createInterpolatingVolumeDataAccessor<FloatVector3, double>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return create3DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
-template<> inline VolumeDataReadAccessor<FloatVector2, double> *VolumeDataAccessManager::createInterpolatingVolumeDataAccessor<FloatVector2, double>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return create2DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
-template<> inline VolumeDataReadAccessor<FloatVector4, float>  *VolumeDataAccessManager::createInterpolatingVolumeDataAccessor<FloatVector4, float> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return create4DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
-template<> inline VolumeDataReadAccessor<FloatVector3, float>  *VolumeDataAccessManager::createInterpolatingVolumeDataAccessor<FloatVector3, float> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return create3DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
-template<> inline VolumeDataReadAccessor<FloatVector2, float>  *VolumeDataAccessManager::createInterpolatingVolumeDataAccessor<FloatVector2, float> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return create2DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
+template<> inline VolumeDataReadAccessor<FloatVector4, double> *VolumeDataAccessManager::CreateInterpolatingVolumeDataAccessor<FloatVector4, double>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return Create4DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
+template<> inline VolumeDataReadAccessor<FloatVector3, double> *VolumeDataAccessManager::CreateInterpolatingVolumeDataAccessor<FloatVector3, double>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return Create3DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
+template<> inline VolumeDataReadAccessor<FloatVector2, double> *VolumeDataAccessManager::CreateInterpolatingVolumeDataAccessor<FloatVector2, double>(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return Create2DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
+template<> inline VolumeDataReadAccessor<FloatVector4, float>  *VolumeDataAccessManager::CreateInterpolatingVolumeDataAccessor<FloatVector4, float> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return Create4DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
+template<> inline VolumeDataReadAccessor<FloatVector3, float>  *VolumeDataAccessManager::CreateInterpolatingVolumeDataAccessor<FloatVector3, float> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return Create3DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
+template<> inline VolumeDataReadAccessor<FloatVector2, float>  *VolumeDataAccessManager::CreateInterpolatingVolumeDataAccessor<FloatVector2, float> (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) { return Create2DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue, interpolationMethod); }
 
 template <typename INDEX>
 class VolumeDataRegions
@@ -584,35 +584,35 @@ protected:
   virtual      ~VolumeDataRegions() {}
 
 public:
-  virtual int64_t regionCount() = 0;
+  virtual int64_t RegionCount() = 0;
 
   virtual IndexRegion<INDEX>
-                region(int64_t region) = 0;
+                Region(int64_t Region) = 0;
 
-  virtual int64_t regionFromIndex(INDEX index) = 0;
+  virtual int64_t RegionFromIndex(INDEX index) = 0;
 };
 
 template <typename INDEX>
 class VolumeDataAccessorWithRegions : public VolumeDataAccessor, public VolumeDataRegions<INDEX>
 {
 public:
-  virtual IndexRegion<INDEX> currentRegion() = 0;
+  virtual IndexRegion<INDEX> CurrentRegion() = 0;
 };
 
 template <typename INDEX, typename T>
 class VolumeDataReadAccessor : public VolumeDataAccessorWithRegions<INDEX>
 {
 public:
-  virtual T     getValue(INDEX index) = 0;
+  virtual T     GetValue(INDEX index) = 0;
 };
 
 template <typename INDEX, typename T>
 class VolumeDataReadWriteAccessor : public VolumeDataReadAccessor<INDEX, T>
 {
 public:
-  virtual void setValue(INDEX index, T value) = 0;
-  virtual void commit() = 0;
-  virtual void cancel() = 0;
+  virtual void SetValue(INDEX index, T value) = 0;
+  virtual void Commit() = 0;
+  virtual void Cancel() = 0;
 };
 
 class VolumeDataPage
@@ -621,12 +621,12 @@ protected:
                 VolumeDataPage() {}
   virtual      ~VolumeDataPage() {}
 public:
-  virtual void  getMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const = 0;
-  virtual void  getMinMaxExcludingMargin(int (&anMinExcludingMargin)[Dimensionality_Max], int (&anMaxExcludingMargin)[Dimensionality_Max]) const = 0;
-  virtual const void * getBuffer(int (&anPitch)[Dimensionality_Max]) = 0;
-  virtual void *getWritableBuffer(int (&anPitch)[Dimensionality_Max]) = 0;
-  virtual void  updateWrittenRegion(const int (&anWrittenMin)[Dimensionality_Max], const int (&anWrittenMax)[Dimensionality_Max]) = 0;
-  virtual void  release() = 0;
+  virtual void  GetMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const = 0;
+  virtual void  GetMinMaxExcludingMargin(int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const = 0;
+  virtual const void * GetBuffer(int (&pitch)[Dimensionality_Max]) = 0;
+  virtual void *GetWritableBuffer(int (&pitch)[Dimensionality_Max]) = 0;
+  virtual void  UpdateWrittenRegion(const int (&writtenMin)[Dimensionality_Max], const int (&writtenMax)[Dimensionality_Max]) = 0;
+  virtual void  Release() = 0;
 };
 
 class VolumeDataPageAccessor
@@ -635,30 +635,30 @@ protected:
                 VolumeDataPageAccessor() {}
   virtual      ~VolumeDataPageAccessor() {}
 public:
-  virtual VolumeDataLayout const *getLayout() const = 0;
+  virtual VolumeDataLayout const *GetLayout() const = 0;
 
-  virtual int   getLOD() const = 0;
-  virtual int   getChannelIndex() const = 0;
-  virtual VolumeDataChannelDescriptor const &getChannelDescriptor() const = 0;
-  virtual void  getNumSamples(int (&numSamples)[Dimensionality_Max]) const = 0;
+  virtual int   GetLOD() const = 0;
+  virtual int   GetChannelIndex() const = 0;
+  virtual VolumeDataChannelDescriptor const &GetChannelDescriptor() const = 0;
+  virtual void  GetNumSamples(int (&numSamples)[Dimensionality_Max]) const = 0;
 
-  virtual int64_t getChunkCount() const = 0;
-  virtual void  getChunkMinMax(int64_t chunk, int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const = 0;
-  virtual void  getChunkMinMaxExcludingMargin(int64_t iChunk, int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const = 0;
-  virtual int64_t getChunkIndex(const int (&position)[Dimensionality_Max]) const = 0;
+  virtual int64_t GetChunkCount() const = 0;
+  virtual void  GetChunkMinMax(int64_t chunk, int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const = 0;
+  virtual void  GetChunkMinMaxExcludingMargin(int64_t iChunk, int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const = 0;
+  virtual int64_t GetChunkIndex(const int (&position)[Dimensionality_Max]) const = 0;
 
-  virtual int   addReference() = 0;
-  virtual int   removeReference() = 0;
+  virtual int   AddReference() = 0;
+  virtual int   RemoveReference() = 0;
 
-  virtual int   getMaxPages() = 0;
-  virtual void  setMaxPages(int maxPages) = 0;
+  virtual int   GetMaxPages() = 0;
+  virtual void  SetMaxPages(int maxPages) = 0;
 
-  virtual VolumeDataPage *createPage(int64_t chunkIndex) = 0;
-  virtual VolumeDataPage *readPage(int64_t chunkIndex) = 0;
+  virtual VolumeDataPage *CreatePage(int64_t chunkIndex) = 0;
+  virtual VolumeDataPage *ReadPage(int64_t chunkIndex) = 0;
 
-  VolumeDataPage *readPageAtPosition(const int (&position)[Dimensionality_Max]) { return readPage(getChunkIndex(position)); }
+  VolumeDataPage *ReadPageAtPosition(const int (&position)[Dimensionality_Max]) { return ReadPage(GetChunkIndex(position)); }
 
-  virtual void  commit() = 0;
+  virtual void  Commit() = 0;
 };
 
 } /* namespace OpenVDS*/

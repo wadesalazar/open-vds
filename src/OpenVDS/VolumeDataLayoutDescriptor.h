@@ -76,18 +76,18 @@ public:
   VolumeDataLayoutDescriptor() : m_brickSize(), m_negativeMargin(), m_positiveMargin(), m_brickSize2DMultiplier(), m_lodLevels(), m_options(), m_fullResolutionDimension() {}
   VolumeDataLayoutDescriptor(BrickSize brickSize, int negativeMargin, int positiveMargin, int brickSize2DMultiplier, LODLevels lodLevels, Options options, int fullResolutionDimension = 0) : m_brickSize(brickSize), m_negativeMargin(negativeMargin), m_positiveMargin(positiveMargin), m_brickSize2DMultiplier(brickSize2DMultiplier), m_lodLevels(lodLevels), m_options(options), m_fullResolutionDimension(fullResolutionDimension) {}
 
-  bool                isValid()        const { return m_brickSize != 0; }
+  bool                IsValid()        const { return m_brickSize != 0; }
 
-  BrickSize           getBrickSize()      const { return m_brickSize; }
-  int                 getNegativeMargin() const { return m_negativeMargin; }
-  int                 getPositiveMargin() const { return m_positiveMargin; }
-  int                 getBrickSizeMultiplier2D() const { return m_brickSize2DMultiplier; }
-  LODLevels           getLODLevels()      const { return m_lodLevels; }
+  BrickSize           GetBrickSize()      const { return m_brickSize; }
+  int                 GetNegativeMargin() const { return m_negativeMargin; }
+  int                 GetPositiveMargin() const { return m_positiveMargin; }
+  int                 GetBrickSizeMultiplier2D() const { return m_brickSize2DMultiplier; }
+  LODLevels           GetLODLevels()      const { return m_lodLevels; }
 
-  bool                isCreate2DLODs()                 const { return (m_options & Options_Create2DLODs) != 0; }
-  bool                isForceFullResolutionDimension() const { return (m_options & Options_ForceFullResolutionDimension) != 0; }
+  bool                IsCreate2DLODs()                 const { return (m_options & Options_Create2DLODs) != 0; }
+  bool                IsForceFullResolutionDimension() const { return (m_options & Options_ForceFullResolutionDimension) != 0; }
 
-  int                 getFullResolutionDimension() const { return m_fullResolutionDimension; }
+  int                 GetFullResolutionDimension() const { return m_fullResolutionDimension; }
 };
 
 inline VolumeDataLayoutDescriptor::Options operator|(VolumeDataLayoutDescriptor::Options lhs, VolumeDataLayoutDescriptor::Options rhs) { return (VolumeDataLayoutDescriptor::Options)((int)lhs | (int)rhs); }

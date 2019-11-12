@@ -130,8 +130,8 @@ namespace OpenVDS
     {
       lock.lock();
       auto s3error = getObjectOutcome.GetError();
-      objReq->m_error.code = int(s3error.GetResponseCode());
-      objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
+      objReq->m_error.Code = int(s3error.GetResponseCode());
+      objReq->m_error.String = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
     }
 
     objReq->m_done = true;
@@ -185,12 +185,12 @@ namespace OpenVDS
     std::unique_lock<std::mutex> lock(m_mutex);
     if (!m_done)
     {
-      error.code = -1;
-      error.string = "Download not done.";
+      error.Code = -1;
+      error.String = "Download not done.";
       return false;
     }
     error = m_error;
-    return m_error.code == 0;
+    return m_error.Code == 0;
   }
 
   void DownloadRequestAWS::cancel()
@@ -208,8 +208,8 @@ namespace OpenVDS
     if (!outcome.IsSuccess())
     {
       auto s3error = outcome.GetError();
-      objReq->m_error.code = int(s3error.GetResponseCode());
-      objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
+      objReq->m_error.Code = int(s3error.GetResponseCode());
+      objReq->m_error.String = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
     }
 
     objReq->m_done = true;
@@ -265,12 +265,12 @@ namespace OpenVDS
     std::unique_lock<std::mutex> lock(m_mutex);
     if (!m_done)
     {
-      error.code = -1;
-      error.string = "Download not done.";
+      error.Code = -1;
+      error.String = "Download not done.";
       return false;
     }
     error = m_error;
-    return m_error.code == 0;
+    return m_error.Code == 0;
   }
   void UploadRequestAWS::cancel()
   {
@@ -278,14 +278,14 @@ namespace OpenVDS
   }
 
   IOManagerAWS::IOManagerAWS(const AWSOpenOptions& openOptions, Error &error)
-    : m_region(openOptions.region)
-    , m_bucket(openOptions.bucket)
-    , m_objectId(openOptions.key)
+    : m_region(openOptions.Region)
+    , m_bucket(openOptions.Bucket)
+    , m_objectId(openOptions.Key)
   {
     if (m_region.empty() || m_bucket.empty())
     {
-      error.code = -1;
-      error.string = "AWS Config error. Empty bucket or region";
+      error.Code = -1;
+      error.String = "AWS Config error. Empty bucket or region";
       return;
     }
 

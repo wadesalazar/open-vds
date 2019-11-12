@@ -81,10 +81,10 @@ public:
 
   VDSHandle       &getHandle() { return m_handle; }
 
-  uint64_t         getContentsHash() const override { return uint64_t(m_contentsHash); }
+  uint64_t         GetContentsHash() const override { return uint64_t(m_contentsHash); }
   VolumeDataLayer::VolumeDataLayerID addDataLayer(VolumeDataLayer *layer);
 
-  FloatRange const &getChannelValueRange(int32_t channel) const { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getValueRange(); }
+  FloatRange const &getChannelValueRange(int32_t channel) const { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetValueRange(); }
 
   FloatRange const &getChannelActualValueRange(int32_t channel) const;
 
@@ -121,49 +121,49 @@ public:
 
   VolumeDataLayoutDescriptor getLayoutDescriptor() const;
 
-  int32_t getChannelCount() const override { return int32_t(m_volumeDataChannelDescriptor.size()); }
-  bool isChannelAvailable(const char *channelName) const override;
-  int32_t getChannelIndex(const char *channelName) const override;
-  VolumeDataChannelDescriptor getChannelDescriptor(int32_t channel) const override;
-  int32_t getDimensionality() const override { return m_dimensionality; }
+  int32_t GetChannelCount() const override { return int32_t(m_volumeDataChannelDescriptor.size()); }
+  bool IsChannelAvailable(const char *channelName) const override;
+  int32_t GetChannelIndex(const char *channelName) const override;
+  VolumeDataChannelDescriptor GetChannelDescriptor(int32_t channel) const override;
+  int32_t GetDimensionality() const override { return m_dimensionality; }
 
-  VolumeDataAxisDescriptor getAxisDescriptor(int32_t dimension) const override;
+  VolumeDataAxisDescriptor GetAxisDescriptor(int32_t dimension) const override;
 
 //  // These convenience functions provide access to the individual elements of the value descriptor
-  VolumeDataChannelDescriptor::Format getChannelFormat(int32_t channel) const override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getFormat(); }
+  VolumeDataChannelDescriptor::Format GetChannelFormat(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetFormat(); }
 
-  VolumeDataChannelDescriptor::Components getChannelComponents(int32_t channel) const override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getComponents(); }
+  VolumeDataChannelDescriptor::Components GetChannelComponents(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetComponents(); }
 
-  const char *getChannelName(int32_t channel) const override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getName(); }
+  const char *GetChannelName(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetName(); }
 
-  float getChannelValueRangeMin(int32_t channel) const override{ return getChannelValueRange(channel).min; }
-  float getChannelValueRangeMax(int32_t channel) const override{ return getChannelValueRange(channel).max; }
+  float GetChannelValueRangeMin(int32_t channel) const override{ return getChannelValueRange(channel).Min; }
+  float GetChannelValueRangeMax(int32_t channel) const override{ return getChannelValueRange(channel).Max; }
 
-  const char *getChannelUnit(int32_t channel) const override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getUnit(); }
+  const char *GetChannelUnit(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetUnit(); }
 
-  bool isChannelDiscrete(int32_t channel) const override{ assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isDiscrete(); }
-  bool isChannelRenderable(int32_t channel) const override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isRenderable(); }
-  bool isChannelAllowingLossyCompression(int32_t channel) const override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isAllowLossyCompression(); }
-  bool isChannelUseZipForLosslessCompression(int32_t channel) const override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isUseZipForLosslessCompression(); }
+  bool IsChannelDiscrete(int32_t channel) const override{ assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].IsDiscrete(); }
+  bool IsChannelRenderable(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].IsRenderable(); }
+  bool IsChannelAllowingLossyCompression(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].IsAllowLossyCompression(); }
+  bool IsChannelUseZipForLosslessCompression(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].IsUseZipForLosslessCompression(); }
 
-  VolumeDataMapping getChannelMapping(int32_t channel) const override;
+  VolumeDataMapping GetChannelMapping(int32_t channel) const override;
 
 // These convenience functions provide access to the individual elements of the axis descriptors
-  int getDimensionNumSamples(int32_t dimension) const override;
+  int GetDimensionNumSamples(int32_t dimension) const override;
 
-  const char *getDimensionName(int32_t dimension) const override;
+  const char *GetDimensionName(int32_t dimension) const override;
 
-  const char *getDimensionUnit(int32_t dimension) const override;
+  const char *GetDimensionUnit(int32_t dimension) const override;
 
-  float getDimensionMin(int32_t dimension) const override { return getDimensionRange(dimension).min; }
-  float getDimensionMax(int32_t dimension) const override { return getDimensionRange(dimension).max; }
+  float GetDimensionMin(int32_t dimension) const override { return getDimensionRange(dimension).Min; }
+  float GetDimensionMax(int32_t dimension) const override { return getDimensionRange(dimension).Max; }
 
-  bool  isChannelUseNoValue(int32_t channel) const override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].isUseNoValue(); }
+  bool  IsChannelUseNoValue(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].IsUseNoValue(); }
 
-  float getChannelNoValue(int32_t channel) const override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getNoValue(); }
+  float GetChannelNoValue(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetNoValue(); }
 
-  float getChannelIntegerScale(int32_t channel) const  override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getIntegerScale(); }
-  float getChannelIntegerOffset(int32_t channel) const override { assert(channel >= 0 && channel < getChannelCount()); return m_volumeDataChannelDescriptor[channel].getIntegerOffset(); }
+  float GetChannelIntegerScale(int32_t channel) const  override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetIntegerScale(); }
+  float GetChannelIntegerOffset(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetIntegerOffset(); }
 
 // Mutators
   void setContentsHash(VolumeDataHash const &contentsHash);

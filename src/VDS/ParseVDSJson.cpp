@@ -422,14 +422,14 @@ bool parseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Er
 
     std::unique_ptr<Json::CharReader> reader(rbuilder.newCharReader());
     const char *json_begin = reinterpret_cast<const char *>(json.data());
-    reader->parse(json_begin, json_begin + json.size(), &root, &error.string);
+    reader->parse(json_begin, json_begin + json.size(), &root, &error.String);
 
     return true;
   }
   catch(Json::Exception e)
   {
-    error.code = -1;
-    error.string = e.what() + std::string(" : ") + error.string;
+    error.Code = -1;
+    error.String = e.what() + std::string(" : ") + error.String;
   }
 
   return false;
@@ -754,8 +754,8 @@ bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error
   }
   catch(Json::Exception e)
   {
-    error.string = e.what();
-    error.code = -1;
+    error.String = e.what();
+    error.Code = -1;
     return false;
   }
 
@@ -766,11 +766,11 @@ Json::Value serializeAxisDescriptor(VolumeDataAxisDescriptor const &axisDescript
 {
   Json::Value axisDescriptorJson;
 
-  axisDescriptorJson["numSamples"] = axisDescriptor.getNumSamples();
-  axisDescriptorJson["name"] = axisDescriptor.getName();
-  axisDescriptorJson["unit"] = axisDescriptor.getUnit();
-  axisDescriptorJson["coordinateMin"] = axisDescriptor.getCoordinateMin();
-  axisDescriptorJson["coordinateMax"] = axisDescriptor.getCoordinateMax();
+  axisDescriptorJson["numSamples"] = axisDescriptor.GetNumSamples();
+  axisDescriptorJson["name"] = axisDescriptor.GetName();
+  axisDescriptorJson["unit"] = axisDescriptor.GetUnit();
+  axisDescriptorJson["coordinateMin"] = axisDescriptor.GetCoordinateMin();
+  axisDescriptorJson["coordinateMax"] = axisDescriptor.GetCoordinateMax();
 
   return axisDescriptorJson;
 }
@@ -818,25 +818,25 @@ Json::Value serializeChannelDescriptor(VolumeDataChannelDescriptor const &channe
 {
   Json::Value valueRangeJson(Json::arrayValue);
 
-  valueRangeJson.append(channelDescriptor.getValueRangeMin());
-  valueRangeJson.append(channelDescriptor.getValueRangeMax());
+  valueRangeJson.append(channelDescriptor.GetValueRangeMin());
+  valueRangeJson.append(channelDescriptor.GetValueRangeMax());
 
   Json::Value channelDescriptorJson;
 
-  channelDescriptorJson["format"] = to_string(channelDescriptor.getFormat());
-  channelDescriptorJson["components"] = to_string(channelDescriptor.getComponents());
-  channelDescriptorJson["name"] = channelDescriptor.getName();
-  channelDescriptorJson["unit"] = channelDescriptor.getUnit();
+  channelDescriptorJson["format"] = to_string(channelDescriptor.GetFormat());
+  channelDescriptorJson["components"] = to_string(channelDescriptor.GetComponents());
+  channelDescriptorJson["name"] = channelDescriptor.GetName();
+  channelDescriptorJson["unit"] = channelDescriptor.GetUnit();
   channelDescriptorJson["valueRange"] = valueRangeJson;
-  channelDescriptorJson["channelMapping"] = to_string(channelDescriptor.getMapping());
-  channelDescriptorJson["mappedValues"] = channelDescriptor.getMappedValueCount();
-  channelDescriptorJson["discrete"] = channelDescriptor.isDiscrete();
-  channelDescriptorJson["renderable"] = channelDescriptor.isRenderable();
-  channelDescriptorJson["allowLossyCompression"] = channelDescriptor.isAllowLossyCompression();
-  channelDescriptorJson["useNoValue"] = channelDescriptor.isUseNoValue();
-  channelDescriptorJson["noValue"] = channelDescriptor.getNoValue();
-  channelDescriptorJson["integerScale"] = channelDescriptor.getIntegerScale();
-  channelDescriptorJson["integerOffset"] = channelDescriptor.getIntegerOffset();
+  channelDescriptorJson["channelMapping"] = to_string(channelDescriptor.GetMapping());
+  channelDescriptorJson["mappedValues"] = channelDescriptor.GetMappedValueCount();
+  channelDescriptorJson["discrete"] = channelDescriptor.IsDiscrete();
+  channelDescriptorJson["renderable"] = channelDescriptor.IsRenderable();
+  channelDescriptorJson["allowLossyCompression"] = channelDescriptor.IsAllowLossyCompression();
+  channelDescriptorJson["useNoValue"] = channelDescriptor.IsUseNoValue();
+  channelDescriptorJson["noValue"] = channelDescriptor.GetNoValue();
+  channelDescriptorJson["integerScale"] = channelDescriptor.GetIntegerScale();
+  channelDescriptorJson["integerOffset"] = channelDescriptor.GetIntegerOffset();
 
   return channelDescriptorJson;
 }
@@ -984,31 +984,31 @@ Json::Value serializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayo
 
   Json::Value layoutDescriptorJson;
 
-  layoutDescriptorJson["brickSize"] = to_string(layoutDescriptor.getBrickSize());
-  layoutDescriptorJson["negativeMargin"] = layoutDescriptor.getNegativeMargin();
-  layoutDescriptorJson["positiveMargin"] = layoutDescriptor.getPositiveMargin();
-  layoutDescriptorJson["brickSize2DMultiplier"] = layoutDescriptor.getBrickSizeMultiplier2D();
-  layoutDescriptorJson["lodLevels"] = to_string(layoutDescriptor.getLODLevels());
-  layoutDescriptorJson["create2DLODs"] = layoutDescriptor.isCreate2DLODs();
-  layoutDescriptorJson["forceFullResolutionDimension"] = layoutDescriptor.isForceFullResolutionDimension();
-  layoutDescriptorJson["fullResolutionDimension"] = layoutDescriptor.getFullResolutionDimension();
+  layoutDescriptorJson["brickSize"] = to_string(layoutDescriptor.GetBrickSize());
+  layoutDescriptorJson["negativeMargin"] = layoutDescriptor.GetNegativeMargin();
+  layoutDescriptorJson["positiveMargin"] = layoutDescriptor.GetPositiveMargin();
+  layoutDescriptorJson["brickSize2DMultiplier"] = layoutDescriptor.GetBrickSizeMultiplier2D();
+  layoutDescriptorJson["lodLevels"] = to_string(layoutDescriptor.GetLODLevels());
+  layoutDescriptorJson["create2DLODs"] = layoutDescriptor.IsCreate2DLODs();
+  layoutDescriptorJson["forceFullResolutionDimension"] = layoutDescriptor.IsForceFullResolutionDimension();
+  layoutDescriptorJson["fullResolutionDimension"] = layoutDescriptor.GetFullResolutionDimension();
 
   root["layoutDescriptor"] = layoutDescriptorJson;
 
   Json::Value axisDescriptorsJson(Json::arrayValue);
 
-  for(int dimension = 0, dimensionality = volumeDataLayout.getDimensionality(); dimension < dimensionality; dimension++)
+  for(int dimension = 0, dimensionality = volumeDataLayout.GetDimensionality(); dimension < dimensionality; dimension++)
   {
-    axisDescriptorsJson.append(serializeAxisDescriptor(volumeDataLayout.getAxisDescriptor(dimension)));
+    axisDescriptorsJson.append(serializeAxisDescriptor(volumeDataLayout.GetAxisDescriptor(dimension)));
   }
 
   root["axisDescriptors"] = axisDescriptorsJson;
 
   Json::Value channelDescriptorsJson(Json::arrayValue);
 
-  for(int channel = 0, channelCount = volumeDataLayout.getChannelCount(); channel < channelCount; channel++)
+  for(int channel = 0, channelCount = volumeDataLayout.GetChannelCount(); channel < channelCount; channel++)
   {
-    channelDescriptorsJson.append(serializeChannelDescriptor(volumeDataLayout.getChannelDescriptor(channel)));
+    channelDescriptorsJson.append(serializeChannelDescriptor(volumeDataLayout.GetChannelDescriptor(channel)));
   }
 
   root["channelDescriptors"] = channelDescriptorsJson;
@@ -1023,7 +1023,7 @@ Json::Value serializeLayerStatus(VolumeDataLayer const &volumeDataLayer, std::st
   Json::Value layerStatusJson;
 
   layerStatusJson["layerName"] = layerName;
-  layerStatusJson["channelName"] = volumeDataLayer.getVolumeDataChannelDescriptor().getName();
+  layerStatusJson["channelName"] = volumeDataLayer.getVolumeDataChannelDescriptor().GetName();
   layerStatusJson["dimensionGroup"] = DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getPrimaryChannelLayer().getChunkDimensionGroup());
   layerStatusJson["lod"] = volumeDataLayer.getLOD();
   layerStatusJson["produceStatus"] = to_string(volumeDataLayer.getProduceStatus());
@@ -1069,7 +1069,7 @@ Json::Value serializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayo
     int chunkDimensionality = DimensionGroupUtil::getDimensionality(dimensionGroup);
 
     // Check if highest dimension in chunk is higher than the highest dimension in the dataset or 1D
-    if(DimensionGroupUtil::getDimension(dimensionGroup, chunkDimensionality - 1) >= volumeDataLayout.getDimensionality() ||
+    if(DimensionGroupUtil::getDimension(dimensionGroup, chunkDimensionality - 1) >= volumeDataLayout.GetDimensionality() ||
        chunkDimensionality == 1)
     {
       continue;
@@ -1077,7 +1077,7 @@ Json::Value serializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayo
 
     assert(chunkDimensionality == 2 || chunkDimensionality == 3);
 
-    for(int channel = 0; channel < volumeDataLayout.getChannelCount(); channel++)
+    for(int channel = 0; channel < volumeDataLayout.GetChannelCount(); channel++)
     {
       for(VolumeDataLayer *volumeDataLayer = volumeDataLayout.getBaseLayer(dimensionGroup, channel); volumeDataLayer && volumeDataLayer->getLayerType() != VolumeDataLayer::Virtual; volumeDataLayer = volumeDataLayer->getParentLayer())
       {
@@ -1154,7 +1154,7 @@ bool downloadAndParseVolumeDataLayoutAndLayerStatus(VDSHandle& handle, Error& er
   request->waitForFinish();
   if (!request->isSuccess(error) || volumedatalayout_json.empty())
   {
-    error.string = "S3 Error on downloading VolumeDataLayout object: " + error.string;
+    error.String = "S3 Error on downloading VolumeDataLayout object: " + error.String;
     return false;
   }
   std::vector<uint8_t> layerstatus_json;
@@ -1163,7 +1163,7 @@ bool downloadAndParseVolumeDataLayoutAndLayerStatus(VDSHandle& handle, Error& er
   request->waitForFinish();
   if (!request->isSuccess(error) || layerstatus_json.empty())
   {
-    error.string = "S3 Error on downloading LayerStatus object: " + error.string;
+    error.String = "S3 Error on downloading LayerStatus object: " + error.String;
     return false;
   }
 
@@ -1176,8 +1176,8 @@ bool downloadAndParseVolumeDataLayoutAndLayerStatus(VDSHandle& handle, Error& er
   }
   catch (Json::Exception& e)
   {
-    error.string = e.what();
-    error.code = -2;
+    error.String = e.what();
+    error.Code = -2;
     return false;
   }
 
@@ -1196,7 +1196,7 @@ bool serializeAndUploadVolumeDataLayout(VDSHandle& handle, Error& error)
 
   if (!request->isSuccess(error))
   {
-    error.string = "S3 Error on uploading VolumeDataLayout object: " + error.string;
+    error.String = "S3 Error on uploading VolumeDataLayout object: " + error.String;
     return false;
   }
 
@@ -1213,7 +1213,7 @@ bool serializeAndUploadLayerStatus(VDSHandle& handle, Error& error)
 
   if (!request->isSuccess(error))
   {
-    error.string = "S3 Error on uploading LayerStatus object: " + error.string;
+    error.String = "S3 Error on uploading LayerStatus object: " + error.String;
     return false;
   }
 

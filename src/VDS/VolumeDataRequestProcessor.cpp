@@ -70,15 +70,15 @@ static Error processPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessor
   {
     if (!pageAccessor->readPreparedPaged(jobPage.page))
     {
-      error.code = -1;
-      error.string = fmt::format("Failed to read page {}.", jobPage.page->getChunkIndex());
+      error.Code = -1;
+      error.String = fmt::format("Failed to read page {}.", jobPage.page->getChunkIndex());
       return error;
     }
   }
   if (job->cancelled)
   {
-    error.code = -4;
-    error.string = fmt::format("Request: {} has been cancelled.", job->jobId);
+    error.Code = -4;
+    error.String = fmt::format("Request: {} has been cancelled.", job->jobId);
     return error;
   }
 
@@ -103,7 +103,7 @@ int64_t VolumeDataRequestProcessor::addJob(const std::vector<VolumeDataChunk>& c
   auto page_accessor_it = m_pageAccessors.find(key);
   if (page_accessor_it == m_pageAccessors.end())
   {
-    auto pa = static_cast<VolumeDataPageAccessorImpl *>(m_manager.createVolumeDataPageAccessor(layout, dimensions, lod, channel, maxPages, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly));
+    auto pa = static_cast<VolumeDataPageAccessorImpl *>(m_manager.CreateVolumeDataPageAccessor(layout, dimensions, lod, channel, maxPages, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly));
     auto insert_result = m_pageAccessors.insert({key, pa});
     assert(insert_result.second);
     page_accessor_it = insert_result.first;
@@ -114,9 +114,9 @@ int64_t VolumeDataRequestProcessor::addJob(const std::vector<VolumeDataChunk>& c
   job->pages.reserve(chunks.size());
 
   VolumeDataPageAccessorImpl *pageAccessor = page_accessor_it->second;
-  if(pageAccessor->getMaxPages() < maxPages)
+  if(pageAccessor->GetMaxPages() < maxPages)
   {
-    pageAccessor->setMaxPages(maxPages);
+    pageAccessor->SetMaxPages(maxPages);
   }
 
   for (const auto &c : chunks)

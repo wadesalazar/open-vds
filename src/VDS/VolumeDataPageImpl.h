@@ -80,12 +80,12 @@ public:
   void          setRequestPrepared(bool prepared) { m_requestPrepared = prepared; }
 
   // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)
-  void  getMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const override;
-  void  getMinMaxExcludingMargin(int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const override;
-  const void *getBuffer(int (&pitch)[Dimensionality_Max]) override; // Getting the buffer will block if the page is currently being read from the VolumeDataCache
-  void *getWritableBuffer(int (&pitch)[Dimensionality_Max]) override;
-  void  updateWrittenRegion(const int (&writtenMin)[Dimensionality_Max], const int (&writtenMax)[Dimensionality_Max]) override;
-  void  release() override;
+  void  GetMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const override;
+  void  GetMinMaxExcludingMargin(int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const override;
+  const void *GetBuffer(int (&pitch)[Dimensionality_Max]) override; // Getting the buffer will block if the page is currently being read from the VolumeDataCache
+  void *GetWritableBuffer(int (&pitch)[Dimensionality_Max]) override;
+  void  UpdateWrittenRegion(const int (&writtenMin)[Dimensionality_Max], const int (&writtenMax)[Dimensionality_Max]) override;
+  void  Release() override;
 };
 }
 #endif //VOLUMEDATAPAGEIMPL_H

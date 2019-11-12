@@ -99,8 +99,8 @@ struct InternalHasher<Range<T>>
 {
   static uint64_t calculateHash(const Range<T>& value)
   {
-    return convertToIntForHashing(value.min) * 98953412543643LL +
-           convertToIntForHashing(value.max) * 45985432099125LL;
+    return convertToIntForHashing(value.Min) * 98953412543643LL +
+           convertToIntForHashing(value.Max) * 45985432099125LL;
   }
 };
 

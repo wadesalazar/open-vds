@@ -194,7 +194,7 @@ bool VolumeDataPageImpl::isCopyMarginNeeded(VolumeDataPageImpl* targetPage)
   int32_t targetMin[Dimensionality_Max];
   int32_t targetMax[Dimensionality_Max];
 
-  targetPage->getMinMax(targetMin, targetMax);
+  targetPage->GetMinMax(targetMin, targetMax);
 
   int32_t overlapMin[Dimensionality_Max];
   int32_t overlapMax[Dimensionality_Max];
@@ -233,12 +233,12 @@ void VolumeDataPageImpl::copyMargin(VolumeDataPageImpl* targetPage)
   int32_t sourceMin[Dimensionality_Max];
   int32_t sourceMax[Dimensionality_Max];
 
-  getMinMax(sourceMin, sourceMax);
+  GetMinMax(sourceMin, sourceMax);
 
   int32_t targetMin[Dimensionality_Max];
   int32_t targetMax[Dimensionality_Max];
 
-  targetPage->getMinMax(targetMin, targetMax);
+  targetPage->GetMinMax(targetMin, targetMax);
 
   int32_t overlapMin[Dimensionality_Max];
   int32_t overlapMax[Dimensionality_Max];
@@ -297,7 +297,7 @@ void VolumeDataPageImpl::copyMargin(VolumeDataPageImpl* targetPage)
     }
   }
 
-  switch(m_volumeDataPageAccessor->getChannelDescriptor().getFormat())
+  switch(m_volumeDataPageAccessor->GetChannelDescriptor().GetFormat())
   {
   default:
     assert(0 && "Unsupported format");
@@ -332,21 +332,21 @@ void VolumeDataPageImpl::copyMargin(VolumeDataPageImpl* targetPage)
 }
 
 // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)
-void  VolumeDataPageImpl::getMinMax(int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const
+void  VolumeDataPageImpl::GetMinMax(int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const
 {
   m_volumeDataPageAccessor->getLayer()->getChunkMinMax(m_chunk, min, max, true);
 }
-void  VolumeDataPageImpl::getMinMaxExcludingMargin(int(&minExcludingMargin)[Dimensionality_Max], int(&maxExcludingMargin)[Dimensionality_Max]) const
+void  VolumeDataPageImpl::GetMinMaxExcludingMargin(int(&minExcludingMargin)[Dimensionality_Max], int(&maxExcludingMargin)[Dimensionality_Max]) const
 {
   m_volumeDataPageAccessor->getLayer()->getChunkMinMax(m_chunk, minExcludingMargin, maxExcludingMargin, false);
 }
-const void* VolumeDataPageImpl::getBuffer(int(&pitch)[Dimensionality_Max])
+const void* VolumeDataPageImpl::GetBuffer(int(&pitch)[Dimensionality_Max])
 {
  std::unique_lock<std::mutex>  pageListMutexLock(const_cast<VolumeDataPageAccessorImpl *>(m_volumeDataPageAccessor)->m_pagesMutex);
 
   return getBufferInternal(pitch, m_volumeDataPageAccessor->isReadWrite());
 }
-void* VolumeDataPageImpl::getWritableBuffer(int(&pitch)[Dimensionality_Max])
+void* VolumeDataPageImpl::GetWritableBuffer(int(&pitch)[Dimensionality_Max])
 {
  std::unique_lock<std::mutex>  pageListMutexLock(const_cast<VolumeDataPageAccessorImpl *>(m_volumeDataPageAccessor)->m_pagesMutex);
 
@@ -357,7 +357,7 @@ void* VolumeDataPageImpl::getWritableBuffer(int(&pitch)[Dimensionality_Max])
 
   return getBufferInternal(pitch, true);
 }
-void VolumeDataPageImpl::updateWrittenRegion(const int(&writtenMin)[Dimensionality_Max], const int(&writtenMax)[Dimensionality_Max])
+void VolumeDataPageImpl::UpdateWrittenRegion(const int(&writtenMin)[Dimensionality_Max], const int(&writtenMax)[Dimensionality_Max])
 {
  std::unique_lock<std::mutex>  pageListMutexLock(const_cast<VolumeDataPageAccessorImpl *>(m_volumeDataPageAccessor)->m_pagesMutex);
 
@@ -390,7 +390,7 @@ void VolumeDataPageImpl::updateWrittenRegion(const int(&writtenMin)[Dimensionali
 
   makeDirty();
 }
-void VolumeDataPageImpl::release()
+void VolumeDataPageImpl::Release()
 {
  std::unique_lock<std::mutex>  pageListMutexLock(const_cast<VolumeDataPageAccessorImpl *>(m_volumeDataPageAccessor)->m_pagesMutex);
  unPin();

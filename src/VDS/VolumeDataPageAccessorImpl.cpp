@@ -46,27 +46,27 @@ VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerIm
 {
 }
   
-VolumeDataLayout const* VolumeDataPageAccessorImpl::getLayout() const
+VolumeDataLayout const* VolumeDataPageAccessorImpl::GetLayout() const
 {
   return m_layer->getLayout();
 }
 
-int VolumeDataPageAccessorImpl::getLOD() const
+int VolumeDataPageAccessorImpl::GetLOD() const
 {
   return m_layer->getLOD();
 }
 
-int VolumeDataPageAccessorImpl::getChannelIndex() const
+int VolumeDataPageAccessorImpl::GetChannelIndex() const
 {
   return m_layer->getChannelIndex();
 }
 
-VolumeDataChannelDescriptor const& VolumeDataPageAccessorImpl::getChannelDescriptor() const
+VolumeDataChannelDescriptor const& VolumeDataPageAccessorImpl::GetChannelDescriptor() const
 {
   return m_layer->getVolumeDataChannelDescriptor();
 }
 
-void  VolumeDataPageAccessorImpl::getNumSamples(int(&numSamples)[Dimensionality_Max]) const
+void  VolumeDataPageAccessorImpl::GetNumSamples(int(&numSamples)[Dimensionality_Max]) const
 {
   for (int i = 0; i < Dimensionality_Max; i++)
   {
@@ -74,22 +74,22 @@ void  VolumeDataPageAccessorImpl::getNumSamples(int(&numSamples)[Dimensionality_
   }
 }
 
-int64_t VolumeDataPageAccessorImpl::getChunkCount() const
+int64_t VolumeDataPageAccessorImpl::GetChunkCount() const
 {
   return m_layer->getTotalChunkCount();
 }
 
-void  VolumeDataPageAccessorImpl::getChunkMinMax(int64_t chunk, int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const
+void  VolumeDataPageAccessorImpl::GetChunkMinMax(int64_t chunk, int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const
 {
   m_layer->getChunkMinMax(chunk, min, max, true);
 }
 
-void  VolumeDataPageAccessorImpl::getChunkMinMaxExcludingMargin(int64_t chunk, int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const
+void  VolumeDataPageAccessorImpl::GetChunkMinMaxExcludingMargin(int64_t chunk, int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const
 {
   m_layer->getChunkMinMax(chunk, min, max, false);
 }
 
-int64_t VolumeDataPageAccessorImpl::getChunkIndex(const int(&position)[Dimensionality_Max]) const
+int64_t VolumeDataPageAccessorImpl::GetChunkIndex(const int(&position)[Dimensionality_Max]) const
 {
   int32_t index_array[Dimensionality_Max];
   for (int i = 0; i < Dimensionality_Max; i++)
@@ -99,30 +99,30 @@ int64_t VolumeDataPageAccessorImpl::getChunkIndex(const int(&position)[Dimension
   return m_layer->indexArrayToChunkIndex(index_array); 
 }
 
-int VolumeDataPageAccessorImpl::addReference()
+int VolumeDataPageAccessorImpl::AddReference()
 {
   return ++m_references;
 }
 
-int VolumeDataPageAccessorImpl::removeReference()
+int VolumeDataPageAccessorImpl::RemoveReference()
 {
   return --m_references;
 }
 
-int VolumeDataPageAccessorImpl::getMaxPages()
+int VolumeDataPageAccessorImpl::GetMaxPages()
 {
   std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
   return m_maxPages;
 }
 
-void VolumeDataPageAccessorImpl::setMaxPages(int maxPages)
+void VolumeDataPageAccessorImpl::SetMaxPages(int maxPages)
 {
   std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
   m_maxPages = maxPages;
   limitPageListSize(m_maxPages, pageListMutexLock);
 }
 
-VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
+VolumeDataPage* VolumeDataPageAccessorImpl::CreatePage(int64_t chunk)
 {
   std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
 
@@ -171,7 +171,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::createPage(int64_t chunk)
   {
     pageListMutexLock.lock();
     page->unPin();
-    fprintf(stderr, "Failed when creating chunk: %s\n", error.string.c_str());
+    fprintf(stderr, "Failed when creating chunk: %s\n", error.String.c_str());
     return nullptr;
   }
 
@@ -268,7 +268,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::prepareReadPage(int64_t chunk, bool 
   if (!m_accessManager->prepareReadChunkData(volumeDataChunk, true, error))
   {
     page->unPin();
-    fprintf(stderr, "Failed to download chunk: %s\n", error.string.c_str());
+    fprintf(stderr, "Failed to download chunk: %s\n", error.String.c_str());
     return nullptr;
   }
 
@@ -291,7 +291,7 @@ bool VolumeDataPageAccessorImpl::readPreparedPaged(VolumeDataPage* page)
   {
     pageListMutexLock.lock();
     pageImpl->unPin();
-    fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
+    fprintf(stderr, "Failed when waiting for chunk: %s\n", error.String.c_str());
     return false;
   }
 
@@ -301,7 +301,7 @@ bool VolumeDataPageAccessorImpl::readPreparedPaged(VolumeDataPage* page)
   {
     pageListMutexLock.lock();
     pageImpl->unPin();
-    fprintf(stderr, "Failed when deserializing chunk: %s\n", error.string.c_str());
+    fprintf(stderr, "Failed when deserializing chunk: %s\n", error.String.c_str());
     return false;
   }
 
@@ -331,7 +331,7 @@ bool VolumeDataPageAccessorImpl::readPreparedPaged(VolumeDataPage* page)
   return m_layer;
 }
 
-VolumeDataPage* VolumeDataPageAccessorImpl::readPage(int64_t chunk)
+VolumeDataPage* VolumeDataPageAccessorImpl::ReadPage(int64_t chunk)
 {
   bool needToRead;
   VolumeDataPage *page = prepareReadPage(chunk, &needToRead);
@@ -438,7 +438,7 @@ int64_t VolumeDataPageAccessorImpl::requestWritePage(int64_t chunk, const DataBl
 /////////////////////////////////////////////////////////////////////////////
 // Commit
 
-void VolumeDataPageAccessorImpl::commit()
+void VolumeDataPageAccessorImpl::Commit()
 {
   std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
 
@@ -495,7 +495,7 @@ void VolumeDataPageAccessorImpl::commit()
     // FIXME: Make sure *all* invalidates are received, this is just a stop-gap measure.
     pageListMutexLock.unlock();
     m_layer->getLayout()->completePendingWriteChunkRequests(0);
-    m_accessManager->flushUploadQueue();
+    m_accessManager->FlushUploadQueue();
   }
 }
 }

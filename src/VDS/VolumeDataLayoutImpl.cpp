@@ -55,13 +55,13 @@ VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDSHandle &handle,
                    int32_t waveletAdaptiveLoadLevel)
   : m_handle(handle)
   , m_dimensionality(int32_t(axisDescriptor.size()))
-  , m_baseBrickSize(int32_t(1) << layoutDescriptor.getBrickSize())
-  , m_negativeRenderMargin(layoutDescriptor.getNegativeMargin())
-  , m_positiveRenderMargin(layoutDescriptor.getPositiveMargin())
-  , m_brickSize2DMultiplier(layoutDescriptor.getBrickSizeMultiplier2D())
-  , m_maxLOD(layoutDescriptor.getLODLevels())
+  , m_baseBrickSize(int32_t(1) << layoutDescriptor.GetBrickSize())
+  , m_negativeRenderMargin(layoutDescriptor.GetNegativeMargin())
+  , m_positiveRenderMargin(layoutDescriptor.GetPositiveMargin())
+  , m_brickSize2DMultiplier(layoutDescriptor.GetBrickSizeMultiplier2D())
+  , m_maxLOD(layoutDescriptor.GetLODLevels())
   , m_volumeDataChannelDescriptor(volumeDataChannelDescriptor)
-  , m_isCreate2DLODs(layoutDescriptor.isCreate2DLODs())
+  , m_isCreate2DLODs(layoutDescriptor.IsCreate2DLODs())
   , m_actualValueRangeChannel(actualValueRangeChannel)
   , m_contentsHash(volumeDataHash)
   , m_pendingWriteRequests(0)
@@ -70,18 +70,18 @@ VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDSHandle &handle,
   , m_compressionTolerance(compressionTolerance)
   , m_isZipLosslessChannels(isZipLosslessChannels)
   , m_waveletAdaptiveLoadLevel(waveletAdaptiveLoadLevel)
-  , m_fullResolutionDimension(layoutDescriptor.getFullResolutionDimension())
+  , m_fullResolutionDimension(layoutDescriptor.GetFullResolutionDimension())
 {
 
   for(int32_t dimension = 0; dimension < array_size(m_dimensionNumSamples); dimension++)
   {
     if(dimension < m_dimensionality)
     {
-      assert(axisDescriptor[dimension].getNumSamples() >= 1);
-      m_dimensionNumSamples[dimension] = axisDescriptor[dimension].getNumSamples();
-      m_dimensionName[dimension] = axisDescriptor[dimension].getName();
-      m_dimensionUnit[dimension] = axisDescriptor[dimension].getUnit();
-      m_dimensionRange[dimension] = { axisDescriptor[dimension].getCoordinateMin(), axisDescriptor[dimension].getCoordinateMax() };
+      assert(axisDescriptor[dimension].GetNumSamples() >= 1);
+      m_dimensionNumSamples[dimension] = axisDescriptor[dimension].GetNumSamples();
+      m_dimensionName[dimension] = axisDescriptor[dimension].GetName();
+      m_dimensionUnit[dimension] = axisDescriptor[dimension].GetUnit();
+      m_dimensionRange[dimension] = { axisDescriptor[dimension].GetCoordinateMin(), axisDescriptor[dimension].GetCoordinateMax() };
     }
     else
     {
@@ -106,7 +106,7 @@ VolumeDataLayer::VolumeDataLayerID VolumeDataLayoutImpl::addDataLayer(VolumeData
 VolumeDataLayer* VolumeDataLayoutImpl::getBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const
 {
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_3D_Max);
-  assert(channel >= 0 && channel < getChannelCount());
+  assert(channel >= 0 && channel < GetChannelCount());
 
   VolumeDataLayer *volumeDataLayer = m_primaryBaseLayers[dimensionGroup];
 
@@ -119,20 +119,20 @@ VolumeDataLayer* VolumeDataLayoutImpl::getBaseLayer(DimensionGroup dimensionGrou
 
 FloatRange const& VolumeDataLayoutImpl::getChannelActualValueRange(int32_t channel) const
 {
-  assert(channel >= 0 && channel < getChannelCount());
-  return (channel == m_actualValueRangeChannel) ? m_actualValueRange : m_volumeDataChannelDescriptor[channel].getValueRange();
+  assert(channel >= 0 && channel < GetChannelCount());
+  return (channel == m_actualValueRangeChannel) ? m_actualValueRange : m_volumeDataChannelDescriptor[channel].GetValueRange();
 }
 
-VolumeDataMapping VolumeDataLayoutImpl::getChannelMapping(int32_t channel) const
+VolumeDataMapping VolumeDataLayoutImpl::GetChannelMapping(int32_t channel) const
 {
-  assert(channel >= 0 && channel < getChannelCount());
-  return m_volumeDataChannelDescriptor[channel].getMapping();
+  assert(channel >= 0 && channel < GetChannelCount());
+  return m_volumeDataChannelDescriptor[channel].GetMapping();
 }
 
 int32_t VolumeDataLayoutImpl::getChannelMappedValueCount(int32_t channel) const
 {
-  assert(channel >= 0 && channel < getChannelCount());
-  return m_volumeDataChannelDescriptor[channel].getMappedValueCount();
+  assert(channel >= 0 && channel < GetChannelCount());
+  return m_volumeDataChannelDescriptor[channel].GetMappedValueCount();
 }
 
 FloatRange const& VolumeDataLayoutImpl::getDimensionRange(int32_t dimension) const
@@ -144,7 +144,7 @@ FloatRange const& VolumeDataLayoutImpl::getDimensionRange(int32_t dimension) con
 const VolumeDataChannelMapping* VolumeDataLayoutImpl::getVolumeDataChannelMapping(int32_t channel) const
 {
   assert(channel >= 0 && channel < m_volumeDataChannelDescriptor.size());
-  return VolumeDataChannelMapping::getVolumeDataChannelMapping(m_volumeDataChannelDescriptor[channel].getMapping());
+  return VolumeDataChannelMapping::getVolumeDataChannelMapping(m_volumeDataChannelDescriptor[channel].GetMapping());
 }
 
 VolumeDataLayer *VolumeDataLayoutImpl::getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const
@@ -163,7 +163,7 @@ VolumeDataLayer *VolumeDataLayoutImpl::getVolumeDataLayerFromID(VolumeDataLayer:
 VolumeDataLayer *VolumeDataLayoutImpl::getTopLayer(DimensionGroup dimensionGroup, int32_t channel) const
 {
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_3D_Max);
-  assert(channel >= 0 && channel < getChannelCount());
+  assert(channel >= 0 && channel < GetChannelCount());
 
   VolumeDataLayer *volumeDataLayer = m_primaryTopLayers[dimensionGroup];
 
@@ -196,70 +196,70 @@ void VolumeDataLayoutImpl::completePendingWriteChunkRequests(int32_t maxPendingW
   staticGetPendingRequestCountChangedCondition().wait(pendingRequestCountMutexLock, [this, maxPendingWriteRequests] { return m_pendingWriteRequests <= maxPendingWriteRequests; });
 }
 
-bool VolumeDataLayoutImpl::isChannelAvailable(const char *channelName) const
+bool VolumeDataLayoutImpl::IsChannelAvailable(const char *channelName) const
 {
-  int32_t nChannels = getChannelCount();
+  int32_t nChannels = GetChannelCount();
 
   for(int32_t channel = 0; channel < nChannels; channel++)
   {
-    if(strcmp(m_volumeDataChannelDescriptor[channel].getName(), channelName) == 0) return true;
+    if(strcmp(m_volumeDataChannelDescriptor[channel].GetName(), channelName) == 0) return true;
   }
 
   return false;
 }
 
-int32_t VolumeDataLayoutImpl::getChannelIndex(const char *channelName) const
+int32_t VolumeDataLayoutImpl::GetChannelIndex(const char *channelName) const
 {
-  int32_t  nChannels = getChannelCount();
+  int32_t  nChannels = GetChannelCount();
 
   for(int32_t channel = 0; channel < nChannels; channel++)
   {
-    if(strcmp(m_volumeDataChannelDescriptor[channel].getName(), channelName) == 0) return channel;
+    if(strcmp(m_volumeDataChannelDescriptor[channel].GetName(), channelName) == 0) return channel;
   }
   assert(0 && "Should not call this function unless IsChannelAvailable() is true");
   return 0;
 }
 
-VolumeDataChannelDescriptor VolumeDataLayoutImpl::getChannelDescriptor(int32_t channel) const
+VolumeDataChannelDescriptor VolumeDataLayoutImpl::GetChannelDescriptor(int32_t channel) const
 {
-  assert(channel >= 0 && channel < getChannelCount()); 
+  assert(channel >= 0 && channel < GetChannelCount()); 
 
   const VolumeDataChannelDescriptor &volumeDataChannelDescriptor = m_volumeDataChannelDescriptor[channel];
 
   Internal::BitMask<VolumeDataChannelDescriptor::Flags> bFlags = VolumeDataChannelDescriptor::Flags(0);
 
-  if(volumeDataChannelDescriptor.isDiscrete())                      bFlags = bFlags | VolumeDataChannelDescriptor::DiscreteData;
-  if(!volumeDataChannelDescriptor.isAllowLossyCompression())        bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompression;
-  if(volumeDataChannelDescriptor.isUseZipForLosslessCompression())  bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompressionUseZip;
-  if(!volumeDataChannelDescriptor.isRenderable())                   bFlags = bFlags | VolumeDataChannelDescriptor::NotRenderable;
+  if(volumeDataChannelDescriptor.IsDiscrete())                      bFlags = bFlags | VolumeDataChannelDescriptor::DiscreteData;
+  if(!volumeDataChannelDescriptor.IsAllowLossyCompression())        bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompression;
+  if(volumeDataChannelDescriptor.IsUseZipForLosslessCompression())  bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompressionUseZip;
+  if(!volumeDataChannelDescriptor.IsRenderable())                   bFlags = bFlags | VolumeDataChannelDescriptor::NotRenderable;
 
-  if (volumeDataChannelDescriptor.isUseNoValue())
+  if (volumeDataChannelDescriptor.IsUseNoValue())
   {
-    return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.getFormat(),
-                                       volumeDataChannelDescriptor.getComponents(),
-                                       volumeDataChannelDescriptor.getName(),
-                                       volumeDataChannelDescriptor.getUnit(),
-                                       volumeDataChannelDescriptor.getValueRange().min,
-                                       volumeDataChannelDescriptor.getValueRange().max,
-                                       getChannelMapping(channel),
-                                       volumeDataChannelDescriptor.getMappedValueCount(),
+    return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.GetFormat(),
+                                       volumeDataChannelDescriptor.GetComponents(),
+                                       volumeDataChannelDescriptor.GetName(),
+                                       volumeDataChannelDescriptor.GetUnit(),
+                                       volumeDataChannelDescriptor.GetValueRange().Min,
+                                       volumeDataChannelDescriptor.GetValueRange().Max,
+                                       GetChannelMapping(channel),
+                                       volumeDataChannelDescriptor.GetMappedValueCount(),
                                        VolumeDataChannelDescriptor::Flags(bFlags._flags),
-                                       volumeDataChannelDescriptor.getNoValue(),
-                                       volumeDataChannelDescriptor.getIntegerScale(),
-                                       volumeDataChannelDescriptor.getIntegerOffset());
+                                       volumeDataChannelDescriptor.GetNoValue(),
+                                       volumeDataChannelDescriptor.GetIntegerScale(),
+                                       volumeDataChannelDescriptor.GetIntegerOffset());
   }
 
-  return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.getFormat(),
-                                     volumeDataChannelDescriptor.getComponents(),
-                                     volumeDataChannelDescriptor.getName(),
-                                     volumeDataChannelDescriptor.getUnit(),
-                                     volumeDataChannelDescriptor.getValueRange().min,
-                                     volumeDataChannelDescriptor.getValueRange().max,
-                                     getChannelMapping(channel),
-                                     volumeDataChannelDescriptor.getMappedValueCount(),
+  return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.GetFormat(),
+                                     volumeDataChannelDescriptor.GetComponents(),
+                                     volumeDataChannelDescriptor.GetName(),
+                                     volumeDataChannelDescriptor.GetUnit(),
+                                     volumeDataChannelDescriptor.GetValueRange().Min,
+                                     volumeDataChannelDescriptor.GetValueRange().Max,
+                                     GetChannelMapping(channel),
+                                     volumeDataChannelDescriptor.GetMappedValueCount(),
                                      VolumeDataChannelDescriptor::Flags(bFlags._flags),
-                                     volumeDataChannelDescriptor.getIntegerScale(),
-                                     volumeDataChannelDescriptor.getIntegerOffset());
+                                     volumeDataChannelDescriptor.GetIntegerScale(),
+                                     volumeDataChannelDescriptor.GetIntegerOffset());
 }
 
 VolumeDataLayoutDescriptor VolumeDataLayoutImpl::getLayoutDescriptor() const
@@ -298,28 +298,28 @@ VolumeDataLayoutDescriptor VolumeDataLayoutImpl::getLayoutDescriptor() const
                                     m_fullResolutionDimension);
 }
 
-VolumeDataAxisDescriptor VolumeDataLayoutImpl::getAxisDescriptor(int32_t dimension) const
+VolumeDataAxisDescriptor VolumeDataLayoutImpl::GetAxisDescriptor(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < m_dimensionality);
-  return VolumeDataAxisDescriptor(getDimensionNumSamples(dimension),
-                                  getDimensionName(dimension),
-                                  getDimensionUnit(dimension),
+  return VolumeDataAxisDescriptor(GetDimensionNumSamples(dimension),
+                                  GetDimensionName(dimension),
+                                  GetDimensionUnit(dimension),
                                   getDimensionRange(dimension));
 }
 
-int VolumeDataLayoutImpl::getDimensionNumSamples(int32_t dimension) const
+int VolumeDataLayoutImpl::GetDimensionNumSamples(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < array_size(m_dimensionNumSamples));
   return m_dimensionNumSamples[dimension];
 }
 
-const char *VolumeDataLayoutImpl::getDimensionName(int32_t dimension) const
+const char *VolumeDataLayoutImpl::GetDimensionName(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < array_size(m_dimensionName));
   return m_dimensionName[dimension];
 }
 
-const char *VolumeDataLayoutImpl::getDimensionUnit(int32_t dimension) const
+const char *VolumeDataLayoutImpl::GetDimensionUnit(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < array_size(m_dimensionUnit));
   return m_dimensionUnit[dimension];
@@ -341,7 +341,7 @@ void VolumeDataLayoutImpl::createLayers(DimensionGroup dimensionGroup, int32_t b
 {
   assert(physicalLODLevels > 0);
 
-  int32_t channels = getChannelCount();
+  int32_t channels = GetChannelCount();
 
   IndexArray brickSizeArray;
 
@@ -368,14 +368,14 @@ void VolumeDataLayoutImpl::createLayers(DimensionGroup dimensionGroup, int32_t b
 
     for(int32_t channel = 0; channel < channels; channel++)
     {
-      if(lod > 0 && !isChannelRenderable(channel))
+      if(lod > 0 && !IsChannelRenderable(channel))
       {
         continue;
       }
 
       VolumeDataLayer::LayerType layerType = (lod < physicalLODLevels) ? VolumeDataLayer::Renderable : VolumeDataLayer::Virtual;
 
-      if(!isChannelRenderable(channel))
+      if(!IsChannelRenderable(channel))
       {
         assert(channel != 0);
         layerType = VolumeDataLayer::Auxiliary;

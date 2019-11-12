@@ -49,18 +49,18 @@ protected:
 
 struct AWSOpenOptions : OpenOptions
 {
-  std::string bucket;
-  std::string key;
-  std::string region;
+  std::string Bucket;
+  std::string Key;
+  std::string Region;
 
   AWSOpenOptions() : OpenOptions(AWS) {}
-  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), bucket(bucket), key(key), region(region) {}
+  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), Bucket(bucket), Key(key), Region(region) {}
 };
 
 struct Error
 {
-  int code = 0;
-  std::string string;
+  int Code = 0;
+  std::string String;
 };
 
 enum class Access
@@ -73,12 +73,12 @@ class VolumeDataLayout;
 class VolumeDataAccessManager;
 class VolumeDataPageAccessor;
 
-OPENVDS_EXPORT VDSHandle* open(const OpenOptions& options, Error &error);
-OPENVDS_EXPORT VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
-OPENVDS_EXPORT void       destroy(VDSHandle *handle);
+OPENVDS_EXPORT VDSHandle* Open(const OpenOptions& options, Error &error);
+OPENVDS_EXPORT VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
+OPENVDS_EXPORT void       Destroy(VDSHandle *handle);
 
-OPENVDS_EXPORT VolumeDataLayout *getLayout(VDSHandle *handle);
-OPENVDS_EXPORT VolumeDataAccessManager *getDataAccessManager(VDSHandle *handle);
+OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle *handle);
+OPENVDS_EXPORT VolumeDataAccessManager *GetDataAccessManager(VDSHandle *handle);
 }
 
 #endif //OPENVDS_H

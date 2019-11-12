@@ -64,128 +64,128 @@ public:
 
 bool AccessorRegion::contains(IntVector4 index)
 {
-  return index[0] >= min[0] && index[0] < max[0] &&
-         index[1] >= min[1] && index[1] < max[1] &&
-         index[2] >= min[2] && index[2] < max[2] &&
-         index[3] >= min[3] && index[3] < max[3];
+  return index[0] >= Min[0] && index[0] < Max[0] &&
+         index[1] >= Min[1] && index[1] < Max[1] &&
+         index[2] >= Min[2] && index[2] < Max[2] &&
+         index[3] >= Min[3] && index[3] < Max[3];
 }
 
 bool AccessorRegion::contains(IntVector3 index)
 {
-  return index[0] >= min[1] && index[0] < max[1] &&
-         index[1] >= min[2] && index[1] < max[2] &&
-         index[2] >= min[3] && index[2] < max[3];
+  return index[0] >= Min[1] && index[0] < Max[1] &&
+         index[1] >= Min[2] && index[1] < Max[2] &&
+         index[2] >= Min[3] && index[2] < Max[3];
 }
 
 bool AccessorRegion::contains(IntVector2 index)
 {
-  return index[0] >= min[2] && index[0] < max[2] &&
-         index[1] >= min[3] && index[1] < max[3];
+  return index[0] >= Min[2] && index[0] < Max[2] &&
+         index[1] >= Min[3] && index[1] < Max[3];
 }
 
 void AccessorRegion::expand(IntVector4 index)
 {
-  if(min[0] > index[0])
+  if(Min[0] > index[0])
   {
-    min[0] = index[0];
+    Min[0] = index[0];
   }
-  if(max[0] <= index[0])
+  if(Max[0] <= index[0])
   {
-    max[0] = index[0] + 1;
+    Max[0] = index[0] + 1;
   }
-  if(min[1] > index[1])
+  if(Min[1] > index[1])
   {
-    min[1] = index[1];
+    Min[1] = index[1];
   }
-  if(max[1] <= index[1])
+  if(Max[1] <= index[1])
   {
-    max[1] = index[1] + 1;
+    Max[1] = index[1] + 1;
   }
-  if(min[2] > index[2])
+  if(Min[2] > index[2])
   {
-    min[2] = index[2];
+    Min[2] = index[2];
   }
-  if(max[2] <= index[2])
+  if(Max[2] <= index[2])
   {
-    max[2] = index[2] + 1;
+    Max[2] = index[2] + 1;
   }
-  if(min[3] > index[3])
+  if(Min[3] > index[3])
   {
-    min[3] = index[3];
+    Min[3] = index[3];
   }
-  if(max[3] <= index[3])
+  if(Max[3] <= index[3])
   {
-    max[3] = index[3] + 1;
+    Max[3] = index[3] + 1;
   }
 }
 
 void AccessorRegion::expand(IntVector3 index)
 {
-  if(min[1] > index[0])
+  if(Min[1] > index[0])
   {
-    min[1] = index[0];
+    Min[1] = index[0];
   }
-  if(max[1] <= index[0])
+  if(Max[1] <= index[0])
   {
-    max[1] = index[0] + 1;
+    Max[1] = index[0] + 1;
   }
-  if(min[2] > index[1])
+  if(Min[2] > index[1])
   {
-    min[2] = index[1];
+    Min[2] = index[1];
   }
-  if(max[2] <= index[1])
+  if(Max[2] <= index[1])
   {
-    max[2] = index[1] + 1;
+    Max[2] = index[1] + 1;
   }
-  if(min[3] > index[2])
+  if(Min[3] > index[2])
   {
-    min[3] = index[2];
+    Min[3] = index[2];
   }
-  if(max[3] <= index[2])
+  if(Max[3] <= index[2])
   {
-    max[3] = index[2] + 1;
+    Max[3] = index[2] + 1;
   }
 }
 
 void AccessorRegion::expand(IntVector2 index)
 {
-  if(min[2] > index[0])
+  if(Min[2] > index[0])
   {
-    min[2] = index[0];
+    Min[2] = index[0];
   }
-  if(max[2] <= index[0])
+  if(Max[2] <= index[0])
   {
-    max[2] = index[0] + 1;
+    Max[2] = index[0] + 1;
   }
-  if(min[3] > index[1])
+  if(Min[3] > index[1])
   {
-    min[3] = index[1];
+    Min[3] = index[1];
   }
-  if(max[3] <= index[1])
+  if(Max[3] <= index[1])
   {
-    max[3] = index[1] + 1;
+    Max[3] = index[1] + 1;
   }
 }
 
 bool AccessorRegion::isEmpty()
 {
-  return max[0] <= min[0] ||
-         max[1] <= min[1] ||
-         max[2] <= min[2] ||
-         max[3] <= min[3];
+  return Max[0] <= Min[0] ||
+         Max[1] <= Min[1] ||
+         Max[2] <= Min[2] ||
+         Max[3] <= Min[3];
 }
 
 AccessorRegion AccessorRegion::intersection(AccessorRegion const &region)
 {
-  IntVector4 minIntersection = { min[0] >= region.min[0] ? min[0] : region.min[0],
-                                 min[1] >= region.min[1] ? min[1] : region.min[1],
-                                 min[2] >= region.min[2] ? min[2] : region.min[2],
-                                 min[3] >= region.min[3] ? min[3] : region.min[3]};
+  IntVector4 minIntersection = { Min[0] >= region.Min[0] ? Min[0] : region.Min[0],
+                                 Min[1] >= region.Min[1] ? Min[1] : region.Min[1],
+                                 Min[2] >= region.Min[2] ? Min[2] : region.Min[2],
+                                 Min[3] >= region.Min[3] ? Min[3] : region.Min[3]};
 
-  IntVector4 maxIntersection = { max[0] <= region.max[0] ? max[0] : region.max[0],
-                                 max[1] <= region.max[1] ? max[1] : region.max[1],
-                                 max[2] <= region.max[2] ? max[2] : region.max[2],
-                                 max[3] <= region.max[3] ? max[3] : region.max[3]};
+  IntVector4 maxIntersection = { Max[0] <= region.Max[0] ? Max[0] : region.Max[0],
+                                 Max[1] <= region.Max[1] ? Max[1] : region.Max[1],
+                                 Max[2] <= region.Max[2] ? Max[2] : region.Max[2],
+                                 Max[3] <= region.Max[3] ? Max[3] : region.Max[3]};
 
   return AccessorRegion(minIntersection, maxIntersection);
 }
@@ -274,69 +274,69 @@ class ConvertingVolumeDataAccessor : public RawVolumeDataAccessor<T2>, public Vo
 
   void getCurrentRegionMinMax(IntVector2 &min, IntVector2 &max)
   {
-    min = {m_validRegion.min[2], m_validRegion.min[3]};
-    max = {m_validRegion.max[2], m_validRegion.max[3]};
+    min = {m_validRegion.Min[2], m_validRegion.Min[3]};
+    max = {m_validRegion.Max[2], m_validRegion.Max[3]};
   }
 
   void getCurrentRegionMinMax(IntVector3 &min, IntVector3 &max)
   {
-    min = {m_validRegion.min[1], m_validRegion.min[2], m_validRegion.min[3]};
-    max = {m_validRegion.max[1], m_validRegion.max[2], m_validRegion.max[3]};
+    min = {m_validRegion.Min[1], m_validRegion.Min[2], m_validRegion.Min[3]};
+    max = {m_validRegion.Max[1], m_validRegion.Max[2], m_validRegion.Max[3]};
   }
 
   void getCurrentRegionMinMax(IntVector4 &min, IntVector4 &max)
   {
-    min = {m_validRegion.min[0], m_validRegion.min[1], m_validRegion.min[2], m_validRegion.min[3]};
-    max = {m_validRegion.max[0], m_validRegion.max[1], m_validRegion.max[2], m_validRegion.max[3]};
+    min = {m_validRegion.Min[0], m_validRegion.Min[1], m_validRegion.Min[2], m_validRegion.Min[3]};
+    max = {m_validRegion.Max[0], m_validRegion.Max[1], m_validRegion.Max[2], m_validRegion.Max[3]};
   }
 
 public:
   ConvertingVolumeDataAccessor(VolumeDataPageAccessor &volumeDataPageAccessor, float replacementNoValue)
     : RawVolumeDataAccessor<T2>(volumeDataPageAccessor)
   {
-    VolumeDataChannelDescriptor const &channelDescriptor = m_volumeDataPageAccessor->getChannelDescriptor();
+    VolumeDataChannelDescriptor const &channelDescriptor = m_volumeDataPageAccessor->GetChannelDescriptor();
 
     bool isConvertWithValueRange = true;
 
-    if (channelDescriptor.getFormat() == VolumeDataChannelDescriptor::Format_U8 || channelDescriptor.getFormat() == VolumeDataChannelDescriptor::Format_U16)
+    if (channelDescriptor.GetFormat() == VolumeDataChannelDescriptor::Format_U8 || channelDescriptor.GetFormat() == VolumeDataChannelDescriptor::Format_U16)
     {
       isConvertWithValueRange = false;
     }
 
-    float valueRangeMin = channelDescriptor.getValueRangeMin();
-    float valueRangeMax = channelDescriptor.getValueRangeMax();
-    float integerScale  = channelDescriptor.getIntegerScale();
-    float integerOffset = channelDescriptor.getIntegerOffset();
-    float noValue       = channelDescriptor.getNoValue();
+    float valueRangeMin = channelDescriptor.GetValueRangeMin();
+    float valueRangeMax = channelDescriptor.GetValueRangeMax();
+    float integerScale  = channelDescriptor.GetIntegerScale();
+    float integerOffset = channelDescriptor.GetIntegerOffset();
+    float noValue       = channelDescriptor.GetNoValue();
 
     m_readValueConverter  = QuantizingValueConverterWithNoValue<T1, T2, isUseNoValue>(valueRangeMin, valueRangeMax, integerScale, integerOffset, noValue, replacementNoValue, isConvertWithValueRange);
     m_writeValueConverter = QuantizingValueConverterWithNoValue<T2, T1, isUseNoValue>(valueRangeMin, valueRangeMax, integerScale, integerOffset, replacementNoValue, noValue, isConvertWithValueRange);
     m_replacementNoValue  = replacementNoValue;
   }
 
-  int64_t regionCount() override
+  int64_t RegionCount() override
   {
-    return m_volumeDataPageAccessor->getChunkCount();
+    return m_volumeDataPageAccessor->GetChunkCount();
   }
 
-  IndexRegion<INDEX> region(int64_t region) override
+  IndexRegion<INDEX> Region(int64_t region) override
   {
     int32_t minExcludingMargin[Dimensionality_Max];
     int32_t maxExcludingMargin[Dimensionality_Max];
 
-    m_volumeDataPageAccessor->getChunkMinMaxExcludingMargin(region, minExcludingMargin, maxExcludingMargin);
+    m_volumeDataPageAccessor->GetChunkMinMaxExcludingMargin(region, minExcludingMargin, maxExcludingMargin);
 
     return IndexRegion<INDEX>(ndPosToVector<INDEX>(minExcludingMargin), ndPosToVector<INDEX>(maxExcludingMargin));
   }
 
-  int64_t regionFromIndex(INDEX index) override
+  int64_t RegionFromIndex(INDEX index) override
   {
     int position[Dimensionality_Max];
     vectorToNDPos(index, position);
-    return m_volumeDataPageAccessor->getChunkIndex(position);
+    return m_volumeDataPageAccessor->GetChunkIndex(position);
   }
 
-  IndexRegion<INDEX> currentRegion() override
+  IndexRegion<INDEX> CurrentRegion() override
   {
     INDEX min, max;
 
@@ -344,18 +344,18 @@ public:
     return IndexRegion<INDEX>(min, max);
   }
 
-  T1 getValue(INDEX index) override { return m_readValueConverter.convertValue(RawVolumeDataAccessor<T2>::getValue(index)); }
+  T1 GetValue(INDEX index) override { return m_readValueConverter.convertValue(RawVolumeDataAccessor<T2>::getValue(index)); }
 
-  void setValue(INDEX index, T1 value) override { return RawVolumeDataAccessor<T2>::setValue(index, m_writeValueConverter.convertValue(value)); }
+  void SetValue(INDEX index, T1 value) override { return RawVolumeDataAccessor<T2>::setValue(index, m_writeValueConverter.convertValue(value)); }
 
-  void commit() override { return RawVolumeDataAccessor<T2>::commit(); }
-  void cancel() override { return RawVolumeDataAccessor<T2>::cancel(); }
+  void Commit() override { return RawVolumeDataAccessor<T2>::commit(); }
+  void Cancel() override { return RawVolumeDataAccessor<T2>::cancel(); }
 
-  VolumeDataAccessManager &getManager() override { return *m_volumeDataPageAccessor->getManager(); }
+  VolumeDataAccessManager &GetManager() override { return *m_volumeDataPageAccessor->getManager(); }
 
-  VolumeDataLayout const *getLayout() override { return VolumeDataAccessorBase::getLayout(); }
+  VolumeDataLayout const *GetLayout() override { return VolumeDataAccessorBase::getLayout(); }
 
-  VolumeDataAccessor *clone(VolumeDataPageAccessor &volumeDataPageAccessor) { volumeDataPageAccessor.addReference(); return new ConvertingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
+  VolumeDataAccessor *clone(VolumeDataPageAccessor &volumeDataPageAccessor) { volumeDataPageAccessor.AddReference(); return new ConvertingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
 };
 
 template<typename INDEX, typename T1, typename T2, bool isUseNoValue, InterpolationMethod interpolationMethod>
@@ -382,20 +382,20 @@ class InterpolatingVolumeDataAccessor : public RawVolumeDataAccessor<T2>, public
 
   void getCurrentRegionMinMax(FloatVector2 &min, FloatVector2 &max)
   {
-    min = {(float)m_validRegion.min[2], (float)m_validRegion.min[3]};
-    max = {(float)m_validRegion.max[2], (float)m_validRegion.max[3]};
+    min = {(float)m_validRegion.Min[2], (float)m_validRegion.Min[3]};
+    max = {(float)m_validRegion.Max[2], (float)m_validRegion.Max[3]};
   }
 
   void getCurrentRegionMinMax(FloatVector3 &min, FloatVector3 &max)
   {
-    min = {(float)m_validRegion.min[1], (float)m_validRegion.min[2], (float)m_validRegion.min[3]};
-    max = {(float)m_validRegion.max[1], (float)m_validRegion.max[2], (float)m_validRegion.max[3]};
+    min = {(float)m_validRegion.Min[1], (float)m_validRegion.Min[2], (float)m_validRegion.Min[3]};
+    max = {(float)m_validRegion.Max[1], (float)m_validRegion.Max[2], (float)m_validRegion.Max[3]};
   }
 
   void getCurrentRegionMinMax(FloatVector4 &min, FloatVector4 &max)
   {
-    min = {(float)m_validRegion.min[0], (float)m_validRegion.min[1], (float)m_validRegion.min[2], (float)m_validRegion.min[3]};
-    max = {(float)m_validRegion.max[0], (float)m_validRegion.max[1], (float)m_validRegion.max[2], (float)m_validRegion.max[3]};
+    min = {(float)m_validRegion.Min[0], (float)m_validRegion.Min[1], (float)m_validRegion.Min[2], (float)m_validRegion.Min[3]};
+    max = {(float)m_validRegion.Max[0], (float)m_validRegion.Max[1], (float)m_validRegion.Max[2], (float)m_validRegion.Max[3]};
   }
 
   void readPageAtPosition(IntVector4 index, bool enableWriting) override
@@ -412,41 +412,41 @@ public:
   InterpolatingVolumeDataAccessor(VolumeDataPageAccessor &volumeDataPageAccessor, float replacementNoValue)
     : RawVolumeDataAccessor<T2>(volumeDataPageAccessor)
   {
-    VolumeDataChannelDescriptor const &channelDescriptor = this->m_volumeDataPageAccessor->getChannelDescriptor();
+    VolumeDataChannelDescriptor const &channelDescriptor = this->m_volumeDataPageAccessor->GetChannelDescriptor();
 
-    m_valueRangeMin = channelDescriptor.getValueRangeMin();
-    m_valueRangeMax = channelDescriptor.getValueRangeMax();
-    m_noValue       = channelDescriptor.getNoValue();
-    m_integerScale  = channelDescriptor.getIntegerScale();
-    m_integerOffset = channelDescriptor.getIntegerOffset();
+    m_valueRangeMin = channelDescriptor.GetValueRangeMin();
+    m_valueRangeMax = channelDescriptor.GetValueRangeMax();
+    m_noValue       = channelDescriptor.GetNoValue();
+    m_integerScale  = channelDescriptor.GetIntegerScale();
+    m_integerOffset = channelDescriptor.GetIntegerOffset();
 
     m_replacementNoValue  = replacementNoValue;
   }
 
-  int64_t regionCount() override
+  int64_t RegionCount() override
   {
-    return m_volumeDataPageAccessor->getChunkCount();
+    return m_volumeDataPageAccessor->GetChunkCount();
   }
 
   IndexRegion<INDEX>
-  region(int64_t region) override
+  Region(int64_t region) override
   {
     int32_t minExcludingMargin[Dimensionality_Max];
     int32_t maxExcludingMargin[Dimensionality_Max];
 
-    m_volumeDataPageAccessor->getChunkMinMaxExcludingMargin(region, minExcludingMargin, maxExcludingMargin);
+    m_volumeDataPageAccessor->GetChunkMinMaxExcludingMargin(region, minExcludingMargin, maxExcludingMargin);
 
     return IndexRegion<INDEX>(ndPosToVector<INDEX>(minExcludingMargin), ndPosToVector<INDEX>(maxExcludingMargin));
   }
 
-  int64_t regionFromIndex(INDEX index) override
+  int64_t RegionFromIndex(INDEX index) override
   {
     int position[Dimensionality_Max];
     vectorToNDPos(index, position);
-    return m_volumeDataPageAccessor->getChunkIndex(position);
+    return m_volumeDataPageAccessor->GetChunkIndex(position);
   }
 
-  IndexRegion<INDEX> currentRegion() override
+  IndexRegion<INDEX> CurrentRegion() override
   {
     INDEX min;
     INDEX max;
@@ -461,7 +461,7 @@ public:
 
     if(!m_validRegion.contains(index))
     {
-      readPageAtPosition({m_validRegion.min[0], m_validRegion.min[1], index[0], index[1]}, false);
+      readPageAtPosition({m_validRegion.Min[0], m_validRegion.Min[1], index[0], index[1]}, false);
       if(!m_buffer)
       {
         return 0;
@@ -479,7 +479,7 @@ public:
 
     if(!m_validRegion.contains(index))
     {
-      readPageAtPosition({m_validRegion.min[0], index[0], index[1], index[2]}, false);
+      readPageAtPosition({m_validRegion.Min[0], index[0], index[1], index[2]}, false);
       if(!m_buffer)
       {
         return 0;
@@ -510,16 +510,16 @@ public:
     return convertValue<T1>(m_volumeSampler.sample3D((T2 *)m_buffer, {pos[3] - m_min[3], pos[2] - m_min[2], pos[1] - m_min[1]}));
   }
 
-  T1 getValue(INDEX pos) override
+  T1 GetValue(INDEX pos) override
   {
       return getValue_t(pos);
   }
 
-  VolumeDataAccessManager &getManager() override { return *m_volumeDataPageAccessor->getManager(); }
+  VolumeDataAccessManager &GetManager() override { return *m_volumeDataPageAccessor->getManager(); }
 
-  VolumeDataLayout const *getLayout() override { return VolumeDataAccessorBase::getLayout(); }
+  VolumeDataLayout const *GetLayout() override { return VolumeDataAccessorBase::getLayout(); }
 
-  VolumeDataAccessor *clone(VolumeDataPageAccessor &volumeDataPageAccessor) { volumeDataPageAccessor.addReference(); return InterpolatingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
+  VolumeDataAccessor *clone(VolumeDataPageAccessor &volumeDataPageAccessor) { volumeDataPageAccessor.AddReference(); return InterpolatingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
 };
 
 
@@ -581,7 +581,7 @@ T RawVolumeDataAccessor<T>::getValue(IntVector3 index)
 {
   if(!m_validRegion.contains(index))
   {
-    readPageAtPosition({m_validRegion.min[0], index[0], index[1], index[2]}, false);
+    readPageAtPosition({m_validRegion.Min[0], index[0], index[1], index[2]}, false);
     if(!m_buffer)
     {
       return 0;
@@ -600,7 +600,7 @@ T RawVolumeDataAccessor<T>::getValue(IntVector2 index)
 {
   if(!m_validRegion.contains(index))
   {
-    readPageAtPosition({m_validRegion.min[0], m_validRegion.min[1], index[0], index[1]}, false);
+    readPageAtPosition({m_validRegion.Min[0], m_validRegion.Min[1], index[0], index[1]}, false);
     if(!m_buffer)
     {
       return 0;
@@ -630,7 +630,7 @@ void RawVolumeDataAccessor<T>::setValue(IntVector4 index, T value)
     {
       makeCurrentPageWritable();
     }
-    if(m_writtenRegion.max[0] == 0) // Has not been written to before (but can be locked because it has had margins copied into it)
+    if(m_writtenRegion.Max[0] == 0) // Has not been written to before (but can be locked because it has had margins copied into it)
     {
       m_writtenRegion = AccessorRegion({index[0], index[1], index[2], index[3]}, {index[0] + 1, index[1] + 1, index[2] + 1, index[3] + 1});
     }
@@ -655,7 +655,7 @@ void RawVolumeDataAccessor<T>::setValue(IntVector3 index, T value)
   {
     if(!m_validRegion.contains(index))
     {
-      readPageAtPosition({m_validRegion.min[0], index[0], index[1], index[2]}, true);
+      readPageAtPosition({m_validRegion.Min[0], index[0], index[1], index[2]}, true);
       if(!m_buffer)
       {
         return;
@@ -665,9 +665,9 @@ void RawVolumeDataAccessor<T>::setValue(IntVector3 index, T value)
     {
       makeCurrentPageWritable();
     }
-    if(m_writtenRegion.max[0] == 0) // Has not been written to before (but can be locked because it has had margins copied into it)
+    if(m_writtenRegion.Max[0] == 0) // Has not been written to before (but can be locked because it has had margins copied into it)
     {
-      m_writtenRegion = AccessorRegion({m_validRegion.min[0], index[0], index[1], index[2]}, {m_validRegion.min[0] + 1, index[0] + 1, index[1] + 1, index[2] + 1});
+      m_writtenRegion = AccessorRegion({m_validRegion.Min[0], index[0], index[1], index[2]}, {m_validRegion.Min[0] + 1, index[0] + 1, index[1] + 1, index[2] + 1});
     }
     else
     {
@@ -689,7 +689,7 @@ void RawVolumeDataAccessor<T>::setValue(IntVector2 index, T value)
   {
     if(!m_validRegion.contains(index))
     {
-      readPageAtPosition({m_validRegion.min[0], m_validRegion.min[1], index[0], index[1]}, true);
+      readPageAtPosition({m_validRegion.Min[0], m_validRegion.Min[1], index[0], index[1]}, true);
       if(!m_buffer)
       {
         return;
@@ -699,9 +699,9 @@ void RawVolumeDataAccessor<T>::setValue(IntVector2 index, T value)
     {
       makeCurrentPageWritable();
     }
-    if(m_writtenRegion.max[0] == 0) // Has not been written to before (but can be locked because it has had margins copied into it)
+    if(m_writtenRegion.Max[0] == 0) // Has not been written to before (but can be locked because it has had margins copied into it)
     {
-      m_writtenRegion = AccessorRegion({m_validRegion.min[0], m_validRegion.min[1], index[0], index[1]}, {m_validRegion.min[0] + 1, m_validRegion.min[1] + 1, index[0] + 1, index[1] + 1});
+      m_writtenRegion = AccessorRegion({m_validRegion.Min[0], m_validRegion.Min[1], index[0], index[1]}, {m_validRegion.Min[0] + 1, m_validRegion.Min[1] + 1, index[0] + 1, index[1] + 1});
     }
     else
     {

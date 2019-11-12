@@ -98,11 +98,11 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
 
   // Parse volume data layout
   OpenVDS::parseVolumeDataLayout(serializedVolumeDataLayout, handle, error);
-  EXPECT_EQ(error.code, 0);
+  EXPECT_EQ(error.Code, 0);
 
   // Parse layer status
   OpenVDS::parseLayerStatus(serializedLayerStatus, handle, error);
-  EXPECT_EQ(error.code, 0);
+  EXPECT_EQ(error.Code, 0);
 
   // Create volume data layout from descriptors
   createVolumeDataLayout(handle);
@@ -126,10 +126,10 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
     Json::Value originalJson, resultJson;
 
     OpenVDS::parseJSONFromBuffer(serializedVolumeDataLayout, originalJson, error);
-    EXPECT_EQ(error.code, 0);
+    EXPECT_EQ(error.Code, 0);
 
     OpenVDS::parseJSONFromBuffer(result, resultJson, error);
-    EXPECT_EQ(error.code, 0);
+    EXPECT_EQ(error.Code, 0);
 
     EXPECT_TRUE(originalJson.compare(resultJson) == 0);
   }
@@ -153,10 +153,10 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
     Json::Value originalJson, resultJson;
 
     OpenVDS::parseJSONFromBuffer(serializedLayerStatus, originalJson, error);
-    EXPECT_EQ(error.code, 0);
+    EXPECT_EQ(error.Code, 0);
 
     OpenVDS::parseJSONFromBuffer(result, resultJson, error);
-    EXPECT_EQ(error.code, 0);
+    EXPECT_EQ(error.Code, 0);
 
     EXPECT_TRUE(originalJson.compare(resultJson) == 0);
   }

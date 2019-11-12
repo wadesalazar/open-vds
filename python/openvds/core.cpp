@@ -26,6 +26,6 @@ PYBIND11_MODULE(core, m) {
     py::class_< OpenVDS::VolumeDataAxisDescriptor >(m, "Axis")
         .def(py::init<>())
         .def(py::init<int, const char*, const char*, float, float>())
-        .def_property_readonly("name", &OpenVDS::VolumeDataAxisDescriptor::getName)
+        .def_property_readonly("name", &OpenVDS::VolumeDataAxisDescriptor::GetName)
     ;
 }

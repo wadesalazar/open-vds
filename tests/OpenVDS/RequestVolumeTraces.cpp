@@ -33,29 +33,29 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeTraces)
   OpenVDS::Error error;
   OpenVDS::AWSOpenOptions options;
 
-  options.region = TEST_AWS_REGION;
-  options.bucket = TEST_AWS_BUCKET;
-  options.key = TEST_AWS_OBJECTID;
+  options.Region = TEST_AWS_REGION;
+  options.Bucket = TEST_AWS_BUCKET;
+  options.Key = TEST_AWS_OBJECTID;
 
-  if(options.region.empty() || options.bucket.empty() || options.key.empty())
+  if(options.Region.empty() || options.Bucket.empty() || options.Key.empty())
   {
     GTEST_SKIP() << "Environment variables not set";
   }
 
-  ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
-  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> handle(OpenVDS::open(options, error), &OpenVDS::destroy);
+  ASSERT_TRUE(options.Region.size() && options.Bucket.size() && options.Key.size());
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::Destroy)> handle(OpenVDS::Open(options, error), &OpenVDS::Destroy);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::getDataAccessManager(handle.get());
+  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::GetDataAccessManager(handle.get());
   ASSERT_TRUE(dataAccessManager);
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::getLayout(handle.get());
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
  
-  int sampleCount0 = layout->getDimensionNumSamples(0);
+  int sampleCount0 = layout->GetDimensionNumSamples(0);
   std::vector<float> buffer(10 * sampleCount0);
 
-  int sampleCount1 = layout->getDimensionNumSamples(1);
-  int sampleCount2 = layout->getDimensionNumSamples(2);
+  int sampleCount1 = layout->GetDimensionNumSamples(1);
+  int sampleCount2 = layout->GetDimensionNumSamples(2);
 
   float tracePos[10][6];
 
@@ -69,18 +69,18 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeTraces)
     tracePos[trace][5] = 0;
   }
 
-  int64_t requestId = dataAccessManager->requestVolumeTraces(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, tracePos, 10, OpenVDS::InterpolationMethod::Nearest, 0);
-  dataAccessManager->waitForCompletion(requestId);
+  int64_t requestId = dataAccessManager->RequestVolumeTraces(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, tracePos, 10, OpenVDS::InterpolationMethod::Nearest, 0);
+  dataAccessManager->WaitForCompletion(requestId);
 
-  auto pageAccessor = dataAccessManager->createVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
-  auto valueReader = dataAccessManager->create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Nearest);
+  auto pageAccessor = dataAccessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  auto valueReader = dataAccessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Nearest);
 
   std::vector<float> verify(10 * sampleCount0);
   for (int trace = 0; trace < 10; trace++)
   {
     for (int i = 0; i < sampleCount0; i++)
     {
-      verify[trace * sampleCount0 + i] = valueReader->getValue(OpenVDS::FloatVector3(tracePos[trace][2], tracePos[trace][1], float(i)));
+      verify[trace * sampleCount0 + i] = valueReader->GetValue(OpenVDS::FloatVector3(tracePos[trace][2], tracePos[trace][1], float(i)));
     }
   }
   ASSERT_EQ(buffer, verify);
