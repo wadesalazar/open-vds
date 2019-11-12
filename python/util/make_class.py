@@ -8,9 +8,9 @@ import sys
 import os.path
 import runpy
 
-header_template = """#ifndef CLASSNAME_H_INCLUDED
+header_template = """Copyright
+#ifndef CLASSNAME_H_INCLUDED
 #define CLASSNAME_H_INCLUDED
-Copyright
 
 NAMESPACE_BEGIN
 
@@ -44,7 +44,7 @@ NAMESPACE_END
 
 """
 
-usage_string = """Usage: make_class <-do> [ClassName] <variable=VariableName> ...
+usage_string = """Usage: make_class <-doi> [ClassName] <variable=VariableName> ...
 -d           : print debugging info
 -o           : overwrite existing files
 -i<filename> : include template
