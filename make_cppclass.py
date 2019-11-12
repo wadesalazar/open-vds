@@ -8,7 +8,7 @@ import sys
 import os.path
 import runpy
 
-header_template = """Copyright
+_header_template = """Copyright
 #ifndef CLASSNAME_H_INCLUDED
 #define CLASSNAME_H_INCLUDED
 
@@ -26,7 +26,7 @@ NAMESPACE_END
 #endif
 """
 
-impl_template = """Copyright
+_impl_template = """Copyright
 
 #include "HeaderName"
 
@@ -105,6 +105,8 @@ def main():
   debug = False
   overwrite = False
   vars = {
+    "HeaderTemplate":   _header_template,
+    "ImplTemplate":     _impl_template,
     "BaseName":         "",
     "Namespace":        "",
     "Copyright":        "",
@@ -135,6 +137,10 @@ def main():
         vars[k] = d[k]
     else:
       vars['ClassName'] = arg
+  header_template = vars["HeaderTemplate"]
+  impl_template = vars["ImplTemplate"]
+  del vars["HeaderTemplate"]
+  del vars["ImplTemplate"]
   if debug:
     printVars(vars)
   header = substituteTemplate(vars, header_template)

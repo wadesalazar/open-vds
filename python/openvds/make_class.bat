@@ -1,0 +1,1 @@
+@call %~dp0..\..\make_cppclass.bat -i%~dp0classtemplate.txt %*

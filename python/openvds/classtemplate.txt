@@ -1,0 +1,25 @@
+HeaderTemplate = """Copyright
+#ifndef CLASSNAME_H_INCLUDED
+#define CLASSNAME_H_INCLUDED
+
+#include "PyGlobal.h"
+
+class ClassNameBASECLASS
+{
+public:
+  static void initModule(py::module& m);
+};
+
+#endif
+"""
+
+ImplTemplate = """Copyright
+
+#include "HeaderName"
+
+void 
+ClassName::initModule(py::module& m)
+{
+}
+
+"""
