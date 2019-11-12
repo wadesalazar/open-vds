@@ -5,6 +5,7 @@ CMakeSettings.json
 CMakeLists.txt.user
 python/.eggs
 python/_skbuild
+python/*.log
 python/**/*.pyd
 CMakeSettings.json
 out
