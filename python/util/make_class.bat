@@ -1,1 +1,0 @@
-@python %~dp0make_class.py -i%~dp0classtemplate.txt %*
