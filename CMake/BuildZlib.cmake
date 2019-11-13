@@ -1,12 +1,4 @@
 macro(BuildZlib)
-    get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
-
-    if ("${LIB64}" STREQUAL "TRUE")
-        set(LIBSUFFIX 64)
-    else()
-        set(LIBSUFFIX "")
-    endif()
-
   if (WIN32)
     list(APPEND ZLIB_LIBS_LIST_RELEASE "lib/zlib.lib")
     list(APPEND ZLIB_LIBS_LIST_DEBUG   "lib/zlibd.lib")
