@@ -25,15 +25,34 @@
 #include <OpenVDS/VolumeData.h>
 #include <OpenVDS/VolumeDataAccess.h>
 
-#define _OVSTR(str) #str
-#define OVSTR(str) _OVSTR(str)
-
 namespace OpenVDS {
 
-// Opaque handle for VDS
+#ifdef OPENVDS_DEVELOPMENT_BUILD
+
+struct VDS;
+class IOManager;
+
+#else
+
 struct VDSHandle
 {
+private:
+  VDSHandle();
+  ~VDSHandle();
 };
+
+class IOManager
+{
+private:
+  IOManager();
+  ~IOManager();
+};
+
+#endif
+
+
+typedef VDSHandle* VDSHANDLE;
+typedef IOManager* IOMANAGERHANDLE;
 
 }
 

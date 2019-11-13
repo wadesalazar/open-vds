@@ -23,7 +23,7 @@ PyVolumeDataAxisDescriptor::initModule(py::module& m)
   py::class_< native::VolumeDataAxisDescriptor >(m, "VolumeDataAxisDescriptor ")
       .def(py::init<>())
       .def(py::init<int, const char*, const char*, float, float>())
-      .def_property_readonly("name", &native::VolumeDataAxisDescriptor::getName)
+      .def_property_readonly("name", &native::VolumeDataAxisDescriptor::GetName)
   ;
 }
 
