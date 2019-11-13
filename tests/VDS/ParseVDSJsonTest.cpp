@@ -37,12 +37,6 @@ namespace OpenVDS
   std::vector<uint8_t> writeJson(Json::Value root);
 }
 
-struct TestOpenOptions : OpenVDS::OpenOptions
-{
-  TestOpenOptions() : OpenVDS::OpenOptions(OpenVDS::OpenOptions::File) {}
-};
-
-
 GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
 {
   std::vector<uint8_t>
@@ -91,7 +85,7 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
     error;
 
   OpenVDS::VDSHandle
-    handle(TestOpenOptions(), error);
+    handle(nullptr);
 
   // Clear error
   error = OpenVDS::Error();

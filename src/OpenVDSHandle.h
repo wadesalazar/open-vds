@@ -48,8 +48,8 @@ public:
 
 struct VDSHandle
 {
-  VDSHandle(const OpenOptions &openOptions, Error &error)
-    : ioManager(IOManager::createIOManager(openOptions, error))
+  VDSHandle(IOManager *ioManager)
+    : ioManager(ioManager)
   {
   }
   VolumeDataLayoutDescriptor

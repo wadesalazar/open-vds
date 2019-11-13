@@ -31,6 +31,7 @@ namespace OpenVDS
 class VolumeDataLayoutDescriptor;
 class VolumeDataAxisDescriptor;
 class VolumeDataChannelDescriptor;
+class IOManager;
 
 struct OpenOptions
 {
@@ -73,9 +74,69 @@ class VolumeDataLayout;
 class VolumeDataAccessManager;
 class VolumeDataPageAccessor;
 
-OPENVDS_EXPORT VDSHandle* Open(const OpenOptions& options, Error &error);
-OPENVDS_EXPORT VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
-OPENVDS_EXPORT void       Destroy(VDSHandle *handle);
+/// <summary>
+/// Open an existing VDS
+/// </summary>
+/// <param name="options">
+/// The options for the connection
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle* Open(const OpenOptions& options, Error& error);
+
+/// <summary>
+/// Open an existing VDS
+/// </summary>
+/// <param name="ioManager">
+/// The IOManager for the connection, it will be deleted automatically when the VDS handle is closed
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle* Open(IOManager*ioManager, Error &error);
+
+/// <summary>
+/// Create a new VDS
+/// </summary>
+/// <param name="options">
+/// The options for the connection
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const& axisDescriptors, std::vector<VolumeDataChannelDescriptor> const& channelDescriptors, MetadataContainer const& metadataContainer, Error& error);
+
+/// <summary>
+/// Create a new VDS
+/// </summary>
+/// <param name="ioManager">
+/// The IOManager for the connection, it will be deleted automatically when the VDS handle is closed
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle* Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
+
+/// <summary>
+/// Close a VDS and free up all associated resources
+/// </summary>
+/// <param name="handle">
+/// The handle to close
+/// </param>
+OPENVDS_EXPORT void Close(VDSHandle *handle);
 
 OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle *handle);
 OPENVDS_EXPORT VolumeDataAccessManager *GetDataAccessManager(VDSHandle *handle);

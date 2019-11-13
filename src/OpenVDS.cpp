@@ -34,13 +34,12 @@
 
 namespace OpenVDS
 {
-VDSHandle *Open(const OpenOptions &options, Error &error)
-{
-  error = Error();
-  std::unique_ptr<VDSHandle> ret(new VDSHandle(options, error));
-  if (error.Code)
-    return nullptr;
 
+VDSHandle* Open(IOManager *ioManager, Error& error)
+{
+  std::unique_ptr<VDSHandle> ret(new VDSHandle(ioManager));
+
+  error = Error();
   if (!downloadAndParseVolumeDataLayoutAndLayerStatus(*ret.get(), error))
   {
     return nullptr;
@@ -48,6 +47,16 @@ VDSHandle *Open(const OpenOptions &options, Error &error)
   ret->dataAccessManager.reset(new VolumeDataAccessManagerImpl(*ret.get()));
   ret->requestProcessor.reset(new VolumeDataRequestProcessor(*ret->dataAccessManager.get()));
   return ret.release();
+}
+
+VDSHandle *Open(const OpenOptions &options, Error &error)
+{
+  error = Error();
+  IOManager* ioManager = IOManager::createIOManager(options, error);
+  if (error.Code)
+    return nullptr;
+
+  return Open(ioManager, error);
 }
 
 VolumeDataLayout *GetLayout(VDSHandle *handle)
@@ -167,10 +176,10 @@ void createVolumeDataLayout(VDSHandle &handle)
   }
 }
 
-VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error)
+VDSHandle* Create(IOManager *ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error)
 {
   error = Error();
-  std::unique_ptr<VDSHandle> handle(new VDSHandle(options, error));
+  std::unique_ptr<VDSHandle> handle(new VDSHandle(ioManager));
 
   handle->layoutDescriptor = layoutDescriptor;
 
@@ -217,7 +226,17 @@ VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const &
   return handle.release();
 }
 
-void Destroy(VDSHandle *handle)
+VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const& axisDescriptors, std::vector<VolumeDataChannelDescriptor> const& channelDescriptors, MetadataContainer const& metadataContainer, Error& error)
+{
+  error = Error();
+  IOManager* ioManager = IOManager::createIOManager(options, error);
+  if (error.Code)
+    return nullptr;
+
+  return Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error);
+}
+
+void Close(VDSHandle *handle)
 {
   delete handle;
 }
