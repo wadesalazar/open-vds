@@ -30,7 +30,7 @@
 namespace OpenVDS
 {
 
-static DimensionsND dimensionsNDFromJson(Json::Value const &jsonDimensionsND)
+static DimensionsND DimensionsNDFromJson(Json::Value const &jsonDimensionsND)
 {
   std::string
     dimensionsNDString = jsonDimensionsND.asString();
@@ -179,7 +179,7 @@ static DimensionsND dimensionsNDFromJson(Json::Value const &jsonDimensionsND)
   throw Json::Exception("Illegal dimension group");
 }
 
-static enum VolumeDataLayoutDescriptor::BrickSize brickSizeFromJson(Json::Value const &jsonBrickSize)
+static enum VolumeDataLayoutDescriptor::BrickSize BrickSizeFromJson(Json::Value const &jsonBrickSize)
 {
   std::string brickSizeString = jsonBrickSize.asString();
 
@@ -219,7 +219,7 @@ static enum VolumeDataLayoutDescriptor::BrickSize brickSizeFromJson(Json::Value 
   throw Json::Exception("Illegal brick size");
 }
 
-static enum VolumeDataLayoutDescriptor::LODLevels lodLevelsFromJson(Json::Value const &jsonLODLevels)
+static enum VolumeDataLayoutDescriptor::LODLevels LodLevelsFromJson(Json::Value const &jsonLODLevels)
 {
   std::string lodLevelString = jsonLODLevels.asString();
 
@@ -278,7 +278,7 @@ static enum VolumeDataLayoutDescriptor::LODLevels lodLevelsFromJson(Json::Value 
   throw Json::Exception("Illegal LOD levels");
 }
 
-static VolumeDataChannelDescriptor::Format voxelFormatFromJson(Json::Value const &jsonVoxelFormat)
+static VolumeDataChannelDescriptor::Format VoxelFormatFromJson(Json::Value const &jsonVoxelFormat)
 {
   std::string voxelFormatString = jsonVoxelFormat.asString();
 
@@ -313,7 +313,7 @@ static VolumeDataChannelDescriptor::Format voxelFormatFromJson(Json::Value const
   throw Json::Exception("Illegal voxel format");
 }
 
-static VolumeDataChannelDescriptor::Components voxelComponentsFromJson(Json::Value const &jsonVoxelComponents)
+static VolumeDataChannelDescriptor::Components VoxelComponentsFromJson(Json::Value const &jsonVoxelComponents)
 {
   std::string voxelComponentsString = jsonVoxelComponents.asString();
 
@@ -332,7 +332,7 @@ static VolumeDataChannelDescriptor::Components voxelComponentsFromJson(Json::Val
   throw Json::Exception("Illegal voxel components");
 }
 
-static VolumeDataMapping channelMappingFromJson(Json::Value const &jsonChannelMapping)
+static VolumeDataMapping ChannelMappingFromJson(Json::Value const &jsonChannelMapping)
 {
   std::string channelMappingString = jsonChannelMapping.asString();
 
@@ -347,7 +347,7 @@ static VolumeDataMapping channelMappingFromJson(Json::Value const &jsonChannelMa
   throw Json::Exception("Illegal channel mapping");
 }
 
-static MetadataType metadataTypeFromJson(Json::Value const &jsonMetadataType)
+static MetadataType MetadataTypeFromJson(Json::Value const &jsonMetadataType)
 {
   std::string metadataTypeString = jsonMetadataType.asString();
 
@@ -411,7 +411,7 @@ static MetadataType metadataTypeFromJson(Json::Value const &jsonMetadataType)
   throw Json::Exception("Illegal metadata type");
 }
 
-bool parseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error)
+bool ParseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error)
 {
   try
   {
@@ -422,24 +422,24 @@ bool parseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Er
 
     std::unique_ptr<Json::CharReader> reader(rbuilder.newCharReader());
     const char *json_begin = reinterpret_cast<const char *>(json.data());
-    reader->parse(json_begin, json_begin + json.size(), &root, &error.string);
+    reader->parse(json_begin, json_begin + json.size(), &root, &error.String);
 
     return true;
   }
   catch(Json::Exception e)
   {
-    error.code = -1;
-    error.string = e.what() + std::string(" : ") + error.string;
+    error.Code = -1;
+    error.String = e.what() + std::string(" : ") + error.String;
   }
 
   return false;
 }
 
-bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
+bool ParseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
 {
   Json::Value root;
 
-  if (!parseJSONFromBuffer(json, root, error))
+  if (!ParseJSONFromBuffer(json, root, error))
   {
     return false;
   }
@@ -450,11 +450,11 @@ bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, 
   Json::Value
     layoutDescriptor = root["layoutDescriptor"];
 
-  handle.layoutDescriptor = VolumeDataLayoutDescriptor(brickSizeFromJson(layoutDescriptor["brickSize"]),
+  handle.LayoutDescriptor = VolumeDataLayoutDescriptor(BrickSizeFromJson(layoutDescriptor["brickSize"]),
                                                        layoutDescriptor["negativeMargin"].asInt(),
                                                        layoutDescriptor["positiveMargin"].asInt(),
                                                        layoutDescriptor["brickSize2DMultiplier"].asInt(),
-                                                       lodLevelsFromJson(layoutDescriptor["lodLevels"]),
+                                                       LodLevelsFromJson(layoutDescriptor["lodLevels"]),
                                                        (layoutDescriptor["create2DLODs"].asBool() ? VolumeDataLayoutDescriptor::Options_Create2DLODs : VolumeDataLayoutDescriptor::Options_None) |
                                                        (layoutDescriptor["forceFullResolutionDimension"].asBool() ? VolumeDataLayoutDescriptor::Options_ForceFullResolutionDimension : VolumeDataLayoutDescriptor::Options_None),
                                                        layoutDescriptor["fullResolutionDimension"].asInt());
@@ -463,26 +463,26 @@ bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, 
   {
     VolumeDataAxisDescriptor
       volumeDataAxisDescriptor(axisDescriptor["numSamples"].asInt(),
-                               addDescriptorString(axisDescriptor["name"].asString(), handle),
-                               addDescriptorString(axisDescriptor["unit"].asString(), handle),
+                               AddDescriptorString(axisDescriptor["name"].asString(), handle),
+                               AddDescriptorString(axisDescriptor["unit"].asString(), handle),
                                axisDescriptor["coordinateMin"].asFloat(),
                                axisDescriptor["coordinateMax"].asFloat());
 
-    handle.axisDescriptors.push_back(volumeDataAxisDescriptor);
+    handle.AxisDescriptors.push_back(volumeDataAxisDescriptor);
   }
 
   for (const Json::Value &channelDescriptor : root["channelDescriptors"])
   {
     if (channelDescriptor["useNoValue"].asBool())
     {
-      handle.channelDescriptors.push_back(VolumeDataChannelDescriptor(
-        voxelFormatFromJson(channelDescriptor["format"]),
-        voxelComponentsFromJson(channelDescriptor["components"]),
-        addDescriptorString(channelDescriptor["name"].asString(), handle),
-        addDescriptorString(channelDescriptor["unit"].asString(), handle),
+      handle.ChannelDescriptors.push_back(VolumeDataChannelDescriptor(
+        VoxelFormatFromJson(channelDescriptor["format"]),
+        VoxelComponentsFromJson(channelDescriptor["components"]),
+        AddDescriptorString(channelDescriptor["name"].asString(), handle),
+        AddDescriptorString(channelDescriptor["unit"].asString(), handle),
         channelDescriptor["valueRange"][0].asFloat(),
         channelDescriptor["valueRange"][1].asFloat(),
-        channelMappingFromJson(channelDescriptor["channelMapping"]),
+        ChannelMappingFromJson(channelDescriptor["channelMapping"]),
         channelDescriptor["mappedValues"].asInt(),
         (channelDescriptor["discrete"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default) |
         (channelDescriptor["renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable) |
@@ -493,14 +493,14 @@ bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, 
     }
     else
     {
-      handle.channelDescriptors.push_back(VolumeDataChannelDescriptor(
-        voxelFormatFromJson(channelDescriptor["format"]),
-        voxelComponentsFromJson(channelDescriptor["components"]),
-        addDescriptorString(channelDescriptor["name"].asString(), handle),
-        addDescriptorString(channelDescriptor["unit"].asString(), handle),
+      handle.ChannelDescriptors.push_back(VolumeDataChannelDescriptor(
+        VoxelFormatFromJson(channelDescriptor["format"]),
+        VoxelComponentsFromJson(channelDescriptor["components"]),
+        AddDescriptorString(channelDescriptor["name"].asString(), handle),
+        AddDescriptorString(channelDescriptor["unit"].asString(), handle),
         channelDescriptor["valueRange"][0].asFloat(),
         channelDescriptor["valueRange"][1].asFloat(),
-        channelMappingFromJson(channelDescriptor["channelMapping"]),
+        ChannelMappingFromJson(channelDescriptor["channelMapping"]),
         channelDescriptor["mappedValues"].asInt(),
         (channelDescriptor["discrete"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default) |
         (channelDescriptor["renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable) |
@@ -512,61 +512,61 @@ bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, 
 
   for (const Json::Value &metadata : root["metadata"])
   {
-    MetadataKey key = { metadataTypeFromJson(metadata["type"]), metadata["category"].asString(), metadata["name"].asString() };
+    MetadataKey key = { MetadataTypeFromJson(metadata["type"]), metadata["category"].asString(), metadata["name"].asString() };
 
-    handle.metadataContainer.keys.push_back(key);
+    handle.MetadataContainer.keys.push_back(key);
 
     if (metadata["type"].asString() == "Int")
     {
-      handle.metadataContainer.intData[key] = metadata["value"].asInt();
+      handle.MetadataContainer.intData[key] = metadata["value"].asInt();
     }
     else if (metadata["type"].asString() == "IntVector2")
     {
-      handle.metadataContainer.intVector2Data[key] = { metadata["value"][0].asInt(), metadata["value"][1].asInt()};
+      handle.MetadataContainer.intVector2Data[key] = { metadata["value"][0].asInt(), metadata["value"][1].asInt()};
     }
     else if (metadata["type"].asString() == "IntVector3")
     {
-      handle.metadataContainer.intVector3Data[key]  = { metadata["value"][0].asInt(), metadata["value"][1].asInt(), metadata["value"][2].asInt() };
+      handle.MetadataContainer.intVector3Data[key]  = { metadata["value"][0].asInt(), metadata["value"][1].asInt(), metadata["value"][2].asInt() };
     }
     else if (metadata["type"].asString() == "IntVector4")
     {
-      handle.metadataContainer.intVector4Data[key] = { metadata["value"][0].asInt(), metadata["value"][1].asInt(), metadata["value"][2].asInt(), metadata["value"][3].asInt() };
+      handle.MetadataContainer.intVector4Data[key] = { metadata["value"][0].asInt(), metadata["value"][1].asInt(), metadata["value"][2].asInt(), metadata["value"][3].asInt() };
     }
     else if (metadata["type"].asString() == "Float")
     {
-      handle.metadataContainer.floatData[key] = metadata["value"].asFloat();
+      handle.MetadataContainer.floatData[key] = metadata["value"].asFloat();
     }
     else if (metadata["type"].asString() == "FloatVector2")
     {
-      handle.metadataContainer.floatVector2Data[key] = { metadata["value"][0].asFloat(), metadata["value"][1].asFloat() };
+      handle.MetadataContainer.floatVector2Data[key] = { metadata["value"][0].asFloat(), metadata["value"][1].asFloat() };
     }
     else if (metadata["type"].asString() == "FloatVector3")
     {
-      handle.metadataContainer.floatVector3Data[key] = { metadata["value"][0].asFloat(), metadata["value"][1].asFloat(), metadata["value"][2].asFloat() };
+      handle.MetadataContainer.floatVector3Data[key] = { metadata["value"][0].asFloat(), metadata["value"][1].asFloat(), metadata["value"][2].asFloat() };
     }
     else if (metadata["type"].asString() == "FloatVector4")
     {
-      handle.metadataContainer.floatVector4Data[key] = { metadata["value"][0].asFloat(), metadata["value"][1].asFloat(), metadata["value"][2].asFloat(), metadata["value"][3].asFloat() };
+      handle.MetadataContainer.floatVector4Data[key] = { metadata["value"][0].asFloat(), metadata["value"][1].asFloat(), metadata["value"][2].asFloat(), metadata["value"][3].asFloat() };
     }
     else if (metadata["type"].asString() == "Double")
     {
-      handle.metadataContainer.doubleData[key] = metadata["value"].asDouble();
+      handle.MetadataContainer.doubleData[key] = metadata["value"].asDouble();
     }
     else if (metadata["type"].asString() == "DoubleVector2")
     {
-      handle.metadataContainer.doubleVector2Data[key] = { metadata["value"][0].asDouble(), metadata["value"][1].asDouble() };
+      handle.MetadataContainer.doubleVector2Data[key] = { metadata["value"][0].asDouble(), metadata["value"][1].asDouble() };
     }
     else if (metadata["type"].asString() == "DoubleVector3")
     {
-      handle.metadataContainer.doubleVector3Data[key] = { metadata["value"][0].asDouble(), metadata["value"][1].asDouble(), metadata["value"][2].asDouble() };
+      handle.MetadataContainer.doubleVector3Data[key] = { metadata["value"][0].asDouble(), metadata["value"][1].asDouble(), metadata["value"][2].asDouble() };
     }
     else if (metadata["type"].asString() == "DoubleVector4")
     {
-      handle.metadataContainer.doubleVector4Data[key] = { metadata["value"][0].asDouble(), metadata["value"][1].asDouble(), metadata["value"][2].asDouble(), metadata["value"][3].asDouble() };
+      handle.MetadataContainer.doubleVector4Data[key] = { metadata["value"][0].asDouble(), metadata["value"][1].asDouble(), metadata["value"][2].asDouble(), metadata["value"][3].asDouble() };
     }
     else if (metadata["type"].asString() == "String")
     {
-      handle.metadataContainer.stringData[key] = metadata["value"].asString();
+      handle.MetadataContainer.stringData[key] = metadata["value"].asString();
     }
     else if (metadata["type"].asString() == "BLOB")
     {
@@ -574,7 +574,7 @@ bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, 
 
       int len = (int)strlen(value);
 
-      std::vector<uint8_t> &data = handle.metadataContainer.blobData[key];
+      std::vector<uint8_t> &data = handle.MetadataContainer.blobData[key];
       data.clear();
 
       bool success = Base64Decode(value, len, data);
@@ -590,7 +590,7 @@ bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, 
   return true;
 }
 
-static VolumeDataLayer::ProduceStatus produceStatusFromJson(Json::Value const &jsonProduceStatus)
+static VolumeDataLayer::ProduceStatus ProduceStatusFromJson(Json::Value const &jsonProduceStatus)
 {
   std::string produceStatusString = jsonProduceStatus.asString();
 
@@ -610,7 +610,7 @@ static VolumeDataLayer::ProduceStatus produceStatusFromJson(Json::Value const &j
   throw Json::Exception("Illegal produce status");
 }
 
-static CompressionMethod compressionMethodFromJson(Json::Value const &jsonCompressionMethod)
+static CompressionMethod CompressionMethodFromJson(Json::Value const &jsonCompressionMethod)
 {
   std::string compressionMethodString = jsonCompressionMethod.asString();
 
@@ -660,7 +660,7 @@ static MetadataStatus MetadataStatusFromJSON(Json::Value const &metadataStatusJs
   metadataStatus.m_chunkIndexCount       = metadataStatusJson["chunkCount"].asInt();
   metadataStatus.m_chunkMetadataPageSize = metadataStatusJson["chunkMetadataPageSize"].asInt();
   metadataStatus.m_chunkMetadataByteSize = metadataStatusJson["chunkMetadataByteSize"].asInt();
-  metadataStatus.m_compressionMethod     = compressionMethodFromJson(metadataStatusJson["compressionMethod"]);
+  metadataStatus.m_compressionMethod     = CompressionMethodFromJson(metadataStatusJson["compressionMethod"]);
   metadataStatus.m_compressionTolerance  = metadataStatusJson["compressionTolerance"].asFloat();
 
   metadataStatus.m_uncompressedSize = metadataStatusJson["uncompressedSize"].asInt64();
@@ -679,13 +679,13 @@ static MetadataStatus MetadataStatusFromJSON(Json::Value const &metadataStatusJs
   return metadataStatus;
 }
 
-bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
+bool ParseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error)
 {
-  handle.produceStatuses.clear();
-  handle.produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
+  handle.ProduceStatuses.clear();
+  handle.ProduceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
 
   Json::Value root;
-  if (!parseJSONFromBuffer(json, root, error))
+  if (!ParseJSONFromBuffer(json, root, error))
   {
     return false;
   }
@@ -701,17 +701,17 @@ bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error
         hasChunkMetadataPages = layerStatus["hasChunkMetadataPages"].asBool();
 
       VolumeDataLayer::ProduceStatus
-        produceStatus = produceStatusFromJson(layerStatus["produceStatus"]);
+        produceStatus = ProduceStatusFromJson(layerStatus["produceStatus"]);
 
       DimensionsND
-        dimensionsND = dimensionsNDFromJson(layerStatus["dimensionGroup"]);
+        dimensionsND = DimensionsNDFromJson(layerStatus["dimensionGroup"]);
 
       int
         lod = layerStatus["lod"].asInt();
 
-      if (lod == 0 && handle.produceStatuses[dimensionsND] == VolumeDataLayer::ProduceStatus_Unavailable)
+      if (lod == 0 && handle.ProduceStatuses[dimensionsND] == VolumeDataLayer::ProduceStatus_Unavailable)
       {
-        handle.produceStatuses[dimensionsND] = produceStatus;
+        handle.ProduceStatuses[dimensionsND] = produceStatus;
       }
 
       MetadataStatus
@@ -720,7 +720,7 @@ bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error
       metadataStatus.m_chunkIndexCount = layerStatus["chunkCount"].asInt();
       metadataStatus.m_chunkMetadataPageSize = layerStatus["chunkMetadataPageSize"].asInt();
       metadataStatus.m_chunkMetadataByteSize = layerStatus["chunkMetadataByteSize"].asInt();
-      metadataStatus.m_compressionMethod = compressionMethodFromJson(layerStatus["compressionMethod"]);
+      metadataStatus.m_compressionMethod = CompressionMethodFromJson(layerStatus["compressionMethod"]);
       metadataStatus.m_compressionTolerance = layerStatus["compressionTolerance"].asFloat();
       metadataStatus.m_uncompressedSize = layerStatus["uncompressedSize"].asInt64();
 
@@ -740,42 +740,42 @@ bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error
 
       if (hasChunkMetadataPages)
       {
-        std::unique_lock<std::mutex> metadataManagersMutexLock(handle.layerMetadataContainer.mutex);
-        auto &managers = handle.layerMetadataContainer.managers;
+        std::unique_lock<std::mutex> metadataManagersMutexLock(handle.LayerMetadataContainer.mutex);
+        auto &managers = handle.LayerMetadataContainer.managers;
 
-        if (managers.find(layerName) == handle.layerMetadataContainer.managers.end())
+        if (managers.find(layerName) == handle.LayerMetadataContainer.managers.end())
         {
-          int pageLimit = handle.axisDescriptors.size() <= 3 ? 64 : 1024;
+          int pageLimit = handle.AxisDescriptors.size() <= 3 ? 64 : 1024;
 
-          handle.layerMetadataContainer.managers.insert(std::make_pair(layerName, std::unique_ptr<MetadataManager>(new MetadataManager(handle.ioManager.get(), layerName, metadataStatus, pageLimit))));
+          handle.LayerMetadataContainer.managers.insert(std::make_pair(layerName, std::unique_ptr<MetadataManager>(new MetadataManager(handle.IoManager.get(), layerName, metadataStatus, pageLimit))));
         }
       }
     }
   }
   catch(Json::Exception e)
   {
-    error.string = e.what();
-    error.code = -1;
+    error.String = e.what();
+    error.Code = -1;
     return false;
   }
 
   return true;
 }
 
-Json::Value serializeAxisDescriptor(VolumeDataAxisDescriptor const &axisDescriptor)
+Json::Value SerializeAxisDescriptor(VolumeDataAxisDescriptor const &axisDescriptor)
 {
   Json::Value axisDescriptorJson;
 
-  axisDescriptorJson["numSamples"] = axisDescriptor.getNumSamples();
-  axisDescriptorJson["name"] = axisDescriptor.getName();
-  axisDescriptorJson["unit"] = axisDescriptor.getUnit();
-  axisDescriptorJson["coordinateMin"] = axisDescriptor.getCoordinateMin();
-  axisDescriptorJson["coordinateMax"] = axisDescriptor.getCoordinateMax();
+  axisDescriptorJson["numSamples"] = axisDescriptor.GetNumSamples();
+  axisDescriptorJson["name"] = axisDescriptor.GetName();
+  axisDescriptorJson["unit"] = axisDescriptor.GetUnit();
+  axisDescriptorJson["coordinateMin"] = axisDescriptor.GetCoordinateMin();
+  axisDescriptorJson["coordinateMax"] = axisDescriptor.GetCoordinateMax();
 
   return axisDescriptorJson;
 }
 
-std::string to_string(VolumeDataChannelDescriptor::Format format)
+std::string ToString(VolumeDataChannelDescriptor::Format format)
 {
   switch(format)
   {
@@ -791,7 +791,7 @@ std::string to_string(VolumeDataChannelDescriptor::Format format)
   };
 }
 
-std::string to_string(VolumeDataChannelDescriptor::Components components)
+std::string ToString(VolumeDataChannelDescriptor::Components components)
 {
   switch(components)
   {
@@ -803,7 +803,7 @@ std::string to_string(VolumeDataChannelDescriptor::Components components)
   };
 }
 
-std::string to_string(VolumeDataMapping mapping)
+std::string ToString(VolumeDataMapping mapping)
 {
   switch(mapping)
   {
@@ -814,35 +814,35 @@ std::string to_string(VolumeDataMapping mapping)
   };
 }
 
-Json::Value serializeChannelDescriptor(VolumeDataChannelDescriptor const &channelDescriptor)
+Json::Value SerializeChannelDescriptor(VolumeDataChannelDescriptor const &channelDescriptor)
 {
   Json::Value valueRangeJson(Json::arrayValue);
 
-  valueRangeJson.append(channelDescriptor.getValueRangeMin());
-  valueRangeJson.append(channelDescriptor.getValueRangeMax());
+  valueRangeJson.append(channelDescriptor.GetValueRangeMin());
+  valueRangeJson.append(channelDescriptor.GetValueRangeMax());
 
   Json::Value channelDescriptorJson;
 
-  channelDescriptorJson["format"] = to_string(channelDescriptor.getFormat());
-  channelDescriptorJson["components"] = to_string(channelDescriptor.getComponents());
-  channelDescriptorJson["name"] = channelDescriptor.getName();
-  channelDescriptorJson["unit"] = channelDescriptor.getUnit();
+  channelDescriptorJson["format"] = ToString(channelDescriptor.GetFormat());
+  channelDescriptorJson["components"] = ToString(channelDescriptor.GetComponents());
+  channelDescriptorJson["name"] = channelDescriptor.GetName();
+  channelDescriptorJson["unit"] = channelDescriptor.GetUnit();
   channelDescriptorJson["valueRange"] = valueRangeJson;
-  channelDescriptorJson["channelMapping"] = to_string(channelDescriptor.getMapping());
-  channelDescriptorJson["mappedValues"] = channelDescriptor.getMappedValueCount();
-  channelDescriptorJson["discrete"] = channelDescriptor.isDiscrete();
-  channelDescriptorJson["renderable"] = channelDescriptor.isRenderable();
-  channelDescriptorJson["allowLossyCompression"] = channelDescriptor.isAllowLossyCompression();
-  channelDescriptorJson["useNoValue"] = channelDescriptor.isUseNoValue();
-  channelDescriptorJson["noValue"] = channelDescriptor.getNoValue();
-  channelDescriptorJson["integerScale"] = channelDescriptor.getIntegerScale();
-  channelDescriptorJson["integerOffset"] = channelDescriptor.getIntegerOffset();
+  channelDescriptorJson["channelMapping"] = ToString(channelDescriptor.GetMapping());
+  channelDescriptorJson["mappedValues"] = channelDescriptor.GetMappedValueCount();
+  channelDescriptorJson["discrete"] = channelDescriptor.IsDiscrete();
+  channelDescriptorJson["renderable"] = channelDescriptor.IsRenderable();
+  channelDescriptorJson["allowLossyCompression"] = channelDescriptor.IsAllowLossyCompression();
+  channelDescriptorJson["useNoValue"] = channelDescriptor.IsUseNoValue();
+  channelDescriptorJson["noValue"] = channelDescriptor.GetNoValue();
+  channelDescriptorJson["integerScale"] = channelDescriptor.GetIntegerScale();
+  channelDescriptorJson["integerOffset"] = channelDescriptor.GetIntegerOffset();
 
   return channelDescriptorJson;
 }
 
 template<typename T>
-Json::Value serializeVector(T const &vector)
+Json::Value SerializeVector(T const &vector)
 {
   static_assert(T::element_count > 1 && T::element_count <= 4, "Only vectors with 2, 3 or 4 elements are supported");
 
@@ -860,7 +860,7 @@ Json::Value serializeVector(T const &vector)
   return vectorJson;
 }
 
-Json::Value serializeBLOB(std::vector<uint8_t> const &blob)
+Json::Value SerializeBLOB(std::vector<uint8_t> const &blob)
 {
   std::vector<char> base64;
   Base64Encode(blob.data(), blob.size(), base64);
@@ -868,7 +868,7 @@ Json::Value serializeBLOB(std::vector<uint8_t> const &blob)
   return Json::Value(&base64[0], &base64[0] + base64.size());
 }
 
-Json::Value serializeMetadata(MetadataContainer const &metadataContainer)
+Json::Value SerializeMetadata(MetadataContainer const &metadataContainer)
 {
   Json::Value
     metadataJsonArray(Json::arrayValue);
@@ -883,23 +883,23 @@ Json::Value serializeMetadata(MetadataContainer const &metadataContainer)
     switch(metadataKey.type)
     {
     case MetadataType::Int:        metadataJson["type"] = "Int";        metadataJson["value"] = Json::Value(metadataContainer.intData.at(metadataKey)); break;
-    case MetadataType::IntVector2: metadataJson["type"] = "IntVector2"; metadataJson["value"] = serializeVector(metadataContainer.intVector2Data.at(metadataKey)); break;
-    case MetadataType::IntVector3: metadataJson["type"] = "IntVector3"; metadataJson["value"] = serializeVector(metadataContainer.intVector3Data.at(metadataKey)); break;
-    case MetadataType::IntVector4: metadataJson["type"] = "IntVector4"; metadataJson["value"] = serializeVector(metadataContainer.intVector4Data.at(metadataKey)); break;
+    case MetadataType::IntVector2: metadataJson["type"] = "IntVector2"; metadataJson["value"] = SerializeVector(metadataContainer.intVector2Data.at(metadataKey)); break;
+    case MetadataType::IntVector3: metadataJson["type"] = "IntVector3"; metadataJson["value"] = SerializeVector(metadataContainer.intVector3Data.at(metadataKey)); break;
+    case MetadataType::IntVector4: metadataJson["type"] = "IntVector4"; metadataJson["value"] = SerializeVector(metadataContainer.intVector4Data.at(metadataKey)); break;
 
     case MetadataType::Float:        metadataJson["type"] = "Float";        metadataJson["value"] = Json::Value(metadataContainer.floatData.at(metadataKey)); break;
-    case MetadataType::FloatVector2: metadataJson["type"] = "FloatVector2"; metadataJson["value"] = serializeVector(metadataContainer.floatVector2Data.at(metadataKey)); break;
-    case MetadataType::FloatVector3: metadataJson["type"] = "FloatVector3"; metadataJson["value"] = serializeVector(metadataContainer.floatVector3Data.at(metadataKey)); break;
-    case MetadataType::FloatVector4: metadataJson["type"] = "FloatVector4"; metadataJson["value"] = serializeVector(metadataContainer.floatVector4Data.at(metadataKey)); break;
+    case MetadataType::FloatVector2: metadataJson["type"] = "FloatVector2"; metadataJson["value"] = SerializeVector(metadataContainer.floatVector2Data.at(metadataKey)); break;
+    case MetadataType::FloatVector3: metadataJson["type"] = "FloatVector3"; metadataJson["value"] = SerializeVector(metadataContainer.floatVector3Data.at(metadataKey)); break;
+    case MetadataType::FloatVector4: metadataJson["type"] = "FloatVector4"; metadataJson["value"] = SerializeVector(metadataContainer.floatVector4Data.at(metadataKey)); break;
 
     case MetadataType::Double:        metadataJson["type"] = "Double";        metadataJson["value"] = Json::Value(metadataContainer.doubleData.at(metadataKey)); break;
-    case MetadataType::DoubleVector2: metadataJson["type"] = "DoubleVector2"; metadataJson["value"] = serializeVector(metadataContainer.doubleVector2Data.at(metadataKey)); break;
-    case MetadataType::DoubleVector3: metadataJson["type"] = "DoubleVector3"; metadataJson["value"] = serializeVector(metadataContainer.doubleVector3Data.at(metadataKey)); break;
-    case MetadataType::DoubleVector4: metadataJson["type"] = "DoubleVector4"; metadataJson["value"] = serializeVector(metadataContainer.doubleVector4Data.at(metadataKey)); break;
+    case MetadataType::DoubleVector2: metadataJson["type"] = "DoubleVector2"; metadataJson["value"] = SerializeVector(metadataContainer.doubleVector2Data.at(metadataKey)); break;
+    case MetadataType::DoubleVector3: metadataJson["type"] = "DoubleVector3"; metadataJson["value"] = SerializeVector(metadataContainer.doubleVector3Data.at(metadataKey)); break;
+    case MetadataType::DoubleVector4: metadataJson["type"] = "DoubleVector4"; metadataJson["value"] = SerializeVector(metadataContainer.doubleVector4Data.at(metadataKey)); break;
 
     case MetadataType::String: metadataJson["type"] = "String"; metadataJson["value"] = Json::Value(metadataContainer.stringData.at(metadataKey)); break;
 
-    case MetadataType::BLOB: metadataJson["type"] = "BLOB"; metadataJson["value"] = serializeBLOB(metadataContainer.blobData.at(metadataKey)); break;
+    case MetadataType::BLOB: metadataJson["type"] = "BLOB"; metadataJson["value"] = SerializeBLOB(metadataContainer.blobData.at(metadataKey)); break;
     }
 
     metadataJsonArray.append(metadataJson);
@@ -908,7 +908,7 @@ Json::Value serializeMetadata(MetadataContainer const &metadataContainer)
   return metadataJsonArray;
 }
 
-std::string to_string(VolumeDataLayoutDescriptor::BrickSize brickSize)
+std::string ToString(VolumeDataLayoutDescriptor::BrickSize brickSize)
 {
   switch(brickSize)
   {
@@ -925,7 +925,7 @@ std::string to_string(VolumeDataLayoutDescriptor::BrickSize brickSize)
   };
 }
 
-std::string to_string(VolumeDataLayoutDescriptor::LODLevels lodLevels)
+std::string ToString(VolumeDataLayoutDescriptor::LODLevels lodLevels)
 {
   switch(lodLevels)
   {
@@ -947,7 +947,7 @@ std::string to_string(VolumeDataLayoutDescriptor::LODLevels lodLevels)
   };
 }
 
-std::string to_string(VolumeDataLayer::ProduceStatus produceStatus)
+std::string ToString(VolumeDataLayer::ProduceStatus produceStatus)
 {
   switch(produceStatus)
   {
@@ -959,7 +959,7 @@ std::string to_string(VolumeDataLayer::ProduceStatus produceStatus)
   };
 }
 
-std::string to_string(CompressionMethod compressionMethod)
+std::string ToString(CompressionMethod compressionMethod)
 {
   switch(compressionMethod)
   {
@@ -975,72 +975,72 @@ std::string to_string(CompressionMethod compressionMethod)
   };
 }
 
-Json::Value serializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayout, MetadataContainer const &metadataContainer)
+Json::Value SerializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayout, MetadataContainer const &metadataContainer)
 {
   Json::Value root;
 
   VolumeDataLayoutDescriptor
-    layoutDescriptor = volumeDataLayout.getLayoutDescriptor();
+    layoutDescriptor = volumeDataLayout.GetLayoutDescriptor();
 
   Json::Value layoutDescriptorJson;
 
-  layoutDescriptorJson["brickSize"] = to_string(layoutDescriptor.getBrickSize());
-  layoutDescriptorJson["negativeMargin"] = layoutDescriptor.getNegativeMargin();
-  layoutDescriptorJson["positiveMargin"] = layoutDescriptor.getPositiveMargin();
-  layoutDescriptorJson["brickSize2DMultiplier"] = layoutDescriptor.getBrickSizeMultiplier2D();
-  layoutDescriptorJson["lodLevels"] = to_string(layoutDescriptor.getLODLevels());
-  layoutDescriptorJson["create2DLODs"] = layoutDescriptor.isCreate2DLODs();
-  layoutDescriptorJson["forceFullResolutionDimension"] = layoutDescriptor.isForceFullResolutionDimension();
-  layoutDescriptorJson["fullResolutionDimension"] = layoutDescriptor.getFullResolutionDimension();
+  layoutDescriptorJson["brickSize"] = ToString(layoutDescriptor.GetBrickSize());
+  layoutDescriptorJson["negativeMargin"] = layoutDescriptor.GetNegativeMargin();
+  layoutDescriptorJson["positiveMargin"] = layoutDescriptor.GetPositiveMargin();
+  layoutDescriptorJson["brickSize2DMultiplier"] = layoutDescriptor.GetBrickSizeMultiplier2D();
+  layoutDescriptorJson["lodLevels"] = ToString(layoutDescriptor.GetLODLevels());
+  layoutDescriptorJson["create2DLODs"] = layoutDescriptor.IsCreate2DLODs();
+  layoutDescriptorJson["forceFullResolutionDimension"] = layoutDescriptor.IsForceFullResolutionDimension();
+  layoutDescriptorJson["fullResolutionDimension"] = layoutDescriptor.GetFullResolutionDimension();
 
   root["layoutDescriptor"] = layoutDescriptorJson;
 
   Json::Value axisDescriptorsJson(Json::arrayValue);
 
-  for(int dimension = 0, dimensionality = volumeDataLayout.getDimensionality(); dimension < dimensionality; dimension++)
+  for(int dimension = 0, dimensionality = volumeDataLayout.GetDimensionality(); dimension < dimensionality; dimension++)
   {
-    axisDescriptorsJson.append(serializeAxisDescriptor(volumeDataLayout.getAxisDescriptor(dimension)));
+    axisDescriptorsJson.append(SerializeAxisDescriptor(volumeDataLayout.GetAxisDescriptor(dimension)));
   }
 
   root["axisDescriptors"] = axisDescriptorsJson;
 
   Json::Value channelDescriptorsJson(Json::arrayValue);
 
-  for(int channel = 0, channelCount = volumeDataLayout.getChannelCount(); channel < channelCount; channel++)
+  for(int channel = 0, channelCount = volumeDataLayout.GetChannelCount(); channel < channelCount; channel++)
   {
-    channelDescriptorsJson.append(serializeChannelDescriptor(volumeDataLayout.getChannelDescriptor(channel)));
+    channelDescriptorsJson.append(SerializeChannelDescriptor(volumeDataLayout.GetChannelDescriptor(channel)));
   }
 
   root["channelDescriptors"] = channelDescriptorsJson;
 
-  root["metadata"] = serializeMetadata(metadataContainer);
+  root["metadata"] = SerializeMetadata(metadataContainer);
 
   return root;
 }
 
-Json::Value serializeLayerStatus(VolumeDataLayer const &volumeDataLayer, std::string const &layerName)
+Json::Value SerializeLayerStatus(VolumeDataLayer const &volumeDataLayer, std::string const &layerName)
 {
   Json::Value layerStatusJson;
 
   layerStatusJson["layerName"] = layerName;
-  layerStatusJson["channelName"] = volumeDataLayer.getVolumeDataChannelDescriptor().getName();
-  layerStatusJson["dimensionGroup"] = DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getPrimaryChannelLayer().getChunkDimensionGroup());
-  layerStatusJson["lod"] = volumeDataLayer.getLOD();
-  layerStatusJson["produceStatus"] = to_string(volumeDataLayer.getProduceStatus());
-  layerStatusJson["compressionMethod"] = to_string(volumeDataLayer.getEffectiveCompressionMethod());
-  layerStatusJson["compressionTolerance"] = volumeDataLayer.getEffectiveCompressionTolerance();
+  layerStatusJson["channelName"] = volumeDataLayer.GetVolumeDataChannelDescriptor().GetName();
+  layerStatusJson["dimensionGroup"] = DimensionGroupUtil::GetDimensionGroupName(volumeDataLayer.GetPrimaryChannelLayer().GetChunkDimensionGroup());
+  layerStatusJson["lod"] = volumeDataLayer.GetLOD();
+  layerStatusJson["produceStatus"] = ToString(volumeDataLayer.GetProduceStatus());
+  layerStatusJson["compressionMethod"] = ToString(volumeDataLayer.GetEffectiveCompressionMethod());
+  layerStatusJson["compressionTolerance"] = volumeDataLayer.GetEffectiveCompressionTolerance();
 
   return layerStatusJson;
 }
 
-Json::Value serializeMetadataStatus(MetadataStatus const &metadataStatus)
+Json::Value SerializeMetadataStatus(MetadataStatus const &metadataStatus)
 {
   Json::Value metadataStatusJson;
 
   metadataStatusJson["chunkCount"]            = metadataStatus.m_chunkIndexCount;
   metadataStatusJson["chunkMetadataPageSize"] = metadataStatus.m_chunkMetadataPageSize;
   metadataStatusJson["chunkMetadataByteSize"] = metadataStatus.m_chunkMetadataByteSize;
-  metadataStatusJson["compressionMethod"]     = to_string(metadataStatus.m_compressionMethod);
+  metadataStatusJson["compressionMethod"]     = ToString(metadataStatus.m_compressionMethod);
   metadataStatusJson["compressionTolerance"]  = metadataStatus.m_compressionTolerance;
   metadataStatusJson["uncompressedSize"] = metadataStatus.m_uncompressedSize;
 
@@ -1057,19 +1057,19 @@ Json::Value serializeMetadataStatus(MetadataStatus const &metadataStatus)
   return metadataStatusJson;
 }
 
-Json::Value serializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayout, LayerMetadataContainer const &layerMetadataContainer)
+Json::Value SerializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayout, LayerMetadataContainer const &layerMetadataContainer)
 {
   Json::Value layerStatusArrayJson(Json::arrayValue);
 
   for(int dimensionGroupIndex = 0; dimensionGroupIndex < DimensionGroup_3D_Max; dimensionGroupIndex++)
   {
     DimensionGroup dimensionGroup = (DimensionGroup)dimensionGroupIndex;
-    std::string dimensionGroupName = DimensionGroupUtil::getDimensionGroupName(dimensionGroup);
+    std::string dimensionGroupName = DimensionGroupUtil::GetDimensionGroupName(dimensionGroup);
 
-    int chunkDimensionality = DimensionGroupUtil::getDimensionality(dimensionGroup);
+    int chunkDimensionality = DimensionGroupUtil::GetDimensionality(dimensionGroup);
 
     // Check if highest dimension in chunk is higher than the highest dimension in the dataset or 1D
-    if(DimensionGroupUtil::getDimension(dimensionGroup, chunkDimensionality - 1) >= volumeDataLayout.getDimensionality() ||
+    if(DimensionGroupUtil::GetDimension(dimensionGroup, chunkDimensionality - 1) >= volumeDataLayout.GetDimensionality() ||
        chunkDimensionality == 1)
     {
       continue;
@@ -1077,17 +1077,17 @@ Json::Value serializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayo
 
     assert(chunkDimensionality == 2 || chunkDimensionality == 3);
 
-    for(int channel = 0; channel < volumeDataLayout.getChannelCount(); channel++)
+    for(int channel = 0; channel < volumeDataLayout.GetChannelCount(); channel++)
     {
-      for(VolumeDataLayer *volumeDataLayer = volumeDataLayout.getBaseLayer(dimensionGroup, channel); volumeDataLayer && volumeDataLayer->getLayerType() != VolumeDataLayer::Virtual; volumeDataLayer = volumeDataLayer->getParentLayer())
+      for(VolumeDataLayer *volumeDataLayer = volumeDataLayout.GetBaseLayer(dimensionGroup, channel); volumeDataLayer && volumeDataLayer->GetLayerType() != VolumeDataLayer::Virtual; volumeDataLayer = volumeDataLayer->GetParentLayer())
       {
-        if(volumeDataLayer->getProduceStatus() != VolumeDataLayer::ProduceStatus_Unavailable)
+        if(volumeDataLayer->GetProduceStatus() != VolumeDataLayer::ProduceStatus_Unavailable)
         {
-          std::string layerName = getLayerName(*volumeDataLayer);
-          Json::Value layerStatusJson = serializeLayerStatus(*volumeDataLayer, layerName);
-          if(MetadataManager *metadataManager = findMetadataManager(layerMetadataContainer, layerName))
+          std::string layerName = GetLayerName(*volumeDataLayer);
+          Json::Value layerStatusJson = SerializeLayerStatus(*volumeDataLayer, layerName);
+          if(MetadataManager *metadataManager = FindMetadataManager(layerMetadataContainer, layerName))
           {
-            Json::Value metadataStatusJson = serializeMetadataStatus(metadataManager->metadataStatus());
+            Json::Value metadataStatusJson = SerializeMetadataStatus(metadataManager->GetMetadataStatus());
 
             for (const auto& key : metadataStatusJson.getMemberNames())
             {
@@ -1106,7 +1106,7 @@ Json::Value serializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayo
 }
 
 std::vector<uint8_t>
-writeJson(Json::Value root)
+WriteJson(Json::Value root)
 {
   std::vector<uint8_t>
     result;
@@ -1131,11 +1131,11 @@ writeJson(Json::Value root)
 class SyncTransferHandler : public TransferDownloadHandler
 {
 public:
-    void handleData(std::vector<uint8_t> &&data) override
+    void HandleData(std::vector<uint8_t> &&data) override
     {
       *(this->data) = data;
     }
-    void completed(const Request &request, const Error &error) override
+    void Completed(const Request &request, const Error &error) override
     {
       *(this->error) = error;
     }
@@ -1144,76 +1144,76 @@ public:
   Error *error;
 };
 
-bool downloadAndParseVolumeDataLayoutAndLayerStatus(VDSHandle& handle, Error& error)
+bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDSHandle& handle, Error& error)
 {
   std::vector<uint8_t> volumedatalayout_json;
   std::shared_ptr<SyncTransferHandler> syncTransferHandler = std::make_shared<SyncTransferHandler>();
   syncTransferHandler->error = &error;
   syncTransferHandler->data = &volumedatalayout_json;
-  auto request = handle.ioManager->download("VolumeDataLayout", syncTransferHandler);
-  request->waitForFinish();
-  if (!request->isSuccess(error) || volumedatalayout_json.empty())
+  auto request = handle.IoManager->Download("VolumeDataLayout", syncTransferHandler);
+  request->WaitForFinish();
+  if (!request->IsSuccess(error) || volumedatalayout_json.empty())
   {
-    error.string = "S3 Error on downloading VolumeDataLayout object: " + error.string;
+    error.String = "S3 Error on downloading VolumeDataLayout object: " + error.String;
     return false;
   }
   std::vector<uint8_t> layerstatus_json;
   syncTransferHandler->data = &layerstatus_json;
-  request = handle.ioManager->download("LayerStatus", syncTransferHandler);
-  request->waitForFinish();
-  if (!request->isSuccess(error) || layerstatus_json.empty())
+  request = handle.IoManager->Download("LayerStatus", syncTransferHandler);
+  request->WaitForFinish();
+  if (!request->IsSuccess(error) || layerstatus_json.empty())
   {
-    error.string = "S3 Error on downloading LayerStatus object: " + error.string;
+    error.String = "S3 Error on downloading LayerStatus object: " + error.String;
     return false;
   }
 
   try
   {
-    if (!parseVolumeDataLayout(volumedatalayout_json, handle, error))
+    if (!ParseVolumeDataLayout(volumedatalayout_json, handle, error))
       return false;
-    if (!parseLayerStatus(layerstatus_json, handle, error))
+    if (!ParseLayerStatus(layerstatus_json, handle, error))
       return false;
   }
   catch (Json::Exception& e)
   {
-    error.string = e.what();
-    error.code = -2;
+    error.String = e.what();
+    error.Code = -2;
     return false;
   }
 
-  createVolumeDataLayout(handle);
+  CreateVolumeDataLayout(handle);
 
   return true;
 }
 
-bool serializeAndUploadVolumeDataLayout(VDSHandle& handle, Error& error)
+bool SerializeAndUploadVolumeDataLayout(VDSHandle& handle, Error& error)
 {
-  Json::Value volumeDataLayoutJson = serializeVolumeDataLayout(*handle.volumeDataLayout, handle.metadataContainer);
-  auto serializedVolumeDataLayout = std::make_shared<std::vector<uint8_t>>(writeJson(volumeDataLayoutJson));
-  auto request = handle.ioManager->uploadJson("VolumeDataLayout", serializedVolumeDataLayout);
+  Json::Value volumeDataLayoutJson = SerializeVolumeDataLayout(*handle.VolumeDataLayout, handle.MetadataContainer);
+  auto serializedVolumeDataLayout = std::make_shared<std::vector<uint8_t>>(WriteJson(volumeDataLayoutJson));
+  auto request = handle.IoManager->UploadJson("VolumeDataLayout", serializedVolumeDataLayout);
 
-  request->waitForFinish();
+  request->WaitForFinish();
 
-  if (!request->isSuccess(error))
+  if (!request->IsSuccess(error))
   {
-    error.string = "S3 Error on uploading VolumeDataLayout object: " + error.string;
+    error.String = "S3 Error on uploading VolumeDataLayout object: " + error.String;
     return false;
   }
 
   return true;
 }
 
-bool serializeAndUploadLayerStatus(VDSHandle& handle, Error& error)
+bool SerializeAndUploadLayerStatus(VDSHandle& handle, Error& error)
 {
-  Json::Value layerStatusArrayJson = serializeLayerStatusArray(*handle.volumeDataLayout, handle.layerMetadataContainer);
-  auto serializedLayerStatus = std::make_shared<std::vector<uint8_t>>(writeJson(layerStatusArrayJson));
-  auto request = handle.ioManager->uploadJson("LayerStatus", serializedLayerStatus);
+  Json::Value layerStatusArrayJson = SerializeLayerStatusArray(*handle.VolumeDataLayout, handle.LayerMetadataContainer);
+  auto serializedLayerStatus = std::make_shared<std::vector<uint8_t>>(WriteJson(layerStatusArrayJson));
+  auto request = handle.IoManager->UploadJson("LayerStatus", serializedLayerStatus);
 
-  request->waitForFinish();
+  request->WaitForFinish();
 
-  if (!request->isSuccess(error))
+  if (!request->IsSuccess(error))
   {
-    error.string = "S3 Error on uploading LayerStatus object: " + error.string;
+    error.String = "S3 Error on uploading LayerStatus object: " + error.String;
     return false;
   }
 

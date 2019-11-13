@@ -173,26 +173,26 @@ public:
   VolumeDataChannelDescriptor(Format format, Components components, const char *name, const char *unit, float valueRangeMin, float valueRangeMax, VolumeDataMapping mapping, int mappedValueCount, enum Flags flags, float noValue, float integerScale, float integerOffset)
     : m_format(format), m_components(components), m_name(name), m_unit(unit), m_valueRange(valueRangeMin, valueRangeMax), m_mapping(mapping), m_mappedValueCount(mappedValueCount), m_flags(flags), m_useNoValue(true), m_noValue(noValue), m_integerScale(integerScale), m_integerOffset(integerOffset) {}
 
-  Format      getFormat()                       const { return m_format; }
-  Components  getComponents()                   const { return m_components; }
-  bool        isDiscrete()                      const { return (m_flags & DiscreteData) || m_format == Format_1Bit; }
-  bool        isRenderable()                    const { return !(m_flags & NotRenderable); }
-  bool        isAllowLossyCompression()         const { return !(m_flags & NoLossyCompression) && !isDiscrete(); }
-  bool        isUseZipForLosslessCompression()  const { return (m_flags & NoLossyCompressionUseZip) == NoLossyCompressionUseZip; }
-  const char *getName()                         const { return m_name; }
-  const char *getUnit()                         const { return m_unit; }
-  const FloatRange &getValueRange()           const { return m_valueRange; }
-  float       getValueRangeMin()                const { return m_valueRange.min; }
-  float       getValueRangeMax()                const { return m_valueRange.max; }
+  Format      GetFormat()                       const { return m_format; }
+  Components  GetComponents()                   const { return m_components; }
+  bool        IsDiscrete()                      const { return (m_flags & DiscreteData) || m_format == Format_1Bit; }
+  bool        IsRenderable()                    const { return !(m_flags & NotRenderable); }
+  bool        IsAllowLossyCompression()         const { return !(m_flags & NoLossyCompression) && !IsDiscrete(); }
+  bool        IsUseZipForLosslessCompression()  const { return (m_flags & NoLossyCompressionUseZip) == NoLossyCompressionUseZip; }
+  const char *GetName()                         const { return m_name; }
+  const char *GetUnit()                         const { return m_unit; }
+  const FloatRange &GetValueRange()           const { return m_valueRange; }
+  float       GetValueRangeMin()                const { return m_valueRange.Min; }
+  float       GetValueRangeMax()                const { return m_valueRange.Max; }
 
-  VolumeDataMapping getMapping()                const { return m_mapping; }
-  int         getMappedValueCount()             const { return m_mappedValueCount; }
+  VolumeDataMapping GetMapping()                const { return m_mapping; }
+  int         GetMappedValueCount()             const { return m_mappedValueCount; }
 
-  bool        isUseNoValue()                    const { return m_useNoValue; }
-  float       getNoValue()                      const { return m_noValue; }
+  bool        IsUseNoValue()                    const { return m_useNoValue; }
+  float       GetNoValue()                      const { return m_noValue; }
 
-  float       getIntegerScale()                 const { return m_integerScale; }
-  float       getIntegerOffset()                const { return m_integerOffset; }
+  float       GetIntegerScale()                 const { return m_integerScale; }
+  float       GetIntegerOffset()                const { return m_integerOffset; }
 
   /// Named constructor for a trace mapped channel
   /// \param format the data format for this channel

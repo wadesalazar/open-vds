@@ -31,6 +31,7 @@ namespace OpenVDS
 class VolumeDataLayoutDescriptor;
 class VolumeDataAxisDescriptor;
 class VolumeDataChannelDescriptor;
+class IOManager;
 
 struct OpenOptions
 {
@@ -49,18 +50,18 @@ protected:
 
 struct AWSOpenOptions : OpenOptions
 {
-  std::string bucket;
-  std::string key;
-  std::string region;
+  std::string Bucket;
+  std::string Key;
+  std::string Region;
 
   AWSOpenOptions() : OpenOptions(AWS) {}
-  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), bucket(bucket), key(key), region(region) {}
+  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), Bucket(bucket), Key(key), Region(region) {}
 };
 
 struct Error
 {
-  int code = 0;
-  std::string string;
+  int Code = 0;
+  std::string String;
 };
 
 enum class Access
@@ -73,12 +74,72 @@ class VolumeDataLayout;
 class VolumeDataAccessManager;
 class VolumeDataPageAccessor;
 
-OPENVDS_EXPORT VDSHandle* open(const OpenOptions& options, Error &error);
-OPENVDS_EXPORT VDSHandle* create(const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
-OPENVDS_EXPORT void       destroy(VDSHandle *handle);
+/// <summary>
+/// Open an existing VDS
+/// </summary>
+/// <param name="options">
+/// The options for the connection
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle* Open(const OpenOptions& options, Error& error);
 
-OPENVDS_EXPORT VolumeDataLayout *getLayout(VDSHandle *handle);
-OPENVDS_EXPORT VolumeDataAccessManager *getDataAccessManager(VDSHandle *handle);
+/// <summary>
+/// Open an existing VDS
+/// </summary>
+/// <param name="ioManager">
+/// The IOManager for the connection, it will be deleted automatically when the VDS handle is closed
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle* Open(IOManager*ioManager, Error &error);
+
+/// <summary>
+/// Create a new VDS
+/// </summary>
+/// <param name="options">
+/// The options for the connection
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const& axisDescriptors, std::vector<VolumeDataChannelDescriptor> const& channelDescriptors, MetadataContainer const& metadataContainer, Error& error);
+
+/// <summary>
+/// Create a new VDS
+/// </summary>
+/// <param name="ioManager">
+/// The IOManager for the connection, it will be deleted automatically when the VDS handle is closed
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle* Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
+
+/// <summary>
+/// Close a VDS and free up all associated resources
+/// </summary>
+/// <param name="handle">
+/// The handle to close
+/// </param>
+OPENVDS_EXPORT void Close(VDSHandle *handle);
+
+OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle *handle);
+OPENVDS_EXPORT VolumeDataAccessManager *GetDataAccessManager(VDSHandle *handle);
 }
 
 #endif //OPENVDS_H

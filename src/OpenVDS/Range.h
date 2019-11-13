@@ -23,17 +23,17 @@ namespace OpenVDS
 template<typename T>
 struct Range
 {
-  T min;
-  T max;
+  T Min;
+  T Max;
 
   Range() = default;
-  Range(T min, T max) : min(min), max(max) {}
+  Range(T min, T max) : Min(min), Max(max) {}
 };
 
 template<typename T>
 T rangeSize(const Range<T> &r)
 {
-  return r.max - r.min;
+  return r.Max - r.Min;
 }
 
 using IntRange    = Range<int>;

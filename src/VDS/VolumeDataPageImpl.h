@@ -57,35 +57,35 @@ public:
   VolumeDataPageImpl(VolumeDataPageAccessorImpl *volumeDataPageAccessor, int64_t chunk);
   VolumeDataPageImpl(VolumeDataPageImpl const &) = delete;
 
-  int64_t getChunkIndex() const { return m_chunk; }
-  const DataBlock &getDataBlock() const { return m_dataBlock;}
+  int64_t GetChunkIndex() const { return m_chunk; }
+  const DataBlock &GetDataBlock() const { return m_dataBlock;}
 
   // All these methods require the caller to hold a lock
-  bool          isPinned();
-  void          pin();
-  void          unPin();
+  bool          IsPinned();
+  void          Pin();
+  void          UnPin();
 
-  bool          isEmpty();
-  bool          isDirty();
-  bool          isWritten();
-  void          makeDirty();
+  bool          IsEmpty();
+  bool          IsDirty();
+  bool          IsWritten();
+  void          MakeDirty();
 
-  void          setBufferData(const DataBlock& dataBlock, int32_t(&pitch)[Dimensionality_Max], std::vector<uint8_t>&& blob);
-  void          writeBack(VolumeDataLayer *volumeDataLayer, std::unique_lock<std::mutex> &pageListMutexLock);
-  void *        getBufferInternal(int (&anPitch)[Dimensionality_Max], bool isReadWrite);
-  void *        getRawBufferInternal() { return m_blob.data(); }
-  bool          isCopyMarginNeeded(VolumeDataPageImpl *targetPage);
-  void          copyMargin(VolumeDataPageImpl *targetPage);
+  void          SetBufferData(const DataBlock& dataBlock, int32_t(&pitch)[Dimensionality_Max], std::vector<uint8_t>&& blob);
+  void          WriteBack(VolumeDataLayer *volumeDataLayer, std::unique_lock<std::mutex> &pageListMutexLock);
+  void *        GetBufferInternal(int (&anPitch)[Dimensionality_Max], bool isReadWrite);
+  void *        GetRawBufferInternal() { return m_blob.data(); }
+  bool          IsCopyMarginNeeded(VolumeDataPageImpl *targetPage);
+  void          CopyMargin(VolumeDataPageImpl *targetPage);
 
-  void          setRequestPrepared(bool prepared) { m_requestPrepared = prepared; }
+  void          SetRequestPrepared(bool prepared) { m_requestPrepared = prepared; }
 
   // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)
-  void  getMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const override;
-  void  getMinMaxExcludingMargin(int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const override;
-  const void *getBuffer(int (&pitch)[Dimensionality_Max]) override; // Getting the buffer will block if the page is currently being read from the VolumeDataCache
-  void *getWritableBuffer(int (&pitch)[Dimensionality_Max]) override;
-  void  updateWrittenRegion(const int (&writtenMin)[Dimensionality_Max], const int (&writtenMax)[Dimensionality_Max]) override;
-  void  release() override;
+  void  GetMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const override;
+  void  GetMinMaxExcludingMargin(int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const override;
+  const void *GetBuffer(int (&pitch)[Dimensionality_Max]) override; // Getting the buffer will block if the page is currently being read from the VolumeDataCache
+  void *GetWritableBuffer(int (&pitch)[Dimensionality_Max]) override;
+  void  UpdateWrittenRegion(const int (&writtenMin)[Dimensionality_Max], const int (&writtenMax)[Dimensionality_Max]) override;
+  void  Release() override;
 };
 }
 #endif //VOLUMEDATAPAGEIMPL_H

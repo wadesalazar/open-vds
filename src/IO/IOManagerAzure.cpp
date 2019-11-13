@@ -23,7 +23,7 @@
 
 #include <fmt/format.h>
 
-void downloadObject()
+void DownloadObject()
 {
   azure::storage::cloud_storage_account storage_account = azure::storage::cloud_storage_account::parse(_XPLATSTR("DefaultEndpointsProtocol=https;AccountName=myaccountname;AccountKey=myaccountkey"));
   azure::storage::cloud_blob_client blob_client = storage_account.create_cloud_blob_client();

@@ -56,36 +56,36 @@ public:
   class SystemFileMappingObject
   {
   public:
-    static bool open(SystemFileMappingObject** ppcFileMappingObject, File &file, IOError &error);
-    static void close(SystemFileMappingObject** pcFileMappingObject);
+    static bool Open(SystemFileMappingObject** ppcFileMappingObject, File &file, IOError &error);
+    static void Close(SystemFileMappingObject** pcFileMappingObject);
   };
 
   OPENVDS_EXPORT
-  const void * pointer() const
+  const void * Pointer() const
   {
     return m_pData;
   }
 
   OPENVDS_EXPORT
-  int64_t pos() const
+  int64_t Pos() const
   {
     return m_nPos;
   }
 
   OPENVDS_EXPORT
-  int64_t size() const
+  int64_t Size() const
   {
     return m_nSize;
   }
 
   OPENVDS_EXPORT
-  virtual bool prefetch(const void *pData, int64_t nSize, IOError &error) const = 0;
+  virtual bool Prefetch(const void *pData, int64_t nSize, IOError &error) const = 0;
 
   OPENVDS_EXPORT
-  static FileView* addReference(FileView* pcFileView);
+  static FileView* AddReference(FileView* pcFileView);
 
   OPENVDS_EXPORT
-  static bool removeReference(FileView* pcFileView);
+  static bool RemoveReference(FileView* pcFileView);
 };
 
 // This class is thread-safe except for the following methods:
@@ -97,23 +97,23 @@ public:
   OPENVDS_EXPORT File();
   OPENVDS_EXPORT ~File();
 
-  OPENVDS_EXPORT static bool exists(const std::string& filename);
-  OPENVDS_EXPORT bool open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError& error);
-  OPENVDS_EXPORT void close();
+  OPENVDS_EXPORT static bool Exists(const std::string& filename);
+  OPENVDS_EXPORT bool Open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError& error);
+  OPENVDS_EXPORT void Close();
 
-  OPENVDS_EXPORT int64_t size(IOError& error) const;
+  OPENVDS_EXPORT int64_t Size(IOError& error) const;
 
-  OPENVDS_EXPORT bool read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const;
-  OPENVDS_EXPORT bool write(const void* pxData, int64_t nOffset, int32_t nLength, IOError& error);
+  OPENVDS_EXPORT bool Read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const;
+  OPENVDS_EXPORT bool Write(const void* pxData, int64_t nOffset, int32_t nLength, IOError& error);
 
-  OPENVDS_EXPORT bool flush();
-  OPENVDS_EXPORT bool isWriteable() const;
-  OPENVDS_EXPORT bool isOpen() const;
-  OPENVDS_EXPORT std::string fileName() const;
+  OPENVDS_EXPORT bool Flush();
+  OPENVDS_EXPORT bool IsWriteable() const;
+  OPENVDS_EXPORT bool IsOpen() const;
+  OPENVDS_EXPORT std::string FileName() const;
 
-  OPENVDS_EXPORT FileView *createFileView(int64_t iPos, int64_t nSize, bool isPopulate, IOError &error);
+  OPENVDS_EXPORT FileView *CreateFileView(int64_t iPos, int64_t nSize, bool isPopulate, IOError &error);
 
-  OPENVDS_EXPORT void *handle() const;
+  OPENVDS_EXPORT void *Handle() const;
 private:
   void* _pxPlatformHandle;
   bool _isWriteable;

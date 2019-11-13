@@ -39,7 +39,7 @@
 #include <algorithm>
 
 SEGY::Endianness
-endiannessFromJson(Json::Value const &jsonEndianness)
+EndiannessFromJson(Json::Value const &jsonEndianness)
 {
   std::string
     endiannessString = jsonEndianness.asString();
@@ -57,7 +57,7 @@ endiannessFromJson(Json::Value const &jsonEndianness)
 }
 
 SEGY::FieldWidth
-fieldWidthFromJson(Json::Value const &jsonFieldWidth)
+FieldWidthFromJson(Json::Value const &jsonFieldWidth)
 {
   std::string
     fieldWidthString = jsonFieldWidth.asString();
@@ -75,13 +75,13 @@ fieldWidthFromJson(Json::Value const &jsonFieldWidth)
 }
 
 SEGY::HeaderField
-headerFieldFromJson(Json::Value const &jsonHeaderField)
+HeaderFieldFromJson(Json::Value const &jsonHeaderField)
 {
   int
     bytePosition = jsonHeaderField[0].asInt();
 
   SEGY::FieldWidth
-    fieldWidth = fieldWidthFromJson(jsonHeaderField[1]);
+    fieldWidth = FieldWidthFromJson(jsonHeaderField[1]);
 
   if(bytePosition < 1 || bytePosition > SEGY::TraceHeaderSize - ((fieldWidth == SEGY::FieldWidth::TwoByte) ? 2 : 4))
   {
@@ -147,7 +147,7 @@ findRepresentativeSegment(SEGYFileInfo const &fileInfo)
 bool
 analyzeSegment(OpenVDS::File const &file, SEGYFileInfo const &fileInfo, SEGYSegmentInfo const &segmentInfo, float valueRangePercentile, OpenVDS::FloatRange &valueRange, OpenVDS::IOError &error)
 {
-  int traceByteSize = fileInfo.traceByteSize();
+  int traceByteSize = fileInfo.TraceByteSize();
 
   int64_t offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + segmentInfo.m_traceStart * traceByteSize;
 
@@ -155,7 +155,7 @@ analyzeSegment(OpenVDS::File const &file, SEGYFileInfo const &fileInfo, SEGYSegm
 
   std::unique_ptr<char[]> buffer(new char[(segmentInfo.m_traceStop - segmentInfo.m_traceStart) * traceByteSize]);
 
-  file.read(buffer.get(), offset, traceCount * traceByteSize, error);
+  file.Read(buffer.get(), offset, traceCount * traceByteSize, error);
 
   if(error.code != 0)
   {
@@ -189,7 +189,7 @@ analyzeSegment(OpenVDS::File const &file, SEGYFileInfo const &fileInfo, SEGYSegm
     {
       if(fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
       {
-        SEGY::ibm2ieee(sampleBuffer.get(), buffer.get() + traceByteSize * trace + SEGY::TraceHeaderSize, fileInfo.m_sampleCount);
+        SEGY::Ibm2ieee(sampleBuffer.get(), buffer.get() + traceByteSize * trace + SEGY::TraceHeaderSize, fileInfo.m_sampleCount);
       }
       else
       {
@@ -256,8 +256,8 @@ createSEGYHeadersMetadata(OpenVDS::File const &file, OpenVDS::MetadataContainer 
   std::vector<uint8_t> binaryHeader(SEGY::BinaryFileHeaderSize);
 
   // Read headers
-  bool success = file.read(  textHeader.data(),                           0, SEGY::TextualFileHeaderSize, error) &&
-                 file.read(binaryHeader.data(), SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize,  error);
+  bool success = file.Read(  textHeader.data(),                           0, SEGY::TextualFileHeaderSize, error) &&
+                 file.Read(binaryHeader.data(), SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize,  error);
 
   if(!success) return false;
 
@@ -375,7 +375,7 @@ parseSEGYFileInfoFile(OpenVDS::File const &file, SEGYFileInfo &fileInfo)
 {
   OpenVDS::IOError error;
 
-  int64_t fileSize = file.size(error);
+  int64_t fileSize = file.Size(error);
 
   if(error.code != 0)
   {
@@ -390,7 +390,7 @@ parseSEGYFileInfoFile(OpenVDS::File const &file, SEGYFileInfo &fileInfo)
   std::unique_ptr<char[]>
     buffer(new char[fileSize]);
 
-  file.read(buffer.get(), 0, (int32_t)fileSize, error);
+  file.Read(buffer.get(), 0, (int32_t)fileSize, error);
 
   if(error.code != 0)
   {
@@ -422,13 +422,13 @@ parseSEGYFileInfoFile(OpenVDS::File const &file, SEGYFileInfo &fileInfo)
     }
 
     fileInfo.m_persistentID = strtoull(jsonFileInfo["persistentID"].asCString(), nullptr, 16);
-    fileInfo.m_headerEndianness = endiannessFromJson(jsonFileInfo["headerEndianness"]);
+    fileInfo.m_headerEndianness = EndiannessFromJson(jsonFileInfo["headerEndianness"]);
     fileInfo.m_dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(jsonFileInfo["dataSampleFormatCode"].asInt());
     fileInfo.m_sampleCount = jsonFileInfo["sampleCount"].asInt();
     fileInfo.m_sampleIntervalMilliseconds = jsonFileInfo["sampleInterval"].asDouble();
     fileInfo.m_traceCount = jsonFileInfo["traceCount"].asInt64();
-    fileInfo.m_primaryKey = headerFieldFromJson(jsonFileInfo["primaryKey"]);
-    fileInfo.m_secondaryKey = headerFieldFromJson(jsonFileInfo["secondaryKey"]);
+    fileInfo.m_primaryKey = HeaderFieldFromJson(jsonFileInfo["primaryKey"]);
+    fileInfo.m_secondaryKey = HeaderFieldFromJson(jsonFileInfo["secondaryKey"]);
 
     for (Json::Value jsonSegmentInfo : jsonFileInfo["segmentInfo"])
     {
@@ -487,7 +487,7 @@ createChannelDescriptors(SEGYFileInfo const &fileInfo, OpenVDS::FloatRange const
     channelDescriptors;
 
   // Primary channel
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", valueRange.min, valueRange.max));
+  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", valueRange.Min, valueRange.Max));
 
   // Trace defined flag
   channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Trace", "", 0, 1, OpenVDS::VolumeDataMapping::PerTrace, OpenVDS::VolumeDataChannelDescriptor::DiscreteData));
@@ -510,10 +510,10 @@ class FileViewManager
   {
     std::unique_lock<std::mutex> lock(m_mutex);
 
-    auto it = m_fileViewMap.find(FileViewMap::key_type(fileView->pos(), fileView->size()));
+    auto it = m_fileViewMap.find(FileViewMap::key_type(fileView->Pos(), fileView->Size()));
     assert(it != m_fileViewMap.end());
 
-    if(OpenVDS::FileView::removeReference(fileView))
+    if(OpenVDS::FileView::RemoveReference(fileView))
     {
       m_fileViewMap.erase(it);
     }
@@ -532,11 +532,11 @@ public:
     if(it != m_fileViewMap.end())
     {
       fileView = it->second;
-      OpenVDS::FileView::addReference(fileView);
+      OpenVDS::FileView::AddReference(fileView);
     }
     else
     {
-      fileView = m_file.createFileView(pos, size, isPopulate, error);
+      fileView = m_file.CreateFileView(pos, size, isPopulate, error);
       if(fileView)
       {
         m_fileViewMap.insert(FileViewMap::value_type(FileViewMap::key_type(pos, size), fileView));
@@ -574,10 +574,10 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const &fileInfo, c
 
   while(traceStart < traceStop - 1)
   {
-    const char *header = reinterpret_cast<const char *>(intptr_t(traceData) + ptrdiff_t(fileInfo.traceByteSize()) * trace);
+    const char *header = reinterpret_cast<const char *>(intptr_t(traceData) + ptrdiff_t(fileInfo.TraceByteSize()) * trace);
 
-    int primaryTest = SEGY::readFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness),
-        secondaryTest = SEGY::readFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness),
+    int primaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness),
+        secondaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness),
         traceDelta;
 
     if(primaryTest == primaryKey)
@@ -600,11 +600,11 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const &fileInfo, c
       // We need to handle corrupted traces without hanging, so we scan backwards until we find a valid trace and then we update the interval to not include the corrupted traces
       for(int scan = trace - 1; scan > traceStart; scan--)
       {
-        header = reinterpret_cast<const char *>(intptr_t(traceData) + ptrdiff_t(fileInfo.traceByteSize()) * scan);
-        primaryTest = SEGY::readFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness);
+        header = reinterpret_cast<const char *>(intptr_t(traceData) + ptrdiff_t(fileInfo.TraceByteSize()) * scan);
+        primaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness);
         if(primaryTest == primaryKey)
         {
-          secondaryTest = SEGY::readFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
+          secondaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
 
           if((secondaryTest >= secondaryKey) == isSecondaryIncreasing)
           {
@@ -650,7 +650,7 @@ copySamples(const void *data, SEGY::BinaryHeader::DataSampleFormatCode dataSampl
 {
   if(dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
   {
-    SEGY::ibm2ieee(target, reinterpret_cast<const void *>((intptr_t)data + sampleStart * 4), sampleCount);
+    SEGY::Ibm2ieee(target, reinterpret_cast<const void *>((intptr_t)data + sampleStart * 4), sampleCount);
   }
   else
   {
@@ -665,11 +665,11 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const &fileInfo, c
   int traceStart = 0,
       traceStop  = traceCount - 1;
 
-  const char *headerStart = reinterpret_cast<const char *>(intptr_t(traceData) + ptrdiff_t(fileInfo.traceByteSize()) * traceStart);
-  const char *headerStop = reinterpret_cast<const char *>(intptr_t(traceData) + ptrdiff_t(fileInfo.traceByteSize()) * traceStop);
+  const char *headerStart = reinterpret_cast<const char *>(intptr_t(traceData) + ptrdiff_t(fileInfo.TraceByteSize()) * traceStart);
+  const char *headerStop = reinterpret_cast<const char *>(intptr_t(traceData) + ptrdiff_t(fileInfo.TraceByteSize()) * traceStop);
 
-  int secondaryStart = SEGY::readFieldFromHeader(headerStart, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
-  int secondaryStop = SEGY::readFieldFromHeader(headerStop, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
+  int secondaryStart = SEGY::ReadFieldFromHeader(headerStart, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
+  int secondaryStop = SEGY::ReadFieldFromHeader(headerStop, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
 
   return findFirstTrace(primaryKey, secondaryKey, fileInfo, traceData, traceCount, secondaryStart, secondaryStop);
 }
@@ -751,7 +751,7 @@ main(int argc, char *argv[])
     OpenVDS::IOError
       error;
 
-    fileInfoFile.open(fileInfoFileName.c_str(), false, false, false, error);
+    fileInfoFile.Open(fileInfoFileName.c_str(), false, false, false, error);
 
     if(error.code != 0)
     {
@@ -783,7 +783,7 @@ main(int argc, char *argv[])
   OpenVDS::IOError
     error;
 
-  file.open(fileNames[0].c_str(), false, false, false, error);
+  file.Open(fileNames[0].c_str(), false, false, false, error);
 
   if(error.code != 0)
   {
@@ -857,39 +857,39 @@ main(int argc, char *argv[])
   std::string
     key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
 
-  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::destroy)> vds(OpenVDS::create(OpenVDS::AWSOpenOptions(bucket, key, region), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError), &OpenVDS::destroy);
+  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::Close)> vds(OpenVDS::Create(OpenVDS::AWSOpenOptions(bucket, key, region), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError), &OpenVDS::Close);
 
-  if(createError.code != 0)
+  if(createError.Code != 0)
   {
-    std::cerr << std::string("Create error: " + createError.string);
+    std::cerr << std::string("Create error: " + createError.String);
     return EXIT_FAILURE;
   }
 
   FileViewManager fileViewManager(file);
 
-  auto accessManager = OpenVDS::getDataAccessManager(vds.get());
-  auto layout = accessManager->getVolumeDataLayout();
+  auto accessManager = OpenVDS::GetDataAccessManager(vds.get());
+  auto layout = accessManager->GetVolumeDataLayout();
 
-  auto amplitudeAccessor       = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto traceFlagAccessor       = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto segyTraceHeaderAccessor = accessManager->createVolumeDataPageAccessor(accessManager->getVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto amplitudeAccessor       = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto traceFlagAccessor       = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto segyTraceHeaderAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
 
-  int64_t traceByteSize = fileInfo.traceByteSize();
+  int64_t traceByteSize = fileInfo.TraceByteSize();
 
   std::shared_ptr<OpenVDS::FileView> fileView;
 
-  for(int64_t chunk = 0; chunk < amplitudeAccessor->getChunkCount(); chunk++)
+  for(int64_t chunk = 0; chunk < amplitudeAccessor->GetChunkCount(); chunk++)
   {
-    int done = int(double(chunk)/amplitudeAccessor->getChunkCount() * 100);
+    int done = int(double(chunk)/amplitudeAccessor->GetChunkCount() * 100);
     fmt::print("\r{:3d}% done.", done);
     fflush(stdout);
-    int32_t errorCount = accessManager->uploadErrorCount();
+    int32_t errorCount = accessManager->UploadErrorCount();
     for (int i = 0; i < errorCount; i++)
     {
       const char *object_id;
       int32_t error_code;
       const char *error_string;
-      accessManager->getCurrentUploadError(&object_id, &error_code, &error_string);
+      accessManager->GetCurrentUploadError(&object_id, &error_code, &error_string);
       fprintf(stderr, "\nFailed to upload object: %s. Error code %d: %s\n", object_id, error_code, error_string);
     }
     if (errorCount && !force)
@@ -899,16 +899,16 @@ main(int argc, char *argv[])
     int
       min[OpenVDS::Dimensionality_Max], max[OpenVDS::Dimensionality_Max];
 
-    amplitudeAccessor->getChunkMinMax(chunk, min, max);
+    amplitudeAccessor->GetChunkMinMax(chunk, min, max);
 
     int sampleStart = min[0];
     int sampleCount = max[0] - min[0];
 
-    int secondaryKeyStart = (int)floorf(layout->getAxisDescriptor(1).sampleIndexToCoordinate(min[1]) + 0.5f);
-    int secondaryKeyStop  = (int)floorf(layout->getAxisDescriptor(1).sampleIndexToCoordinate(max[1] - 1) + 0.5f);
+    int secondaryKeyStart = (int)floorf(layout->GetAxisDescriptor(1).SampleIndexToCoordinate(min[1]) + 0.5f);
+    int secondaryKeyStop  = (int)floorf(layout->GetAxisDescriptor(1).SampleIndexToCoordinate(max[1] - 1) + 0.5f);
 
-    int primaryKeyStart = (int)floorf(layout->getAxisDescriptor(2).sampleIndexToCoordinate(min[2]) + 0.5f);
-    int primaryKeyStop  = (int)floorf(layout->getAxisDescriptor(2).sampleIndexToCoordinate(max[2] - 1) + 0.5f);
+    int primaryKeyStart = (int)floorf(layout->GetAxisDescriptor(2).SampleIndexToCoordinate(min[2]) + 0.5f);
+    int primaryKeyStop  = (int)floorf(layout->GetAxisDescriptor(2).SampleIndexToCoordinate(max[2] - 1) + 0.5f);
 
     auto lower = std::lower_bound(fileInfo.m_segmentInfo.begin(), fileInfo.m_segmentInfo.end(), primaryKeyStart, [](SEGYSegmentInfo const &segmentInfo, int primaryKey)->bool { return segmentInfo.m_primaryKey < primaryKey; });
     auto upper = std::upper_bound(fileInfo.m_segmentInfo.begin(), fileInfo.m_segmentInfo.end(), primaryKeyStop,  [](int primaryKey, SEGYSegmentInfo const &segmentInfo)->bool { return primaryKey < segmentInfo.m_primaryKey; });
@@ -926,23 +926,23 @@ main(int argc, char *argv[])
 
     if(error.code == 0)
     {
-      OpenVDS::VolumeDataPage * amplitudePage = amplitudeAccessor->createPage(chunk);
+      OpenVDS::VolumeDataPage * amplitudePage = amplitudeAccessor->CreatePage(chunk);
       OpenVDS::VolumeDataPage * traceFlagPage = nullptr;
       OpenVDS::VolumeDataPage * segyTraceHeaderPage = nullptr;
 
       if(min[0] == 0)
       {
-        traceFlagPage = traceFlagAccessor->createPage(traceFlagAccessor->getChunkIndex(min));
-        segyTraceHeaderPage = segyTraceHeaderAccessor->createPage(segyTraceHeaderAccessor->getChunkIndex(min));
+        traceFlagPage = traceFlagAccessor->CreatePage(traceFlagAccessor->GetChunkIndex(min));
+        segyTraceHeaderPage = segyTraceHeaderAccessor->CreatePage(segyTraceHeaderAccessor->GetChunkIndex(min));
       }
 
       int amplitudePitch[OpenVDS::Dimensionality_Max];
       int traceFlagPitch[OpenVDS::Dimensionality_Max];
       int segyTraceHeaderPitch[OpenVDS::Dimensionality_Max];
 
-      void *amplitudeBuffer = amplitudePage->getWritableBuffer(amplitudePitch);
-      void *traceFlagBuffer = traceFlagPage ? traceFlagPage->getWritableBuffer(traceFlagPitch) : nullptr;
-      void *segyTraceHeaderBuffer = segyTraceHeaderPage ? segyTraceHeaderPage->getWritableBuffer(segyTraceHeaderPitch) : nullptr;
+      void *amplitudeBuffer = amplitudePage->GetWritableBuffer(amplitudePitch);
+      void *traceFlagBuffer = traceFlagPage ? traceFlagPage->GetWritableBuffer(traceFlagPitch) : nullptr;
+      void *segyTraceHeaderBuffer = segyTraceHeaderPage ? segyTraceHeaderPage->GetWritableBuffer(segyTraceHeaderPitch) : nullptr;
 
       assert(amplitudePitch[0] == 1);
       assert(!traceFlagBuffer || traceFlagPitch[1] == 1);
@@ -951,7 +951,7 @@ main(int argc, char *argv[])
       // We loop through the segments that have primary keys inside this block and copy the traces that have secondary keys inside this block
       for(auto segment = lower; segment != upper; ++segment)
       {
-        const void *traceData = reinterpret_cast<const void *>(intptr_t(fileView->pointer()) + (segment->m_traceStart - traceStart) * traceByteSize);
+        const void *traceData = reinterpret_cast<const void *>(intptr_t(fileView->Pointer()) + (segment->m_traceStart - traceStart) * traceByteSize);
         int traceCount = int(segment->m_traceStop - segment->m_traceStart + 1);
 
         int firstTrace = findFirstTrace(segment->m_primaryKey, secondaryKeyStart, fileInfo, traceData, traceCount);
@@ -961,8 +961,8 @@ main(int argc, char *argv[])
           const char *header = reinterpret_cast<const char *>(intptr_t(traceData) + traceByteSize * trace);
           const void *data = header + SEGY::TraceHeaderSize;
 
-          int primaryTest = SEGY::readFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness),
-              secondaryTest = SEGY::readFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
+          int primaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness),
+              secondaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
 
           // Check if the trace is outside the secondary range and go to the next segment if it is
           if(primaryTest == segment->m_primaryKey && secondaryTest > secondaryKeyStop)
@@ -970,8 +970,8 @@ main(int argc, char *argv[])
             break;
           }
 
-          int primaryIndex = layout->getAxisDescriptor(2).coordinateToSampleIndex((float)segment->m_primaryKey);
-          int secondaryIndex = layout->getAxisDescriptor(1).coordinateToSampleIndex((float)secondaryTest);
+          int primaryIndex = layout->GetAxisDescriptor(2).CoordinateToSampleIndex((float)segment->m_primaryKey);
+          int secondaryIndex = layout->GetAxisDescriptor(1).CoordinateToSampleIndex((float)secondaryTest);
 
           assert(primaryIndex >= min[2] && primaryIndex < max[2]);
           assert(secondaryIndex >= min[1] && secondaryIndex < max[1]);
@@ -998,15 +998,15 @@ main(int argc, char *argv[])
         }
       }
 
-      amplitudePage->release();
-      if(traceFlagPage) traceFlagPage->release();
-      if(segyTraceHeaderPage) segyTraceHeaderPage->release();
+      amplitudePage->Release();
+      if(traceFlagPage) traceFlagPage->Release();
+      if(segyTraceHeaderPage) segyTraceHeaderPage->Release();
     }
   }
 
-  amplitudeAccessor->commit();
-  traceFlagAccessor->commit();
-  segyTraceHeaderAccessor->commit();
+  amplitudeAccessor->Commit();
+  traceFlagAccessor->Commit();
+  segyTraceHeaderAccessor->Commit();
 
   fmt::print("\r100% done.\n");
 

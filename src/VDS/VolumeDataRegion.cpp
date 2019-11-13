@@ -26,18 +26,18 @@
 
 namespace OpenVDS
 {
-int64_t VolumeDataRegion::getNumChunksInRegion() const
+int64_t VolumeDataRegion::GetNumChunksInRegion() const
 {
   return m_chunksInRegion;
 }
 
-int64_t VolumeDataRegion::getChunkIndexInRegion(int64_t chunkInRegion) const
+int64_t VolumeDataRegion::GetChunkIndexInRegion(int64_t chunkInRegion) const
 {
   assert(chunkInRegion >= 0 && chunkInRegion < m_chunksInRegion);
 
   int64_t iChunkIndex = 0;
 
-  for(int32_t iDimension = int32_t(array_size(m_chunkMin)) - 1; iDimension >= 0; iDimension--)
+  for(int32_t iDimension = int32_t(ArraySize(m_chunkMin)) - 1; iDimension >= 0; iDimension--)
   {
     iChunkIndex += (chunkInRegion / m_modulo[iDimension] + m_chunkMin[iDimension]) * m_layerModulo[iDimension];
     chunkInRegion %= m_modulo[iDimension];
@@ -46,33 +46,33 @@ int64_t VolumeDataRegion::getChunkIndexInRegion(int64_t chunkInRegion) const
   return iChunkIndex;
 }
 
-void VolumeDataRegion::getChunksInRegion(std::vector<VolumeDataChunk>* volumeDataChunk, bool isAppend) const
+void VolumeDataRegion::GetChunksInRegion(std::vector<VolumeDataChunk>* volumeDataChunk, bool isAppend) const
 {
   if (!isAppend)
   {
     volumeDataChunk->clear();
   }
 
-  int32_t nChunksInRegion = (int32_t)getNumChunksInRegion();
+  int32_t nChunksInRegion = (int32_t)GetNumChunksInRegion();
   if(!nChunksInRegion) return;
 
   volumeDataChunk->reserve(nChunksInRegion);
 
   for(int32_t iChunkInRegion = 0; iChunkInRegion < nChunksInRegion; iChunkInRegion++)
   {
-    volumeDataChunk->push_back(m_volumeDataLayer->getChunkFromIndex(getChunkIndexInRegion(iChunkInRegion)));
+    volumeDataChunk->push_back(m_volumeDataLayer->GetChunkFromIndex(GetChunkIndexInRegion(iChunkInRegion)));
   }
 }
 
-bool VolumeDataRegion::isChunkInRegion(VolumeDataChunk const &volumeDataChunk) const
+bool VolumeDataRegion::IsChunkInRegion(VolumeDataChunk const &volumeDataChunk) const
 {
   if(//volumeDataChunk.GetVDS() == _gVDS &&
-     volumeDataChunk.layer == m_volumeDataLayer)
+     volumeDataChunk.Layer == m_volumeDataLayer)
   {
     IndexArray indexArray;
 
-    m_volumeDataLayer->chunkIndexToIndexArray(volumeDataChunk.chunkIndex, indexArray);
-    for(int32_t iDimension = 0; iDimension < array_size(indexArray); iDimension++)
+    m_volumeDataLayer->ChunkIndexToIndexArray(volumeDataChunk.Index, indexArray);
+    for(int32_t iDimension = 0; iDimension < ArraySize(indexArray); iDimension++)
     {
       if(indexArray[iDimension] < m_chunkMin[iDimension] ||
          indexArray[iDimension] > m_chunkMax[iDimension])
@@ -90,10 +90,10 @@ VolumeDataRegion::VolumeDataRegion(VolumeDataLayer const &volumeDataLayer, const
 {
   int64_t modulo = 1;
 
-  for(int32_t iDimension = 0; iDimension < array_size(m_chunkMin); iDimension++)
+  for(int32_t iDimension = 0; iDimension < ArraySize(m_chunkMin); iDimension++)
   {
-    m_chunkMin[iDimension] = volumeDataLayer.voxelToIndex(min[iDimension], iDimension);
-    m_chunkMax[iDimension] = volumeDataLayer.voxelToIndex(max[iDimension] - 1, iDimension);
+    m_chunkMin[iDimension] = volumeDataLayer.VoxelToIndex(min[iDimension], iDimension);
+    m_chunkMax[iDimension] = volumeDataLayer.VoxelToIndex(max[iDimension] - 1, iDimension);
 
     m_layerModulo[iDimension] = volumeDataLayer.m_modulo[iDimension];
     m_modulo[iDimension] = modulo;
@@ -110,45 +110,45 @@ VolumeDataRegion VolumeDataRegion::VolumeDataRegionOverlappingChunk(VolumeDataLa
   IndexArray min;
   IndexArray max;
 
-  const VolumeDataLayer *targetLayer = volumeDataChunk.layer;
+  const VolumeDataLayer *targetLayer = volumeDataChunk.Layer;
 
-  assert(volumeDataLayer.getVolumeDataChannelMapping() == targetLayer->getVolumeDataChannelMapping() && "VolumeDataRegionOverlappingChunk() doesn't work between layers with different mappings");
+  assert(volumeDataLayer.GetVolumeDataChannelMapping() == targetLayer->GetVolumeDataChannelMapping() && "VolumeDataRegionOverlappingChunk() doesn't work between layers with different mappings");
 
-  targetLayer->getChunkMinMax(volumeDataChunk.chunkIndex, min, max, false);
+  targetLayer->GetChunkMinMax(volumeDataChunk.Index, min, max, false);
 
   IndexArray validMin;
   IndexArray validMax;
 
-  for (int dimension = 0; dimension < array_size(validMin); dimension++)
+  for (int dimension = 0; dimension < ArraySize(validMin); dimension++)
   {
     int neededExtraValidVoxelsNegative = 0,
         neededExtraValidVoxelsPositive = 0;
 
     // Do we have a render margin in this dimension?
-    if (DimensionGroupUtil::isDimensionInGroup(targetLayer->getOriginalDimensionGroup(), dimension))
+    if (DimensionGroupUtil::IsDimensionInGroup(targetLayer->GetOriginalDimensionGroup(), dimension))
     {
       // Can we copy from source's render margin in this dimension?
-      if (DimensionGroupUtil::isDimensionInGroup(volumeDataLayer.getOriginalDimensionGroup(), dimension))
+      if (DimensionGroupUtil::IsDimensionInGroup(volumeDataLayer.GetOriginalDimensionGroup(), dimension))
       {
-        neededExtraValidVoxelsNegative = std::max(0, targetLayer->getNegativeRenderMargin() - volumeDataLayer.getNegativeRenderMargin());
-        neededExtraValidVoxelsPositive = std::max(0, targetLayer->getPositiveRenderMargin() - volumeDataLayer.getPositiveRenderMargin());
+        neededExtraValidVoxelsNegative = std::max(0, targetLayer->GetNegativeRenderMargin() - volumeDataLayer.GetNegativeRenderMargin());
+        neededExtraValidVoxelsPositive = std::max(0, targetLayer->GetPositiveRenderMargin() - volumeDataLayer.GetPositiveRenderMargin());
       }
       else
       {
-        neededExtraValidVoxelsNegative = targetLayer->getNegativeRenderMargin();
-        neededExtraValidVoxelsPositive = targetLayer->getPositiveRenderMargin();
+        neededExtraValidVoxelsNegative = targetLayer->GetNegativeRenderMargin();
+        neededExtraValidVoxelsPositive = targetLayer->GetPositiveRenderMargin();
       }
     }
 
-    neededExtraValidVoxelsNegative += targetLayer->getNegativeMargin(dimension) - volumeDataLayer.getNegativeMargin(dimension);
-    neededExtraValidVoxelsPositive += targetLayer->getPositiveMargin(dimension) - volumeDataLayer.getPositiveMargin(dimension);
+    neededExtraValidVoxelsNegative += targetLayer->GetNegativeMargin(dimension) - volumeDataLayer.GetNegativeMargin(dimension);
+    neededExtraValidVoxelsPositive += targetLayer->GetPositiveMargin(dimension) - volumeDataLayer.GetPositiveMargin(dimension);
 
     validMin[dimension] = min[dimension] - offset[dimension] - std::max(0, neededExtraValidVoxelsNegative),
     validMax[dimension] = max[dimension] - offset[dimension] + std::max(0, neededExtraValidVoxelsPositive);
 
     // Limit the valid area so it doesn't extend into the border
-    validMin[dimension] = std::max(validMin[dimension], targetLayer->getDimensionFirstSample(dimension));
-    validMax[dimension] = std::min(validMax[dimension], targetLayer->getDimensionFirstSample(dimension) + targetLayer->getDimensionNumSamples(dimension));
+    validMin[dimension] = std::max(validMin[dimension], targetLayer->GetDimensionFirstSample(dimension));
+    validMax[dimension] = std::min(validMax[dimension], targetLayer->GetDimensionFirstSample(dimension) + targetLayer->GetDimensionNumSamples(dimension));
   }
 
   return VolumeDataRegion(volumeDataLayer, validMin, validMax);

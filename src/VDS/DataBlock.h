@@ -35,54 +35,54 @@ enum DataStoreDimensionality
 
 struct DataBlock
 {
-  VolumeDataChannelDescriptor::Format format;
-  VolumeDataChannelDescriptor::Components components;
-  Dimensionality dimensionality;
-  int32_t size[DataStoreDimensionality_Max];
-  int32_t allocatedSize[DataStoreDimensionality_Max];
-  int32_t pitch[DataStoreDimensionality_Max];
+  VolumeDataChannelDescriptor::Format Format;
+  VolumeDataChannelDescriptor::Components Components;
+  enum Dimensionality Dimensionality;
+  int32_t Size[DataStoreDimensionality_Max];
+  int32_t AllocatedSize[DataStoreDimensionality_Max];
+  int32_t Pitch[DataStoreDimensionality_Max];
 };
 
 class DataBlockDescriptor
 {
 public:
   //This layout is fixed
-  int32_t dimensionality;
+  int32_t Dimensionality;
 
-  int32_t sizeX;
-  int32_t sizeY;
-  int32_t sizeZ;
+  int32_t SizeX;
+  int32_t SizeY;
+  int32_t SizeZ;
 
-  VolumeDataChannelDescriptor::Format format;
-  VolumeDataChannelDescriptor::Components components;
+  VolumeDataChannelDescriptor::Format Format;
+  VolumeDataChannelDescriptor::Components Components;
 
 
-  bool isValid(const int32_t (&voxelSize)[DataStoreDimensionality_Max]) const
+  bool IsValid(const int32_t (&voxelSize)[DataStoreDimensionality_Max]) const
   {
-    return dimensionality >= 1 &&
-           dimensionality <= 3 &&
-           (sizeX == voxelSize[0]                        ) &&
-           (sizeY == voxelSize[1] || dimensionality < 2) &&
-           (sizeZ == voxelSize[2] || dimensionality < 3) &&
-           (format == VolumeDataChannelDescriptor::Format_1Bit ||
-            format == VolumeDataChannelDescriptor::Format_U8   ||
-            format == VolumeDataChannelDescriptor::Format_U16  ||
-            format == VolumeDataChannelDescriptor::Format_U32  ||
-            format == VolumeDataChannelDescriptor::Format_U64  ||
-            format == VolumeDataChannelDescriptor::Format_R32  ||
-            format == VolumeDataChannelDescriptor::Format_R64) &&
-           (components == VolumeDataChannelDescriptor::Components_1 ||
-            components == VolumeDataChannelDescriptor::Components_2 ||
-            components == VolumeDataChannelDescriptor::Components_4);
+    return Dimensionality >= 1 &&
+           Dimensionality <= 3 &&
+           (SizeX == voxelSize[0]                        ) &&
+           (SizeY == voxelSize[1] || Dimensionality < 2) &&
+           (SizeZ == voxelSize[2] || Dimensionality < 3) &&
+           (Format == VolumeDataChannelDescriptor::Format_1Bit ||
+            Format == VolumeDataChannelDescriptor::Format_U8   ||
+            Format == VolumeDataChannelDescriptor::Format_U16  ||
+            Format == VolumeDataChannelDescriptor::Format_U32  ||
+            Format == VolumeDataChannelDescriptor::Format_U64  ||
+            Format == VolumeDataChannelDescriptor::Format_R32  ||
+            Format == VolumeDataChannelDescriptor::Format_R64) &&
+           (Components == VolumeDataChannelDescriptor::Components_1 ||
+            Components == VolumeDataChannelDescriptor::Components_2 ||
+            Components == VolumeDataChannelDescriptor::Components_4);
   }
 
-  bool isValid() const { int32_t voxelSize[DataStoreDimensionality_Max] = {sizeX, sizeY, sizeZ}; return isValid(voxelSize); }
+  bool IsValid() const { int32_t voxelSize[DataStoreDimensionality_Max] = {SizeX, SizeY, SizeZ}; return IsValid(voxelSize); }
 };
 
-bool initializeDataBlock(const DataBlockDescriptor &descriptor, DataBlock &dataBlock, Error &error);
-bool initializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, Dimensionality dimensionality, int32_t (&size)[DataStoreDimensionality_Max], DataBlock &dataBlock, Error &error);
+bool InitializeDataBlock(const DataBlockDescriptor &descriptor, DataBlock &dataBlock, Error &error);
+bool InitializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, Dimensionality dimensionality, int32_t (&size)[DataStoreDimensionality_Max], DataBlock &dataBlock, Error &error);
 
-static int32_t getVoxelFormatByteSize(VolumeDataChannelDescriptor::Format format)
+static int32_t GetVoxelFormatByteSize(VolumeDataChannelDescriptor::Format format)
 {
   int32_t iRetval = -1;
   switch (format) {
@@ -109,7 +109,7 @@ static int32_t getVoxelFormatByteSize(VolumeDataChannelDescriptor::Format format
   return iRetval;
 }
 
-static uint32_t getElementSize(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components)
+static uint32_t GetElementSize(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components)
 {
   switch(format)
   {
@@ -131,14 +131,14 @@ static uint32_t getElementSize(VolumeDataChannelDescriptor::Format format, Volum
   }
 }
 
-inline uint32_t getElementSize(const DataBlock &datablock)
+inline uint32_t GetElementSize(const DataBlock &datablock)
 {
-  return getElementSize(datablock.format, datablock.components);
+  return GetElementSize(datablock.Format, datablock.Components);
 }
 
-inline uint32_t getByteSize(const int32_t (&size)[DataStoreDimensionality_Max], VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, bool isBitSize = true)
+inline uint32_t GetByteSize(const int32_t (&size)[DataStoreDimensionality_Max], VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, bool isBitSize = true)
 {
-  int byteSize = size[0] * getElementSize(format, components);
+  int byteSize = size[0] * GetElementSize(format, components);
 
   if(format == VolumeDataChannelDescriptor::Format_1Bit && isBitSize)
   {
@@ -153,30 +153,30 @@ inline uint32_t getByteSize(const int32_t (&size)[DataStoreDimensionality_Max], 
   return byteSize;
 }
 
-inline uint32_t getByteSize(const DataBlock &block)
+inline uint32_t GetByteSize(const DataBlock &block)
 {
-  return getByteSize(block.size, block.format, block.components);
+  return GetByteSize(block.Size, block.Format, block.Components);
 }
 
-inline uint32_t getAllocatedByteSize(const DataBlock &block)
+inline uint32_t GetAllocatedByteSize(const DataBlock &block)
 {
-  return getByteSize(block.allocatedSize, block.format, block.components, false);
+  return GetByteSize(block.AllocatedSize, block.Format, block.Components, false);
 }
 
-inline int32_t getAllocatedByteSizeForSize(const int32_t size)
+inline int32_t GetAllocatedByteSizeForSize(const int32_t size)
 {
   return (size + 7) & -8;
 }
 
 template <typename T>
-inline T dataBlock_ReadElement(const T *ptBuffer, size_t iElement) { return ptBuffer[iElement]; }
+inline T DataBlock_ReadElement(const T *ptBuffer, size_t iElement) { return ptBuffer[iElement]; }
 template <>
-inline bool dataBlock_ReadElement(const bool *ptBuffer, size_t iElement) { return (reinterpret_cast<const unsigned char *>(ptBuffer)[iElement / 8] & (1 << (iElement % 8))) != 0; }
+inline bool DataBlock_ReadElement(const bool *ptBuffer, size_t iElement) { return (reinterpret_cast<const unsigned char *>(ptBuffer)[iElement / 8] & (1 << (iElement % 8))) != 0; }
 
 template <typename T>
-inline void dataBlock_WriteElement(T *ptBuffer, size_t iElement, T tValue) { ptBuffer[iElement] = tValue; }
+inline void DataBlock_WriteElement(T *ptBuffer, size_t iElement, T tValue) { ptBuffer[iElement] = tValue; }
 template <>
-inline void dataBlock_WriteElement(bool *ptBuffer, size_t iElement, bool tValue) { if(tValue) { reinterpret_cast<unsigned char *>(ptBuffer)[iElement / 8] |= (1 << (iElement % 8)); } else { reinterpret_cast<unsigned char *>(ptBuffer)[iElement / 8] &= ~(1 << (iElement % 8)); } }
+inline void DataBlock_WriteElement(bool *ptBuffer, size_t iElement, bool tValue) { if(tValue) { reinterpret_cast<unsigned char *>(ptBuffer)[iElement / 8] |= (1 << (iElement % 8)); } else { reinterpret_cast<unsigned char *>(ptBuffer)[iElement / 8] &= ~(1 << (iElement % 8)); } }
 }
 
 #endif //DATABLOCK_H

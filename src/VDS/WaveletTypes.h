@@ -147,16 +147,16 @@ struct Wavelet_FastDecodeInsig
   char iteration;
   char isDeleteMe;
    
-  int     getX() const {return (xyz >> WAVELET_ADAPTIVELL_X_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
-  int     getY() const {return (xyz >> WAVELET_ADAPTIVELL_Y_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
-  int     getZ() const {return (xyz >> WAVELET_ADAPTIVELL_Z_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
+  int     GetX() const {return (xyz >> WAVELET_ADAPTIVELL_X_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
+  int     GetY() const {return (xyz >> WAVELET_ADAPTIVELL_Y_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
+  int     GetZ() const {return (xyz >> WAVELET_ADAPTIVELL_Z_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
 
-  void    setXYZ(int uX, int uY, int uZ) {xyz = uX | (uY << WAVELET_ADAPTIVELL_Y_SHIFT) | (uZ << WAVELET_ADAPTIVELL_Z_SHIFT); }
+  void    SetXYZ(int uX, int uY, int uZ) {xyz = uX | (uY << WAVELET_ADAPTIVELL_Y_SHIFT) | (uZ << WAVELET_ADAPTIVELL_Z_SHIFT); }
  
   Wavelet_FastDecodeInsig() {}
   Wavelet_FastDecodeInsig(int nX, int nY, int nZ, int nIteration, unsigned short iSubBandPos)
   {
-    setXYZ(nX, nY, nZ);
+    SetXYZ(nX, nY, nZ);
     iteration = nIteration;
     subBandPos = iSubBandPos;
     isDeleteMe = 0;
@@ -169,18 +169,18 @@ struct Wavelet_FastDecodeInsigAllNormal
 public:
   uint32_t iterXYZ;
 
-  int getX() const {return (iterXYZ >> WAVELET_ADAPTIVELL_X_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; } 
-  int getY() const {return (iterXYZ >> WAVELET_ADAPTIVELL_Y_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; } 
-  int getZ() const {return (iterXYZ >> WAVELET_ADAPTIVELL_Z_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
-  int getIteration() const {return iterXYZ >> WAVELET_ADAPTIVELL_ITER_SHIFT; } 
+  int GetX() const {return (iterXYZ >> WAVELET_ADAPTIVELL_X_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
+  int GetY() const {return (iterXYZ >> WAVELET_ADAPTIVELL_Y_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
+  int GetZ() const {return (iterXYZ >> WAVELET_ADAPTIVELL_Z_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
+  int GetIteration() const {return iterXYZ >> WAVELET_ADAPTIVELL_ITER_SHIFT; }
 
-  void setXYZIter(int uX, int uY, int uZ, int uIter) {iterXYZ = uX | (uY << WAVELET_ADAPTIVELL_Y_SHIFT) | (uZ << WAVELET_ADAPTIVELL_Z_SHIFT) | (uIter << WAVELET_ADAPTIVELL_ITER_SHIFT); } 
+  void SetXYZIter(int uX, int uY, int uZ, int uIter) {iterXYZ = uX | (uY << WAVELET_ADAPTIVELL_Y_SHIFT) | (uZ << WAVELET_ADAPTIVELL_Z_SHIFT) | (uIter << WAVELET_ADAPTIVELL_ITER_SHIFT); }
 
   Wavelet_FastDecodeInsigAllNormal() {}
 
   Wavelet_FastDecodeInsigAllNormal(int nX, int nY, int nZ, int nIteration)
   {
-    setXYZIter(nX, nY, nZ, nIteration);
+    SetXYZIter(nX, nY, nZ, nIteration);
   }
 };
 

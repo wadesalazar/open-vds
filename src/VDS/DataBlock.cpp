@@ -20,70 +20,70 @@
 namespace OpenVDS
 {
 
-bool initializeDataBlock(const DataBlockDescriptor &descriptor, DataBlock &dataBlock, Error &error)
+bool InitializeDataBlock(const DataBlockDescriptor &descriptor, DataBlock &dataBlock, Error &error)
 {
   int32_t size[DataStoreDimensionality_Max];
-  size[0] = descriptor.sizeX;
-  size[1] = descriptor.sizeY;
-  size[2] = descriptor.sizeZ;
-  return initializeDataBlock(descriptor.format, descriptor.components, Dimensionality(descriptor.dimensionality), size, dataBlock, error);
+  size[0] = descriptor.SizeX;
+  size[1] = descriptor.SizeY;
+  size[2] = descriptor.SizeZ;
+  return InitializeDataBlock(descriptor.Format, descriptor.Components, Dimensionality(descriptor.Dimensionality), size, dataBlock, error);
 }
 
-bool initializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, Dimensionality dimensionality, int32_t (&size)[DataStoreDimensionality_Max], DataBlock &dataBlock, Error &error)
+bool InitializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, Dimensionality dimensionality, int32_t (&size)[DataStoreDimensionality_Max], DataBlock &dataBlock, Error &error)
 {
-  dataBlock.components = components;
-  dataBlock.format = format;
-  dataBlock.dimensionality = dimensionality;
+  dataBlock.Components = components;
+  dataBlock.Format = format;
+  dataBlock.Dimensionality = dimensionality;
 
   switch(dimensionality)
   {
   case 1:
-    dataBlock.size[0] = size[0];
-    dataBlock.size[1] = 1;
-    dataBlock.size[2] = 1;
-    dataBlock.size[3] = 1;
+    dataBlock.Size[0] = size[0];
+    dataBlock.Size[1] = 1;
+    dataBlock.Size[2] = 1;
+    dataBlock.Size[3] = 1;
     break;
   case 2:
-    dataBlock.size[0] = size[0];
-    dataBlock.size[1] = size[1];
-    dataBlock.size[2] = 1;
-    dataBlock.size[3] = 1;
+    dataBlock.Size[0] = size[0];
+    dataBlock.Size[1] = size[1];
+    dataBlock.Size[2] = 1;
+    dataBlock.Size[3] = 1;
     break;
   case 3:
-    dataBlock.size[0] = size[0];
-    dataBlock.size[1] = size[1];
-    dataBlock.size[2] = size[2];
-    dataBlock.size[3] = 1;
+    dataBlock.Size[0] = size[0];
+    dataBlock.Size[1] = size[1];
+    dataBlock.Size[2] = size[2];
+    dataBlock.Size[3] = 1;
     break;
   default:
-    error.string = "Serialized datablock has illegal dimensionality";
-    error.code = -1;
+    error.String = "Serialized datablock has illegal dimensionality";
+    error.Code = -1;
     return false;
   }
 
-  dataBlock.allocatedSize[0] = (format == VolumeDataChannelDescriptor::Format_1Bit) ? ((dataBlock.size[0] * components) + 7) / 8 : getAllocatedByteSizeForSize(dataBlock.size[0]);
-  dataBlock.allocatedSize[1] = getAllocatedByteSizeForSize(dataBlock.size[1]);
-  dataBlock.allocatedSize[2] = getAllocatedByteSizeForSize(dataBlock.size[2]);
-  dataBlock.allocatedSize[3] = getAllocatedByteSizeForSize(dataBlock.size[3]);
-  dataBlock.pitch[0] = 1;
+  dataBlock.AllocatedSize[0] = (format == VolumeDataChannelDescriptor::Format_1Bit) ? ((dataBlock.Size[0] * components) + 7) / 8 : GetAllocatedByteSizeForSize(dataBlock.Size[0]);
+  dataBlock.AllocatedSize[1] = GetAllocatedByteSizeForSize(dataBlock.Size[1]);
+  dataBlock.AllocatedSize[2] = GetAllocatedByteSizeForSize(dataBlock.Size[2]);
+  dataBlock.AllocatedSize[3] = GetAllocatedByteSizeForSize(dataBlock.Size[3]);
+  dataBlock.Pitch[0] = 1;
   for (int i = 1; i < DataStoreDimensionality_Max; i++)
   {
-    dataBlock.pitch[i] = dataBlock.pitch[i - 1] * dataBlock.allocatedSize[i - 1];
+    dataBlock.Pitch[i] = dataBlock.Pitch[i - 1] * dataBlock.AllocatedSize[i - 1];
   }
 
-  uint64_t allocatedByteSize = dataBlock.allocatedSize[0];
+  uint64_t allocatedByteSize = dataBlock.AllocatedSize[0];
 
   for (int i = 1; i < DataStoreDimensionality_Max; i++)
   {
-    allocatedByteSize *= dataBlock.allocatedSize[i];
+    allocatedByteSize *= dataBlock.AllocatedSize[i];
   }
 
-  if (allocatedByteSize * getElementSize(dataBlock.format, dataBlock.components) > 0x7FFFFFFF)
+  if (allocatedByteSize * GetElementSize(dataBlock.Format, dataBlock.Components) > 0x7FFFFFFF)
   {
     char buffer[4096];
-    snprintf(buffer, sizeof(buffer), "Datablock is too big (%d x %d x %d x %d x %d bytes)", dataBlock.allocatedSize[0], dataBlock.allocatedSize[1], dataBlock.allocatedSize[2], dataBlock.allocatedSize[3], getElementSize(dataBlock.format, dataBlock.components));
-    error.string = buffer;
-    error.code = -1;
+    snprintf(buffer, sizeof(buffer), "Datablock is too big (%d x %d x %d x %d x %d bytes)", dataBlock.AllocatedSize[0], dataBlock.AllocatedSize[1], dataBlock.AllocatedSize[2], dataBlock.AllocatedSize[3], GetElementSize(dataBlock.Format, dataBlock.Components));
+    error.String = buffer;
+    error.Code = -1;
     return false;
   }
   return true;

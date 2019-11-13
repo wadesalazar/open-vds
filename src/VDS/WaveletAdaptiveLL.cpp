@@ -46,7 +46,7 @@ static int32_t omp_get_thread_num()
 #endif
 
 
-static uint8_t* assignPtrAndIncrementOffset(int nSize, uint8_t*& workBuffer)
+static uint8_t* AssignPtrAndIncrementOffset(int nSize, uint8_t*& workBuffer)
 {
   // round off buffer to 256 bytes offset
   uintptr_t round = (ADAPTIVEWAVELET_ALIGNBUFFERSIZE - (uintptr_t)workBuffer) % ADAPTIVEWAVELET_ALIGNBUFFERSIZE;
@@ -60,7 +60,7 @@ static uint8_t* assignPtrAndIncrementOffset(int nSize, uint8_t*& workBuffer)
   return returnBuffer;
 }
 
-int32_t addSubBand(uint8_t* out, Wavelet_TransformData* transformData, int32_t transformIndex, int32_t iSector, int32_t subBandOffset[][8], bool* isAllNormal)
+int32_t AddSubBand(uint8_t* out, Wavelet_TransformData* transformData, int32_t transformIndex, int32_t iSector, int32_t subBandOffset[][8], bool* isAllNormal)
 {
   Wavelet_Compiled_SubBandInfo* band = (Wavelet_Compiled_SubBandInfo*)out;
 
@@ -149,7 +149,7 @@ int32_t addSubBand(uint8_t* out, Wavelet_TransformData* transformData, int32_t t
   return size;
 }
 
-static int32_t compileTransformData(uint8_t* compiledTransformData, int32_t* firstSubBand, const Wavelet_PixelSetChildren* pixelSetChildren, int32_t pixelSetChildrenCount, Wavelet_TransformData* transformData, int32_t transformDataCount, int32_t* transformMask, bool* isAllNormal)
+static int32_t CompileTransformData(uint8_t* compiledTransformData, int32_t* firstSubBand, const Wavelet_PixelSetChildren* pixelSetChildren, int32_t pixelSetChildrenCount, Wavelet_TransformData* transformData, int32_t transformDataCount, int32_t* transformMask, bool* isAllNormal)
 {
   int subBand[32][8];
 
@@ -163,7 +163,7 @@ static int32_t compileTransformData(uint8_t* compiledTransformData, int32_t* fir
     {
       if ((iSector & transformMask[iTransform]) == iSector)
       {
-        int size = addSubBand(compiledTransformData + writePos, transformData, iTransform, iSector, subBand, isAllNormal);
+        int size = AddSubBand(compiledTransformData + writePos, transformData, iTransform, iSector, subBand, isAllNormal);
 
         if (size == 0)
         {
@@ -205,7 +205,7 @@ static int32_t compileTransformData(uint8_t* compiledTransformData, int32_t* fir
   return writePos;
 }
 
-WaveletAdaptiveLL_DecodeIterator waveletAdaptiveLL_CreateDecodeIterator(uint8_t* stream, float* picture, int sizeX, int sizeY, int sizeZ,
+WaveletAdaptiveLL_DecodeIterator WaveletAdaptiveLL_CreateDecodeIterator(uint8_t* stream, float* picture, int sizeX, int sizeY, int sizeZ,
   const float threshold, const float startThreshold, int* transformMask, Wavelet_TransformData* transformData, int transformDataCount,
   Wavelet_PixelSetChildren* pixelSetChildren, int pixelSetChildrenCount, Wavelet_PixelSetPixel* pixelSetPixelInSignificant, int pixelSetPixelInsignificantCount,
   int maxSizeX, int maxSizeXY, uint8_t* tempBufferCPU, int maxChildren, int maxPixels, int decompressLevel)
@@ -224,18 +224,18 @@ WaveletAdaptiveLL_DecodeIterator waveletAdaptiveLL_CreateDecodeIterator(uint8_t*
   decodeIterator.maxPixel = maxPixels;
 
   // Allocate CPU buffers
-  decodeIterator.pixelSetPixelInSignificant = (Wavelet_PixelSetPixel*)assignPtrAndIncrementOffset(WAVELET_MAX_PIXELSETPIXEL_SIZE, tempBufferCPU);
-  decodeIterator.pixelSetChildren = (Wavelet_PixelSetChildren*)assignPtrAndIncrementOffset(WAVELET_MAX_PIXELSETCHILDREN_SIZE, tempBufferCPU);
+  decodeIterator.pixelSetPixelInSignificant = (Wavelet_PixelSetPixel*)AssignPtrAndIncrementOffset(WAVELET_MAX_PIXELSETPIXEL_SIZE, tempBufferCPU);
+  decodeIterator.pixelSetChildren = (Wavelet_PixelSetChildren*)AssignPtrAndIncrementOffset(WAVELET_MAX_PIXELSETCHILDREN_SIZE, tempBufferCPU);
 
-  decodeIterator.valueEncodingMultiple = (int32_t*)assignPtrAndIncrementOffset(DECODEITERATOR_MAXDECODEBITS * sizeof(int32_t), tempBufferCPU);
-  decodeIterator.valuesAtLevelMultiple = (int32_t*)assignPtrAndIncrementOffset(DECODEITERATOR_MAXDECODEBITS * sizeof(int32_t), tempBufferCPU);
-  decodeIterator.valueEncodingSingle = (int32_t*)assignPtrAndIncrementOffset(DECODEITERATOR_MAXDECODEBITS * sizeof(int32_t), tempBufferCPU);
-  decodeIterator.valuesAtLevelSingle = (int32_t*)assignPtrAndIncrementOffset(DECODEITERATOR_MAXDECODEBITS * sizeof(int32_t), tempBufferCPU);
+  decodeIterator.valueEncodingMultiple = (int32_t*)AssignPtrAndIncrementOffset(DECODEITERATOR_MAXDECODEBITS * sizeof(int32_t), tempBufferCPU);
+  decodeIterator.valuesAtLevelMultiple = (int32_t*)AssignPtrAndIncrementOffset(DECODEITERATOR_MAXDECODEBITS * sizeof(int32_t), tempBufferCPU);
+  decodeIterator.valueEncodingSingle = (int32_t*)AssignPtrAndIncrementOffset(DECODEITERATOR_MAXDECODEBITS * sizeof(int32_t), tempBufferCPU);
+  decodeIterator.valuesAtLevelSingle = (int32_t*)AssignPtrAndIncrementOffset(DECODEITERATOR_MAXDECODEBITS * sizeof(int32_t), tempBufferCPU);
 
-  decodeIterator.insig = (Wavelet_FastDecodeInsig*)assignPtrAndIncrementOffset(maxChildren * sizeof(Wavelet_FastDecodeInsig), tempBufferCPU);
-  decodeIterator.sig = (Wavelet_FastDecodeInsig*)assignPtrAndIncrementOffset(maxChildren * sizeof(Wavelet_FastDecodeInsig), tempBufferCPU);
-  decodeIterator.pos = (int32_t*)assignPtrAndIncrementOffset((maxPixels + maxChildren) * sizeof(int32_t), tempBufferCPU);
-  decodeIterator.compiledTransformData = (uint8_t*)assignPtrAndIncrementOffset(32768, tempBufferCPU);
+  decodeIterator.insig = (Wavelet_FastDecodeInsig*)AssignPtrAndIncrementOffset(maxChildren * sizeof(Wavelet_FastDecodeInsig), tempBufferCPU);
+  decodeIterator.sig = (Wavelet_FastDecodeInsig*)AssignPtrAndIncrementOffset(maxChildren * sizeof(Wavelet_FastDecodeInsig), tempBufferCPU);
+  decodeIterator.pos = (int32_t*)AssignPtrAndIncrementOffset((maxPixels + maxChildren) * sizeof(int32_t), tempBufferCPU);
+  decodeIterator.compiledTransformData = (uint8_t*)AssignPtrAndIncrementOffset(32768, tempBufferCPU);
 
   decodeIterator.stream = stream;
   decodeIterator.picture = picture;
@@ -303,7 +303,7 @@ WaveletAdaptiveLL_DecodeIterator waveletAdaptiveLL_CreateDecodeIterator(uint8_t*
   // And compile tree traversal data based on wavelet tranfsform for this item
   bool isAllNormal = true;
 
-  int compiledTransformData = compileTransformData((uint8_t*)decodeIterator.compiledTransformData, decodeIterator.firstSubBand, pixelSetChildren, pixelSetChildrenCount, transformData, transformDataCount, transformMask, &isAllNormal);
+  int compiledTransformData = CompileTransformData((uint8_t*)decodeIterator.compiledTransformData, decodeIterator.firstSubBand, pixelSetChildren, pixelSetChildrenCount, transformData, transformDataCount, transformMask, &isAllNormal);
 
 
   // Write where we find initial uncompressed values (Lowest Band)
@@ -359,7 +359,7 @@ WaveletAdaptiveLL_DecodeIterator waveletAdaptiveLL_CreateDecodeIterator(uint8_t*
 }
 
 template<bool isAllNormal>
-static inline void initializeInsignificantsKernel(int iElement, const WaveletAdaptiveLL_DecodeIterator& decodeIterator, const Wavelet_PixelSetChildren* pixelSetChildren)
+static inline void InitializeInsignificantsKernel(int iElement, const WaveletAdaptiveLL_DecodeIterator& decodeIterator, const Wavelet_PixelSetChildren* pixelSetChildren)
 {
   if (isAllNormal)
   {
@@ -375,16 +375,16 @@ static inline void initializeInsignificantsKernel(int iElement, const WaveletAda
 }
 
 template<bool isAllNormal>
-static void initializeInsignificants(const WaveletAdaptiveLL_DecodeIterator& decodeIterator, const Wavelet_PixelSetChildren* pixelSetChildren, int pixelSetChildrenCount)
+static void InitializeInsignificants(const WaveletAdaptiveLL_DecodeIterator& decodeIterator, const Wavelet_PixelSetChildren* pixelSetChildren, int pixelSetChildrenCount)
 {
   for (int iElement = 0; iElement < pixelSetChildrenCount; iElement++)
   {
-    initializeInsignificantsKernel<isAllNormal>(iElement, decodeIterator, pixelSetChildren);
+    InitializeInsignificantsKernel<isAllNormal>(iElement, decodeIterator, pixelSetChildren);
   }
 }
 
 template <bool isInsigPass>
-static void evalAndSplitAllNormal(const WaveletAdaptiveLL_DecodeIterator& decodeIterator, uint8_t* puBitStream, int32_t& iCurrentElement, int32_t& nElement, const float rCurrentThreshold, int32_t& nValuesOut, int32_t& nChildrenOut)
+static void EvalAndSplitAllNormal(const WaveletAdaptiveLL_DecodeIterator& decodeIterator, uint8_t* puBitStream, int32_t& iCurrentElement, int32_t& nElement, const float rCurrentThreshold, int32_t& nValuesOut, int32_t& nChildrenOut)
 {
   assert(iCurrentElement < nElement);
 
@@ -514,7 +514,7 @@ static void evalAndSplitAllNormal(const WaveletAdaptiveLL_DecodeIterator& decode
 }
 
 template <bool isInsigPass, int dimensions>
-static void evalAndSplit(const WaveletAdaptiveLL_DecodeIterator& decodeIterator, uint8_t* puBitStream, int32_t& iCurrentElement, int32_t& nElement, const float rCurrentThreshold, int32_t& nValuesOutMultiple, int32_t& nValuesOutSingle, int32_t& nChildrenOut)
+static void EvalAndSplit(const WaveletAdaptiveLL_DecodeIterator& decodeIterator, uint8_t* puBitStream, int32_t& iCurrentElement, int32_t& nElement, const float rCurrentThreshold, int32_t& nValuesOutMultiple, int32_t& nValuesOutSingle, int32_t& nChildrenOut)
 {
   assert(iCurrentElement < nElement);
 
@@ -594,9 +594,9 @@ static void evalAndSplit(const WaveletAdaptiveLL_DecodeIterator& decodeIterator,
         }
         else
         {
-          int32_t nX = child.getX();
-          int32_t nY = child.getY();
-          int32_t nZ = child.getZ();
+          int32_t nX = child.GetX();
+          int32_t nY = child.GetY();
+          int32_t nZ = child.GetZ();
 
           int32_t transformMask = decodeIterator.transformMask[child.iteration];
 
@@ -640,9 +640,9 @@ static void evalAndSplit(const WaveletAdaptiveLL_DecodeIterator& decodeIterator,
       }
       else
       {
-        int32_t nX = child.getX();
-        int32_t nY = child.getY();
-        int32_t nZ = child.getZ();
+        int32_t nX = child.GetX();
+        int32_t nY = child.GetY();
+        int32_t nZ = child.GetZ();
 
         Wavelet_Compiled_SubBandInfo* subBandInfo = (Wavelet_Compiled_SubBandInfo*)(decodeIterator.compiledTransformData + child.subBandPos);
 
@@ -688,7 +688,7 @@ static void evalAndSplit(const WaveletAdaptiveLL_DecodeIterator& decodeIterator,
             {
               Wavelet_FastDecodeInsigAllNormal fastChild;
 
-              fastChild.setXYZIter(childPosX, childPosY, childPosZ, 0);
+              fastChild.SetXYZIter(childPosX, childPosY, childPosZ, 0);
               outputPosMultiple[nValuesOutMultiple++] = fastChild.iterXYZ;
               continue;
             }
@@ -733,7 +733,7 @@ static void evalAndSplit(const WaveletAdaptiveLL_DecodeIterator& decodeIterator,
 }
 
 template<bool isAllNormal, int dimensions>
-static int32_t decodeTreeStructure(const WaveletAdaptiveLL_DecodeIterator& decodeIterator)
+static int32_t DecodeTreeStructure(const WaveletAdaptiveLL_DecodeIterator& decodeIterator)
 {
   const Wavelet_PixelSetChildren* pixelSetChildren = decodeIterator.pixelSetChildren;
   int32_t pixelSetChildrenCount = decodeIterator.pixelSetChildrenCount;
@@ -778,7 +778,7 @@ static int32_t decodeTreeStructure(const WaveletAdaptiveLL_DecodeIterator& decod
 
 
   // Create first list of all Inisignificants 
-  initializeInsignificants<isAllNormal>(decodeIterator, pixelSetChildren, pixelSetChildrenCount);
+  InitializeInsignificants<isAllNormal>(decodeIterator, pixelSetChildren, pixelSetChildrenCount);
 
   // Set number of current insignificants
   insig = pixelSetChildrenCount;
@@ -816,11 +816,11 @@ static int32_t decodeTreeStructure(const WaveletAdaptiveLL_DecodeIterator& decod
         // create count out for how many children each item should make (also mark, lowest bit, which insig should go to significant
         if (isAllNormal)
         {
-          evalAndSplitAllNormal<true>(decodeIterator, bitField, insigCurrent, insig, decodeBitsThreshold, valuesMultiple, sig);
+          EvalAndSplitAllNormal<true>(decodeIterator, bitField, insigCurrent, insig, decodeBitsThreshold, valuesMultiple, sig);
         }
         else
         {
-          evalAndSplit<true, dimensions>(decodeIterator, bitField, insigCurrent, insig, decodeBitsThreshold, valuesMultiple, valuesSingle, sig);
+          EvalAndSplit<true, dimensions>(decodeIterator, bitField, insigCurrent, insig, decodeBitsThreshold, valuesMultiple, valuesSingle, sig);
         }
       }
 
@@ -844,11 +844,11 @@ static int32_t decodeTreeStructure(const WaveletAdaptiveLL_DecodeIterator& decod
 
         if (isAllNormal)
         {
-          evalAndSplitAllNormal<false>(decodeIterator, bitField, sigCurrent, sig, decodeBitsThreshold, dummy, insig);
+          EvalAndSplitAllNormal<false>(decodeIterator, bitField, sigCurrent, sig, decodeBitsThreshold, dummy, insig);
         }
         else
         {
-          evalAndSplit<false, dimensions>(decodeIterator, bitField, sigCurrent, sig, decodeBitsThreshold, dummy, dummy2, insig);
+          EvalAndSplit<false, dimensions>(decodeIterator, bitField, sigCurrent, sig, decodeBitsThreshold, dummy, dummy2, insig);
         }
       }
     }
@@ -905,7 +905,7 @@ static int32_t decodeTreeStructure(const WaveletAdaptiveLL_DecodeIterator& decod
   return iStreamPos;
 }
 
-static inline void readWriteStartValueKernel(const int value, float* picture, const int sizeX, const int sizeXY, const Wavelet_PixelSetPixel* pixelSetPixelInSignificant, int pixelSetPixelInsignificantCount, const Wavelet_PixelSetChildren* pixelSetChildren, int pixelSetChildrenCount, float* rw)
+static inline void ReadWriteStartValueKernel(const int value, float* picture, const int sizeX, const int sizeXY, const Wavelet_PixelSetPixel* pixelSetPixelInSignificant, int pixelSetPixelInsignificantCount, const Wavelet_PixelSetChildren* pixelSetChildren, int pixelSetChildrenCount, float* rw)
 {
   int pos;
 
@@ -922,18 +922,18 @@ static inline void readWriteStartValueKernel(const int value, float* picture, co
   picture[pos] = rw[value];
 }
 
-static inline void readWriteStartValues(const WaveletAdaptiveLL_DecodeIterator& decodeIterator, const Wavelet_PixelSetPixel* pixelSetPixelInSignificant, int pixelSetPixelInsignificantCount, const Wavelet_PixelSetChildren* pixelSetChildren, int pixelSetChildrenCount)
+static inline void ReadWriteStartValues(const WaveletAdaptiveLL_DecodeIterator& decodeIterator, const Wavelet_PixelSetPixel* pixelSetPixelInSignificant, int pixelSetPixelInsignificantCount, const Wavelet_PixelSetChildren* pixelSetChildren, int pixelSetChildrenCount)
 {
   int totalValue = pixelSetPixelInsignificantCount + pixelSetChildrenCount;
 
   for (int value = 0; value < totalValue; value++)
   {
-    readWriteStartValueKernel(value, decodeIterator.picture, decodeIterator.sizeX, decodeIterator.sizeXY, pixelSetPixelInSignificant, pixelSetPixelInsignificantCount, pixelSetChildren, pixelSetChildrenCount, decodeIterator.streamFirstValues);
+    ReadWriteStartValueKernel(value, decodeIterator.picture, decodeIterator.sizeX, decodeIterator.sizeXY, pixelSetPixelInSignificant, pixelSetPixelInsignificantCount, pixelSetChildren, pixelSetChildrenCount, decodeIterator.streamFirstValues);
   }
 }
 
 template<bool isMultiple, bool isAllNormal, int multiple>
-static void decodeAllBits(const WaveletAdaptiveLL_DecodeIterator& decodeIterator, float threshold, const int* valueEncoding, const int* valuesAtLevel, const int values, const int startDecodeBits, const int maxDecodeLevel)
+static void DecodeAllBits(const WaveletAdaptiveLL_DecodeIterator& decodeIterator, float threshold, const int* valueEncoding, const int* valuesAtLevel, const int values, const int startDecodeBits, const int maxDecodeLevel)
 {
   const float minLevelThreshold = threshold * powf(2.0f, (float)maxDecodeLevel);
 
@@ -1016,7 +1016,7 @@ static void decodeAllBits(const WaveletAdaptiveLL_DecodeIterator& decodeIterator
           item.iterXYZ += item.iterXYZ & decodeIterator.allNormalAndMask;
         }
 
-        int currentPos = item.getX() + item.getY() * decodeIterator.sizeX + item.getZ() * decodeIterator.sizeXY;
+        int currentPos = item.GetX() + item.GetY() * decodeIterator.sizeX + item.GetZ() * decodeIterator.sizeXY;
 
         if (isAllNormal)
         {
@@ -1035,7 +1035,7 @@ static void decodeAllBits(const WaveletAdaptiveLL_DecodeIterator& decodeIterator
   }
 }
 
-int32_t waveletAdaptiveLL_DecompressAdaptive(WaveletAdaptiveLL_DecodeIterator decodeIterator)
+int32_t WaveletAdaptiveLL_DecompressAdaptive(WaveletAdaptiveLL_DecodeIterator decodeIterator)
 {
   int streamSize = 0;
 
@@ -1043,30 +1043,30 @@ int32_t waveletAdaptiveLL_DecompressAdaptive(WaveletAdaptiveLL_DecodeIterator de
   {
     if (decodeIterator.dimensions == 1)
     {
-      streamSize = decodeTreeStructure<true, 1>(decodeIterator);
+      streamSize = DecodeTreeStructure<true, 1>(decodeIterator);
     }
     else if (decodeIterator.dimensions == 2)
     {
-      streamSize = decodeTreeStructure<true, 2>(decodeIterator);
+      streamSize = DecodeTreeStructure<true, 2>(decodeIterator);
     }
     else //if (decodeIterator.m_dimensions == 3)
     {
-      streamSize = decodeTreeStructure<true, 3>(decodeIterator);
+      streamSize = DecodeTreeStructure<true, 3>(decodeIterator);
     }
   }
   else
   {
     if (decodeIterator.dimensions == 1)
     {
-      streamSize = decodeTreeStructure<false, 1>(decodeIterator);
+      streamSize = DecodeTreeStructure<false, 1>(decodeIterator);
     }
     else if (decodeIterator.dimensions == 2)
     {
-      streamSize = decodeTreeStructure<false, 2>(decodeIterator);
+      streamSize = DecodeTreeStructure<false, 2>(decodeIterator);
     }
     else //if (decodeIterator.m_dimensions == 3)
     {
-      streamSize = decodeTreeStructure<false, 3>(decodeIterator);
+      streamSize = DecodeTreeStructure<false, 3>(decodeIterator);
     }
   }
 
@@ -1078,7 +1078,7 @@ int32_t waveletAdaptiveLL_DecompressAdaptive(WaveletAdaptiveLL_DecodeIterator de
 
   memset(decodeIterator.picture, 0, decodeIterator.sizeX * decodeIterator.sizeY * decodeIterator.sizeZ * sizeof(float));
 
-  readWriteStartValues(decodeIterator, decodeIterator.pixelSetPixelInSignificant, decodeIterator.pixelSetPixelInsignificantCount, decodeIterator.pixelSetChildren, decodeIterator.pixelSetChildrenCount);
+  ReadWriteStartValues(decodeIterator, decodeIterator.pixelSetPixelInSignificant, decodeIterator.pixelSetPixelInsignificantCount, decodeIterator.pixelSetChildren, decodeIterator.pixelSetChildrenCount);
 
   if (decodeIterator.decompressLevel <= decodeIterator.decodeBits)
   {
@@ -1090,17 +1090,17 @@ int32_t waveletAdaptiveLL_DecompressAdaptive(WaveletAdaptiveLL_DecodeIterator de
     {
       if (decodeIterator.isAllNormal)
       {
-        if (multiple == 1)      decodeAllBits<true, true, 1>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
-        else if (multiple == 2) decodeAllBits<true, true, 2>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
-        else if (multiple == 4) decodeAllBits<true, true, 4>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
-        else if (multiple == 8) decodeAllBits<true, true, 8>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
+        if (multiple == 1)      DecodeAllBits<true, true, 1>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
+        else if (multiple == 2) DecodeAllBits<true, true, 2>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
+        else if (multiple == 4) DecodeAllBits<true, true, 4>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
+        else if (multiple == 8) DecodeAllBits<true, true, 8>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
       }
       else
       {
         // multiple can't be one if using 1 << nDimensions
-        if (multiple == 2)      decodeAllBits<true, false, 2>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
-        else if (multiple == 4) decodeAllBits<true, false, 4>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
-        else if (multiple == 8) decodeAllBits<true, false, 8>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
+        if (multiple == 2)      DecodeAllBits<true, false, 2>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
+        else if (multiple == 4) DecodeAllBits<true, false, 4>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
+        else if (multiple == 8) DecodeAllBits<true, false, 8>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingMultiple, decodeIterator.valuesAtLevelMultiple, valuesMultiple, decodeIterator.decodeBits, decodeIterator.decompressLevel);
       }
     }
 
@@ -1110,7 +1110,7 @@ int32_t waveletAdaptiveLL_DecompressAdaptive(WaveletAdaptiveLL_DecodeIterator de
 
       if (valuesSingle)
       {
-        decodeAllBits<false, false, 1>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingSingle, decodeIterator.valuesAtLevelSingle, valuesSingle, decodeIterator.decodeBits, decodeIterator.decompressLevel);
+        DecodeAllBits<false, false, 1>(decodeIterator, decodeIterator.threshold, decodeIterator.valueEncodingSingle, decodeIterator.valuesAtLevelSingle, valuesSingle, decodeIterator.decodeBits, decodeIterator.decompressLevel);
       }
     }
   }
@@ -1119,7 +1119,7 @@ int32_t waveletAdaptiveLL_DecompressAdaptive(WaveletAdaptiveLL_DecodeIterator de
 
 #define ADAPTIVEWAVELET_LOSSLESS_CHANNEL_ZERO            0
 #define ADAPTIVEWAVELET_LOSSLESS_CHANNEL_UNCOMPRESSED    -1
-int32_t waveletAdaptiveLL_DecompressLossless(uint8_t *in, float *pic, int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t allocatedSizeX, int32_t allocatedSizeXY)
+int32_t WaveletAdaptiveLL_DecompressLossless(uint8_t *in, float *pic, int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t allocatedSizeX, int32_t allocatedSizeXY)
 {
   unsigned char *start = in;
 

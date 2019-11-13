@@ -62,7 +62,7 @@ struct SEGYBinInfoHeaderFields
   SEGYBinInfoHeaderFields() : m_inlineNumberHeaderField(), m_crosslineNumberHeaderField(), m_coordinateScaleHeaderField(), m_ensembleXCoordinateHeaderField(), m_ensembleYCoordinateHeaderField(), m_scaleOverride() {}
   SEGYBinInfoHeaderFields(SEGY::HeaderField inlineNumberHeaderField, SEGY::HeaderField crosslineNumberHeaderField, SEGY::HeaderField coordinateScaleHeaderField, SEGY::HeaderField ensembleXCoordinateHeaderField, SEGY::HeaderField ensembleYCoordinateHeaderField, double scaleOverride = 0.0) : m_inlineNumberHeaderField(inlineNumberHeaderField), m_crosslineNumberHeaderField(crosslineNumberHeaderField), m_coordinateScaleHeaderField(coordinateScaleHeaderField), m_ensembleXCoordinateHeaderField(ensembleXCoordinateHeaderField), m_ensembleYCoordinateHeaderField(ensembleYCoordinateHeaderField), m_scaleOverride(scaleOverride) {}
 
-  static SEGYBinInfoHeaderFields standardHeaderFields() { return SEGYBinInfoHeaderFields(SEGY::TraceHeader::InlineNumberHeaderField, SEGY::TraceHeader::CrosslineNumberHeaderField, SEGY::TraceHeader::CoordinateScaleHeaderField, SEGY::TraceHeader::EnsembleXCoordinateHeaderField, SEGY::TraceHeader::EnsembleYCoordinateHeaderField); }
+  static SEGYBinInfoHeaderFields StandardHeaderFields() { return SEGYBinInfoHeaderFields(SEGY::TraceHeader::InlineNumberHeaderField, SEGY::TraceHeader::CrosslineNumberHeaderField, SEGY::TraceHeader::CoordinateScaleHeaderField, SEGY::TraceHeader::EnsembleXCoordinateHeaderField, SEGY::TraceHeader::EnsembleYCoordinateHeaderField); }
 };
 
 struct SEGYFileInfo
@@ -90,7 +90,7 @@ struct SEGYFileInfo
 
   SEGYFileInfo(SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_persistentID(), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo() {}
 
-  int  traceByteSize() const;
+  int  TraceByteSize() const;
 
-  bool scan(OpenVDS::File const &file, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::standardHeaderFields());
+  bool Scan(OpenVDS::File const &file, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::StandardHeaderFields());
 };

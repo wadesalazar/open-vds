@@ -45,23 +45,23 @@ public:
 
   VolumeDataAxisDescriptor(int numSamples, const char *name, const char *unit, const FloatRange &coordinateRange)
     : m_numSamples(numSamples), m_name(name), m_unit(unit), m_coordinateRange(coordinateRange) {}
-  int getNumSamples()    const { return m_numSamples; }
-  const char *getName()          const { return m_name; }
-  const char *getUnit()          const { return m_unit; }
-  float getCoordinateMin() const { return m_coordinateRange.min; }
-  float getCoordinateMax() const { return m_coordinateRange.max; }
-  const FloatRange &getCoordinateRange() const { return m_coordinateRange; }
-  float getCoordinateStep() const { return (m_numSamples > 1) ? ((m_coordinateRange.max - m_coordinateRange.min) / (m_numSamples - 1)) : 0; }
+  int GetNumSamples()    const { return m_numSamples; }
+  const char *GetName()          const { return m_name; }
+  const char *GetUnit()          const { return m_unit; }
+  float GetCoordinateMin() const { return m_coordinateRange.Min; }
+  float GetCoordinateMax() const { return m_coordinateRange.Max; }
+  const FloatRange &GetCoordinateRange() const { return m_coordinateRange; }
+  float GetCoordinateStep() const { return (m_numSamples > 1) ? ((m_coordinateRange.Max - m_coordinateRange.Min) / (m_numSamples - 1)) : 0; }
 
   /// Convert a sample index on this axis to a coordinate value
   /// \param sampleIndex the sample index to convert
   /// \return the coordinate
-  float sampleIndexToCoordinate(int sampleIndex)  { return m_coordinateRange.min + sampleIndex * getCoordinateStep(); }
+  float SampleIndexToCoordinate(int sampleIndex)  { return m_coordinateRange.Min + sampleIndex * GetCoordinateStep(); }
 
   /// Convert a coordinate to a sample index (rounding to the closest index)
   /// \param coordinate the coordinate to convert
   /// \return the sample index
-  int coordinateToSampleIndex(float coordinate) { return (coordinate == m_coordinateRange.min) ? 0 : (int)floorf(((coordinate - m_coordinateRange.min) / (m_coordinateRange.max - m_coordinateRange.min)) * (m_numSamples - 1) + 0.5f); }
+  int CoordinateToSampleIndex(float coordinate) { return (coordinate == m_coordinateRange.Min) ? 0 : (int)floorf(((coordinate - m_coordinateRange.Min) / (m_coordinateRange.Max - m_coordinateRange.Min)) * (m_numSamples - 1) + 0.5f); }
 };
 }
 #endif //VOLUMEDATAAXISDESCRIPTOR_H

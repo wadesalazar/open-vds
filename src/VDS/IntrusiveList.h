@@ -54,16 +54,16 @@ public:
 #endif
   {}
 
-  bool isEmpty() const
+  bool IsEmpty() const
   {
     assert(!!m_firstItem == !!m_lastItem);
     return m_firstItem == NULL;
   }
 
-  Item *getFirstItem() const { return m_firstItem; }
-  Item *getLastItem() const { return m_lastItem; }
+  Item *GetFirstItem() const { return m_firstItem; }
+  Item *GetLastItem() const { return m_lastItem; }
 
-  void remove(Item *item)
+  void Remove(Item *item)
   {
     Node &node = item->*PtrToNode;
 
@@ -97,7 +97,7 @@ public:
 #endif
   }
 
-  void insertFirst(Item *item)
+  void InsertFirst(Item *item)
   {
     Node &node = item->*PtrToNode;
 
@@ -123,7 +123,7 @@ public:
 #endif
   }
 
-  void insertLast(Item *item)
+  void InsertLast(Item *item)
   {
     Node &node = item->*PtrToNode;
 
@@ -158,11 +158,11 @@ public:
 
     if(!insertionPoint)
     {
-      insertFirst(item);
+      InsertFirst(item);
     }
     else if(!((insertionPoint->*PtrToNode).m_next))
     {
-      insertLast(item);
+      InsertLast(item);
     }
     else
     {
@@ -177,7 +177,7 @@ public:
 #endif
   }
 
-  void insertBefore(Item *item, Item *insertionPoint)
+  void InsertBefore(Item *item, Item *insertionPoint)
   {
     Node &node = item->*PtrToNode;
 

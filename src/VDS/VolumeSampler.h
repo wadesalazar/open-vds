@@ -28,14 +28,14 @@
 namespace OpenVDS
 {
 template <typename T>
-inline T readElement(const T *ptBuffer, size_t iElement) { return ptBuffer[iElement]; }
+inline T ReadElement(const T *ptBuffer, size_t iElement) { return ptBuffer[iElement]; }
 template <>
-inline bool readElement<bool>(const bool *ptBuffer, size_t iElement) { return (reinterpret_cast<const unsigned char *>(ptBuffer)[iElement / 8] & (1 << (iElement % 8))) != 0; }
+inline bool ReadElement<bool>(const bool *ptBuffer, size_t iElement) { return (reinterpret_cast<const unsigned char *>(ptBuffer)[iElement / 8] & (1 << (iElement % 8))) != 0; }
 
 template <typename T>
-inline int pitchScale() { return 1; }
+inline int PitchScale() { return 1; }
 template <>
-inline int pitchScale<bool>() { return 8; }
+inline int PitchScale<bool>() { return 8; }
 
 template <typename T> struct InterpolatedRealType { typedef float type; };
 template <> struct InterpolatedRealType<double>   { typedef double type; };
@@ -65,12 +65,12 @@ private:
 
   QuantizedTypesToFloatConverter<T, ISUSENOVALUE> m_quantizedTypesToFloatConverter;
 
-  inline int clamp(int nIndex, int nSize) const
+  inline int Clamp(int nIndex, int nSize) const
   {
     return nIndex < 0 ? 0 : (nIndex >= nSize ? nSize - 1: nIndex);
   }
 
-  inline void getCubicInterpolationWeights(float rT, float (&arWeights)[4]) const
+  inline void GetCubicInterpolationWeights(float rT, float (&arWeights)[4]) const
   {
     float rT2 = rT * rT;
     float rT3 = rT2 * rT;
@@ -81,7 +81,7 @@ private:
     arWeights[3] =  0.5f * (rT3 - rT2);
   }
 
-  inline TREAL wrapToClosestAngle(TREAL tData, TREAL tFixed) const
+  inline TREAL WrapToClosestAngle(TREAL tData, TREAL tFixed) const
   {
     float rangeSize = m_rangeMax - m_rangeMin;
 
@@ -121,11 +121,11 @@ public:
       , m_sizeY(anSize[1])
       , m_sizeZ(anSize[2])
       , m_pitchX(anPitch[0])
-      , m_pitchY(anPitch[1] * pitchScale<T>())
-      , m_pitchZ(anPitch[2] * pitchScale<T>())
+      , m_pitchY(anPitch[1] * PitchScale<T>())
+      , m_pitchZ(anPitch[2] * PitchScale<T>())
       , m_rangeMin(rangeMin)
       , m_rangeMax(rangeMax)
-      , m_noValue(convertNoValue<T>(noValalue))
+      , m_noValue(ConvertNoValue<T>(noValalue))
       , m_replacementNoValue(replacementNoValue)
       , m_quantizedTypesToFloatConverter(integerScale, integerOffset, false)
   {}
@@ -135,7 +135,7 @@ public:
   /// \param ptBuffer pointer to the buffer to be samples
   /// \param localIndex the local 3D index into the buffer
   /// \return a TREAL sampled using the ::InterpolationType at the given index
-  TREAL sample3D(const T *ptBuffer, FloatVector3 localIndex) const
+  TREAL Sample3D(const T *ptBuffer, FloatVector3 localIndex) const
   {
     float
       rU = localIndex[0],
@@ -143,9 +143,9 @@ public:
       rW = localIndex[2];
 
     int
-      nNearestU = clamp((int)floorf(rU), m_sizeX),
-      nNearestV = clamp((int)floorf(rV), m_sizeY),
-      nNearestW = clamp((int)floorf(rW), m_sizeZ);
+      nNearestU = Clamp((int)floorf(rU), m_sizeX),
+      nNearestV = Clamp((int)floorf(rV), m_sizeY),
+      nNearestW = Clamp((int)floorf(rW), m_sizeZ);
 
     int
       nU = (int)floorf(rU - 0.5f),
@@ -158,88 +158,88 @@ public:
       rV = rV - nV - 0.5f;
 
       int
-        anU[2] = { clamp(nU, m_sizeX), clamp(nU + 1, m_sizeX) },
-        anV[2] = { clamp(nV, m_sizeY), clamp(nV + 1, m_sizeY) };
+        anU[2] = { Clamp(nU, m_sizeX), Clamp(nU + 1, m_sizeX) },
+        anV[2] = { Clamp(nV, m_sizeY), Clamp(nV + 1, m_sizeY) };
 
-      T aatData[2][2] = { { readElement(ptBuffer, nNearestW * m_pitchZ + anV[0] * m_pitchY + anU[0]), readElement(ptBuffer, nNearestW * m_pitchZ + anV[0] * m_pitchY + anU[1]) },
-                          { readElement(ptBuffer, nNearestW * m_pitchZ + anV[1] * m_pitchY + anU[0]), readElement(ptBuffer, nNearestW * m_pitchZ + anV[1] * m_pitchY + anU[1]) } };
+      T aatData[2][2] = { { ReadElement(ptBuffer, nNearestW * m_pitchZ + anV[0] * m_pitchY + anU[0]), ReadElement(ptBuffer, nNearestW * m_pitchZ + anV[0] * m_pitchY + anU[1]) },
+                          { ReadElement(ptBuffer, nNearestW * m_pitchZ + anV[1] * m_pitchY + anU[0]), ReadElement(ptBuffer, nNearestW * m_pitchZ + anV[1] * m_pitchY + anU[1]) } };
 
-      if(!ISUSENOVALUE || (isHeightValid(aatData[0][1]) && isHeightValid(aatData[1][0])))
+      if(!ISUSENOVALUE || (IsHeightValid(aatData[0][1]) && IsHeightValid(aatData[1][0])))
       {
-        if(rU <= 1.0f - rV && (!ISUSENOVALUE || isHeightValid(aatData[0][0])))
+        if(rU <= 1.0f - rV && (!ISUSENOVALUE || IsHeightValid(aatData[0][0])))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]);
 
           TREAL
-            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][1]) - rValue,
-            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][0]) - rValue;
+            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][1]) - rValue,
+            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][0]) - rValue;
 
           return rValue + rU * rDeltaU + rV * rDeltaV;
         }
-        else if(rU >= 1.0f - rV && (!ISUSENOVALUE || isHeightValid(aatData[1][1])))
+        else if(rU >= 1.0f - rV && (!ISUSENOVALUE || IsHeightValid(aatData[1][1])))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][1]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][1]);
 
           TREAL
-            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][0]) - rValue,
-            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][1]) - rValue;
+            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][0]) - rValue,
+            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][1]) - rValue;
 
           return rValue + (1.0f - rU) * rDeltaU + (1.0f - rV) * rDeltaV;
         }
       }
-      else if(isHeightValid(aatData[0][0]) && isHeightValid(aatData[1][1]))
+      else if(IsHeightValid(aatData[0][0]) && IsHeightValid(aatData[1][1]))
       {
-        if(rU >= rV && isHeightValid(aatData[0][1]))
+        if(rU >= rV && IsHeightValid(aatData[0][1]))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][1]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][1]);
 
           TREAL
-            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]) - rValue,
-            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][1]) - rValue;
+            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]) - rValue,
+            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][1]) - rValue;
 
           return rValue + (1.0f - rU) * rDeltaU + rV * rDeltaV;
         }
-        else if(rU <= rV && isHeightValid(aatData[1][0]))
+        else if(rU <= rV && IsHeightValid(aatData[1][0]))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][0]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][0]);
 
           TREAL
-            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][1]) - rValue,
-            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]) - rValue;
+            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][1]) - rValue,
+            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]) - rValue;
 
           return rValue + rU * rDeltaU + (1.0f - rV) * rDeltaV;
         }
       }
-      else if(isHeightValid(aatData[0][0]))
+      else if(IsHeightValid(aatData[0][0]))
       {
         if(rU == 0.0f && rV == 0.0f)
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]);
 
           return rValue;
         }
-        else if(rU == 0.0f && isHeightValid(aatData[1][0]))
+        else if(rU == 0.0f && IsHeightValid(aatData[1][0]))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]);
 
           TREAL
-            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][0]) - rValue;
+            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][0]) - rValue;
 
           return rValue + rV * rDeltaV;
         }
-        else if(rV == 0.0f && isHeightValid(aatData[0][1]))
+        else if(rV == 0.0f && IsHeightValid(aatData[0][1]))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]);
 
           TREAL
-            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][1]) - rValue;
+            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][1]) - rValue;
 
           return rValue + rU * rDeltaU;
         }
@@ -249,7 +249,7 @@ public:
     }
     else
     {
-      T tNearest = readElement(ptBuffer, (nNearestW * m_pitchZ + nNearestV * m_pitchY) + nNearestU);
+      T tNearest = ReadElement(ptBuffer, (nNearestW * m_pitchZ + nNearestV * m_pitchY) + nNearestU);
 
       if(ISUSENOVALUE && tNearest == m_noValue)
       {
@@ -257,11 +257,11 @@ public:
       }
       else if(INTERPMETHOD == InterpolationMethod::Nearest)
       {
-        return (TREAL)m_quantizedTypesToFloatConverter.convertValue(tNearest);
+        return (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(tNearest);
       }
       else if(INTERPMETHOD == InterpolationMethod::Linear || INTERPMETHOD == InterpolationMethod::Angular)
       {
-        TREAL rNearest = (TREAL)m_quantizedTypesToFloatConverter.convertValue(tNearest);
+        TREAL rNearest = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(tNearest);
 
         rU = rU - nU - 0.5f;
         rV = rV - nV - 0.5f;
@@ -273,9 +273,9 @@ public:
           arW[2] = { 1 - rW, rW };
 
         int
-          anU[2] = { clamp(nU, m_sizeX), clamp(nU + 1, m_sizeX) },
-          anV[2] = { clamp(nV, m_sizeY), clamp(nV + 1, m_sizeY) },
-          anW[2] = { clamp(nW, m_sizeZ), clamp(nW + 1, m_sizeZ) };
+          anU[2] = { Clamp(nU, m_sizeX), Clamp(nU + 1, m_sizeX) },
+          anV[2] = { Clamp(nV, m_sizeY), Clamp(nV + 1, m_sizeY) },
+          anW[2] = { Clamp(nW, m_sizeZ), Clamp(nW + 1, m_sizeZ) };
 
         TREAL tDataSum = 0.0;
 
@@ -287,7 +287,7 @@ public:
           {
             for (int i = 0; i < 2; ++i)
             {
-              T tData = readElement(ptBuffer, anW[k] * m_pitchZ + anV[j] * m_pitchY + anU[i]);
+              T tData = ReadElement(ptBuffer, anW[k] * m_pitchZ + anV[j] * m_pitchY + anU[i]);
 
               if (!ISUSENOVALUE || tData != m_noValue)
               {
@@ -295,9 +295,9 @@ public:
                   rWeight = arU[i] * arV[j] * arW[k];
 
                 TREAL
-                  rData = (TREAL)m_quantizedTypesToFloatConverter.convertValue(tData);
+                  rData = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(tData);
 
-                if (INTERPMETHOD == InterpolationMethod::Angular) rData = wrapToClosestAngle(rData, rNearest);
+                if (INTERPMETHOD == InterpolationMethod::Angular) rData = WrapToClosestAngle(rData, rNearest);
 
                 tDataSum += (rData - rNearest) * rWeight;
                 rWeightSum += rWeight;
@@ -318,7 +318,7 @@ public:
       }
       else // CUBIC
       {
-        TREAL rNearest = (TREAL)m_quantizedTypesToFloatConverter.convertValue(tNearest);
+        TREAL rNearest = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(tNearest);
 
         rU = rU - nU - 0.5f;
         rV = rV - nV - 0.5f;
@@ -329,31 +329,31 @@ public:
           arV[4],
           arW[4];
 
-        getCubicInterpolationWeights(rU, arU);
-        getCubicInterpolationWeights(rV, arV);
-        getCubicInterpolationWeights(rW, arW);
+        GetCubicInterpolationWeights(rU, arU);
+        GetCubicInterpolationWeights(rV, arV);
+        GetCubicInterpolationWeights(rW, arW);
 
         int
           anU[4] =
           {
-            clamp(nU - 1, m_sizeX),
-            clamp(nU + 0, m_sizeX),
-            clamp(nU + 1, m_sizeX),
-            clamp(nU + 2, m_sizeX)
+            Clamp(nU - 1, m_sizeX),
+            Clamp(nU + 0, m_sizeX),
+            Clamp(nU + 1, m_sizeX),
+            Clamp(nU + 2, m_sizeX)
           },
           anV[4] =
           {
-            clamp(nV - 1, m_sizeY),
-            clamp(nV + 0, m_sizeY),
-            clamp(nV + 1, m_sizeY),
-            clamp(nV + 2, m_sizeY)
+            Clamp(nV - 1, m_sizeY),
+            Clamp(nV + 0, m_sizeY),
+            Clamp(nV + 1, m_sizeY),
+            Clamp(nV + 2, m_sizeY)
           },
           anW[4] =
           {
-            clamp(nW - 1, m_sizeZ),
-            clamp(nW + 0, m_sizeZ),
-            clamp(nW + 1, m_sizeZ),
-            clamp(nW + 2, m_sizeZ)
+            Clamp(nW - 1, m_sizeZ),
+            Clamp(nW + 0, m_sizeZ),
+            Clamp(nW + 1, m_sizeZ),
+            Clamp(nW + 2, m_sizeZ)
           };
 
         T aaatData[4][4][4];
@@ -364,7 +364,7 @@ public:
           {
             for (int i = 0; i < 4; ++i)
             {
-              aaatData[k][j][i] = readElement(ptBuffer, anW[k] * m_pitchZ + anV[j] * m_pitchY + anU[i]);
+              aaatData[k][j][i] = ReadElement(ptBuffer, anW[k] * m_pitchZ + anV[j] * m_pitchY + anU[i]);
             }
           }
         }
@@ -392,7 +392,7 @@ public:
                 float
                   rWeight = arU[i] * arV[j] * arW[k];
 
-                tSum += ((TREAL)m_quantizedTypesToFloatConverter.convertValue(aaatData[k][j][i]) - rNearest) * rWeight;
+                tSum += ((TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aaatData[k][j][i]) - rNearest) * rWeight;
                 rWeightSum += rWeight;
               }
             }
@@ -406,7 +406,7 @@ public:
     }
   }
 
-  bool isHeightValid(T tHeight) const
+  bool IsHeightValid(T tHeight) const
   {
     if(ISUSENOVALUE)
     {
@@ -427,15 +427,15 @@ public:
   /// \param ptBuffer pointer to the buffer to be samples
   /// \param localIndex the local 2D index into the buffer
   /// \return a TREAL sampled using the ::InterpolationType at the given index
-  TREAL sample2D(const T *ptBuffer, FloatVector2 localIndex) const
+  TREAL Sample2D(const T *ptBuffer, FloatVector2 localIndex) const
   {
     float
       rU = localIndex[0],
       rV = localIndex[1];
 
     int
-      nNearestU = clamp((int)floorf(rU), m_sizeX),
-      nNearestV = clamp((int)floorf(rV), m_sizeY);
+      nNearestU = Clamp((int)floorf(rU), m_sizeX),
+      nNearestV = Clamp((int)floorf(rV), m_sizeY);
 
     int
       nU = (int)floorf(rU - 0.5f),
@@ -447,88 +447,88 @@ public:
       rV = rV - nV - 0.5f;
 
       int
-        anU[2] = { clamp(nU, m_sizeX), clamp(nU + 1, m_sizeX) },
-        anV[2] = { clamp(nV, m_sizeY), clamp(nV + 1, m_sizeY) };
+        anU[2] = { Clamp(nU, m_sizeX), Clamp(nU + 1, m_sizeX) },
+        anV[2] = { Clamp(nV, m_sizeY), Clamp(nV + 1, m_sizeY) };
 
-      T aatData[2][2] = { { readElement(ptBuffer, anV[0] * m_pitchY + anU[0]), readElement(ptBuffer, anV[0] * m_pitchY + anU[1]) },
-                          { readElement(ptBuffer, anV[1] * m_pitchY + anU[0]), readElement(ptBuffer, anV[1] * m_pitchY + anU[1]) } };
+      T aatData[2][2] = { { ReadElement(ptBuffer, anV[0] * m_pitchY + anU[0]), ReadElement(ptBuffer, anV[0] * m_pitchY + anU[1]) },
+                          { ReadElement(ptBuffer, anV[1] * m_pitchY + anU[0]), ReadElement(ptBuffer, anV[1] * m_pitchY + anU[1]) } };
 
-      if(!ISUSENOVALUE || (isHeightValid(aatData[0][1]) && isHeightValid(aatData[1][0])))
+      if(!ISUSENOVALUE || (IsHeightValid(aatData[0][1]) && IsHeightValid(aatData[1][0])))
       {
-        if(rU <= 1.0f - rV && (!ISUSENOVALUE || isHeightValid(aatData[0][0])))
+        if(rU <= 1.0f - rV && (!ISUSENOVALUE || IsHeightValid(aatData[0][0])))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]);
 
           TREAL
-            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][1]) - rValue,
-            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][0]) - rValue;
+            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][1]) - rValue,
+            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][0]) - rValue;
 
           return rValue + rU * rDeltaU + rV * rDeltaV;
         }
-        else if(rU >= 1.0f - rV && (!ISUSENOVALUE || isHeightValid(aatData[1][1])))
+        else if(rU >= 1.0f - rV && (!ISUSENOVALUE || IsHeightValid(aatData[1][1])))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][1]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][1]);
 
           TREAL
-            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][0]) - rValue,
-            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][1]) - rValue;
+            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][0]) - rValue,
+            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][1]) - rValue;
 
           return rValue + (1.0f - rU) * rDeltaU + (1.0f - rV) * rDeltaV;
         }
       }
-      else if(isHeightValid(aatData[0][0]) && isHeightValid(aatData[1][1]))
+      else if(IsHeightValid(aatData[0][0]) && IsHeightValid(aatData[1][1]))
       {
-        if(rU >= rV && isHeightValid(aatData[0][1]))
+        if(rU >= rV && IsHeightValid(aatData[0][1]))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][1]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][1]);
 
           TREAL
-            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]) - rValue,
-            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][1]) - rValue;
+            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]) - rValue,
+            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][1]) - rValue;
 
           return rValue + (1.0f - rU) * rDeltaU + rV * rDeltaV;
         }
-        else if(rU <= rV && isHeightValid(aatData[1][0]))
+        else if(rU <= rV && IsHeightValid(aatData[1][0]))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][0]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][0]);
 
           TREAL
-            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][1]) - rValue,
-            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]) - rValue;
+            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][1]) - rValue,
+            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]) - rValue;
 
           return rValue + rU * rDeltaU + (1.0f - rV) * rDeltaV;
         }
       }
-      else if(isHeightValid(aatData[0][0]))
+      else if(IsHeightValid(aatData[0][0]))
       {
         if(rU == 0.0f && rV == 0.0f)
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]);
 
           return rValue;
         }
-        else if(rU == 0.0f && isHeightValid(aatData[1][0]))
+        else if(rU == 0.0f && IsHeightValid(aatData[1][0]))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]);
 
           TREAL
-            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[1][0]) - rValue;
+            rDeltaV = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[1][0]) - rValue;
 
           return rValue + rV * rDeltaV;
         }
-        else if(rV == 0.0f && isHeightValid(aatData[0][1]))
+        else if(rV == 0.0f && IsHeightValid(aatData[0][1]))
         {
           TREAL
-            rValue = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][0]);
+            rValue = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][0]);
 
           TREAL
-            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[0][1]) - rValue;
+            rDeltaU = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[0][1]) - rValue;
 
           return rValue + rU * rDeltaU;
         }
@@ -538,7 +538,7 @@ public:
     }
     else
     {
-      T tNearest = readElement(ptBuffer, nNearestV * m_pitchY + nNearestU);
+      T tNearest = ReadElement(ptBuffer, nNearestV * m_pitchY + nNearestU);
 
       if(ISUSENOVALUE && tNearest == m_noValue)
       {
@@ -546,11 +546,11 @@ public:
       }
       else if(INTERPMETHOD == InterpolationMethod::Nearest)
       {
-        return (TREAL)m_quantizedTypesToFloatConverter.convertValue(tNearest);
+        return (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(tNearest);
       }
       else if(INTERPMETHOD == InterpolationMethod::Linear|| INTERPMETHOD == InterpolationMethod::Angular)
       {
-        TREAL rNearest = (TREAL)m_quantizedTypesToFloatConverter.convertValue(tNearest);
+        TREAL rNearest = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(tNearest);
 
         rU = rU - nU - 0.5f;
         rV = rV - nV - 0.5f;
@@ -560,8 +560,8 @@ public:
           arV[2] = { 1 - rV, rV };
 
         int
-          anU[2] = { clamp(nU, m_sizeX), clamp(nU + 1, m_sizeX) },
-          anV[2] = { clamp(nV, m_sizeY), clamp(nV + 1, m_sizeY) };
+          anU[2] = { Clamp(nU, m_sizeX), Clamp(nU + 1, m_sizeX) },
+          anV[2] = { Clamp(nV, m_sizeY), Clamp(nV + 1, m_sizeY) };
 
         TREAL tDataSum = 0.0;
 
@@ -572,7 +572,7 @@ public:
           for (int i = 0; i < 2; ++i)
           {
             T
-              tData = readElement(ptBuffer, anV[j] * m_pitchY + anU[i]);
+              tData = ReadElement(ptBuffer, anV[j] * m_pitchY + anU[i]);
 
             if (!ISUSENOVALUE || tData != m_noValue)
             {
@@ -580,9 +580,9 @@ public:
                 rWeight = arU[i] * arV[j];
 
               TREAL
-                rData = (TREAL)m_quantizedTypesToFloatConverter.convertValue(tData);
+                rData = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(tData);
 
-              if (INTERPMETHOD == InterpolationMethod::Angular) rData = wrapToClosestAngle(rData, rNearest);
+              if (INTERPMETHOD == InterpolationMethod::Angular) rData = WrapToClosestAngle(rData, rNearest);
 
               tDataSum += (rData - rNearest) * rWeight;
               rWeightSum += rWeight;
@@ -602,7 +602,7 @@ public:
       }
       else // CUBIC
       {
-        TREAL rNearest = (TREAL)m_quantizedTypesToFloatConverter.convertValue(tNearest);
+        TREAL rNearest = (TREAL)m_quantizedTypesToFloatConverter.ConvertValue(tNearest);
 
         rU = rU - nU - 0.5f;
         rV = rV - nV - 0.5f;
@@ -611,23 +611,23 @@ public:
           arU[4],
           arV[4];
 
-        getCubicInterpolationWeights(rU, arU);
-        getCubicInterpolationWeights(rV, arV);
+        GetCubicInterpolationWeights(rU, arU);
+        GetCubicInterpolationWeights(rV, arV);
 
         int
           anU[4] =
           {
-            clamp(nU - 1, m_sizeX),
-            clamp(nU + 0, m_sizeX),
-            clamp(nU + 1, m_sizeX),
-            clamp(nU + 2, m_sizeX)
+            Clamp(nU - 1, m_sizeX),
+            Clamp(nU + 0, m_sizeX),
+            Clamp(nU + 1, m_sizeX),
+            Clamp(nU + 2, m_sizeX)
           },
           anV[4] =
           {
-            clamp(nV - 1, m_sizeY),
-            clamp(nV + 0, m_sizeY),
-            clamp(nV + 1, m_sizeY),
-            clamp(nV + 2, m_sizeY)
+            Clamp(nV - 1, m_sizeY),
+            Clamp(nV + 0, m_sizeY),
+            Clamp(nV + 1, m_sizeY),
+            Clamp(nV + 2, m_sizeY)
           };
 
         T aatData[4][4];
@@ -636,7 +636,7 @@ public:
         {
           for (int i = 0; i < 4; ++i)
           {
-            aatData[j][i] = readElement(ptBuffer, anV[j] * m_pitchY + anU[i]);
+            aatData[j][i] = ReadElement(ptBuffer, anV[j] * m_pitchY + anU[i]);
           }
         }
 
@@ -658,7 +658,7 @@ public:
               float
                 rWeight = arU[i] * arV[j];
 
-              tSum += ((TREAL)m_quantizedTypesToFloatConverter.convertValue(aatData[j][i]) - rNearest) * rWeight;
+              tSum += ((TREAL)m_quantizedTypesToFloatConverter.ConvertValue(aatData[j][i]) - rNearest) * rWeight;
               rWeightSum += rWeight;
             }
           }

@@ -26,7 +26,7 @@
 #include <fmt/format.h>
 
 Json::Value
-serializeSEGYBinInfo(SEGYBinInfo const &binInfo)
+SerializeSEGYBinInfo(SEGYBinInfo const &binInfo)
 {
   Json::Value
     jsonBinInfo;
@@ -41,7 +41,7 @@ serializeSEGYBinInfo(SEGYBinInfo const &binInfo)
 }
 
 Json::Value
-serializeSEGYSegmentInfo(SEGYSegmentInfo const &segmentInfo)
+SerializeSEGYSegmentInfo(SEGYSegmentInfo const &segmentInfo)
 {
   Json::Value
     jsonSegmentInfo;
@@ -50,14 +50,14 @@ serializeSEGYSegmentInfo(SEGYSegmentInfo const &segmentInfo)
   jsonSegmentInfo["traceStart"] = segmentInfo.m_traceStart;
   jsonSegmentInfo["traceStop"]  = segmentInfo.m_traceStop;
 
-  jsonSegmentInfo["binInfoStart"] = serializeSEGYBinInfo(segmentInfo.m_binInfoStart);
-  jsonSegmentInfo["binInfoStop"]  = serializeSEGYBinInfo(segmentInfo.m_binInfoStop);
+  jsonSegmentInfo["binInfoStart"] = SerializeSEGYBinInfo(segmentInfo.m_binInfoStart);
+  jsonSegmentInfo["binInfoStop"]  = SerializeSEGYBinInfo(segmentInfo.m_binInfoStop);
 
   return jsonSegmentInfo;
 }
 
 std::string
-to_string(SEGY::Endianness endiannness)
+ToString(SEGY::Endianness endiannness)
 {
   switch(endiannness)
   {
@@ -69,7 +69,7 @@ to_string(SEGY::Endianness endiannness)
 }
 
 std::string
-to_string(SEGY::FieldWidth fieldWidth)
+ToString(SEGY::FieldWidth fieldWidth)
 {
   switch(fieldWidth)
   {
@@ -81,38 +81,38 @@ to_string(SEGY::FieldWidth fieldWidth)
 }
 
 Json::Value
-serializeSEGYHeaderField(SEGY::HeaderField const &headerField)
+SerializeSEGYHeaderField(SEGY::HeaderField const &headerField)
 {
   Json::Value
     jsonHeaderField(Json::ValueType::arrayValue);
 
-  jsonHeaderField.append(headerField.byteLocation);
-  jsonHeaderField.append(to_string(headerField.fieldWidth));
+  jsonHeaderField.append(headerField.ByteLocation);
+  jsonHeaderField.append(ToString(headerField.FieldWidth));
 
   return jsonHeaderField;
 }
 
 Json::Value
-serializeSEGYFileInfo(SEGYFileInfo const &fileInfo)
+SerializeSEGYFileInfo(SEGYFileInfo const &fileInfo)
 {
   Json::Value
     jsonFileInfo;
 
   jsonFileInfo["persistentID"]         = fmt::format("{:X}", fileInfo.m_persistentID);
-  jsonFileInfo["headerEndianness"]     = to_string(fileInfo.m_headerEndianness);
+  jsonFileInfo["headerEndianness"]     = ToString(fileInfo.m_headerEndianness);
   jsonFileInfo["dataSampleFormatCode"] = (int)fileInfo.m_dataSampleFormatCode;
   jsonFileInfo["sampleCount"]          = fileInfo.m_sampleCount;
   jsonFileInfo["sampleInterval"]       = fileInfo.m_sampleIntervalMilliseconds;
   jsonFileInfo["traceCount"]           = fileInfo.m_traceCount;
-  jsonFileInfo["primaryKey"]           = serializeSEGYHeaderField(fileInfo.m_primaryKey);
-  jsonFileInfo["secondaryKey"]         = serializeSEGYHeaderField(fileInfo.m_secondaryKey);
+  jsonFileInfo["primaryKey"]           = SerializeSEGYHeaderField(fileInfo.m_primaryKey);
+  jsonFileInfo["secondaryKey"]         = SerializeSEGYHeaderField(fileInfo.m_secondaryKey);
 
   Json::Value
     jsonSegmentInfoArray(Json::ValueType::arrayValue);
 
   for(auto const &segmentInfo : fileInfo.m_segmentInfo)
   {
-    jsonSegmentInfoArray.append(serializeSEGYSegmentInfo(segmentInfo));
+    jsonSegmentInfoArray.append(SerializeSEGYSegmentInfo(segmentInfo));
   }
 
   jsonFileInfo["segmentInfo"] = jsonSegmentInfoArray;
@@ -171,7 +171,7 @@ g_aliases =
 };
 
 void
-resolveAlias(std::string &fieldName)
+ResolveAlias(std::string &fieldName)
 {
   if(g_aliases.find(fieldName) != g_aliases.end())
   {
@@ -180,7 +180,7 @@ resolveAlias(std::string &fieldName)
 }
 
 SEGY::Endianness
-endiannessFromJson(Json::Value const &jsonEndianness)
+EndiannessFromJson(Json::Value const &jsonEndianness)
 {
   std::string
     endiannessString = jsonEndianness.asString();
@@ -198,7 +198,7 @@ endiannessFromJson(Json::Value const &jsonEndianness)
 }
 
 SEGY::FieldWidth
-fieldWidthFromJson(Json::Value const &jsonFieldWidth)
+FieldWidthFromJson(Json::Value const &jsonFieldWidth)
 {
   std::string
     fieldWidthString = jsonFieldWidth.asString();
@@ -216,13 +216,13 @@ fieldWidthFromJson(Json::Value const &jsonFieldWidth)
 }
 
 SEGY::HeaderField
-headerFieldFromJson(Json::Value const &jsonHeaderField)
+HeaderFieldFromJson(Json::Value const &jsonHeaderField)
 {
   int
     bytePosition = jsonHeaderField[0].asInt();
 
   SEGY::FieldWidth
-    fieldWidth = fieldWidthFromJson(jsonHeaderField[1]);
+    fieldWidth = FieldWidthFromJson(jsonHeaderField[1]);
 
   if(bytePosition < 1 || bytePosition > SEGY::TraceHeaderSize - ((fieldWidth == SEGY::FieldWidth::TwoByte) ? 2 : 4))
   {
@@ -233,11 +233,11 @@ headerFieldFromJson(Json::Value const &jsonHeaderField)
 }
 
 bool
-parseHeaderFormatFile(OpenVDS::File const &file, std::map<std::string, SEGY::HeaderField> &traceHeaderFields, SEGY::Endianness &headerEndianness)
+ParseHeaderFormatFile(OpenVDS::File const &file, std::map<std::string, SEGY::HeaderField> &traceHeaderFields, SEGY::Endianness &headerEndianness)
 {
   OpenVDS::IOError error;
 
-  int64_t fileSize = file.size(error);
+  int64_t fileSize = file.Size(error);
 
   if(error.code != 0)
   {
@@ -252,7 +252,7 @@ parseHeaderFormatFile(OpenVDS::File const &file, std::map<std::string, SEGY::Hea
   std::unique_ptr<char[]>
     buffer(new char[fileSize]);
 
-  file.read(buffer.get(), 0, (int32_t)fileSize, error);
+  file.Read(buffer.get(), 0, (int32_t)fileSize, error);
 
   if(error.code != 0)
   {
@@ -286,15 +286,15 @@ parseHeaderFormatFile(OpenVDS::File const &file, std::map<std::string, SEGY::Hea
     for (std::string const & fieldName : root.getMemberNames())
     {
       std::string canonicalFieldName = fieldName;
-      resolveAlias(canonicalFieldName);
+      ResolveAlias(canonicalFieldName);
 
       if(fieldName == "Endianness")
       {
-        headerEndianness = endiannessFromJson(root[fieldName]);
+        headerEndianness = EndiannessFromJson(root[fieldName]);
       }
       else
       {
-        traceHeaderFields[canonicalFieldName] = headerFieldFromJson(root[fieldName]);
+        traceHeaderFields[canonicalFieldName] = HeaderFieldFromJson(root[fieldName]);
       }
     }
   }
@@ -367,7 +367,7 @@ main(int argc, char *argv[])
     OpenVDS::IOError
       error;
 
-    headerFormatFile.open(headerFormatFileName.c_str(), false, false, false, error);
+    headerFormatFile.Open(headerFormatFileName.c_str(), false, false, false, error);
 
     if(error.code != 0)
     {
@@ -375,12 +375,12 @@ main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
 
-    parseHeaderFormatFile(headerFormatFile, g_traceHeaderFields, headerEndianness);
+    ParseHeaderFormatFile(headerFormatFile, g_traceHeaderFields, headerEndianness);
   }
 
   // get the canonical field name for the primary and secondary key
-  resolveAlias(primaryKey);
-  resolveAlias(secondaryKey);
+  ResolveAlias(primaryKey);
+  ResolveAlias(secondaryKey);
 
   SEGY::HeaderField
     primaryKeyHeaderField,
@@ -410,7 +410,7 @@ main(int argc, char *argv[])
   OpenVDS::IOError
     error;
 
-  file.open(fileNames[0].c_str(), false, false, false, error);
+  file.Open(fileNames[0].c_str(), false, false, false, error);
 
   if(error.code != 0)
   {
@@ -421,7 +421,7 @@ main(int argc, char *argv[])
   SEGYFileInfo
     fileInfo(headerEndianness);
 
-  bool success = fileInfo.scan(file, primaryKeyHeaderField, secondaryKeyHeaderField, binInfoHeaderFields);
+  bool success = fileInfo.Scan(file, primaryKeyHeaderField, secondaryKeyHeaderField, binInfoHeaderFields);
 
   if(!success)
   {
@@ -429,7 +429,7 @@ main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  Json::Value jsonFileInfo = serializeSEGYFileInfo(fileInfo);
+  Json::Value jsonFileInfo = SerializeSEGYFileInfo(fileInfo);
 
   Json::StreamWriterBuilder wbuilder;
   wbuilder["indentation"] = "  ";

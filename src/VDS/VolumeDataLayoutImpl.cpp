@@ -29,13 +29,13 @@
 namespace OpenVDS
 {
 
-static std::mutex &staticGetPendingRequestCountMutex()
+static std::mutex &StaticGetPendingRequestCountMutex()
 {
   static std::mutex pendingRequestCountMutex;
   return pendingRequestCountMutex;
 }
 
-static std::condition_variable &staticGetPendingRequestCountChangedCondition()
+static std::condition_variable &StaticGetPendingRequestCountChangedCondition()
 {
   static std::condition_variable pendingRequestCountChangedCondition;
 
@@ -55,13 +55,13 @@ VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDSHandle &handle,
                    int32_t waveletAdaptiveLoadLevel)
   : m_handle(handle)
   , m_dimensionality(int32_t(axisDescriptor.size()))
-  , m_baseBrickSize(int32_t(1) << layoutDescriptor.getBrickSize())
-  , m_negativeRenderMargin(layoutDescriptor.getNegativeMargin())
-  , m_positiveRenderMargin(layoutDescriptor.getPositiveMargin())
-  , m_brickSize2DMultiplier(layoutDescriptor.getBrickSizeMultiplier2D())
-  , m_maxLOD(layoutDescriptor.getLODLevels())
+  , m_baseBrickSize(int32_t(1) << layoutDescriptor.GetBrickSize())
+  , m_negativeRenderMargin(layoutDescriptor.GetNegativeMargin())
+  , m_positiveRenderMargin(layoutDescriptor.GetPositiveMargin())
+  , m_brickSize2DMultiplier(layoutDescriptor.GetBrickSizeMultiplier2D())
+  , m_maxLOD(layoutDescriptor.GetLODLevels())
   , m_volumeDataChannelDescriptor(volumeDataChannelDescriptor)
-  , m_isCreate2DLODs(layoutDescriptor.isCreate2DLODs())
+  , m_isCreate2DLODs(layoutDescriptor.IsCreate2DLODs())
   , m_actualValueRangeChannel(actualValueRangeChannel)
   , m_contentsHash(volumeDataHash)
   , m_pendingWriteRequests(0)
@@ -70,18 +70,18 @@ VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDSHandle &handle,
   , m_compressionTolerance(compressionTolerance)
   , m_isZipLosslessChannels(isZipLosslessChannels)
   , m_waveletAdaptiveLoadLevel(waveletAdaptiveLoadLevel)
-  , m_fullResolutionDimension(layoutDescriptor.getFullResolutionDimension())
+  , m_fullResolutionDimension(layoutDescriptor.GetFullResolutionDimension())
 {
 
-  for(int32_t dimension = 0; dimension < array_size(m_dimensionNumSamples); dimension++)
+  for(int32_t dimension = 0; dimension < ArraySize(m_dimensionNumSamples); dimension++)
   {
     if(dimension < m_dimensionality)
     {
-      assert(axisDescriptor[dimension].getNumSamples() >= 1);
-      m_dimensionNumSamples[dimension] = axisDescriptor[dimension].getNumSamples();
-      m_dimensionName[dimension] = axisDescriptor[dimension].getName();
-      m_dimensionUnit[dimension] = axisDescriptor[dimension].getUnit();
-      m_dimensionRange[dimension] = { axisDescriptor[dimension].getCoordinateMin(), axisDescriptor[dimension].getCoordinateMax() };
+      assert(axisDescriptor[dimension].GetNumSamples() >= 1);
+      m_dimensionNumSamples[dimension] = axisDescriptor[dimension].GetNumSamples();
+      m_dimensionName[dimension] = axisDescriptor[dimension].GetName();
+      m_dimensionUnit[dimension] = axisDescriptor[dimension].GetUnit();
+      m_dimensionRange[dimension] = { axisDescriptor[dimension].GetCoordinateMin(), axisDescriptor[dimension].GetCoordinateMax() };
     }
     else
     {
@@ -97,60 +97,60 @@ VolumeDataLayoutImpl::~VolumeDataLayoutImpl()
 {
 }
 
-VolumeDataLayer::VolumeDataLayerID VolumeDataLayoutImpl::addDataLayer(VolumeDataLayer *layer)
+VolumeDataLayer::VolumeDataLayerID VolumeDataLayoutImpl::AddDataLayer(VolumeDataLayer *layer)
 {
   m_volumeDataLayers.push_back(layer);
   return VolumeDataLayer::VolumeDataLayerID(m_volumeDataLayers.size() - 1);
 }
 
-VolumeDataLayer* VolumeDataLayoutImpl::getBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const
+VolumeDataLayer* VolumeDataLayoutImpl::GetBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const
 {
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_3D_Max);
-  assert(channel >= 0 && channel < getChannelCount());
+  assert(channel >= 0 && channel < GetChannelCount());
 
   VolumeDataLayer *volumeDataLayer = m_primaryBaseLayers[dimensionGroup];
 
   while(channel-- && volumeDataLayer)
   {
-    volumeDataLayer = volumeDataLayer->getNextChannelLayer();
+    volumeDataLayer = volumeDataLayer->GetNextChannelLayer();
   }
   return volumeDataLayer;
 }
 
-FloatRange const& VolumeDataLayoutImpl::getChannelActualValueRange(int32_t channel) const
+FloatRange const& VolumeDataLayoutImpl::GetChannelActualValueRange(int32_t channel) const
 {
-  assert(channel >= 0 && channel < getChannelCount());
-  return (channel == m_actualValueRangeChannel) ? m_actualValueRange : m_volumeDataChannelDescriptor[channel].getValueRange();
+  assert(channel >= 0 && channel < GetChannelCount());
+  return (channel == m_actualValueRangeChannel) ? m_actualValueRange : m_volumeDataChannelDescriptor[channel].GetValueRange();
 }
 
-VolumeDataMapping VolumeDataLayoutImpl::getChannelMapping(int32_t channel) const
+VolumeDataMapping VolumeDataLayoutImpl::GetChannelMapping(int32_t channel) const
 {
-  assert(channel >= 0 && channel < getChannelCount());
-  return m_volumeDataChannelDescriptor[channel].getMapping();
+  assert(channel >= 0 && channel < GetChannelCount());
+  return m_volumeDataChannelDescriptor[channel].GetMapping();
 }
 
-int32_t VolumeDataLayoutImpl::getChannelMappedValueCount(int32_t channel) const
+int32_t VolumeDataLayoutImpl::GetChannelMappedValueCount(int32_t channel) const
 {
-  assert(channel >= 0 && channel < getChannelCount());
-  return m_volumeDataChannelDescriptor[channel].getMappedValueCount();
+  assert(channel >= 0 && channel < GetChannelCount());
+  return m_volumeDataChannelDescriptor[channel].GetMappedValueCount();
 }
 
-FloatRange const& VolumeDataLayoutImpl::getDimensionRange(int32_t dimension) const
+FloatRange const& VolumeDataLayoutImpl::GetDimensionRange(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < m_dimensionality);
   return m_dimensionRange[dimension];
 }
 
-const VolumeDataChannelMapping* VolumeDataLayoutImpl::getVolumeDataChannelMapping(int32_t channel) const
+const VolumeDataChannelMapping* VolumeDataLayoutImpl::GetVolumeDataChannelMapping(int32_t channel) const
 {
   assert(channel >= 0 && channel < m_volumeDataChannelDescriptor.size());
-  return VolumeDataChannelMapping::getVolumeDataChannelMapping(m_volumeDataChannelDescriptor[channel].getMapping());
+  return VolumeDataChannelMapping::GetVolumeDataChannelMapping(m_volumeDataChannelDescriptor[channel].GetMapping());
 }
 
-VolumeDataLayer *VolumeDataLayoutImpl::getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const
+VolumeDataLayer *VolumeDataLayoutImpl::GetVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const
 {
   assert(volumeDataLayerID >= 0 || volumeDataLayerID == VolumeDataLayer::LayerIdNone);
-  if(volumeDataLayerID == VolumeDataLayer::LayerIdNone || volumeDataLayerID >= getLayerCount())
+  if(volumeDataLayerID == VolumeDataLayer::LayerIdNone || volumeDataLayerID >= GetLayerCount())
   {
     return nullptr;
   }
@@ -160,23 +160,23 @@ VolumeDataLayer *VolumeDataLayoutImpl::getVolumeDataLayerFromID(VolumeDataLayer:
   }
 }
   
-VolumeDataLayer *VolumeDataLayoutImpl::getTopLayer(DimensionGroup dimensionGroup, int32_t channel) const
+VolumeDataLayer *VolumeDataLayoutImpl::GetTopLayer(DimensionGroup dimensionGroup, int32_t channel) const
 {
   assert(dimensionGroup >= 0 && dimensionGroup < DimensionGroup_3D_Max);
-  assert(channel >= 0 && channel < getChannelCount());
+  assert(channel >= 0 && channel < GetChannelCount());
 
   VolumeDataLayer *volumeDataLayer = m_primaryTopLayers[dimensionGroup];
 
   while(channel-- && volumeDataLayer)
   {
-    volumeDataLayer = volumeDataLayer->getNextChannelLayer();
+    volumeDataLayer = volumeDataLayer->GetNextChannelLayer();
   }
   return volumeDataLayer;
 }
 
-int32_t VolumeDataLayoutImpl::changePendingWriteRequestCount(int32_t difference)
+int32_t VolumeDataLayoutImpl::ChangePendingWriteRequestCount(int32_t difference)
 {
-  std::unique_lock<std::mutex> pendingRequestCountMutexLock(staticGetPendingRequestCountMutex());
+  std::unique_lock<std::mutex> pendingRequestCountMutexLock(StaticGetPendingRequestCountMutex());
 
   assert(m_pendingWriteRequests + difference >= 0);
   m_pendingWriteRequests += difference;
@@ -184,85 +184,85 @@ int32_t VolumeDataLayoutImpl::changePendingWriteRequestCount(int32_t difference)
   if(difference)
   {
     pendingRequestCountMutexLock.unlock();
-    staticGetPendingRequestCountChangedCondition().notify_all();
+    StaticGetPendingRequestCountChangedCondition().notify_all();
   }
   return ret;
 }
 
-void VolumeDataLayoutImpl::completePendingWriteChunkRequests(int32_t maxPendingWriteRequests) const
+void VolumeDataLayoutImpl::CompletePendingWriteChunkRequests(int32_t maxPendingWriteRequests) const
 {
-  std::unique_lock<std::mutex> pendingRequestCountMutexLock(staticGetPendingRequestCountMutex());
+  std::unique_lock<std::mutex> pendingRequestCountMutexLock(StaticGetPendingRequestCountMutex());
 
-  staticGetPendingRequestCountChangedCondition().wait(pendingRequestCountMutexLock, [this, maxPendingWriteRequests] { return m_pendingWriteRequests <= maxPendingWriteRequests; });
+  StaticGetPendingRequestCountChangedCondition().wait(pendingRequestCountMutexLock, [this, maxPendingWriteRequests] { return m_pendingWriteRequests <= maxPendingWriteRequests; });
 }
 
-bool VolumeDataLayoutImpl::isChannelAvailable(const char *channelName) const
+bool VolumeDataLayoutImpl::IsChannelAvailable(const char *channelName) const
 {
-  int32_t nChannels = getChannelCount();
+  int32_t nChannels = GetChannelCount();
 
   for(int32_t channel = 0; channel < nChannels; channel++)
   {
-    if(strcmp(m_volumeDataChannelDescriptor[channel].getName(), channelName) == 0) return true;
+    if(strcmp(m_volumeDataChannelDescriptor[channel].GetName(), channelName) == 0) return true;
   }
 
   return false;
 }
 
-int32_t VolumeDataLayoutImpl::getChannelIndex(const char *channelName) const
+int32_t VolumeDataLayoutImpl::GetChannelIndex(const char *channelName) const
 {
-  int32_t  nChannels = getChannelCount();
+  int32_t  nChannels = GetChannelCount();
 
   for(int32_t channel = 0; channel < nChannels; channel++)
   {
-    if(strcmp(m_volumeDataChannelDescriptor[channel].getName(), channelName) == 0) return channel;
+    if(strcmp(m_volumeDataChannelDescriptor[channel].GetName(), channelName) == 0) return channel;
   }
   assert(0 && "Should not call this function unless IsChannelAvailable() is true");
   return 0;
 }
 
-VolumeDataChannelDescriptor VolumeDataLayoutImpl::getChannelDescriptor(int32_t channel) const
+VolumeDataChannelDescriptor VolumeDataLayoutImpl::GetChannelDescriptor(int32_t channel) const
 {
-  assert(channel >= 0 && channel < getChannelCount()); 
+  assert(channel >= 0 && channel < GetChannelCount()); 
 
   const VolumeDataChannelDescriptor &volumeDataChannelDescriptor = m_volumeDataChannelDescriptor[channel];
 
   Internal::BitMask<VolumeDataChannelDescriptor::Flags> bFlags = VolumeDataChannelDescriptor::Flags(0);
 
-  if(volumeDataChannelDescriptor.isDiscrete())                      bFlags = bFlags | VolumeDataChannelDescriptor::DiscreteData;
-  if(!volumeDataChannelDescriptor.isAllowLossyCompression())        bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompression;
-  if(volumeDataChannelDescriptor.isUseZipForLosslessCompression())  bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompressionUseZip;
-  if(!volumeDataChannelDescriptor.isRenderable())                   bFlags = bFlags | VolumeDataChannelDescriptor::NotRenderable;
+  if(volumeDataChannelDescriptor.IsDiscrete())                      bFlags = bFlags | VolumeDataChannelDescriptor::DiscreteData;
+  if(!volumeDataChannelDescriptor.IsAllowLossyCompression())        bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompression;
+  if(volumeDataChannelDescriptor.IsUseZipForLosslessCompression())  bFlags = bFlags | VolumeDataChannelDescriptor::NoLossyCompressionUseZip;
+  if(!volumeDataChannelDescriptor.IsRenderable())                   bFlags = bFlags | VolumeDataChannelDescriptor::NotRenderable;
 
-  if (volumeDataChannelDescriptor.isUseNoValue())
+  if (volumeDataChannelDescriptor.IsUseNoValue())
   {
-    return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.getFormat(),
-                                       volumeDataChannelDescriptor.getComponents(),
-                                       volumeDataChannelDescriptor.getName(),
-                                       volumeDataChannelDescriptor.getUnit(),
-                                       volumeDataChannelDescriptor.getValueRange().min,
-                                       volumeDataChannelDescriptor.getValueRange().max,
-                                       getChannelMapping(channel),
-                                       volumeDataChannelDescriptor.getMappedValueCount(),
+    return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.GetFormat(),
+                                       volumeDataChannelDescriptor.GetComponents(),
+                                       volumeDataChannelDescriptor.GetName(),
+                                       volumeDataChannelDescriptor.GetUnit(),
+                                       volumeDataChannelDescriptor.GetValueRange().Min,
+                                       volumeDataChannelDescriptor.GetValueRange().Max,
+                                       GetChannelMapping(channel),
+                                       volumeDataChannelDescriptor.GetMappedValueCount(),
                                        VolumeDataChannelDescriptor::Flags(bFlags._flags),
-                                       volumeDataChannelDescriptor.getNoValue(),
-                                       volumeDataChannelDescriptor.getIntegerScale(),
-                                       volumeDataChannelDescriptor.getIntegerOffset());
+                                       volumeDataChannelDescriptor.GetNoValue(),
+                                       volumeDataChannelDescriptor.GetIntegerScale(),
+                                       volumeDataChannelDescriptor.GetIntegerOffset());
   }
 
-  return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.getFormat(),
-                                     volumeDataChannelDescriptor.getComponents(),
-                                     volumeDataChannelDescriptor.getName(),
-                                     volumeDataChannelDescriptor.getUnit(),
-                                     volumeDataChannelDescriptor.getValueRange().min,
-                                     volumeDataChannelDescriptor.getValueRange().max,
-                                     getChannelMapping(channel),
-                                     volumeDataChannelDescriptor.getMappedValueCount(),
+  return VolumeDataChannelDescriptor(volumeDataChannelDescriptor.GetFormat(),
+                                     volumeDataChannelDescriptor.GetComponents(),
+                                     volumeDataChannelDescriptor.GetName(),
+                                     volumeDataChannelDescriptor.GetUnit(),
+                                     volumeDataChannelDescriptor.GetValueRange().Min,
+                                     volumeDataChannelDescriptor.GetValueRange().Max,
+                                     GetChannelMapping(channel),
+                                     volumeDataChannelDescriptor.GetMappedValueCount(),
                                      VolumeDataChannelDescriptor::Flags(bFlags._flags),
-                                     volumeDataChannelDescriptor.getIntegerScale(),
-                                     volumeDataChannelDescriptor.getIntegerOffset());
+                                     volumeDataChannelDescriptor.GetIntegerScale(),
+                                     volumeDataChannelDescriptor.GetIntegerOffset());
 }
 
-VolumeDataLayoutDescriptor VolumeDataLayoutImpl::getLayoutDescriptor() const
+VolumeDataLayoutDescriptor VolumeDataLayoutImpl::GetLayoutDescriptor() const
 {
   VolumeDataLayoutDescriptor::BrickSize
     brickSize;
@@ -298,50 +298,50 @@ VolumeDataLayoutDescriptor VolumeDataLayoutImpl::getLayoutDescriptor() const
                                     m_fullResolutionDimension);
 }
 
-VolumeDataAxisDescriptor VolumeDataLayoutImpl::getAxisDescriptor(int32_t dimension) const
+VolumeDataAxisDescriptor VolumeDataLayoutImpl::GetAxisDescriptor(int32_t dimension) const
 {
   assert(dimension >= 0 && dimension < m_dimensionality);
-  return VolumeDataAxisDescriptor(getDimensionNumSamples(dimension),
-                                  getDimensionName(dimension),
-                                  getDimensionUnit(dimension),
-                                  getDimensionRange(dimension));
+  return VolumeDataAxisDescriptor(GetDimensionNumSamples(dimension),
+                                  GetDimensionName(dimension),
+                                  GetDimensionUnit(dimension),
+                                  GetDimensionRange(dimension));
 }
 
-int VolumeDataLayoutImpl::getDimensionNumSamples(int32_t dimension) const
+int VolumeDataLayoutImpl::GetDimensionNumSamples(int32_t dimension) const
 {
-  assert(dimension >= 0 && dimension < array_size(m_dimensionNumSamples));
+  assert(dimension >= 0 && dimension < ArraySize(m_dimensionNumSamples));
   return m_dimensionNumSamples[dimension];
 }
 
-const char *VolumeDataLayoutImpl::getDimensionName(int32_t dimension) const
+const char *VolumeDataLayoutImpl::GetDimensionName(int32_t dimension) const
 {
-  assert(dimension >= 0 && dimension < array_size(m_dimensionName));
+  assert(dimension >= 0 && dimension < ArraySize(m_dimensionName));
   return m_dimensionName[dimension];
 }
 
-const char *VolumeDataLayoutImpl::getDimensionUnit(int32_t dimension) const
+const char *VolumeDataLayoutImpl::GetDimensionUnit(int32_t dimension) const
 {
-  assert(dimension >= 0 && dimension < array_size(m_dimensionUnit));
+  assert(dimension >= 0 && dimension < ArraySize(m_dimensionUnit));
   return m_dimensionUnit[dimension];
 }
   
-void VolumeDataLayoutImpl::setContentsHash(VolumeDataHash const &contentsHash)
+void VolumeDataLayoutImpl::SetContentsHash(VolumeDataHash const &contentsHash)
 {
   m_contentsHash = contentsHash;
 }
 
-void VolumeDataLayoutImpl::setActualValueRange(int32_t actualValueRangeChannel, FloatRange const& actualValueRange)
+void VolumeDataLayoutImpl::SetActualValueRange(int32_t actualValueRangeChannel, FloatRange const& actualValueRange)
 {
   m_actualValueRangeChannel = actualValueRangeChannel;
   m_actualValueRange = actualValueRange;
 }
 
 
-void VolumeDataLayoutImpl::createLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels, VolumeDataLayer::ProduceStatus produceStatus)
+void VolumeDataLayoutImpl::CreateLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels, VolumeDataLayer::ProduceStatus produceStatus)
 {
   assert(physicalLODLevels > 0);
 
-  int32_t channels = getChannelCount();
+  int32_t channels = GetChannelCount();
 
   IndexArray brickSizeArray;
 
@@ -357,9 +357,9 @@ void VolumeDataLayoutImpl::createLayers(DimensionGroup dimensionGroup, int32_t b
   {
     isCreateMoreLODs = (lod < physicalLODLevels - 1); // Always create all physical lods even if we get only one cube before the top level;
 
-    for(int32_t dimension = 0; dimension < array_size(brickSizeArray); dimension++)
+    for(int32_t dimension = 0; dimension < ArraySize(brickSizeArray); dimension++)
     {
-      brickSizeArray[dimension] = DimensionGroupUtil::isDimensionInGroup(dimensionGroup, dimension) ? (brickSize << (dimension != m_fullResolutionDimension ? lod : 0)) : 1;
+      brickSizeArray[dimension] = DimensionGroupUtil::IsDimensionInGroup(dimensionGroup, dimension) ? (brickSize << (dimension != m_fullResolutionDimension ? lod : 0)) : 1;
     }
 
     VolumeDataPartition primaryPartition(lod, dimensionGroup, null, m_dimensionNumSamples, brickSizeArray, null, null, BorderMode::None, null, null, m_negativeRenderMargin, m_positiveRenderMargin, m_fullResolutionDimension);
@@ -368,22 +368,22 @@ void VolumeDataLayoutImpl::createLayers(DimensionGroup dimensionGroup, int32_t b
 
     for(int32_t channel = 0; channel < channels; channel++)
     {
-      if(lod > 0 && !isChannelRenderable(channel))
+      if(lod > 0 && !IsChannelRenderable(channel))
       {
         continue;
       }
 
       VolumeDataLayer::LayerType layerType = (lod < physicalLODLevels) ? VolumeDataLayer::Renderable : VolumeDataLayer::Virtual;
 
-      if(!isChannelRenderable(channel))
+      if(!IsChannelRenderable(channel))
       {
         assert(channel != 0);
         layerType = VolumeDataLayer::Auxiliary;
       }
 
-      VolumeDataChannelMapping const *volumeDataChannelMapping = getVolumeDataChannelMapping(channel);
+      VolumeDataChannelMapping const *volumeDataChannelMapping = GetVolumeDataChannelMapping(channel);
 
-      VolumeDataLayer *volumeDataLayer = new VolumeDataLayer(VolumeDataPartition::staticMapPartition(primaryPartition, volumeDataChannelMapping, getChannelMappedValueCount(channel)),
+      VolumeDataLayer *volumeDataLayer = new VolumeDataLayer(VolumeDataPartition::StaticMapPartition(primaryPartition, volumeDataChannelMapping, GetChannelMappedValueCount(channel)),
                                                             this, channel,primaryChannelLayer, lowerLOD[channel], layerType, volumeDataChannelMapping);
 
       if(channel == 0)
@@ -391,13 +391,13 @@ void VolumeDataLayoutImpl::createLayers(DimensionGroup dimensionGroup, int32_t b
         primaryChannelLayer = volumeDataLayer;
       }
 
-      assert(volumeDataLayer->getLOD() == lod);
+      assert(volumeDataLayer->GetLOD() == lod);
 
       lowerLOD[channel] = volumeDataLayer;
 
       for(int32_t dimension = 0; dimension < Dimensionality_Max; dimension++)
       {
-        if(volumeDataLayer->isDimensionChunked(dimension) && volumeDataLayer->getNumChunksInDimension(dimension) > 1 && dimension != m_fullResolutionDimension)
+        if(volumeDataLayer->IsDimensionChunked(dimension) && volumeDataLayer->GetNumChunksInDimension(dimension) > 1 && dimension != m_fullResolutionDimension)
         {
           isCreateMoreLODs = true;
           break;
@@ -413,45 +413,45 @@ void VolumeDataLayoutImpl::createLayers(DimensionGroup dimensionGroup, int32_t b
 
     if(lod < physicalLODLevels)
     {
-      for(VolumeDataLayer *volumeDataLayer = m_primaryTopLayers[dimensionGroup]; volumeDataLayer; volumeDataLayer = volumeDataLayer->getNextChannelLayer())
+      for(VolumeDataLayer *volumeDataLayer = m_primaryTopLayers[dimensionGroup]; volumeDataLayer; volumeDataLayer = volumeDataLayer->GetNextChannelLayer())
       {
-        if(volumeDataLayer->getLayerType() != VolumeDataLayer::Virtual)
+        if(volumeDataLayer->GetLayerType() != VolumeDataLayer::Virtual)
         {
-          volumeDataLayer->setProduceStatus(produceStatus);
+          volumeDataLayer->GetProduceStatus(produceStatus);
         }
       }
     }
   }
 }
 
-bool        VolumeDataLayoutImpl::IsMetadataIntAvailable(const char* category, const char* name) const           { return m_handle.metadataContainer.IsMetadataIntAvailable(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataIntVector2Available(const char* category, const char* name) const    { return m_handle.metadataContainer.IsMetadataIntVector2Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataIntVector3Available(const char* category, const char* name) const    { return m_handle.metadataContainer.IsMetadataIntVector3Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataIntVector4Available(const char* category, const char* name) const    { return m_handle.metadataContainer.IsMetadataIntVector4Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataFloatAvailable(const char* category, const char* name) const         { return m_handle.metadataContainer.IsMetadataFloatAvailable(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataFloatVector2Available(const char* category, const char* name) const  { return m_handle.metadataContainer.IsMetadataFloatVector2Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataFloatVector3Available(const char* category, const char* name) const  { return m_handle.metadataContainer.IsMetadataFloatVector3Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataFloatVector4Available(const char* category, const char* name) const  { return m_handle.metadataContainer.IsMetadataFloatVector4Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataDoubleAvailable(const char* category, const char* name) const        { return m_handle.metadataContainer.IsMetadataDoubleAvailable(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataDoubleVector2Available(const char* category, const char* name) const { return m_handle.metadataContainer.IsMetadataDoubleVector2Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataDoubleVector3Available(const char* category, const char* name) const { return m_handle.metadataContainer.IsMetadataDoubleVector3Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataDoubleVector4Available(const char* category, const char* name) const { return m_handle.metadataContainer.IsMetadataDoubleVector4Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataStringAvailable(const char* category, const char* name) const        { return m_handle.metadataContainer.IsMetadataStringAvailable(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataBLOBAvailable(const char* category, const char* name) const          { return m_handle.metadataContainer.IsMetadataBLOBAvailable(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataIntAvailable(const char* category, const char* name) const           { return m_handle.MetadataContainer.IsMetadataIntAvailable(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataIntVector2Available(const char* category, const char* name) const    { return m_handle.MetadataContainer.IsMetadataIntVector2Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataIntVector3Available(const char* category, const char* name) const    { return m_handle.MetadataContainer.IsMetadataIntVector3Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataIntVector4Available(const char* category, const char* name) const    { return m_handle.MetadataContainer.IsMetadataIntVector4Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataFloatAvailable(const char* category, const char* name) const         { return m_handle.MetadataContainer.IsMetadataFloatAvailable(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataFloatVector2Available(const char* category, const char* name) const  { return m_handle.MetadataContainer.IsMetadataFloatVector2Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataFloatVector3Available(const char* category, const char* name) const  { return m_handle.MetadataContainer.IsMetadataFloatVector3Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataFloatVector4Available(const char* category, const char* name) const  { return m_handle.MetadataContainer.IsMetadataFloatVector4Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataDoubleAvailable(const char* category, const char* name) const        { return m_handle.MetadataContainer.IsMetadataDoubleAvailable(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataDoubleVector2Available(const char* category, const char* name) const { return m_handle.MetadataContainer.IsMetadataDoubleVector2Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataDoubleVector3Available(const char* category, const char* name) const { return m_handle.MetadataContainer.IsMetadataDoubleVector3Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataDoubleVector4Available(const char* category, const char* name) const { return m_handle.MetadataContainer.IsMetadataDoubleVector4Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataStringAvailable(const char* category, const char* name) const        { return m_handle.MetadataContainer.IsMetadataStringAvailable(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataBLOBAvailable(const char* category, const char* name) const          { return m_handle.MetadataContainer.IsMetadataBLOBAvailable(category, name); }
 
-int           VolumeDataLayoutImpl::GetMetadataInt(const char* category, const char* name) const             { return m_handle.metadataContainer.GetMetadataInt(category, name); }
-IntVector2    VolumeDataLayoutImpl::GetMetadataIntVector2(const char* category, const char* name) const      { return m_handle.metadataContainer.GetMetadataIntVector2(category, name); }
-IntVector3    VolumeDataLayoutImpl::GetMetadataIntVector3(const char* category, const char* name) const      { return m_handle.metadataContainer.GetMetadataIntVector3(category, name); }
-IntVector4    VolumeDataLayoutImpl::GetMetadataIntVector4(const char* category, const char* name) const      { return m_handle.metadataContainer.GetMetadataIntVector4(category, name); }
-float         VolumeDataLayoutImpl::GetMetadataFloat(const char* category, const char* name) const          { return m_handle.metadataContainer.GetMetadataFloat(category, name); }
-FloatVector2  VolumeDataLayoutImpl::GetMetadataFloatVector2(const char* category, const char* name) const   { return m_handle.metadataContainer.GetMetadataFloatVector2(category, name); }
-FloatVector3  VolumeDataLayoutImpl::GetMetadataFloatVector3(const char* category, const char* name) const   { return m_handle.metadataContainer.GetMetadataFloatVector3(category, name); }
-FloatVector4  VolumeDataLayoutImpl::GetMetadataFloatVector4(const char* category, const char* name) const   { return m_handle.metadataContainer.GetMetadataFloatVector4(category, name); }
-double        VolumeDataLayoutImpl::GetMetadataDouble(const char* category, const char* name) const        { return m_handle.metadataContainer.GetMetadataDouble(category, name); }
-DoubleVector2 VolumeDataLayoutImpl::GetMetadataDoubleVector2(const char* category, const char* name) const { return m_handle.metadataContainer.GetMetadataDoubleVector2(category, name); }
-DoubleVector3 VolumeDataLayoutImpl::GetMetadataDoubleVector3(const char* category, const char* name) const { return m_handle.metadataContainer.GetMetadataDoubleVector3(category, name); }
-DoubleVector4 VolumeDataLayoutImpl::GetMetadataDoubleVector4(const char* category, const char* name) const { return m_handle.metadataContainer.GetMetadataDoubleVector4(category, name); }
-const char*   VolumeDataLayoutImpl::GetMetadataString(const char* category, const char* name) const          { return m_handle.metadataContainer.GetMetadataString(category, name); }
-void          VolumeDataLayoutImpl::GetMetadataBLOB(const char* category, const char* name, const void **data, size_t *size)  const { return m_handle.metadataContainer.GetMetadataBLOB(category, name, data, size); }
+int           VolumeDataLayoutImpl::GetMetadataInt(const char* category, const char* name) const             { return m_handle.MetadataContainer.GetMetadataInt(category, name); }
+IntVector2    VolumeDataLayoutImpl::GetMetadataIntVector2(const char* category, const char* name) const      { return m_handle.MetadataContainer.GetMetadataIntVector2(category, name); }
+IntVector3    VolumeDataLayoutImpl::GetMetadataIntVector3(const char* category, const char* name) const      { return m_handle.MetadataContainer.GetMetadataIntVector3(category, name); }
+IntVector4    VolumeDataLayoutImpl::GetMetadataIntVector4(const char* category, const char* name) const      { return m_handle.MetadataContainer.GetMetadataIntVector4(category, name); }
+float         VolumeDataLayoutImpl::GetMetadataFloat(const char* category, const char* name) const          { return m_handle.MetadataContainer.GetMetadataFloat(category, name); }
+FloatVector2  VolumeDataLayoutImpl::GetMetadataFloatVector2(const char* category, const char* name) const   { return m_handle.MetadataContainer.GetMetadataFloatVector2(category, name); }
+FloatVector3  VolumeDataLayoutImpl::GetMetadataFloatVector3(const char* category, const char* name) const   { return m_handle.MetadataContainer.GetMetadataFloatVector3(category, name); }
+FloatVector4  VolumeDataLayoutImpl::GetMetadataFloatVector4(const char* category, const char* name) const   { return m_handle.MetadataContainer.GetMetadataFloatVector4(category, name); }
+double        VolumeDataLayoutImpl::GetMetadataDouble(const char* category, const char* name) const        { return m_handle.MetadataContainer.GetMetadataDouble(category, name); }
+DoubleVector2 VolumeDataLayoutImpl::GetMetadataDoubleVector2(const char* category, const char* name) const { return m_handle.MetadataContainer.GetMetadataDoubleVector2(category, name); }
+DoubleVector3 VolumeDataLayoutImpl::GetMetadataDoubleVector3(const char* category, const char* name) const { return m_handle.MetadataContainer.GetMetadataDoubleVector3(category, name); }
+DoubleVector4 VolumeDataLayoutImpl::GetMetadataDoubleVector4(const char* category, const char* name) const { return m_handle.MetadataContainer.GetMetadataDoubleVector4(category, name); }
+const char*   VolumeDataLayoutImpl::GetMetadataString(const char* category, const char* name) const          { return m_handle.MetadataContainer.GetMetadataString(category, name); }
+void          VolumeDataLayoutImpl::GetMetadataBLOB(const char* category, const char* name, const void **data, size_t *size)  const { return m_handle.MetadataContainer.GetMetadataBLOB(category, name, data, size); }
 
 }

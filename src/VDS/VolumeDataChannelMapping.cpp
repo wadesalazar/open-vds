@@ -29,26 +29,26 @@ class TraceVolumeDataChannelMapping : public VolumeDataChannelMapping
   ~TraceVolumeDataChannelMapping() override {}
 public:
   DimensionGroup
-                getMappedChunkDimensionGroup(VolumeDataPartition const &primaryPartition, int32_t mappedValues) const override;
-  int32_t       getMappedPositiveMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const override;
-  int32_t       getMappedNegativeMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const override;
-  int32_t       getMappedPositiveBorder(VolumeDataPartition const &primaryPartition, int32_t dimension) const override;
-  int32_t       getMappedNegativeBorder(VolumeDataPartition const &primaryPartition, int32_t dimension) const override;
-  int32_t       getMappedDimensionFirstSample(int32_t dimension, int32_t dimensionFirstSample, int32_t mappedValues) const override;
-  int32_t       getMappedDimensionNumSamples(int32_t dimension, int32_t dimensionNumSamples, int32_t mappedValues) const override;
-  int32_t       getMappedBrickSize(VolumeDataPartition const &primaryPartition, int32_t dimension, int32_t mappedValues) const override;
+                GetMappedChunkDimensionGroup(VolumeDataPartition const &primaryPartition, int32_t mappedValues) const override;
+  int32_t       GetMappedPositiveMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const override;
+  int32_t       GetMappedNegativeMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const override;
+  int32_t       GetMappedPositiveBorder(VolumeDataPartition const &primaryPartition, int32_t dimension) const override;
+  int32_t       GetMappedNegativeBorder(VolumeDataPartition const &primaryPartition, int32_t dimension) const override;
+  int32_t       GetMappedDimensionFirstSample(int32_t dimension, int32_t dimensionFirstSample, int32_t mappedValues) const override;
+  int32_t       GetMappedDimensionNumSamples(int32_t dimension, int32_t dimensionNumSamples, int32_t mappedValues) const override;
+  int32_t       GetMappedBrickSize(VolumeDataPartition const &primaryPartition, int32_t dimension, int32_t mappedValues) const override;
 
-  int64_t       getMappedChunkIndex(VolumeDataPartition const &primaryPartition, int64_t chunkIndex) const override;
-  int32_t       getMappedChunkIndexFromVoxel(VolumeDataPartition const &primaryPartition, int32_t voxel, int32_t dimension) const override;
-  void          getLayoutMinMax(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex, int32_t *min, int32_t *max, bool isIncludeMargin) const override;
-  int64_t       getPrimaryChunkIndex(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex) const override;
+  int64_t       GetMappedChunkIndex(VolumeDataPartition const &primaryPartition, int64_t chunkIndex) const override;
+  int32_t       GetMappedChunkIndexFromVoxel(VolumeDataPartition const &primaryPartition, int32_t voxel, int32_t dimension) const override;
+  void          GetLayoutMinMax(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex, int32_t *min, int32_t *max, bool isIncludeMargin) const override;
+  int64_t       GetPrimaryChunkIndex(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex) const override;
 
   static const TraceVolumeDataChannelMapping &
-                getInstance();
+                GetInstance();
 };
 
 DimensionGroup
-TraceVolumeDataChannelMapping::getMappedChunkDimensionGroup(VolumeDataPartition const &primaryPartition, int32_t mappedValues) const
+TraceVolumeDataChannelMapping::GetMappedChunkDimensionGroup(VolumeDataPartition const &primaryPartition, int32_t mappedValues) const
 {
   int32_t dimensionCount = 0;
   int32_t dimensions[Dimensionality_Max];
@@ -60,10 +60,10 @@ TraceVolumeDataChannelMapping::getMappedChunkDimensionGroup(VolumeDataPartition 
   }
 
   // Add any dimensions other than 0 to the dimensions for the metadata layer
-  DimensionGroup dimensionGroup = primaryPartition.getOriginalDimensionGroup();
+  DimensionGroup dimensionGroup = primaryPartition.GetOriginalDimensionGroup();
   for(int32_t dimension = 1; dimension < Dimensionality_Max; dimension++)
   {
-    if(DimensionGroupUtil::isDimensionInGroup(dimensionGroup, dimension))
+    if(DimensionGroupUtil::IsDimensionInGroup(dimensionGroup, dimension))
     {
       dimensions[dimensionCount++] = dimension;
     }
@@ -73,11 +73,11 @@ TraceVolumeDataChannelMapping::getMappedChunkDimensionGroup(VolumeDataPartition 
     dimensions[dimensionCount++] = -1;
   }
 
-  return DimensionGroupUtil::getDimensionGroupFromDimensionIndices(dimensions[0], dimensions[1], dimensions[2], dimensions[3], dimensions[4], dimensions[5]);
+  return DimensionGroupUtil::GetDimensionGroupFromDimensionIndices(dimensions[0], dimensions[1], dimensions[2], dimensions[3], dimensions[4], dimensions[5]);
 }
 
 int
-TraceVolumeDataChannelMapping::getMappedPositiveMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const
+TraceVolumeDataChannelMapping::GetMappedPositiveMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const
 {
   if(dimension == 0)
   {
@@ -85,12 +85,12 @@ TraceVolumeDataChannelMapping::getMappedPositiveMargin(VolumeDataPartition const
   }
   else
   {
-    return primaryPartition.getPositiveMargin(dimension);
+    return primaryPartition.GetPositiveMargin(dimension);
   }
 }
 
 int
-TraceVolumeDataChannelMapping::getMappedNegativeMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const
+TraceVolumeDataChannelMapping::GetMappedNegativeMargin(VolumeDataPartition const &primaryPartition, int32_t dimension) const
 {
   if(dimension == 0)
   {
@@ -98,12 +98,12 @@ TraceVolumeDataChannelMapping::getMappedNegativeMargin(VolumeDataPartition const
   }
   else
   {
-    return primaryPartition.getNegativeMargin(dimension);
+    return primaryPartition.GetNegativeMargin(dimension);
   }
 }
 
 int
-TraceVolumeDataChannelMapping::getMappedPositiveBorder(VolumeDataPartition const &primaryPartition, int32_t dimension) const
+TraceVolumeDataChannelMapping::GetMappedPositiveBorder(VolumeDataPartition const &primaryPartition, int32_t dimension) const
 {
   if(dimension == 0)
   {
@@ -111,12 +111,12 @@ TraceVolumeDataChannelMapping::getMappedPositiveBorder(VolumeDataPartition const
   }
   else
   {
-    return primaryPartition.getPositiveBorder(dimension);
+    return primaryPartition.GetPositiveBorder(dimension);
   }
 }
 
 int
-TraceVolumeDataChannelMapping::getMappedNegativeBorder(VolumeDataPartition const &primaryPartition, int32_t dimension)const
+TraceVolumeDataChannelMapping::GetMappedNegativeBorder(VolumeDataPartition const &primaryPartition, int32_t dimension)const
 {
   if(dimension == 0)
   {
@@ -124,12 +124,12 @@ TraceVolumeDataChannelMapping::getMappedNegativeBorder(VolumeDataPartition const
   }
   else
   {
-    return primaryPartition.getNegativeBorder(dimension);
+    return primaryPartition.GetNegativeBorder(dimension);
   }
 }
 
 int
-TraceVolumeDataChannelMapping::getMappedDimensionFirstSample(int32_t dimension, int32_t dimensionFirstSample, int32_t mappedValues) const
+TraceVolumeDataChannelMapping::GetMappedDimensionFirstSample(int32_t dimension, int32_t dimensionFirstSample, int32_t mappedValues) const
 {
   if(dimension == 0)
   {
@@ -142,7 +142,7 @@ TraceVolumeDataChannelMapping::getMappedDimensionFirstSample(int32_t dimension, 
 }
 
 int
-TraceVolumeDataChannelMapping::getMappedDimensionNumSamples(int32_t dimension, int32_t dimensionNumSamples, int32_t mappedValues) const
+TraceVolumeDataChannelMapping::GetMappedDimensionNumSamples(int32_t dimension, int32_t dimensionNumSamples, int32_t mappedValues) const
 {
   assert(mappedValues > 0);
   if(dimension == 0)
@@ -156,7 +156,7 @@ TraceVolumeDataChannelMapping::getMappedDimensionNumSamples(int32_t dimension, i
 }
 
 int
-TraceVolumeDataChannelMapping::getMappedBrickSize(VolumeDataPartition const &primaryPartition, int32_t dimension, int32_t mappedValues) const
+TraceVolumeDataChannelMapping::GetMappedBrickSize(VolumeDataPartition const &primaryPartition, int32_t dimension, int32_t mappedValues) const
 {
   assert(mappedValues > 0);
 
@@ -166,47 +166,47 @@ TraceVolumeDataChannelMapping::getMappedBrickSize(VolumeDataPartition const &pri
   }
   else
   {
-    return primaryPartition.getBrickSize(dimension);
+    return primaryPartition.GetBrickSize(dimension);
   }
 }
 
 int64_t
-TraceVolumeDataChannelMapping::getMappedChunkIndex(VolumeDataPartition const &primaryPartition, int64_t chunkIndex) const
+TraceVolumeDataChannelMapping::GetMappedChunkIndex(VolumeDataPartition const &primaryPartition, int64_t chunkIndex) const
 {
-  assert(chunkIndex >= 0 && chunkIndex < primaryPartition.getTotalChunkCount());
-  return chunkIndex / primaryPartition.getNumChunksInDimension(0);
+  assert(chunkIndex >= 0 && chunkIndex < primaryPartition.GetTotalChunkCount());
+  return chunkIndex / primaryPartition.GetNumChunksInDimension(0);
 }
 
 int
-TraceVolumeDataChannelMapping::getMappedChunkIndexFromVoxel(VolumeDataPartition const &primaryPartition, int32_t voxel, int32_t dimension) const
+TraceVolumeDataChannelMapping::GetMappedChunkIndexFromVoxel(VolumeDataPartition const &primaryPartition, int32_t voxel, int32_t dimension) const
 {
   if(dimension == 0) return 0;
-  else return primaryPartition.voxelToIndex(voxel, dimension);
+  else return primaryPartition.VoxelToIndex(voxel, dimension);
 }
 
 void
-TraceVolumeDataChannelMapping::getLayoutMinMax(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex, int32_t *min, int32_t *max, bool isIncludeMargin) const
+TraceVolumeDataChannelMapping::GetLayoutMinMax(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex, int32_t *min, int32_t *max, bool isIncludeMargin) const
 {
   int64_t
-    startChunk = mappedChunkIndex * primaryPartition.getNumChunksInDimension(0),
-    endChunk   = startChunk + primaryPartition.getNumChunksInDimension(0) - 1;
+    startChunk = mappedChunkIndex * primaryPartition.GetNumChunksInDimension(0),
+    endChunk   = startChunk + primaryPartition.GetNumChunksInDimension(0) - 1;
 
   int32_t
     startMax[Dimensionality_Max],
     endMin[Dimensionality_Max];
 
-  primaryPartition.getChunkMinMax(startChunk, min, startMax, false);
-  primaryPartition.getChunkMinMax(endChunk, endMin, max, false);
+  primaryPartition.GetChunkMinMax(startChunk, min, startMax, false);
+  primaryPartition.GetChunkMinMax(endChunk, endMin, max, false);
 }
 
 int64_t
-TraceVolumeDataChannelMapping::getPrimaryChunkIndex(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex) const
+TraceVolumeDataChannelMapping::GetPrimaryChunkIndex(VolumeDataPartition const &primaryPartition, int64_t mappedChunkIndex) const
 {
-  return mappedChunkIndex * primaryPartition.getNumChunksInDimension(0);
+  return mappedChunkIndex * primaryPartition.GetNumChunksInDimension(0);
 }
 
 const TraceVolumeDataChannelMapping &
-TraceVolumeDataChannelMapping::getInstance()
+TraceVolumeDataChannelMapping::GetInstance()
 {
   static TraceVolumeDataChannelMapping
     instance;
@@ -215,12 +215,12 @@ TraceVolumeDataChannelMapping::getInstance()
 }
 
 const VolumeDataChannelMapping *
-VolumeDataChannelMapping::getVolumeDataChannelMapping(VolumeDataMapping volumeDataMapping)
+VolumeDataChannelMapping::GetVolumeDataChannelMapping(VolumeDataMapping volumeDataMapping)
 {
   switch(volumeDataMapping)
   {
   case VolumeDataMapping::Direct:   return nullptr;
-  case VolumeDataMapping::PerTrace: return &TraceVolumeDataChannelMapping::getInstance();
+  case VolumeDataMapping::PerTrace: return &TraceVolumeDataChannelMapping::GetInstance();
 
   default: assert(0 && "Illegal volume data mapping"); return nullptr;
   }

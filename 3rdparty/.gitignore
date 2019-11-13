@@ -5,3 +5,4 @@ zlib*
 fmt*
 cpprestapi*
 azure-storage-cpp*
+CMakeArtifacts*

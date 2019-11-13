@@ -81,13 +81,13 @@ struct WaveletAdaptiveLL_DecodeIterator
   int32_t pixelSetPixelInsignificantCount;
 };
 
-WaveletAdaptiveLL_DecodeIterator waveletAdaptiveLL_CreateDecodeIterator(uint8_t *streamCPU, float *pictureCPU, int sizeX, int sizeY, int sizeZ,
+WaveletAdaptiveLL_DecodeIterator WaveletAdaptiveLL_CreateDecodeIterator(uint8_t *streamCPU, float *pictureCPU, int sizeX, int sizeY, int sizeZ,
                                                                         const float threshold, const float startThreshold, int *transformMask, Wavelet_TransformData *transformData, int transformDataCount,
                                                                         Wavelet_PixelSetChildren *pixelSetChildren, int pixelSetChildrenCount, Wavelet_PixelSetPixel *pixelSetPixelInSignificant, int pixelSetPixelInsignificantCount,
                                                                         int maxSizeX, int maxSizeXY, uint8_t *tempBufferCPU, int maxChildren, int maxPixels, int decompressLevel);
 
-int32_t waveletAdaptiveLL_DecompressAdaptive(WaveletAdaptiveLL_DecodeIterator decodeIterator);
-int32_t waveletAdaptiveLL_DecompressLossless(uint8_t *in, float *pic, int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t allocatedSizeX, int32_t allocatedSizeXY);
+int32_t WaveletAdaptiveLL_DecompressAdaptive(WaveletAdaptiveLL_DecodeIterator decodeIterator);
+int32_t WaveletAdaptiveLL_DecompressLossless(uint8_t *in, float *pic, int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t allocatedSizeX, int32_t allocatedSizeXY);
 }
 
 #endif
