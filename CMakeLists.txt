@@ -65,7 +65,7 @@ endif()
 
 option(BUILD_ZLIB "Build zlib" ${DEFAULT_BUILD_ZLIB})
 
-include(CMake/Fetch3rdParty.cmake)
+include(CMake/Fetch3rdPartyInBuild.cmake)
 Fetch3rdParty()
 
 include(CMake/Build3rdParty.cmake)

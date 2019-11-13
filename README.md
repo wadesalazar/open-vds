@@ -46,6 +46,15 @@ To generate a Visual Studio solution make a build directory in the OpenVDS folde
 
 OpenVDS also supports using the cmake integration in Visual Studio. Open Visual Studio and use the "Open a local folder" to open the OpenVDS folder.
 
+This works with default settings with Visual Studio 2019, but there are some
+limitations using Visual Studio 2017. Before opening the project for the first
+time in Visual Studio 2017 do the following commands in the root OpenVDS project
+folder:
+`$ git checkout 0d7825df9c981f624b6e1197a1b90c74ddae6aa9 -- CMakeSettings.json`
+`$ cmake -P CMake/Fetch3rdParty.cmake`
+Then start like other cmake projects in Visual Studio
+
+
 #### Build options
 - BUILD_PYTHON (ON|OFF)
 - ENABLE_OPENMP (ON|OFF)
