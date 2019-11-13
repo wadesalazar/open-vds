@@ -74,52 +74,52 @@ public:
                    VolumeDataHash const &volumeDataHash, 
                    CompressionMethod compressionMethod, 
                    float compressionTolerance, 
-                   bool isZipLosslessChannels, 
+                   bool IsZipLosslessChannels,
                    int32_t waveletAdaptiveLoadLevel);
 
   ~VolumeDataLayoutImpl() override;
 
-  VDSHandle       &getHandle() { return m_handle; }
+  VDSHandle       &GetHandle() { return m_handle; }
 
   uint64_t         GetContentsHash() const override { return uint64_t(m_contentsHash); }
-  VolumeDataLayer::VolumeDataLayerID addDataLayer(VolumeDataLayer *layer);
+  VolumeDataLayer::VolumeDataLayerID AddDataLayer(VolumeDataLayer *layer);
 
-  FloatRange const &getChannelValueRange(int32_t channel) const { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetValueRange(); }
+  FloatRange const &GetChannelValueRange(int32_t channel) const { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetValueRange(); }
 
-  FloatRange const &getChannelActualValueRange(int32_t channel) const;
+  FloatRange const &GetChannelActualValueRange(int32_t channel) const;
 
   const VolumeDataChannelMapping *
-                   getVolumeDataChannelMapping(int32_t channel) const;
+                   GetVolumeDataChannelMapping(int32_t channel) const;
 
-  int32_t          getChannelMappedValueCount(int32_t channel) const;
+  int32_t          GetChannelMappedValueCount(int32_t channel) const;
 
-  FloatRange const &getDimensionRange(int32_t dimension) const;
+  FloatRange const &GetDimensionRange(int32_t dimension) const;
 
-  VolumeDataLayer *getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const; 
-  VolumeDataLayer *getVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayoutImpl *>(this)->getVolumeDataLayerFromID(volumeDataLayerID)); }
+  VolumeDataLayer *GetVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const;
+  VolumeDataLayer *GetVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayoutImpl *>(this)->GetVolumeDataLayerFromID(volumeDataLayerID)); }
 
-  VolumeDataLayer *getTopLayer(DimensionGroup dimensionGroup, int32_t channel) const;
-  VolumeDataLayer *getTopLayer(DimensionGroup dimensionGroup, int32_t channel) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayoutImpl *>(this)->getTopLayer(dimensionGroup, channel)); }
+  VolumeDataLayer *GetTopLayer(DimensionGroup dimensionGroup, int32_t channel) const;
+  VolumeDataLayer *GetTopLayer(DimensionGroup dimensionGroup, int32_t channel) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayoutImpl *>(this)->GetTopLayer(dimensionGroup, channel)); }
 
-  VolumeDataLayer *getBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const;
-  VolumeDataLayer *getBaseLayer(DimensionGroup dimensionGroup, int32_t channel) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayoutImpl *>(this)->getBaseLayer(dimensionGroup, channel)); }
+  VolumeDataLayer *GetBaseLayer(DimensionGroup dimensionGroup, int32_t channel) const;
+  VolumeDataLayer *GetBaseLayer(DimensionGroup dimensionGroup, int32_t channel) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayoutImpl *>(this)->GetBaseLayer(dimensionGroup, channel)); }
 
-  int32_t getBaseBrickSize() const { return m_baseBrickSize; }
-  int32_t getLayoutDimensionNumSamples(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_dimensionNumSamples[dimension]; }
-  int32_t getLayerCount() const { return int32_t(m_volumeDataLayers.size()); }
+  int32_t GetBaseBrickSize() const { return m_baseBrickSize; }
+  int32_t GetLayoutDimensionNumSamples(int32_t dimension) const { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_dimensionNumSamples[dimension]; }
+  int32_t GetLayerCount() const { return int32_t(m_volumeDataLayers.size()); }
 
-  bool isReadOnly() const { return m_isReadOnly; }
-  CompressionMethod getCompressionMethod() const { return m_compressionMethod; }
-  float getCompressionTolerance() const { return m_compressionTolerance; }
-  bool isZipLosslessChannels() const { return m_isZipLosslessChannels; }
-  int32_t getWaveletAdaptiveLoadLevel() const { return m_waveletAdaptiveLoadLevel; }
+  bool IsReadOnly() const { return m_isReadOnly; }
+  CompressionMethod GetCompressionMethod() const { return m_compressionMethod; }
+  float GetCompressionTolerance() const { return m_compressionTolerance; }
+  bool IsZipLosslessChannels() const { return m_isZipLosslessChannels; }
+  int32_t GetWaveletAdaptiveLoadLevel() const { return m_waveletAdaptiveLoadLevel; }
 
-  const VolumeDataChannelDescriptor &getVolumeDataChannelDescriptor(int32_t channel) const { return m_volumeDataChannelDescriptor[channel]; }
+  const VolumeDataChannelDescriptor &GetVolumeDataChannelDescriptor(int32_t channel) const { return m_volumeDataChannelDescriptor[channel]; }
 
-  int32_t changePendingWriteRequestCount(int32_t nDifference);
-  void completePendingWriteChunkRequests(int32_t nMaxPendingWriteChunkRequests) const;
+  int32_t ChangePendingWriteRequestCount(int32_t nDifference);
+  void CompletePendingWriteChunkRequests(int32_t nMaxPendingWriteChunkRequests) const;
 
-  VolumeDataLayoutDescriptor getLayoutDescriptor() const;
+  VolumeDataLayoutDescriptor GetLayoutDescriptor() const;
 
   int32_t GetChannelCount() const override { return int32_t(m_volumeDataChannelDescriptor.size()); }
   bool IsChannelAvailable(const char *channelName) const override;
@@ -136,8 +136,8 @@ public:
 
   const char *GetChannelName(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetName(); }
 
-  float GetChannelValueRangeMin(int32_t channel) const override{ return getChannelValueRange(channel).Min; }
-  float GetChannelValueRangeMax(int32_t channel) const override{ return getChannelValueRange(channel).Max; }
+  float GetChannelValueRangeMin(int32_t channel) const override{ return GetChannelValueRange(channel).Min; }
+  float GetChannelValueRangeMax(int32_t channel) const override{ return GetChannelValueRange(channel).Max; }
 
   const char *GetChannelUnit(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetUnit(); }
 
@@ -155,8 +155,8 @@ public:
 
   const char *GetDimensionUnit(int32_t dimension) const override;
 
-  float GetDimensionMin(int32_t dimension) const override { return getDimensionRange(dimension).Min; }
-  float GetDimensionMax(int32_t dimension) const override { return getDimensionRange(dimension).Max; }
+  float GetDimensionMin(int32_t dimension) const override { return GetDimensionRange(dimension).Min; }
+  float GetDimensionMax(int32_t dimension) const override { return GetDimensionRange(dimension).Max; }
 
   bool  IsChannelUseNoValue(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].IsUseNoValue(); }
 
@@ -166,13 +166,13 @@ public:
   float GetChannelIntegerOffset(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].GetIntegerOffset(); }
 
 // Mutators
-  void setContentsHash(VolumeDataHash const &contentsHash);
-  void setActualValueRange(int32_t actualValueRangeChannel, FloatRange const &actualValueRange); // This should probably be implemented with VDSMetadata
+  void SetContentsHash(VolumeDataHash const &contentsHash);
+  void SetActualValueRange(int32_t actualValueRangeChannel, FloatRange const &actualValueRange); // This should probably be implemented with VDSMetadata
 
-  void createLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels, VolumeDataLayer::ProduceStatus produceStatus);
+  void CreateLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels, VolumeDataLayer::ProduceStatus produceStatus);
 
-  bool isDimensionLODDecimated(int32_t dimension) const { return dimension != m_fullResolutionDimension; }
-  int32_t getFullResolutionDimension() const { return m_fullResolutionDimension; }
+  bool IsDimensionLODDecimated(int32_t dimension) const { return dimension != m_fullResolutionDimension; }
+  int32_t GetFullResolutionDimension() const { return m_fullResolutionDimension; }
 
   bool        IsMetadataIntAvailable(const char* category, const char* name) const override;
   bool        IsMetadataIntVector2Available(const char* category, const char* name) const override;

@@ -40,7 +40,7 @@ fast and easy -- if someone really wants round to nearest it shouldn't
 be TOO difficult). */
 
 void
-ibm2ieee(void *to, const void *from, size_t len)
+Ibm2ieee(void *to, const void *from, size_t len)
 {
   for (; len-- > 0; to = (char *)to + 4, from = (const char *)from + 4)
   {
@@ -177,7 +177,7 @@ IBM 370 number. When precision is lost, rounding is toward zero
 it shouldn't be TOO difficult). */
 
 void
-ieee2ibm(void *to, const void *from, size_t len)
+Ieee2ibm(void *to, const void *from, size_t len)
 {
   unsigned fr; /* fraction */
   int exp; /* exponent */
@@ -230,20 +230,20 @@ ieee2ibm(void *to, const void *from, size_t len)
 }
 
 int
-readFieldFromHeader(const void *header, HeaderField const &headerField, Endianness endianness)
+ReadFieldFromHeader(const void *header, HeaderField const &headerField, Endianness endianness)
 {
-  if(!headerField.defined())
+  if(!headerField.Defined())
   {
     return 0;
   }
 
   // NOTE: SEG-Y byte locations start at 1
-  int index = headerField.byteLocation - 1;
+  int index = headerField.ByteLocation - 1;
 
   auto signed_header   = reinterpret_cast<const signed   char *>(header);
   auto unsigned_header = reinterpret_cast<const unsigned char *>(header);
 
-  if(headerField.fieldWidth == FieldWidth::FourByte)
+  if(headerField.FieldWidth == FieldWidth::FourByte)
   {
     if(endianness == Endianness::BigEndian)
     {
@@ -257,7 +257,7 @@ readFieldFromHeader(const void *header, HeaderField const &headerField, Endianne
   }
   else
   {
-    assert(headerField.fieldWidth == FieldWidth::TwoByte);
+    assert(headerField.FieldWidth == FieldWidth::TwoByte);
     if(endianness == Endianness::BigEndian)
     {
       return (int16_t)(signed_header[index + 0] << 8 | unsigned_header[index + 1]);

@@ -25,22 +25,22 @@
 namespace OpenVDS
 {
 
-static uint64_t createSeed()
+static uint64_t CreateSeed()
 {
   static HashCombiner hash;
-  hash.add(std::chrono::system_clock::now().time_since_epoch().count());
-  hash.add(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-  return hash.getCombinedHash();
+  hash.Add(std::chrono::system_clock::now().time_since_epoch().count());
+  hash.Add(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+  return hash.GetCombinedHash();
 }
 
-uint64_t VolumeDataHash::getUniqueHash()
+uint64_t VolumeDataHash::GetUniqueHash()
 {
   static std::mutex hashMutex;
 
   std::lock_guard<std::mutex> lock(hashMutex); 
 
-  static std::default_random_engine upper(static_cast<std::default_random_engine::result_type>(createSeed()));
-  static std::default_random_engine lower(static_cast<std::default_random_engine::result_type>(createSeed()));
+  static std::default_random_engine upper(static_cast<std::default_random_engine::result_type>(CreateSeed()));
+  static std::default_random_engine lower(static_cast<std::default_random_engine::result_type>(CreateSeed()));
 
   std::uniform_int_distribution<uint32_t> distribution;
 

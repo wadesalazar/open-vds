@@ -27,7 +27,7 @@
 
 #include <gtest/gtest.h>
 
-static inline void generateRandomPosition(std::mt19937 &gen, const std::vector<std::uniform_real_distribution<float>> dimensionDistribution, int dimension, float (&pos)[OpenVDS::Dimensionality_Max])
+static inline void GenerateRandomPosition(std::mt19937 &gen, const std::vector<std::uniform_real_distribution<float>> dimensionDistribution, int dimension, float (&pos)[OpenVDS::Dimensionality_Max])
 {
   for (int i = 0; i < dimension; i++)
   {
@@ -73,7 +73,7 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
 
   for(int i = 0; i < 100; i++)
   {
-    generateRandomPosition(gen, dimensionDistribution, dimension, positions[i]);
+    GenerateRandomPosition(gen, dimensionDistribution, dimension, positions[i]);
   }
   float buffer[100];
   int request = dataAccessManager->RequestVolumeSamples(buffer, layout, OpenVDS::Dimensions_012, 0, 0, positions, 100, OpenVDS::InterpolationMethod::Linear);

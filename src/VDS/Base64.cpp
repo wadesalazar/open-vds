@@ -24,34 +24,34 @@ namespace OpenVDS
 {
 class Base64Table
 {
-  static const char alphabet[65];
-  static unsigned char table[256];
+  static const char Alphabet[65];
+  static unsigned char Table[256];
 
-  static Base64Table    instance;
+  static Base64Table    Instance;
 
   Base64Table()
   {
-    memset(table, -1, sizeof(table));
+    memset(Table, -1, sizeof(Table));
 
-    for(int i = 0; i < sizeof(alphabet) - 1; i++)
+    for(int i = 0; i < sizeof(Alphabet) - 1; i++)
     {
-      table[int(alphabet[i])] = i;
+      Table[int(Alphabet[i])] = i;
     }
   }
 
 public:
-  static int  decode(char a) { return table[(unsigned char)a]; }
-  static char encode(unsigned char u) { return alphabet[u]; }
+  static int  Decode(char a) { return Table[(unsigned char)a]; }
+  static char Encode(unsigned char u) { return Alphabet[u]; }
 };
 
 Base64Table
-Base64Table::instance;
+Base64Table::Instance;
 
 const char
-Base64Table::alphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+Base64Table::Alphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 unsigned char
-Base64Table::table[256];
+Base64Table::Table[256];
 
 bool Base64Decode(const char *data, int64_t len, std::vector<unsigned char> &result)
 {
@@ -65,18 +65,18 @@ bool Base64Decode(const char *data, int64_t len, std::vector<unsigned char> &res
 
   while(len != 0 && !isspace(*data))
   {
-    int a = Base64Table::decode(*data++); len--; if(a == -1) { error = true; break; }
+    int a = Base64Table::Decode(*data++); len--; if(a == -1) { error = true; break; }
 
     if(len == 0 || isspace(*data)) { error = true; break; }
-    int b = Base64Table::decode(*data++); len--; if(b == -1) { error = true; break; }
+    int b = Base64Table::Decode(*data++); len--; if(b == -1) { error = true; break; }
     result.push_back((a << 2) | (b >> 4));
 
     if(len == 0 || isspace(*data)) break; if(*data == '=') { data++; len--; if(len==0 || *data++ != '=') { error = true; break; } len--; break; }
-    int c = Base64Table::decode(*data++); len--; if(c == -1) { error = true; break; }
+    int c = Base64Table::Decode(*data++); len--; if(c == -1) { error = true; break; }
     result.push_back(((b & 0xf) << 4) | (c >> 2));
 
     if(len == 0 || isspace(*data)) break; if(*data == '=') { data++; len--; break; }
-    int d = Base64Table::decode(*data++); len--; if(d == -1) { error = true; break; }
+    int d = Base64Table::Decode(*data++); len--; if(d == -1) { error = true; break; }
     result.push_back(((c & 0x3) << 6) | d);
   }
 
@@ -98,10 +98,10 @@ void Base64Encode(const unsigned char *data, int64_t len, std::vector<char> &res
     if(len > 1) { b |= data[1] >> 4; c = (data[1] & 0x0f) << 2; }
     if(len > 2) { c |= data[2] >> 6; d = (data[2] & 0x3f) << 0; }
 
-    result.push_back(Base64Table::encode(a));
-    result.push_back(Base64Table::encode(b));
-    result.push_back((len > 1) ? Base64Table::encode(c) : '=');
-    result.push_back((len > 2) ? Base64Table::encode(d) : '=');
+    result.push_back(Base64Table::Encode(a));
+    result.push_back(Base64Table::Encode(b));
+    result.push_back((len > 1) ? Base64Table::Encode(c) : '=');
+    result.push_back((len > 2) ? Base64Table::Encode(d) : '=');
 
     len -= 3; data += 3;
   }

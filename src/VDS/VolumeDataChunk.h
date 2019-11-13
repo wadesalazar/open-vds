@@ -25,8 +25,8 @@ namespace OpenVDS
 class VolumeDataLayer;
 struct VolumeDataChunk
 {
-  const VolumeDataLayer *layer;
-  int64_t chunkIndex;
+  const VolumeDataLayer *Layer;
+  int64_t Index;
 };
 }
 

@@ -39,7 +39,7 @@ VolumeDataRequestProcessor::VolumeDataRequestProcessor(VolumeDataAccessManagerIm
   , m_threadPool(std::thread::hardware_concurrency())
 {}
 
-static int64_t gen_jobid()
+static int64_t GenJobId()
 {
   static std::atomic< std::int64_t > id(0);
   return ++id;
@@ -61,17 +61,17 @@ struct MarkJobAsDoneOnExit
   Job *job;
 };
 
-static Error processPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessorImpl *pageAccessor, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, Error &error)> processor)
+static Error ProcessPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessorImpl *pageAccessor, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, Error &error)> processor)
 {
   MarkJobAsDoneOnExit jobDone(job);
   Error error;
   JobPage& jobPage = job->pages[pageIndex];
   if (jobPage.needToReadPage)
   {
-    if (!pageAccessor->readPreparedPaged(jobPage.page))
+    if (!pageAccessor->ReadPreparedPaged(jobPage.page))
     {
       error.Code = -1;
-      error.String = fmt::format("Failed to read page {}.", jobPage.page->getChunkIndex());
+      error.String = fmt::format("Failed to read page {}.", jobPage.page->GetChunkIndex());
       return error;
     }
   }
@@ -83,18 +83,18 @@ static Error processPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessor
   }
 
   processor(jobPage.page, jobPage.chunk, error);
-  jobPage.page->unPin();
+  jobPage.page->UnPin();
 
   return error;
 }
 
-int64_t VolumeDataRequestProcessor::addJob(const std::vector<VolumeDataChunk>& chunks, std::function<bool(VolumeDataPageImpl * page, const VolumeDataChunk &volumeDataChunk, Error & error)> processor)
+int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& chunks, std::function<bool(VolumeDataPageImpl * page, const VolumeDataChunk &volumeDataChunk, Error & error)> processor)
 {
-  auto layer = chunks.front().layer;
-  DimensionsND dimensions = DimensionGroupUtil::getDimensionsNDFromDimensionGroup(layer->getPrimaryChannelLayer().getChunkDimensionGroup());
-  int channel = layer->getChannelIndex();
-  int lod = layer->getLOD();
-  auto layout = layer->getLayout();
+  auto layer = chunks.front().Layer;
+  DimensionsND dimensions = DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(layer->GetPrimaryChannelLayer().GetChunkDimensionGroup());
+  int channel = layer->GetChannelIndex();
+  int lod = layer->GetLOD();
+  auto layout = layer->GetLayout();
 
   const int maxPages = std::max(8, (int)chunks.size());
 
@@ -109,7 +109,7 @@ int64_t VolumeDataRequestProcessor::addJob(const std::vector<VolumeDataChunk>& c
     page_accessor_it = insert_result.first;
   }
 
-  m_jobs.emplace_back(new Job(gen_jobid(), m_jobNotification));
+  m_jobs.emplace_back(new Job(GenJobId(), m_jobNotification));
   auto &job = m_jobs.back();
   job->pages.reserve(chunks.size());
 
@@ -123,17 +123,17 @@ int64_t VolumeDataRequestProcessor::addJob(const std::vector<VolumeDataChunk>& c
   {
     job->pages.emplace_back();
     JobPage &jobPage = job->pages.back();
-    jobPage.page = static_cast<VolumeDataPageImpl *>(pageAccessor->prepareReadPage(c.chunkIndex, &jobPage.needToReadPage));
+    jobPage.page = static_cast<VolumeDataPageImpl *>(pageAccessor->PrepareReadPage(c.Index, &jobPage.needToReadPage));
     assert(jobPage.page && "Need to add error handling here when the page cannot be read");
     jobPage.chunk = c;
     size_t index = job->pages.size() - 1;
     auto job_ptr = job.get();
-    job->future.push_back(m_threadPool.enqueue([job_ptr, index, pageAccessor, processor] { return processPageInJob(job_ptr, index, pageAccessor, processor); }));
+    job->future.push_back(m_threadPool.Enqueue([job_ptr, index, pageAccessor, processor] { return ProcessPageInJob(job_ptr, index, pageAccessor, processor); }));
   }
   return job->jobId;
 }
 
-bool  VolumeDataRequestProcessor::isCompleted(int64_t jobID)
+bool  VolumeDataRequestProcessor::IsCompleted(int64_t jobID)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](const std::unique_ptr<Job> &job) { return job->jobId == jobID; });
@@ -148,7 +148,7 @@ bool  VolumeDataRequestProcessor::isCompleted(int64_t jobID)
   return false;
 }
   
-bool VolumeDataRequestProcessor::isCanceled(int64_t jobID)
+bool VolumeDataRequestProcessor::IsCanceled(int64_t jobID)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](const std::unique_ptr<Job> &job) { return job->jobId == jobID; });
@@ -163,7 +163,7 @@ bool VolumeDataRequestProcessor::isCanceled(int64_t jobID)
   return false;
 }
   
-bool VolumeDataRequestProcessor::waitForCompletion(int64_t jobID, int millisecondsBeforeTimeout)
+bool VolumeDataRequestProcessor::WaitForCompletion(int64_t jobID, int millisecondsBeforeTimeout)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](const std::unique_ptr<Job> &job) { return job->jobId == jobID; });
@@ -188,7 +188,7 @@ bool VolumeDataRequestProcessor::waitForCompletion(int64_t jobID, int millisecon
   return false;
 }
 
-void VolumeDataRequestProcessor::cancel(int64_t jobID)
+void VolumeDataRequestProcessor::Cancel(int64_t jobID)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](std::unique_ptr<Job> &job) { return job->jobId == jobID; });

@@ -61,28 +61,28 @@ static void dataBlock_BlockCopyWithExplicitContiguity(T * __restrict ptTarget, c
         {
           for(int32_t iDim0 = 0; iDim0 < size[0]; iDim0++, iSourceIndex0++, iTargetIndex0++)
           {
-            dataBlock_WriteElement(ptTarget, iTargetIndex0, dataBlock_ReadElement(ptSource, iSourceIndex0));
+            DataBlock_WriteElement(ptTarget, iTargetIndex0, DataBlock_ReadElement(ptSource, iSourceIndex0));
           }
         }
         else if(isTargetDim0Contigous)
         {
           for(int32_t iDim0 = 0; iDim0 < size[0]; iDim0++, iSourceIndex0 += sourcePitch[0], iTargetIndex0++)
           {
-            dataBlock_WriteElement(ptTarget, iTargetIndex0, dataBlock_ReadElement(ptSource, iSourceIndex0));
+            DataBlock_WriteElement(ptTarget, iTargetIndex0, DataBlock_ReadElement(ptSource, iSourceIndex0));
           }
         }
         else if(isSourceDim0Contigous)
         {
           for(int32_t iDim0 = 0; iDim0 < size[0]; iDim0++, iSourceIndex0++, iTargetIndex0 += targetPitch[0])
           {
-            dataBlock_WriteElement(ptTarget, iTargetIndex0, dataBlock_ReadElement(ptSource, iSourceIndex0));
+            DataBlock_WriteElement(ptTarget, iTargetIndex0, DataBlock_ReadElement(ptSource, iSourceIndex0));
           }
         }
         else
         {
           for(int32_t iDim0 = 0; iDim0 < size[0]; iDim0++, iSourceIndex0 += sourcePitch[0], iTargetIndex0 += targetPitch[0])
           {
-            dataBlock_WriteElement(ptTarget, iTargetIndex0, dataBlock_ReadElement(ptSource, iSourceIndex0));
+            DataBlock_WriteElement(ptTarget, iTargetIndex0, DataBlock_ReadElement(ptSource, iSourceIndex0));
           }
         }
       }
@@ -110,50 +110,50 @@ VolumeDataPageImpl::VolumeDataPageImpl(VolumeDataPageAccessorImpl* volumeDataPag
 }
 
   // All these methods require the caller to hold a lock
-bool VolumeDataPageImpl::isPinned()
+bool VolumeDataPageImpl::IsPinned()
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
   assert(m_pins >= 0);
   return m_pins > 0;
 }
-void VolumeDataPageImpl::pin()
+void VolumeDataPageImpl::Pin()
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
   assert(m_pins >= 0);
   m_pins++;
 }
-void VolumeDataPageImpl::unPin()
+void VolumeDataPageImpl::UnPin()
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
   m_pins--;
   assert(m_pins >= 0);
 }
 
-bool VolumeDataPageImpl::isEmpty()
+bool VolumeDataPageImpl::IsEmpty()
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
   return m_blob.empty();
 }
 
-bool VolumeDataPageImpl::isDirty()
+bool VolumeDataPageImpl::IsDirty()
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
   return m_isDirty;
 }
 
-bool VolumeDataPageImpl::isWritten()
+bool VolumeDataPageImpl::IsWritten()
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
   return !(m_writtenMin[0] == 0 && m_writtenMax[0] == 0);
 }
 
-void VolumeDataPageImpl::makeDirty()
+void VolumeDataPageImpl::MakeDirty()
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
   m_isDirty = true;
 }
 
-void VolumeDataPageImpl::setBufferData(const DataBlock &dataBlock, int32_t (&pitch)[Dimensionality_Max], std::vector<uint8_t>&& blob)
+void VolumeDataPageImpl::SetBufferData(const DataBlock &dataBlock, int32_t (&pitch)[Dimensionality_Max], std::vector<uint8_t>&& blob)
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
   m_dataBlock = dataBlock;
@@ -162,15 +162,15 @@ void VolumeDataPageImpl::setBufferData(const DataBlock &dataBlock, int32_t (&pit
   m_blob = std::move(blob);
 }
 
-void VolumeDataPageImpl::writeBack(VolumeDataLayer* volumeDataLayer, std::unique_lock<std::mutex>& pageListMutexLock)
+void VolumeDataPageImpl::WriteBack(VolumeDataLayer* volumeDataLayer, std::unique_lock<std::mutex>& pageListMutexLock)
 {
   assert(m_isDirty);
-  m_volumeDataPageAccessor->requestWritePage(m_chunk, m_dataBlock, m_blob);
+  m_volumeDataPageAccessor->RequestWritePage(m_chunk, m_dataBlock, m_blob);
   m_isDirty = false;
 }
 
 
-void* VolumeDataPageImpl::getBufferInternal(int(&anPitch)[Dimensionality_Max], bool isReadWrite)
+void* VolumeDataPageImpl::GetBufferInternal(int(&anPitch)[Dimensionality_Max], bool isReadWrite)
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
 
@@ -187,7 +187,7 @@ void* VolumeDataPageImpl::getBufferInternal(int(&anPitch)[Dimensionality_Max], b
   return m_blob.data();
 }
 
-bool VolumeDataPageImpl::isCopyMarginNeeded(VolumeDataPageImpl* targetPage)
+bool VolumeDataPageImpl::IsCopyMarginNeeded(VolumeDataPageImpl* targetPage)
 {
   if(targetPage == this) return false;
 
@@ -215,7 +215,7 @@ bool VolumeDataPageImpl::isCopyMarginNeeded(VolumeDataPageImpl* targetPage)
   // Check if the margins have already been copied
   for(int32_t copiedToChunk = 0; copiedToChunk < m_chunksCopiedTo; copiedToChunk++)
   {
-    if(targetPage->getChunkIndex() == m_copiedToChunkIndexes[copiedToChunk])
+    if(targetPage->GetChunkIndex() == m_copiedToChunkIndexes[copiedToChunk])
     {
       return false;
     }
@@ -224,11 +224,11 @@ bool VolumeDataPageImpl::isCopyMarginNeeded(VolumeDataPageImpl* targetPage)
   return true;
 }
 
-void VolumeDataPageImpl::copyMargin(VolumeDataPageImpl* targetPage)
+void VolumeDataPageImpl::CopyMargin(VolumeDataPageImpl* targetPage)
 {
   //assert(m_volumeDataPageAccessor->m_pageListMutex.isLockedByCurrentThread());
-  assert(isDirty());
-  assert(!targetPage->isEmpty() && "The caller have to ensure the target page is finished reading");
+  assert(IsDirty());
+  assert(!targetPage->IsEmpty() && "The caller have to ensure the target page is finished reading");
 
   int32_t sourceMin[Dimensionality_Max];
   int32_t sourceMax[Dimensionality_Max];
@@ -262,9 +262,9 @@ void VolumeDataPageImpl::copyMargin(VolumeDataPageImpl* targetPage)
   int32_t sourcePitch[Dimensionality_Max];
   int32_t targetPitch[Dimensionality_Max];
 
-  const void * sourceBuffer = getBufferInternal(sourcePitch, false);
+  const void * sourceBuffer = GetBufferInternal(sourcePitch, false);
 
-  void *targetBuffer = static_cast<VolumeDataPageImpl*>(targetPage)->getBufferInternal(targetPitch, true);
+  void *targetBuffer = static_cast<VolumeDataPageImpl*>(targetPage)->GetBufferInternal(targetPitch, true);
 
   int32_t iSourceIndex = 0;
   int32_t iTargetIndex = 0;
@@ -281,7 +281,7 @@ void VolumeDataPageImpl::copyMargin(VolumeDataPageImpl* targetPage)
 
   for(int32_t iChunkDimension = 0; iChunkDimension < 4; iChunkDimension++)
   {
-    int32_t iDimension = m_volumeDataPageAccessor->getLayer()->getChunkDimension(iChunkDimension);
+    int32_t iDimension = m_volumeDataPageAccessor->GetLayer()->GetChunkDimension(iChunkDimension);
 
     if(iDimension == -1)
     {
@@ -325,37 +325,37 @@ void VolumeDataPageImpl::copyMargin(VolumeDataPageImpl* targetPage)
     break;
   }
 
-  targetPage->makeDirty();
+  targetPage->MakeDirty();
 
-  assert(m_chunksCopiedTo < array_size(m_copiedToChunkIndexes));
-  m_copiedToChunkIndexes[m_chunksCopiedTo++] = targetPage->getChunkIndex();
+  assert(m_chunksCopiedTo < ArraySize(m_copiedToChunkIndexes));
+  m_copiedToChunkIndexes[m_chunksCopiedTo++] = targetPage->GetChunkIndex();
 }
 
 // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)
 void  VolumeDataPageImpl::GetMinMax(int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const
 {
-  m_volumeDataPageAccessor->getLayer()->getChunkMinMax(m_chunk, min, max, true);
+  m_volumeDataPageAccessor->GetLayer()->GetChunkMinMax(m_chunk, min, max, true);
 }
 void  VolumeDataPageImpl::GetMinMaxExcludingMargin(int(&minExcludingMargin)[Dimensionality_Max], int(&maxExcludingMargin)[Dimensionality_Max]) const
 {
-  m_volumeDataPageAccessor->getLayer()->getChunkMinMax(m_chunk, minExcludingMargin, maxExcludingMargin, false);
+  m_volumeDataPageAccessor->GetLayer()->GetChunkMinMax(m_chunk, minExcludingMargin, maxExcludingMargin, false);
 }
 const void* VolumeDataPageImpl::GetBuffer(int(&pitch)[Dimensionality_Max])
 {
  std::unique_lock<std::mutex>  pageListMutexLock(const_cast<VolumeDataPageAccessorImpl *>(m_volumeDataPageAccessor)->m_pagesMutex);
 
-  return getBufferInternal(pitch, m_volumeDataPageAccessor->isReadWrite());
+  return GetBufferInternal(pitch, m_volumeDataPageAccessor->IsReadWrite());
 }
 void* VolumeDataPageImpl::GetWritableBuffer(int(&pitch)[Dimensionality_Max])
 {
  std::unique_lock<std::mutex>  pageListMutexLock(const_cast<VolumeDataPageAccessorImpl *>(m_volumeDataPageAccessor)->m_pagesMutex);
 
-  if(!m_volumeDataPageAccessor->isReadWrite())
+  if(!m_volumeDataPageAccessor->IsReadWrite())
   {
     throw std::runtime_error("Trying to get a writable buffer from a read-only volume data page accessor");
   }
 
-  return getBufferInternal(pitch, true);
+  return GetBufferInternal(pitch, true);
 }
 void VolumeDataPageImpl::UpdateWrittenRegion(const int(&writtenMin)[Dimensionality_Max], const int(&writtenMax)[Dimensionality_Max])
 {
@@ -388,12 +388,12 @@ void VolumeDataPageImpl::UpdateWrittenRegion(const int(&writtenMin)[Dimensionali
   memset(m_copiedToChunkIndexes, 0, sizeof(m_copiedToChunkIndexes));
   m_chunksCopiedTo = 0;
 
-  makeDirty();
+  MakeDirty();
 }
 void VolumeDataPageImpl::Release()
 {
  std::unique_lock<std::mutex>  pageListMutexLock(const_cast<VolumeDataPageAccessorImpl *>(m_volumeDataPageAccessor)->m_pagesMutex);
- unPin();
+ UnPin();
 }
 
 }

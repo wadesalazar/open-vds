@@ -35,32 +35,32 @@
 namespace OpenVDS
 {
 
-static std::string error_to_string(int error)
+static std::string ErrorToString(int error)
 {
   return std::string(strerror(error));
 }
 
-static void set_io_error(int error, IOError &io_error)
+static void SetIoError(int error, IOError &io_error)
 {
   io_error.code = error;
-  io_error.string = error_to_string(error);
+  io_error.string = ErrorToString(error);
 }
 
-static void set_io_error(int error, std::string &error_string_prefix, IOError &io_error)
+static void SetIoError(int error, std::string &error_string_prefix, IOError &io_error)
 {
   io_error.code = error;
-  io_error.string = error_string_prefix + error_to_string(error);
-}
-
-template<size_t N>
-static void set_io_error(int error, const char (&error_string_prefix)[N], IOError &io_error)
-{
-  io_error.code = error;
-  io_error.string = std::string(error_string_prefix, N) + error_to_string(error);
+  io_error.string = error_string_prefix + ErrorToString(error);
 }
 
 template<size_t N>
-static void set_io_error(const char (&error_string_prefix)[N], IOError &io_error)
+static void SetIoError(int error, const char (&error_string_prefix)[N], IOError &io_error)
+{
+  io_error.code = error;
+  io_error.string = std::string(error_string_prefix, N) + ErrorToString(error);
+}
+
+template<size_t N>
+static void SetIoError(const char (&error_string_prefix)[N], IOError &io_error)
 {
   io_error.code = -1;
   io_error.string = std::string(error_string_prefix, N);
@@ -142,7 +142,7 @@ public:
 
     if (m_pxBaseAddress == MAP_FAILED)
     {
-			set_io_error(errno, "FileView failed ", error);
+      SetIoError(errno, "FileView failed ", error);
       return;
     }
 
@@ -152,7 +152,7 @@ public:
 
       if (iRetval != 0)
       {
-				set_io_error(errno, "FileView failed ", error);
+        SetIoError(errno, "FileView failed ", error);
       }
     }
   }
@@ -168,7 +168,7 @@ public:
     }
   }
 
-  bool prefetch(const void *pData, int64_t nSize, IOError &error) const override
+  bool Prefetch(const void *pData, int64_t nSize, IOError &error) const override
   {
     int64_t nDelta = (int64_t)((uintptr_t)pData % s_nPageSize);
 
@@ -179,22 +179,22 @@ public:
 
     if (iRetval != 0)
     {
-			set_io_error(errno, "FileView::prefetch ", error);
+      SetIoError(errno, "FileView::prefetch ", error);
 			return false;
     }
 		return true;
   }
 };
 
-bool File::exists(const std::string& filename)
+bool File::Exists(const std::string& filename)
 {
   struct stat buf;
   return (lstat(filename.c_str(), &buf) == 0) && S_ISREG(buf.st_mode);
 }
 
-bool File::open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError &error)
+bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError &error)
 {
-  assert(!isOpen());
+  assert(!IsOpen());
   assert(!isDestroyExisting || isCreate);
   assert(!isCreate || isWriteAccess || !"it is meaningless to demand creation with RO access");
   assert(!_pxPlatformHandle || ("RawFileAccess_c::Open: file already open"));
@@ -211,7 +211,7 @@ bool File::open(const std::string& filename, bool isCreate, bool isDestroyExisti
   if (fd < 0)
   {
     _pxPlatformHandle = 0;
-    set_io_error(errno, "File::open ", error);
+    SetIoError(errno, "File::open ", error);
     return false;
   }
 
@@ -220,9 +220,9 @@ bool File::open(const std::string& filename, bool isCreate, bool isDestroyExisti
   return true;
 }
 
-void File::close()
+void File::Close()
 {
-  assert(isOpen());
+  assert(IsOpen());
 
   int fd  = (int)(intptr_t)_pxPlatformHandle;
   bool isOK = ::close(fd) == 0;
@@ -232,20 +232,20 @@ void File::close()
   //return isOK;
 }
 
-int64_t File::size(IOError& error) const
+int64_t File::Size(IOError& error) const
 {
   int fd  = (int)(intptr_t)_pxPlatformHandle;
   int64_t nLength = lseek(fd, 0, SEEK_END);
 
   if (nLength < 0)
   {
-    set_io_error(errno, "File::size ", error);
+    SetIoError(errno, "File::size ", error);
     return -1;
   }
   return nLength;
 }
 
-bool File::read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const
+bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const
 {
 	assert(nOffset >= 0);
 	int fd    = (int)(intptr_t)_pxPlatformHandle;
@@ -258,13 +258,13 @@ bool File::read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) 
 
 		if (nread < 0)
 		{
-			set_io_error(errno, "File::read ", error);
+      SetIoError(errno, "File::read ", error);
 			return false;
 		}
 
 		if (nread == 0)
 		{
-			set_io_error(errno, "File::read (zero-length read) ", error);
+      SetIoError(errno, "File::read (zero-length read) ", error);
 			return false;
 		}
 
@@ -275,13 +275,13 @@ bool File::read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) 
 	return true;
 }
 
-bool File::write(const void* pxData, int64_t nOffset, int32_t nLength, IOError & error)
+bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, IOError & error)
 {
   assert(nOffset >= 0);
 
   if (!_isWriteable)
 	{
-		set_io_error("File::write: file not writeable", error);
+    SetIoError("File::write: file not writeable", error);
 		return false;
 	}
 
@@ -295,12 +295,12 @@ bool File::write(const void* pxData, int64_t nOffset, int32_t nLength, IOError &
 
     if (nwritten < 0)
     {
-      set_io_error(errno, "File::write ", error);
+      SetIoError(errno, "File::write ", error);
       return false;
     }
     if (nwritten == 0)
     {
-      set_io_error(errno, "File::write (zero-length write)", error);
+      SetIoError(errno, "File::write (zero-length write)", error);
       return false;
     }
 
@@ -311,7 +311,7 @@ bool File::write(const void* pxData, int64_t nOffset, int32_t nLength, IOError &
   return true;
 }
 
-bool File::flush()
+bool File::Flush()
 {
 #ifdef LINUX
 	int fd  = (int)(intptr_t)_pxPlatformHandle;
@@ -322,17 +322,17 @@ bool File::flush()
 #endif
 }
 
-FileView *File::createFileView(int64_t nPos, int64_t nSize, bool isPopulate, IOError &error)
+FileView *File::CreateFileView(int64_t nPos, int64_t nSize, bool isPopulate, IOError &error)
 {
   if(!m_pFileMappingObject)
   {
-    if (!FileView::SystemFileMappingObject::open(&m_pFileMappingObject, *this, error))
+    if (!FileView::SystemFileMappingObject::Open(&m_pFileMappingObject, *this, error))
       return nullptr;
   }
   FileView *ret = new SystemFileView(m_pFileMappingObject, nPos, nSize, isPopulate, error);
   if (error.code)
   {
-    bool deleted = FileView::removeReference(ret);
+    bool deleted = FileView::RemoveReference(ret);
     assert(deleted);
     ret = nullptr;
   }
@@ -345,16 +345,16 @@ SystemFileView_SetSigBusJmpEnv(sigjmp_buf* pSigjmpEnv)
   SystemFileView_pSigjmpEnv = pSigjmpEnv;
 }
 
-bool FileView::SystemFileMappingObject::open(SystemFileMappingObject** ppcFileMappingObject, File& file, IOError& error)
+bool FileView::SystemFileMappingObject::Open(SystemFileMappingObject** ppcFileMappingObject, File& file, IOError& error)
 {
   assert(ppcFileMappingObject && !*ppcFileMappingObject);
-  int iFile = (int)(intptr_t)file.handle();
+  int iFile = (int)(intptr_t)file.Handle();
 
   *ppcFileMappingObject = reinterpret_cast<SystemFileMappingObject *>(iFile);
   return true;
 }
 
-void FileView::SystemFileMappingObject::close(SystemFileMappingObject** ppcFileMappingObject)
+void FileView::SystemFileMappingObject::Close(SystemFileMappingObject** ppcFileMappingObject)
 {
   assert(ppcFileMappingObject && *ppcFileMappingObject);
 }

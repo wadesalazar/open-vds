@@ -70,17 +70,17 @@ bool Wavelet_Decompress(const void *compressedData, int nCompressedAdaptiveDataS
     return false;
   }
 
-  if (!initializeDataBlock(VolumeDataChannelDescriptor::Format_R32, VolumeDataChannelDescriptor::Components_1, Dimensionality(dimensions), createSize, dataBlock, error))
+  if (!InitializeDataBlock(VolumeDataChannelDescriptor::Format_R32, VolumeDataChannelDescriptor::Components_1, Dimensionality(dimensions), createSize, dataBlock, error))
     return false;
-  target.resize(getAllocatedByteSize(dataBlock));
+  target.resize(GetAllocatedByteSize(dataBlock));
   
   Wavelet wavelet(compressedData,
-    dataBlock.size[0],
-    dataBlock.size[1],
-    dataBlock.size[2],
-    dataBlock.allocatedSize[0],
-    dataBlock.allocatedSize[1],
-    dataBlock.allocatedSize[2],
+    dataBlock.Size[0],
+    dataBlock.Size[1],
+    dataBlock.Size[2],
+    dataBlock.AllocatedSize[0],
+    dataBlock.AllocatedSize[1],
+    dataBlock.AllocatedSize[2],
     dimensions,
     dataVersion);
 
@@ -90,7 +90,7 @@ bool Wavelet_Decompress(const void *compressedData, int nCompressedAdaptiveDataS
 
   bool isAnyNoValue;
 
-  if (!wavelet.deCompress(true, -1, -1, -1, &startThreshold, &threshold, dataBlock.format, valueRange, integerScale, integerOffset, isUseNoValue, noValue, &isAnyNoValue, &waveletNoValue, isNormalize, nDecompressLevel, isLossless, nCompressedAdaptiveDataSize, dataBlock, target, error))
+  if (!wavelet.DeCompress(true, -1, -1, -1, &startThreshold, &threshold, dataBlock.Format, valueRange, integerScale, integerOffset, isUseNoValue, noValue, &isAnyNoValue, &waveletNoValue, isNormalize, nDecompressLevel, isLossless, nCompressedAdaptiveDataSize, dataBlock, target, error))
     return false;
 
   return true;
@@ -347,7 +347,7 @@ static void createTransformData(Wavelet_TransformData (&transformData)[TRANSFORM
   }
 }
 
-static int calculateBufferSizeNeeded(int maxPixels, int maxChildren)
+static int CalculateBufferSizeNeeded(int maxPixels, int maxChildren)
 {
   int size = 0;
 
@@ -407,7 +407,7 @@ Wavelet::Wavelet(const void *compressedData, int32_t transformSizeX, int32_t tra
   m_pixelSetChildren.reset(new Wavelet_PixelSetChildren[allocSize]);
 }
 
-static inline void createPixelSetChildren(Wavelet_PixelSetChildren *pixelSet, uint32_t iX, uint32_t iY, uint32_t iZ,  uint32_t uTransformIteration, int32_t iSubBand)
+static inline void CreatePixelSetChildren(Wavelet_PixelSetChildren *pixelSet, uint32_t iX, uint32_t iY, uint32_t iZ,  uint32_t uTransformIteration, int32_t iSubBand)
 {
   pixelSet->x = iX;
   pixelSet->y = iY;
@@ -416,14 +416,14 @@ static inline void createPixelSetChildren(Wavelet_PixelSetChildren *pixelSet, ui
   pixelSet->subBand = iSubBand;
 }
 
-static inline void createPixelSetPixel(Wavelet_PixelSetPixel *pixelSet, uint32_t iX, uint32_t iY, uint32_t iZ)
+static inline void CreatePixelSetPixel(Wavelet_PixelSetPixel *pixelSet, uint32_t iX, uint32_t iY, uint32_t iZ)
 {
   pixelSet->x = iX;
   pixelSet->y = iY;
   pixelSet->z = iZ;
 }
 
-void Wavelet::initCoder()
+void Wavelet::InitCoder()
 {
   m_pixelSetPixelInSignificantCount = 0;
   m_pixelSetPixelSignificantCount = 0;
@@ -472,7 +472,7 @@ void Wavelet::initCoder()
               {
                 if (i > 0)
                 {
-                  createPixelSetChildren(&m_pixelSetChildren[m_pixelSetChildrenCount++], iX, iY, iZ, i, iSector);
+                  CreatePixelSetChildren(&m_pixelSetChildren[m_pixelSetChildrenCount++], iX, iY, iZ, i, iSector);
                 }
               }
             }
@@ -501,7 +501,7 @@ void Wavelet::initCoder()
     {
       for (int32_t iD0 = 0; iD0 < bandSizeX; iD0++)
       {
-          createPixelSetPixel(&m_pixelSetPixelInSignificant[m_pixelSetPixelInSignificantCount++], iD0, iD1, iD2);
+          CreatePixelSetPixel(&m_pixelSetPixelInSignificant[m_pixelSetPixelInSignificantCount++], iD0, iD1, iD2);
       }
     }
   }
@@ -512,7 +512,7 @@ void Wavelet::initCoder()
 
 #define READNORMVAL(X,Y,Z) normalizeField[X + Y * nNormalizeX + Z * nNormalizeX * nNormalizeY]
 
-static float getNormalizedValue(float *normalizeField, int iX, int iY, int iZ, int nNormalizeX, int nNormalizeY,int nNormalizeZ)
+static float GetNormalizedValue(float *normalizeField, int iX, int iY, int iZ, int nNormalizeX, int nNormalizeY,int nNormalizeZ)
 {
   float rX = (float)iX;
   float rY = (float)iY;
@@ -587,7 +587,7 @@ static float getNormalizedValue(float *normalizeField, int iX, int iY, int iZ, i
 }
 
 template <class T, bool isHigh>
-static void replaceZeroFromZeroCount(T *pic, int transformSizeY, int transformSizeZ, int allocatedSizeX, int allocatedSizeY, const uint8_t *countLow, const uint8_t *countHigh, T replaceValue)
+static void ReplaceZeroFromZeroCount(T *pic, int transformSizeY, int transformSizeZ, int allocatedSizeX, int allocatedSizeY, const uint8_t *countLow, const uint8_t *countHigh, T replaceValue)
 {
   for (int iZ=0; iZ<transformSizeZ;iZ++)
   {
@@ -611,7 +611,7 @@ static void replaceZeroFromZeroCount(T *pic, int transformSizeY, int transformSi
   }
 }
 // This function decompresses how many zeros along X from X0 - using FSE to compress counts (
-static void decompressZerosAlongX(const uint8_t *in, void *pic, int elementSize, float replaceValue, int transformSizeX, int transformSizeY, int transformSizeZ, int allocatedSizeX, int allocatedSizeY, int allocatedSizeZ, unsigned char *temp)
+static void DecompressZerosAlongX(const uint8_t *in, void *pic, int elementSize, float replaceValue, int transformSizeX, int transformSizeY, int transformSizeZ, int allocatedSizeX, int allocatedSizeY, int allocatedSizeZ, unsigned char *temp)
 {
   int totalSize = *((int *)in);
   
@@ -684,26 +684,26 @@ static void decompressZerosAlongX(const uint8_t *in, void *pic, int elementSize,
 
   if (elementSize == 1)
   {
-    if (isHigh) replaceZeroFromZeroCount<uint8_t, true>((uint8_t*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, (unsigned char)replaceValue);
-    else        replaceZeroFromZeroCount<uint8_t, false>((unsigned char*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, (unsigned char)replaceValue);
+    if (isHigh) ReplaceZeroFromZeroCount<uint8_t, true>((uint8_t*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, (unsigned char)replaceValue);
+    else        ReplaceZeroFromZeroCount<uint8_t, false>((unsigned char*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, (unsigned char)replaceValue);
   }
   else if (elementSize == 2)
   {
-    if (isHigh) replaceZeroFromZeroCount<uint16_t, true>((unsigned short*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, (unsigned short)replaceValue);
-    else        replaceZeroFromZeroCount<uint16_t, false>((unsigned short*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, (unsigned short)replaceValue);
+    if (isHigh) ReplaceZeroFromZeroCount<uint16_t, true>((unsigned short*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, (unsigned short)replaceValue);
+    else        ReplaceZeroFromZeroCount<uint16_t, false>((unsigned short*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, (unsigned short)replaceValue);
   }
   else
   {
     assert(elementSize == 4);
-    if (isHigh) replaceZeroFromZeroCount<float, true>((float*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, replaceValue);
-    else        replaceZeroFromZeroCount<float, false>((float*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, replaceValue);
+    if (isHigh) ReplaceZeroFromZeroCount<float, true>((float*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, replaceValue);
+    else        ReplaceZeroFromZeroCount<float, false>((float*)pic, transformSizeY, transformSizeZ, allocatedSizeX, allocatedSizeY, countLow, countHigh, replaceValue);
   }
 }
 
-bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompressSlice, int32_t decompressFlip, float* startThreshold, float* threshold, VolumeDataChannelDescriptor::Format dataBlockFormat, const FloatRange& valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, bool* isAnyNoValue, float* waveletNoValue, bool isNormalize, int decompressLevel, bool isLossless, int compressedAdaptiveDataSize, DataBlock& dataBlock, std::vector<uint8_t>& target, Error& error)
+bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompressSlice, int32_t decompressFlip, float* startThreshold, float* threshold, VolumeDataChannelDescriptor::Format dataBlockFormat, const FloatRange& valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, bool* isAnyNoValue, float* waveletNoValue, bool isNormalize, int decompressLevel, bool isLossless, int compressedAdaptiveDataSize, DataBlock& dataBlock, std::vector<uint8_t>& target, Error& error)
 {
   assert(m_dataVersion == WAVELET_DATA_VERSION_1_4);
-  initCoder();
+  InitCoder();
 
   int32_t *startOfCompressedData = (int32_t *)m_compressedData;
 
@@ -735,7 +735,7 @@ bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompr
   nDeCompressZeroSize = *m_wordCompressedData;
   m_wordCompressedData += (nDeCompressZeroSize + 3) / 4;
 
-  deCompressNoValuesHeader();
+  DeCompressNoValuesHeader();
 
   float *normalField = (float *)(m_wordCompressedData);
   
@@ -771,16 +771,16 @@ bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompr
 
   createTransformData(transformData, m_bandSize, m_transformMask, m_transformIterations);
 
-  int cpuTempDecodeSizeNeeded = calculateBufferSizeNeeded(m_allocatedSizeX * m_allocatedSizeY * m_allocatedSizeZ, m_allocatedHalfSizeX * m_allocatedHalfSizeY * m_allocatedHalfSizeZ);
+  int cpuTempDecodeSizeNeeded = CalculateBufferSizeNeeded(m_allocatedSizeX * m_allocatedSizeY * m_allocatedSizeZ, m_allocatedHalfSizeX * m_allocatedHalfSizeY * m_allocatedHalfSizeZ);
 
   std::vector<uint8_t> cpuTempData;
   cpuTempData.resize(cpuTempDecodeSizeNeeded);
 
-  WaveletAdaptiveLL_DecodeIterator decodeIterator = waveletAdaptiveLL_CreateDecodeIterator((uint8_t*)m_wordCompressedData, floatReadWriteData, m_allocatedSizeX, m_allocatedSizeY, m_allocatedSizeZ, *threshold, *startThreshold, m_transformMask, transformData, m_transformIterations,
+  WaveletAdaptiveLL_DecodeIterator decodeIterator = WaveletAdaptiveLL_CreateDecodeIterator((uint8_t*)m_wordCompressedData, floatReadWriteData, m_allocatedSizeX, m_allocatedSizeY, m_allocatedSizeZ, *threshold, *startThreshold, m_transformMask, transformData, m_transformIterations,
       m_pixelSetChildren.get(), m_pixelSetChildrenCount, m_pixelSetPixelInSignificant.get(), m_pixelSetPixelInSignificantCount,
       m_allocatedHalfSizeX, m_allocatedHalfSizeX * m_allocatedHalfSizeY, cpuTempData.data(), m_allocatedHalfSizeX * m_allocatedHalfSizeY * m_allocatedHalfSizeZ, m_allocatedSizeX * m_allocatedSizeY * m_allocatedSizeZ, decompressLevel);
 
-  int size = waveletAdaptiveLL_DecompressAdaptive(decodeIterator);
+  int size = WaveletAdaptiveLL_DecompressAdaptive(decodeIterator);
 
   if (isLossless)
   {
@@ -789,17 +789,17 @@ bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompr
 
   cpuTempData = std::vector<uint8_t>();
 
-  inverseTransform(floatReadWriteData);
+  InverseTransform(floatReadWriteData);
 
   // Decompres no values?
   float localWaveletNoValue;
 
   std::vector<uint32_t> noValueBitBuffer;
-  deCompressNoValues(&localWaveletNoValue, noValueBitBuffer);
+  DeCompressNoValues(&localWaveletNoValue, noValueBitBuffer);
 
   if (noValueBitBuffer.size())
   {
-    applyNoValues(floatReadWriteData, noValueBitBuffer.data(), localWaveletNoValue);
+    ApplyNoValues(floatReadWriteData, noValueBitBuffer.data(), localWaveletNoValue);
   }
 
   if (isAnyNoValue) *isAnyNoValue = noValueBitBuffer.size();
@@ -819,7 +819,7 @@ bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompr
       {
         for (int iX = 0; iX < m_dataBlockSizeX; iX++)
         {
-          floatReadWriteData[iX + iY * m_allocatedSizeX + iZ * m_allocatedSizeXY] *= getNormalizedValue(normalField, iX, iY, iZ, normalizeX, normalizeY, normalizeZ);
+          floatReadWriteData[iX + iY * m_allocatedSizeX + iZ * m_allocatedSizeXY] *= GetNormalizedValue(normalField, iX, iY, iZ, normalizeX, normalizeY, normalizeZ);
         }
       }
     }
@@ -831,7 +831,7 @@ bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompr
     std::vector<uint8_t> buffer;
     buffer.resize(m_transformSizeY * m_transformSizeZ * int32_t(sizeof(unsigned short)));
 
-    decompressZerosAlongX(pnDecompressZeroSize, (void*)floatReadWriteData, 4, 0.0f, m_transformSizeX, m_transformSizeY, m_transformSizeZ, m_allocatedSizeX, m_allocatedSizeY, m_allocatedSizeZ, buffer.data());
+    DecompressZerosAlongX(pnDecompressZeroSize, (void*)floatReadWriteData, 4, 0.0f, m_transformSizeX, m_transformSizeY, m_transformSizeZ, m_allocatedSizeX, m_allocatedSizeY, m_allocatedSizeZ, buffer.data());
   }
 
   // Do lossless diff
@@ -841,7 +841,7 @@ bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompr
 
     m_compressedData += (nAdaptiveSize + 3) / 4;
 
-    int32_t size = waveletAdaptiveLL_DecompressLossless((unsigned char*)m_compressedData, floatReadWriteData, m_transformSizeX, m_transformSizeY, m_transformSizeZ, m_allocatedSizeX, m_allocatedSizeXY);
+    int32_t size = WaveletAdaptiveLL_DecompressLossless((unsigned char*)m_compressedData, floatReadWriteData, m_transformSizeX, m_transformSizeY, m_transformSizeZ, m_allocatedSizeX, m_allocatedSizeXY);
 
     m_compressedData += (size + 3) / 4;
   }
@@ -849,7 +849,7 @@ bool Wavelet::deCompress(bool isTransform, int32_t decompressInfo, float decompr
   return true;
 }
 
-void Wavelet::deCompressNoValuesHeader()
+void Wavelet::DeCompressNoValuesHeader()
 {
   int size = *m_wordCompressedData;
 
@@ -867,7 +867,7 @@ void Wavelet::deCompressNoValuesHeader()
 }
 
 template<typename T>
-static void resizeVector(std::vector<T> &buffer, int32_t  allocatedSizeX, int32_t allocatedSizeY, int32_t allocatedSizeZ)
+static void ResizeVector(std::vector<T> &buffer, int32_t  allocatedSizeX, int32_t allocatedSizeY, int32_t allocatedSizeZ)
 {
   int32_t allocatedSize = allocatedSizeX * allocatedSizeY * allocatedSizeZ;
 
@@ -875,10 +875,10 @@ static void resizeVector(std::vector<T> &buffer, int32_t  allocatedSizeX, int32_
 }
 
 #ifdef ENABLE_SSE_TRANSFORM
-void Wavelet::inverseTransform(float *source)
+void Wavelet::InverseTransform(float *source)
 {
   std::vector<float> tempBuffer;
-  resizeVector(tempBuffer, (m_bandSize[0][0] + 3) & ~3, m_bandSize[0][1], m_bandSize[0][2]);
+  ResizeVector(tempBuffer, (m_bandSize[0][0] + 3) & ~3, m_bandSize[0][1], m_bandSize[0][2]);
 
   for (int i = m_transformIterations - 1; i >= 0; i--)
   {
@@ -1006,7 +1006,7 @@ void Wavelet::inverseTransform(float *source)
 
 #else
 
-static void getLine(float *write, float *read, int32_t length, int32_t modulo)
+static void GetLine(float *write, float *read, int32_t length, int32_t modulo)
 {
   for (int32_t i = 0; i < length; i++)
   {
@@ -1014,14 +1014,14 @@ static void getLine(float *write, float *read, int32_t length, int32_t modulo)
   }
 }
 
-static inline void transformRotateFloatLeft(float *buffer)
+static inline void TransformRotateFloatLeft(float *buffer)
 {
   buffer[3] = buffer[2];
   buffer[2] = buffer[1];
   buffer[1] = buffer[0];
 }
 
-static void transformUpdateCoarse(float *write, float *read, int32_t length, float sign, bool isOdd)
+static void TransformUpdateCoarse(float *write, float *read, int32_t length, float sign, bool isOdd)
 {
   float temp[4];
 
@@ -1061,7 +1061,7 @@ static void transformUpdateCoarse(float *write, float *read, int32_t length, flo
     *write += value;
     write++;
 
-    transformRotateFloatLeft(temp);
+    TransformRotateFloatLeft(temp);
   }
 
   if (!isOdd)
@@ -1082,11 +1082,11 @@ static void transformUpdateCoarse(float *write, float *read, int32_t length, flo
     *write += value;
     write++;
 
-    transformRotateFloatLeft(temp);
+    TransformRotateFloatLeft(temp);
   }
 }
 
-static void transformPredictDetail(float *write, float *read, int32_t length, float sign, bool isOdd)
+static void TransformPredictDetail(float *write, float *read, int32_t length, float sign, bool isOdd)
 {
   float buffer[4];
 
@@ -1123,7 +1123,7 @@ static void transformPredictDetail(float *write, float *read, int32_t length, fl
     *write += value;
     write++;
 
-    transformRotateFloatLeft(buffer);
+    TransformRotateFloatLeft(buffer);
   }
 
   if (isOdd) read--;
@@ -1142,11 +1142,11 @@ static void transformPredictDetail(float *write, float *read, int32_t length, fl
     *write += value;
     write++;
 
-    transformRotateFloatLeft(buffer);
+    TransformRotateFloatLeft(buffer);
   }
 }
 
-static void inverseTransformLine(float *readWrite, int32_t length)
+static void InverseTransformLine(float *readWrite, int32_t length)
 {
   int32_t lengthLow = (length + 1) >> 1;
   int32_t lengthHigh = length >> 1;
@@ -1158,11 +1158,11 @@ static void inverseTransformLine(float *readWrite, int32_t length)
     readWrite[i] *= val;
   }
 
-  transformUpdateCoarse(readWrite, readWrite + lengthLow, lengthLow, -1.0 / 32.0f, length & 1);
-  transformPredictDetail(readWrite + lengthLow, readWrite, lengthHigh , -1.0 / 16.0f, length & 1);
+  TransformUpdateCoarse(readWrite, readWrite + lengthLow, lengthLow, -1.0 / 32.0f, length & 1);
+  TransformPredictDetail(readWrite + lengthLow, readWrite, lengthHigh , -1.0 / 16.0f, length & 1);
 }
 
-static void writeLineFromLowHighBand(float *write, float *read, int32_t length, int32_t modulo)
+static void WriteLineFromLowHighBand(float *write, float *read, int32_t length, int32_t modulo)
 {
     int32_t lengthLowBand = (length + 1) >> 1;
     int32_t lengthHighBand = length >> 1;
@@ -1184,7 +1184,7 @@ static void writeLineFromLowHighBand(float *write, float *read, int32_t length, 
   }
 }
 
-void Wavelet::inverseTransform(float *source)
+void Wavelet::InverseTransform(float *source)
 {
   float line[WAVELET_MAX_DIMENSION_SIZE];
 
@@ -1210,9 +1210,9 @@ void Wavelet::inverseTransform(float *source)
           int32_t displacement = (iD0 + iD1 * m_allocatedSizeX);
 
           // Wavelet transform z
-          getLine(line, source + displacement, bandSizeZ, m_allocatedSizeXY);
-          inverseTransformLine(line, bandSizeZ);
-          writeLineFromLowHighBand(source + displacement, line, bandSizeZ, m_allocatedSizeXY);
+          GetLine(line, source + displacement, bandSizeZ, m_allocatedSizeXY);
+          InverseTransformLine(line, bandSizeZ);
+          WriteLineFromLowHighBand(source + displacement, line, bandSizeZ, m_allocatedSizeXY);
         }
     }
 
@@ -1224,9 +1224,9 @@ void Wavelet::inverseTransform(float *source)
           int32_t displacement = (iD0 + iD2 * m_allocatedSizeXY);
 
           // Wavelet transform y
-          getLine(line, source + displacement, bandSizeY, m_allocatedSizeX);
-          inverseTransformLine(line, bandSizeY);
-          writeLineFromLowHighBand(source + displacement, line, bandSizeY, m_allocatedSizeX);
+          GetLine(line, source + displacement, bandSizeY, m_allocatedSizeX);
+          InverseTransformLine(line, bandSizeY);
+          WriteLineFromLowHighBand(source + displacement, line, bandSizeY, m_allocatedSizeX);
         }
     }
 
@@ -1238,9 +1238,9 @@ void Wavelet::inverseTransform(float *source)
           int32_t displacement = (iD1 * m_allocatedSizeX + iD2 * m_allocatedSizeXY);
 
           // Wavelet transform x
-          getLine(line, source + displacement, bandSizeX, 1);
-          inverseTransformLine(line, bandSizeX);
-          writeLineFromLowHighBand(source + displacement, line, bandSizeX, 1);
+          GetLine(line, source + displacement, bandSizeX, 1);
+          InverseTransformLine(line, bandSizeX);
+          WriteLineFromLowHighBand(source + displacement, line, bandSizeX, 1);
         }
     }
   }
@@ -1248,7 +1248,7 @@ void Wavelet::inverseTransform(float *source)
 
 #endif
 
-static inline bool rleDecodeOneRun(uint8_t *&rleByte, uint32_t &setBits)
+static inline bool RleDecodeOneRun(uint8_t *&rleByte, uint32_t &setBits)
 {
   uint32_t value = *rleByte;
   rleByte++;
@@ -1276,7 +1276,7 @@ static inline bool rleDecodeOneRun(uint8_t *&rleByte, uint32_t &setBits)
   return value & 1;
 }
 
-static void rleDecode(uint8_t *rleBytes, uint32_t *bitBuffer, int32_t intsToDecode)
+static void RleDecode(uint8_t *rleBytes, uint32_t *bitBuffer, int32_t intsToDecode)
 {
   int bitsToDecode = intsToDecode * 32;
 
@@ -1288,7 +1288,7 @@ static void rleDecode(uint8_t *rleBytes, uint32_t *bitBuffer, int32_t intsToDeco
   {
     uint32_t setBits = 0;
 
-    if (rleDecodeOneRun(rleBytes, setBits))
+    if (RleDecodeOneRun(rleBytes, setBits))
     {
       int endBit = writeBit + setBits;
 
@@ -1305,7 +1305,7 @@ static void rleDecode(uint8_t *rleBytes, uint32_t *bitBuffer, int32_t intsToDeco
   }
 }
 
-void Wavelet::deCompressNoValues(float *noValue, std::vector<uint32_t> &buffer)
+void Wavelet::DeCompressNoValues(float *noValue, std::vector<uint32_t> &buffer)
 {
   if (!m_noValueData)
   {
@@ -1319,7 +1319,7 @@ void Wavelet::deCompressNoValues(float *noValue, std::vector<uint32_t> &buffer)
 
   convert.iValue = *m_noValueData++; *noValue = convert.fValue;
 
-  resizeVector(buffer, ((m_transformSizeX + 31) & ~31) / 32, m_transformSizeY, m_transformSizeZ);
+  ResizeVector(buffer, ((m_transformSizeX + 31) & ~31) / 32, m_transformSizeY, m_transformSizeZ);
 
   uint32_t *bitBuffer = buffer.data();
 
@@ -1327,10 +1327,10 @@ void Wavelet::deCompressNoValues(float *noValue, std::vector<uint32_t> &buffer)
 
   int intsToDecode = bitSizeX *m_transformSizeY *m_transformSizeZ;
 
-  rleDecode((uint8_t *)m_noValueData, bitBuffer, intsToDecode);
+  RleDecode((uint8_t *)m_noValueData, bitBuffer, intsToDecode);
 }
 
-void Wavelet::applyNoValues(float *source, uint32_t *bitBuffer, float noValue)
+void Wavelet::ApplyNoValues(float *source, uint32_t *bitBuffer, float noValue)
 {
   int32_t u32BitRead = 0;
 

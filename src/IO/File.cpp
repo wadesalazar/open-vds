@@ -22,7 +22,7 @@
 namespace OpenVDS
 {
 
-FileView * FileView::addReference(FileView *pcFileView)
+FileView * FileView::AddReference(FileView *pcFileView)
 {
   assert(pcFileView);
 
@@ -32,7 +32,7 @@ FileView * FileView::addReference(FileView *pcFileView)
   return pcFileView;
 }
 
-bool FileView::removeReference(FileView *pcFileView)
+bool FileView::RemoveReference(FileView *pcFileView)
 {
   assert(pcFileView);
   assert(pcFileView->m_nReferenceCount > 0);
@@ -55,29 +55,29 @@ File::File()
 
 File::~File()
 {
-  if (isOpen())
+  if (IsOpen())
   {
-    close();
+    Close();
   }
 }
 
-bool File::isWriteable() const
+bool File::IsWriteable() const
 {
   return _isWriteable;
 }
 
-bool File::isOpen() const
+bool File::IsOpen() const
 {
   assert(!!_pxPlatformHandle == !_cFileName.empty());
   return _pxPlatformHandle;
 }
 
-std::string File::fileName() const
+std::string File::FileName() const
 {
   return _cFileName;
 }
 
-void *File::handle() const
+void *File::Handle() const
 {
   return _pxPlatformHandle;
 }

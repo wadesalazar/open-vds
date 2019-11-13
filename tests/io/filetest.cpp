@@ -34,19 +34,19 @@
 #include <gtest/gtest.h>
 
 template<typename T>
-int32_t bytesize(const std::vector<T>& vec)
+int32_t Bytesize(const std::vector<T>& vec)
 {
   return int32_t(vec.size() * sizeof(*vec.data()));
 }
 
 template<typename T, size_t N>
-constexpr size_t array_size(const T (&)[N])
+constexpr size_t ArraySize(const T (&)[N])
 {
   return N;
 }
 
 template <typename T>
-constexpr auto array_size(const T& t) -> decltype(t.size())
+constexpr auto ArraySize(const T& t) -> decltype(t.size())
 {
       return t.size();
 }
@@ -60,18 +60,18 @@ struct Offset
 #define DATA_SIZE (1<<20)
 
 
-static int test_file_view(OpenVDS::File &file, const std::vector<uint32_t> &rand_data, Offset (&offsets)[128])
+static int TestFileView(OpenVDS::File &file, const std::vector<uint32_t> &rand_data, Offset (&offsets)[128])
 {
   OpenVDS::IOError error;
   int result = 0;
-  OpenVDS::FileView *fileview = file.createFileView(0, DATA_SIZE * sizeof(*rand_data.data()), true, error);
+  OpenVDS::FileView *fileview = file.CreateFileView(0, DATA_SIZE * sizeof(*rand_data.data()), true, error);
   if (!fileview)
   {
     fprintf(stderr, "Error %s\n.", error.string.c_str());
     return error.code;
   }
 
-  const void* data = fileview->pointer();
+  const void* data = fileview->Pointer();
   for (const auto& offset : offsets)
   {
     if (memcmp(static_cast<const uint32_t*>(data) + offset.offset, &rand_data[offset.offset], offset.size * sizeof(*rand_data.data())))
@@ -83,11 +83,11 @@ static int test_file_view(OpenVDS::File &file, const std::vector<uint32_t> &rand
   return 0;
 }
 
-static int test_file_view_wrapper(OpenVDS::File &file, const std::vector<uint32_t> &rand_data, Offset (&offsets)[128])
+static int TestFileViewWrapper(OpenVDS::File &file, const std::vector<uint32_t> &rand_data, Offset (&offsets)[128])
 {
   FILEVIEW_TRY
   {
-    return test_file_view(file, rand_data, offsets);
+    return TestFileView(file, rand_data, offsets);
   } FILEVIEW_CATCH { fprintf(stderr, "FILEVIEW EXCEPTION\n"); return -2; } FILEVIEW_FINALLY;
 }
 
@@ -114,20 +114,20 @@ TEST(FileTest, io_file)
   for (auto& offset : offsets)
   {
     offset.offset = rand_data[n] % DATA_SIZE;
-    uint32_t next_rand = ++n == array_size(rand_data) ? rand_data[0] : rand_data[n];
-    offset.size = std::min(uint32_t(array_size(rand_data)) - offset.offset, uint32_t(next_rand % 4096));
+    uint32_t next_rand = ++n == ArraySize(rand_data) ? rand_data[0] : rand_data[n];
+    offset.size = std::min(uint32_t(ArraySize(rand_data)) - offset.offset, uint32_t(next_rand % 4096));
   }
 
   OpenVDS::IOError error;
   std::string filename("test.txt");
   {
     OpenVDS::File file;
-    if (!file.open(filename, true, true, true, error))
+    if (!file.Open(filename, true, true, true, error))
     {
       fprintf(stderr, "Could not open file for write %s\n", error.string.c_str());
       ASSERT_TRUE(false);
     }
-    if (!file.write(rand_data.data(), 0, bytesize(rand_data), error))
+    if (!file.Write(rand_data.data(), 0, Bytesize(rand_data), error))
     {
       fprintf(stderr, "Could not write file %s\n", error.string.c_str());
       ASSERT_TRUE(false);
@@ -135,15 +135,15 @@ TEST(FileTest, io_file)
   }
   {
     OpenVDS::File file;
-    if (!file.open(filename, false, false, false, error))
+    if (!file.Open(filename, false, false, false, error))
     {
       fprintf(stderr, "Could not open file read %s\n", error.string.c_str());
       ASSERT_TRUE(false);
     }
 
     std::vector<uint8_t> data;
-    data.resize(bytesize(rand_data));
-    if (!file.read(&data[0], 0, int32_t(data.size()), error))
+    data.resize(Bytesize(rand_data));
+    if (!file.Read(&data[0], 0, int32_t(data.size()), error))
     {
       fprintf(stderr, "Could not read file %s\n", error.string.c_str());
       ASSERT_TRUE(false);
@@ -159,7 +159,7 @@ TEST(FileTest, io_file)
   {
     OpenVDS::File file;
     OpenVDS::IOError error;
-    if (!file.open("test_multi.txt", true, true, true, error))
+    if (!file.Open("test_multi.txt", true, true, true, error))
     {
       fprintf(stderr, "Could not open file for multi %s\n", error.string.c_str());
       ASSERT_TRUE(false);
@@ -167,25 +167,25 @@ TEST(FileTest, io_file)
 
     {
 
-      void* empty = calloc(1, bytesize(rand_data));
-      if (!file.write(empty, 0, bytesize(rand_data), error))
+      void* empty = calloc(1, Bytesize(rand_data));
+      if (!file.Write(empty, 0, Bytesize(rand_data), error))
       {
         fprintf(stderr, "Failed to resize to null the multi file: %s\n", error.string.c_str());
         ASSERT_TRUE(false);
       }
-      file.flush();
+      file.Flush();
       free(empty);
     }
 
     std::vector<std::future<OpenVDS::IOError>> results;
-    results.reserve(array_size(offsets));
+    results.reserve(ArraySize(offsets));
 
     for (const auto& offset : offsets)
     {
       results.push_back(thread_pool.enqueue([&file, &rand_data](const Offset & offset)
         {
           OpenVDS::IOError error;
-          file.write(&rand_data[offset.offset], offset.offset * sizeof(*rand_data.data()), offset.size * sizeof(*rand_data.data()), error);
+          file.Write(&rand_data[offset.offset], offset.offset * sizeof(*rand_data.data()), offset.size * sizeof(*rand_data.data()), error);
           return error;
         }, offset));
     }
@@ -199,7 +199,7 @@ TEST(FileTest, io_file)
         ASSERT_TRUE(false);
       }
     }
-    file.flush();
+    file.Flush();
     results.clear();
 
     for (const auto& offset : offsets)
@@ -209,7 +209,7 @@ TEST(FileTest, io_file)
           OpenVDS::IOError error;
           std::vector<uint8_t> vec;
           vec.resize(offset.size * sizeof(*rand_data.data()));
-          if (!file.read(vec.data(), offset.offset * sizeof(*rand_data.data()), offset.size * sizeof(*rand_data.data()), error))
+          if (!file.Read(vec.data(), offset.offset * sizeof(*rand_data.data()), offset.size * sizeof(*rand_data.data()), error))
           {
             return error;
           }
@@ -233,7 +233,7 @@ TEST(FileTest, io_file)
       }
     }
  
-    int file_view_result = test_file_view_wrapper(file, rand_data, offsets);
+    int file_view_result = TestFileViewWrapper(file, rand_data, offsets);
     ASSERT_FALSE(file_view_result);
 
   }

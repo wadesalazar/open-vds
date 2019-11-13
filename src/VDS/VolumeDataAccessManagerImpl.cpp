@@ -52,7 +52,7 @@ struct ParsedMetadata
 };
 
 
-static ParsedMetadata parseMetadata(int metadataByteSize, unsigned char const *metadata)
+static ParsedMetadata ParseMetadata(int metadataByteSize, unsigned char const *metadata)
 {
   ParsedMetadata parsedMetadata;
 
@@ -78,7 +78,7 @@ static ParsedMetadata parseMetadata(int metadataByteSize, unsigned char const *m
   return parsedMetadata;
 }
 
-static bool isConstantChunkHash(uint64_t chunkHash)
+static bool IsConstantChunkHash(uint64_t chunkHash)
 {
   const uint64_t unknownHash = 0;
   const uint64_t noValueHash = ~0ULL;
@@ -91,7 +91,7 @@ static bool isConstantChunkHash(uint64_t chunkHash)
   return false;
 }
 
-static int getEffectiveAdaptiveLoadLevel(float effectiveCompressionTolerance, float compressionTolerance)
+static int GetEffectiveAdaptiveLoadLevel(float effectiveCompressionTolerance, float compressionTolerance)
 {
 //  assert(effectiveCompressionTolerance >= adaptiveToleranceMin);
 //  assert(compressionTolerance >= adaptiveToleranceMin);
@@ -101,7 +101,7 @@ static int getEffectiveAdaptiveLoadLevel(float effectiveCompressionTolerance, fl
   return std::max(0, adaptiveLoadLevel);
 }
 
-static int getEffectiveAdaptiveLevel(AdaptiveMode adaptiveMode, float desiredTolerance, float desiredRatio, float remoteTolerance, int64_t const adaptiveLevelSizes[WAVELET_ADAPTIVE_LEVELS], int64_t uncompressedSize)
+static int GetEffectiveAdaptiveLevel(AdaptiveMode adaptiveMode, float desiredTolerance, float desiredRatio, float remoteTolerance, int64_t const adaptiveLevelSizes[WAVELET_ADAPTIVE_LEVELS], int64_t uncompressedSize)
 {
   if (adaptiveMode == AdaptiveMode_BestQuality)
   {
@@ -116,7 +116,7 @@ static int getEffectiveAdaptiveLevel(AdaptiveMode adaptiveMode, float desiredTol
 
   if (adaptiveMode == AdaptiveMode_Tolerance)
   {
-    level = getEffectiveAdaptiveLoadLevel(desiredTolerance, remoteTolerance);
+    level = GetEffectiveAdaptiveLoadLevel(desiredTolerance, remoteTolerance);
   }
   else if (adaptiveMode == AdaptiveMode_Ratio)
   {
@@ -139,7 +139,7 @@ static int getEffectiveAdaptiveLevel(AdaptiveMode adaptiveMode, float desiredTol
   return level;
 }
 
-static int waveletAdaptiveLevelsMetadataDecode(uint64_t totalSize, int targetLevel, uint8_t const *levels)
+static int WaveletAdaptiveLevelsMetadataDecode(uint64_t totalSize, int targetLevel, uint8_t const *levels)
 {
   assert(targetLevel >= -1 && targetLevel < WAVELET_ADAPTIVE_LEVELS);
 
@@ -157,9 +157,9 @@ static int waveletAdaptiveLevelsMetadataDecode(uint64_t totalSize, int targetLev
   return remainingSize;
 }
 
-static IORange calculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, const MetadataStatus &metadataStatus, int * const adaptiveLevel)
+static IORange CalculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, const MetadataStatus &metadataStatus, int * const adaptiveLevel)
 {
-  if (isConstantChunkHash(parsedMetadata.m_chunkHash))
+  if (IsConstantChunkHash(parsedMetadata.m_chunkHash))
   {
     *adaptiveLevel = -1;
   }
@@ -169,9 +169,9 @@ static IORange calculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, co
   }
   else
   {
-    *adaptiveLevel = getEffectiveAdaptiveLevel(AdaptiveMode_BestQuality, 0.01f, 1.0f , metadataStatus.m_compressionTolerance, metadataStatus.m_adaptiveLevelSizes, metadataStatus.m_uncompressedSize);
+    *adaptiveLevel = GetEffectiveAdaptiveLevel(AdaptiveMode_BestQuality, 0.01f, 1.0f , metadataStatus.m_compressionTolerance, metadataStatus.m_adaptiveLevelSizes, metadataStatus.m_uncompressedSize);
 
-    int range = waveletAdaptiveLevelsMetadataDecode(parsedMetadata.m_chunkSize, *adaptiveLevel, parsedMetadata.m_adaptiveLevels.data());
+    int range = WaveletAdaptiveLevelsMetadataDecode(parsedMetadata.m_chunkSize, *adaptiveLevel, parsedMetadata.m_adaptiveLevels.data());
     if (range && range != parsedMetadata.m_chunkSize)
     {
     return { size_t(0) , size_t(range - 1 ) };
@@ -181,7 +181,7 @@ static IORange calculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, co
   return { 0 , 0 };
 }
 
-static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayoutImpl const *layout, DimensionsND dimension, int channel, int lod, bool isAllowFailure)
+static VolumeDataLayer *GetVolumeDataLayer(VolumeDataLayoutImpl const *layout, DimensionsND dimension, int channel, int lod, bool isAllowFailure)
 {
   if(!layout)
   {
@@ -195,7 +195,7 @@ static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayoutImpl const *layout, D
     return nullptr;
   }
 
-  VolumeDataLayer *layer = layout->getBaseLayer(DimensionGroupUtil::getDimensionGroupFromDimensionsND(dimension), channel);
+  VolumeDataLayer *layer = layout->GetBaseLayer(DimensionGroupUtil::GetDimensionGroupFromDimensionsND(dimension), channel);
 
   if(!layer && !isAllowFailure)
   {
@@ -203,23 +203,23 @@ static VolumeDataLayer *getVolumeDataLayer(VolumeDataLayoutImpl const *layout, D
     return nullptr;
   }
 
-  while(layer && layer->getLOD() < lod)
+  while(layer && layer->GetLOD() < lod)
   {
-    layer = layer->getParentLayer();
+    layer = layer->GetParentLayer();
   }
 
-  if((!layer || layer->getLayerType() == VolumeDataLayer::Virtual) && !isAllowFailure)
+  if((!layer || layer->GetLayerType() == VolumeDataLayer::Virtual) && !isAllowFailure)
   {
     throw std::runtime_error("Specified LOD doesn't exist");
   }
 
   assert(layer || isAllowFailure);
-  return (layer && layer->getLayerType() != VolumeDataLayer::Virtual) ? layer : nullptr;
+  return (layer && layer->GetLayerType() != VolumeDataLayer::Virtual) ? layer : nullptr;
 }
 
 VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDSHandle &handle)
   : m_handle(handle)
-  , m_ioManager(handle.ioManager.get())
+  , m_ioManager(handle.IoManager.get())
   , m_currentErrorIndex(0)
   , m_requestProcessor(*this)
 {
@@ -235,39 +235,39 @@ VolumeDataAccessManagerImpl::~VolumeDataAccessManagerImpl()
 
 VolumeDataLayout const* VolumeDataAccessManagerImpl::GetVolumeDataLayout() const
 {
-  return m_handle.volumeDataLayout.get();
+  return m_handle.VolumeDataLayout.get();
 }
 
-VolumeDataLayoutImpl const* VolumeDataAccessManagerImpl::getVolumeDataLayoutImpl() const
+VolumeDataLayoutImpl const* VolumeDataAccessManagerImpl::GetVolumeDataLayoutImpl() const
 {
-  return m_handle.volumeDataLayout.get();
+  return m_handle.VolumeDataLayout.get();
 }
 
 VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  VolumeDataLayer *layer = getVolumeDataLayer(static_cast<VolumeDataLayoutImpl const *>(volumeDataLayout), dimensionsND, channel, lod, true);
+  VolumeDataLayer *layer = GetVolumeDataLayer(static_cast<VolumeDataLayoutImpl const *>(volumeDataLayout), dimensionsND, channel, lod, true);
   if (!layer)
     return nullptr;
 
   if(accessMode == VolumeDataAccessManager::AccessMode_Create)
   {
-    layer->setProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
+    layer->GetProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
     MetadataStatus metadataStatus = {};
     metadataStatus.m_chunkMetadataPageSize = 1024;
     metadataStatus.m_chunkMetadataByteSize = sizeof(int64_t);
-    metadataStatus.m_compressionMethod = layer->getEffectiveCompressionMethod();
-    metadataStatus.m_compressionTolerance = layer->getEffectiveCompressionTolerance();
-    createMetadataManager(m_handle, getLayerName(*layer), metadataStatus);
+    metadataStatus.m_compressionMethod = layer->GetEffectiveCompressionMethod();
+    metadataStatus.m_compressionTolerance = layer->GetEffectiveCompressionTolerance();
+    CreateMetadataManager(m_handle, GetLayerName(*layer), metadataStatus);
   }
-  else if (layer->getProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
+  else if (layer->GetProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
   {
     throw std::runtime_error("The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)");
   }
 
   VolumeDataPageAccessorImpl *accessor = new VolumeDataPageAccessorImpl(this, layer, maxPages, accessMode != VolumeDataAccessManager::AccessMode_ReadOnly);
-  m_volumeDataPageAccessorList.insertLast(accessor);
+  m_volumeDataPageAccessorList.InsertLast(accessor);
   return accessor;
 }
 
@@ -275,7 +275,7 @@ void  VolumeDataAccessManagerImpl::DestroyVolumeDataPageAccessor(VolumeDataPageA
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   VolumeDataPageAccessorImpl *pageAccessorImpl = static_cast<VolumeDataPageAccessorImpl *>(volumeDataPageAccessor);
-  m_volumeDataPageAccessorList.remove(pageAccessorImpl);
+  m_volumeDataPageAccessorList.Remove(pageAccessorImpl);
   delete  pageAccessorImpl;
 }
 
@@ -294,26 +294,26 @@ VolumeDataAccessor* VolumeDataAccessManagerImpl::CloneVolumeDataAccessor(VolumeD
 
 bool VolumeDataAccessManagerImpl::IsCompleted(int64_t requestID)
 {
-  return m_requestProcessor.isCompleted(requestID);
+  return m_requestProcessor.IsCompleted(requestID);
 }
 bool VolumeDataAccessManagerImpl::IsCanceled(int64_t requestID)
 {
-  return m_requestProcessor.isCanceled(requestID);
+  return m_requestProcessor.IsCanceled(requestID);
 }
 bool VolumeDataAccessManagerImpl::WaitForCompletion(int64_t requestID, int millisecondsBeforeTimeout)
 {
-  return m_requestProcessor.waitForCompletion(requestID, millisecondsBeforeTimeout);
+  return m_requestProcessor.WaitForCompletion(requestID, millisecondsBeforeTimeout);
 }
 void VolumeDataAccessManagerImpl::Cancel(int64_t requestID)
 {
-  m_requestProcessor.cancel(requestID);
+  m_requestProcessor.Cancel(requestID);
 }
 float VolumeDataAccessManagerImpl::GetCompletionFactor(int64_t requestID)
 {
   return 0.0f;
 }
 
-static MetadataManager *getMetadataMangerForLayer(LayerMetadataContainer const &container, const std::string &layer)
+static MetadataManager *GetMetadataMangerForLayer(LayerMetadataContainer const &container, const std::string &layer)
 {
   std::unique_lock<std::mutex> lock(container.mutex);
 
@@ -328,15 +328,15 @@ static MetadataManager *getMetadataMangerForLayer(LayerMetadataContainer const &
   return metadataManager;
 }
 
-static inline std::string createUrlForChunk(const std::string &layerName, uint64_t chunk)
+static inline std::string CreateUrlForChunk(const std::string &layerName, uint64_t chunk)
 {
   return layerName + "/" + std::to_string(chunk);
 }
 
-bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &chunk, bool verbose, Error &error)
+bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &chunk, bool verbose, Error &error)
 {
-  std::string layerName = getLayerName(*chunk.layer);
-  auto metadataManager = getMetadataMangerForLayer(m_handle.layerMetadataContainer, layerName);
+  std::string layerName = GetLayerName(*chunk.Layer);
+  auto metadataManager = GetMetadataMangerForLayer(m_handle.LayerMetadataContainer, layerName);
   //do fallback
   if (!metadataManager)
   {
@@ -345,12 +345,12 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
     return false;
   }
   
-  int pageIndex  = (int)(chunk.chunkIndex / metadataManager->metadataStatus().m_chunkMetadataPageSize);
-  int entryIndex = (int)(chunk.chunkIndex % metadataManager->metadataStatus().m_chunkMetadataPageSize);
+  int pageIndex  = (int)(chunk.Index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+  int entryIndex = (int)(chunk.Index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
   bool initiateTransfer;
 
-  MetadataPage* metadataPage = metadataManager->lockPage(pageIndex, &initiateTransfer);
+  MetadataPage* metadataPage = metadataManager->LockPage(pageIndex, &initiateTransfer);
 
   assert(pageIndex == metadataPage->PageIndex());
 
@@ -360,7 +360,7 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
   {
     std::string url = fmt::format("{}/ChunkMetadata/{}", layerName, pageIndex);
 
-    metadataManager->initiateTransfer(this, metadataPage, url, verbose);
+    metadataManager->InitiateTransfer(this, metadataPage, url, verbose);
   }
 
   // Check if the page is not valid and we need to add the request later when the metadata page transfer completes
@@ -372,26 +372,26 @@ bool VolumeDataAccessManagerImpl::prepareReadChunkData(const VolumeDataChunk &ch
 
   lock.unlock();
 
-  unsigned char const* metadata = metadataManager->getPageEntry(metadataPage, entryIndex);
+  unsigned char const* metadata = metadataManager->GetPageEntry(metadataPage, entryIndex);
 
-  ParsedMetadata parsedMetadata = parseMetadata(metadataManager->metadataStatus().m_chunkMetadataByteSize, metadata);
+  ParsedMetadata parsedMetadata = ParseMetadata(metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, metadata);
     
-  metadataManager->unlockPage(metadataPage);
+  metadataManager->UnlockPage(metadataPage);
 
   int adaptiveLevel;
 
-  IORange ioRange = calculateRangeHeaderImpl(parsedMetadata, metadataManager->metadataStatus(), &adaptiveLevel);
+  IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
 
-  std::string url = createUrlForChunk(layerName, chunk.chunkIndex);
+  std::string url = CreateUrlForChunk(layerName, chunk.Index);
 
   lock.lock();
-  auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
-  m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->download(url, transferHandler, ioRange), transferHandler);
+  auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, adaptiveLevel);
+  m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->Download(url, transferHandler, ioRange), transferHandler);
 
   return true;
 }
 
-bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::vector<uint8_t> &serializedData, std::vector<uint8_t> &metadata, CompressionInfo &compressionInfo, Error &error)
+bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::vector<uint8_t> &serializedData, std::vector<uint8_t> &metadata, CompressionInfo &compressionInfo, Error &error)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -400,7 +400,7 @@ bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::v
   if(pendingRequestIterator == m_pendingDownloadRequests.end())
   {
     error.Code = -1;
-    error.String = "Missing request for chunk: " + std::to_string(chunk.chunkIndex);
+    error.String = "Missing request for chunk: " + std::to_string(chunk.Index);
     return false;
   }
   PendingDownloadRequest& pendingRequest = pendingRequestIterator->second;
@@ -417,7 +417,7 @@ bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::v
 
   lock.unlock();
 
-  activeTransfer->waitForFinish();
+  activeTransfer->WaitForFinish();
   if (transferHandler->m_error.Code)
   {
     error = transferHandler->m_error;
@@ -438,7 +438,7 @@ bool VolumeDataAccessManagerImpl::readChunk(const VolumeDataChunk &chunk, std::v
   return true;
 }
 
-void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPage)
+void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPage)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -451,51 +451,51 @@ void VolumeDataAccessManagerImpl::pageTransferCompleted(MetadataPage* metadataPa
     {
       MetadataManager *metadataManager = metadataPage->GetManager();
 
-      int32_t pageIndex = (int)(volumeDataChunk.chunkIndex / metadataManager->metadataStatus().m_chunkMetadataPageSize);
-      int32_t entryIndex = (int)(volumeDataChunk.chunkIndex % metadataManager->metadataStatus().m_chunkMetadataPageSize);
+      int32_t pageIndex = (int)(volumeDataChunk.Index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+      int32_t entryIndex = (int)(volumeDataChunk.Index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
       assert(pageIndex == metadataPage->PageIndex());
 
       if (metadataPage->IsValid())
       {
-        uint8_t const *metadata = metadataManager->getPageEntry(metadataPage, entryIndex);
+        uint8_t const *metadata = metadataManager->GetPageEntry(metadataPage, entryIndex);
 
-        ParsedMetadata parsedMetadata = parseMetadata(metadataManager->metadataStatus().m_chunkMetadataByteSize, metadata);
+        ParsedMetadata parsedMetadata = ParseMetadata(metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, metadata);
       
         int adaptiveLevel;
 
-        IORange ioRange = calculateRangeHeaderImpl(parsedMetadata, metadataManager->metadataStatus(), &adaptiveLevel);
+        IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
 
-        std::string url = createUrlForChunk(metadataManager->layerUrlStr(), volumeDataChunk.chunkIndex);
+        std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.Index);
 
-        auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->metadataStatus().m_compressionMethod, adaptiveLevel);
-        pendingRequest.m_activeTransfer = m_ioManager->download(url, transferHandler, ioRange);
+        auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, adaptiveLevel);
+        pendingRequest.m_activeTransfer = m_ioManager->Download(url, transferHandler, ioRange);
         pendingRequest.m_transferHandle = transferHandler;
       }
 
-      metadataManager->unlockPage(metadataPage);
+      metadataManager->UnlockPage(metadataPage);
       pendingRequest.m_lockedMetadataPage = nullptr;
     }
   }
   m_pendingRequestChangedCondition.notify_all();
 }
 
-bool VolumeDataAccessManagerImpl::writeMetadataPage(MetadataPage* metadataPage, const std::vector<uint8_t> &data)
+bool VolumeDataAccessManagerImpl::WriteMetadataPage(MetadataPage* metadataPage, const std::vector<uint8_t> &data)
 {
   assert(metadataPage->IsValid());
 
   MetadataManager *metadataManager = metadataPage->GetManager();
 
-  std::string url = fmt::format("{}/ChunkMetadata/{}", metadataManager->layerUrlStr(), metadataPage->PageIndex());
+  std::string url = fmt::format("{}/ChunkMetadata/{}", metadataManager->LayerUrlStr(), metadataPage->PageIndex());
 
-  std::string contentDispositionName = fmt::format("{}_ChunkMetadata_{}", metadataManager->layerUrlStr(), metadataPage->PageIndex());
+  std::string contentDispositionName = fmt::format("{}_ChunkMetadata_{}", metadataManager->LayerUrlStr(), metadataPage->PageIndex());
 
   Error error;
 
-  auto req = m_ioManager->uploadBinary(url, contentDispositionName, std::vector<std::pair<std::string, std::string>>(), std::make_shared<std::vector<uint8_t>>(data));
+  auto req = m_ioManager->UploadBinary(url, contentDispositionName, std::vector<std::pair<std::string, std::string>>(), std::make_shared<std::vector<uint8_t>>(data));
 
-  req->waitForFinish();
-  bool success = req->isSuccess(error);
+  req->WaitForFinish();
+  bool success = req->IsSuccess(error);
 
   if(error.Code != 0)
   {
@@ -506,22 +506,22 @@ bool VolumeDataAccessManagerImpl::writeMetadataPage(MetadataPage* metadataPage, 
   return success;
 }
 
-static int64_t createUploadJobId()
+static int64_t CreateUploadJobId()
 {
   static std::atomic< std::int64_t > id(0);
   return --id;
 }
 
-int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data)
+int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data)
 {
   Error error;
-  std::string layerName = getLayerName(*chunk.layer);
-  std::string url = createUrlForChunk(layerName, chunk.chunkIndex);
-  std::string contentDispositionName = layerName + "_" + std::to_string(chunk.chunkIndex);
+  std::string layerName = GetLayerName(*chunk.Layer);
+  std::string url = CreateUrlForChunk(layerName, chunk.Index);
+  std::string contentDispositionName = layerName + "_" + std::to_string(chunk.Index);
   std::shared_ptr<std::vector<uint8_t>> to_write = std::make_shared<std::vector<uint8_t>>();
   uint64_t hash;
 
-  if (!VolumeDataStore::serializeVolumeData(chunk, dataBlock, data, getVolumeDataLayoutImpl()->getCompressionMethod(), *to_write, hash, error))
+  if (!VolumeDataStore::SerializeVolumeData(chunk, dataBlock, data, GetVolumeDataLayoutImpl()->GetCompressionMethod(), *to_write, hash, error))
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_uploadErrors.emplace_back(new UploadError(error, url));
@@ -530,25 +530,25 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
 
   if (hash == VolumeDataHash::UNKNOWN)
   {
-    hash = VolumeDataHash::getUniqueHash();
+    hash = VolumeDataHash::GetUniqueHash();
   }
 
-  auto metadataManager = getMetadataMangerForLayer(m_handle.layerMetadataContainer, layerName);
+  auto metadataManager = GetMetadataMangerForLayer(m_handle.LayerMetadataContainer, layerName);
 
-  int pageIndex  = (int)(chunk.chunkIndex / metadataManager->metadataStatus().m_chunkMetadataPageSize);
-  int entryIndex = (int)(chunk.chunkIndex % metadataManager->metadataStatus().m_chunkMetadataPageSize);
+  int pageIndex  = (int)(chunk.Index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+  int entryIndex = (int)(chunk.Index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
   bool initiateTransfer;
 
-  MetadataPage* lockedMetadataPage = metadataManager->lockPage(pageIndex, &initiateTransfer);
+  MetadataPage* lockedMetadataPage = metadataManager->LockPage(pageIndex, &initiateTransfer);
 
   // Newly created page
   if(initiateTransfer)
   {
-    metadataManager->initPage(lockedMetadataPage);
+    metadataManager->InitPage(lockedMetadataPage);
   }
 
-  int64_t jobId = createUploadJobId();
+  int64_t jobId = CreateUploadJobId();
 
   auto completedCallback = [this, hash, metadataManager, lockedMetadataPage, entryIndex, jobId](const Request &request, const Error &error)
   {
@@ -559,22 +559,22 @@ int64_t VolumeDataAccessManagerImpl::requestWriteChunk(const VolumeDataChunk &ch
       auto &uploadRequest = m_pendingUploadRequests[jobId];
       if (uploadRequest.attempts < 2)
       {
-        uploadRequest.startNewUpload(*m_ioManager);
+        uploadRequest.StartNewUpload(*m_ioManager);
         return;
       }
       else
       {
-        m_uploadErrors.emplace_back(new UploadError(error, request.getObjectName()));
+        m_uploadErrors.emplace_back(new UploadError(error, request.GetObjectName()));
       }
     }
     else
     {
-      metadataManager->setPageEntry(lockedMetadataPage, entryIndex, reinterpret_cast<const uint8_t *>(&hash), sizeof(hash));
+      metadataManager->SetPageEntry(lockedMetadataPage, entryIndex, reinterpret_cast<const uint8_t *>(&hash), sizeof(hash));
     }
 
     m_pendingUploadRequests.erase(jobId);
 
-    lockedMetadataPage->GetManager()->unlockPage(lockedMetadataPage);
+    lockedMetadataPage->GetManager()->UnlockPage(lockedMetadataPage);
   };
 
   std::vector<char> base64Hash;
@@ -595,18 +595,18 @@ void VolumeDataAccessManagerImpl::FlushUploadQueue()
     if(m_pendingUploadRequests.empty()) break;
     Request &request = *m_pendingUploadRequests.begin()->second.request;
     lock.unlock();
-    request.waitForFinish();
+    request.WaitForFinish();
   }
 
-  for(auto it = m_handle.layerMetadataContainer.managers.begin(); it != m_handle.layerMetadataContainer.managers.end(); ++it)
+  for(auto it = m_handle.LayerMetadataContainer.managers.begin(); it != m_handle.LayerMetadataContainer.managers.end(); ++it)
   {
     auto metadataManager = it->second.get();
 
-    metadataManager->uploadDirtyPages(this);
+    metadataManager->UploadDirtyPages(this);
   }
 
   Error error;
-  serializeAndUploadLayerStatus(m_handle, error);
+  SerializeAndUploadLayerStatus(m_handle, error);
 
   if(error.Code != 0)
   {

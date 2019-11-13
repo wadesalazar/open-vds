@@ -33,7 +33,7 @@
 
 namespace OpenVDS
 {
-static bool compressionMethodIsWavelet(CompressionMethod compressionMethod)
+static bool CompressionMethodIsWavelet(CompressionMethod compressionMethod)
 {
   return compressionMethod == CompressionMethod::Wavelet ||
          compressionMethod == CompressionMethod::WaveletNormalizeBlock ||
@@ -41,30 +41,30 @@ static bool compressionMethodIsWavelet(CompressionMethod compressionMethod)
          compressionMethod == CompressionMethod::WaveletNormalizeBlockLossless;
 }
 
-static uint32_t getByteSize(const DataBlockDescriptor &descriptor)
+static uint32_t GetByteSize(const DataBlockDescriptor &descriptor)
 {
   int32_t size[DataStoreDimensionality_Max];
-  size[0] = descriptor.sizeX;
-  size[1] = descriptor.sizeY;
-  size[2] = descriptor.sizeZ;
+  size[0] = descriptor.SizeX;
+  size[1] = descriptor.SizeY;
+  size[2] = descriptor.SizeZ;
   size[3] = 1;
-  return getByteSize(size, descriptor.format, descriptor.components);
+  return GetByteSize(size, descriptor.Format, descriptor.Components);
 }
 
 
-bool VolumeDataStore::verify(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t> &serializedData, CompressionMethod compressionMethod, bool isFullyRead)
+bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t> &serializedData, CompressionMethod compressionMethod, bool isFullyRead)
 {
   bool isValid = false;
 
   int32_t voxelSize[DataStoreDimensionality_Max];
 
-  volumeDataChunk.layer->getChunkVoxelSize(volumeDataChunk.chunkIndex, voxelSize);
+  volumeDataChunk.Layer->GetChunkVoxelSize(volumeDataChunk.Index, voxelSize);
 
   if(serializedData.empty())
   {
     isValid = true;
   }
-  else if(compressionMethodIsWavelet(compressionMethod))
+  else if(CompressionMethodIsWavelet(compressionMethod))
   {
     if(serializedData.size() >= sizeof(int32_t) * 6)
     {
@@ -93,29 +93,29 @@ bool VolumeDataStore::verify(const VolumeDataChunk &volumeDataChunk, const std::
     if(serializedData.size() > sizeof(DataBlockDescriptor))
     {
       DataBlockDescriptor *serializedDescriptor = (DataBlockDescriptor*)serializedData.data();
-      isValid = serializedDescriptor->isValid(voxelSize);
+      isValid = serializedDescriptor->IsValid(voxelSize);
     }
   }
 
   return isValid;
 }
 
-static void copyLinearBufferIntoDataBlock(const void *sourceBuffer, const DataBlock &dataBlock, std::vector<uint8_t> &targetBuffer)
+static void CopyLinearBufferIntoDataBlock(const void *sourceBuffer, const DataBlock &dataBlock, std::vector<uint8_t> &targetBuffer)
 {
 
-  int32_t sizeX = dataBlock.size[0];
-  int32_t sizeY = dataBlock.size[1];
-  int32_t sizeZ = dataBlock.size[2];
+  int32_t sizeX = dataBlock.Size[0];
+  int32_t sizeY = dataBlock.Size[1];
+  int32_t sizeZ = dataBlock.Size[2];
 
-  int32_t allocatedSizeX = dataBlock.allocatedSize[0];
-  int32_t allocatedSizeY = dataBlock.allocatedSize[1];
+  int32_t allocatedSizeX = dataBlock.AllocatedSize[0];
+  int32_t allocatedSizeY = dataBlock.AllocatedSize[1];
 
-  if(dataBlock.format == VolumeDataChannelDescriptor::Format_1Bit)
+  if(dataBlock.Format == VolumeDataChannelDescriptor::Format_1Bit)
   {
-    sizeX = ((sizeX * dataBlock.components) + 7) / 8;
+    sizeX = ((sizeX * dataBlock.Components) + 7) / 8;
   }
 
-  uint32_t elementSize = getElementSize(dataBlock);
+  uint32_t elementSize = GetElementSize(dataBlock);
 
   for(int32_t iZ = 0; iZ < sizeZ; iZ++)
   {
@@ -128,23 +128,23 @@ static void copyLinearBufferIntoDataBlock(const void *sourceBuffer, const DataBl
   }
 }
 
-static bool copyDataBlockIntoLinearBuffer(const DataBlock &dataBlock, const void *sourceBuffer, void *targetBuffer, int32_t bufferSize)
+static bool CopyDataBlockIntoLinearBuffer(const DataBlock &dataBlock, const void *sourceBuffer, void *targetBuffer, int32_t bufferSize)
 {
   int32_t size[DataStoreDimensionality_Max];
-  memcpy(size, dataBlock.size, sizeof(size));
+  memcpy(size, dataBlock.Size, sizeof(size));
   int32_t allocatedSize[DataStoreDimensionality_Max];
-  memcpy(allocatedSize, dataBlock.allocatedSize, sizeof(allocatedSize));
+  memcpy(allocatedSize, dataBlock.AllocatedSize, sizeof(allocatedSize));
 
-  int32_t elementSize = int32_t(getElementSize(dataBlock));
+  int32_t elementSize = int32_t(GetElementSize(dataBlock));
 
-  if(dataBlock.format == VolumeDataChannelDescriptor::Format_1Bit)
+  if(dataBlock.Format == VolumeDataChannelDescriptor::Format_1Bit)
   {
-    size[0] = ((size[0] * dataBlock.components) + 7) / 8;
+    size[0] = ((size[0] * dataBlock.Components) + 7) / 8;
   }
 
   // Check if first row is constant
   bool isConstant = true;
-  switch(dataBlock.format)
+  switch(dataBlock.Format)
   {
   default:
     fprintf(stderr, "Illegal format\n");
@@ -206,40 +206,40 @@ static bool copyDataBlockIntoLinearBuffer(const DataBlock &dataBlock, const void
 }
 
 template<typename T>
-static uint64_t getConstantValueVolumeDataHash(T value, const Range<float> &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue)
+static uint64_t GetConstantValueVolumeDataHash(T value, const Range<float> &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue)
 {
   if (isUseNoValue)
   {
-    if(value == convertNoValue<T>(noValue))
+    if(value == ConvertNoValue<T>(noValue))
     {
       return VolumeDataHash::NOVALUE;
     }
     else
     {
       QuantizingValueConverterWithNoValue<float, T, true> converter(valueRange.Min, valueRange.Max, integerScale, integerOffset, noValue, noValue, false);
-      return VolumeDataHash(converter.convertValue(value)).calculateHash();
+      return VolumeDataHash(converter.ConvertValue(value)).CalculateHash();
     }
   }
   else
   {
     QuantizingValueConverterWithNoValue<float, T, false> converter(valueRange.Min, valueRange.Max, integerScale, integerOffset, noValue, noValue, false);
-    return VolumeDataHash(converter.convertValue(value)).calculateHash();
+    return VolumeDataHash(converter.ConvertValue(value)).CalculateHash();
   }
 }
 
-static uint64_t getConstantValueVolumeDataHash(const DataBlock  &dataBlock, const uint8_t *sourceBuffer, const Range<float> &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue)
+static uint64_t GetConstantValueVolumeDataHash(const DataBlock  &dataBlock, const uint8_t *sourceBuffer, const Range<float> &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue)
 {
-  switch(dataBlock.format)
+  switch(dataBlock.Format)
   {
   case VolumeDataChannelDescriptor::Format_1Bit:
     assert(reinterpret_cast<const uint8_t *>(sourceBuffer)[0] == 0x00 || reinterpret_cast<const uint8_t *>(sourceBuffer)[0] == 0xff);
-    return VolumeDataHash((float)(reinterpret_cast<const uint8_t *>(sourceBuffer)[0] != 0)).calculateHash();
-  case VolumeDataChannelDescriptor::Format_U8:  return getConstantValueVolumeDataHash(reinterpret_cast<const uint8_t  *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
-  case VolumeDataChannelDescriptor::Format_U16: return getConstantValueVolumeDataHash(reinterpret_cast<const uint16_t *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
-  case VolumeDataChannelDescriptor::Format_R32: return getConstantValueVolumeDataHash(reinterpret_cast<const float *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
-  case VolumeDataChannelDescriptor::Format_U32: return getConstantValueVolumeDataHash(reinterpret_cast<const uint32_t *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
-  case VolumeDataChannelDescriptor::Format_R64: return getConstantValueVolumeDataHash(reinterpret_cast<const double *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
-  case VolumeDataChannelDescriptor::Format_U64: return getConstantValueVolumeDataHash(reinterpret_cast<const uint64_t *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
+    return VolumeDataHash((float)(reinterpret_cast<const uint8_t *>(sourceBuffer)[0] != 0)).CalculateHash();
+  case VolumeDataChannelDescriptor::Format_U8:  return GetConstantValueVolumeDataHash(reinterpret_cast<const uint8_t  *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
+  case VolumeDataChannelDescriptor::Format_U16: return GetConstantValueVolumeDataHash(reinterpret_cast<const uint16_t *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
+  case VolumeDataChannelDescriptor::Format_R32: return GetConstantValueVolumeDataHash(reinterpret_cast<const float *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
+  case VolumeDataChannelDescriptor::Format_U32: return GetConstantValueVolumeDataHash(reinterpret_cast<const uint32_t *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
+  case VolumeDataChannelDescriptor::Format_R64: return GetConstantValueVolumeDataHash(reinterpret_cast<const double *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
+  case VolumeDataChannelDescriptor::Format_U64: return GetConstantValueVolumeDataHash(reinterpret_cast<const uint64_t *>(sourceBuffer)[0], valueRange, integerScale, integerOffset, isUseNoValue, noValue);
 
   default:
     assert(0 && "Unknown format");
@@ -247,9 +247,9 @@ static uint64_t getConstantValueVolumeDataHash(const DataBlock  &dataBlock, cons
   }
 }
 
-bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, DataBlock &dataBlock, std::vector<uint8_t> &destination, Error &error)
+bool DeserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, DataBlock &dataBlock, std::vector<uint8_t> &destination, Error &error)
 {
-  if(compressionMethodIsWavelet(compressionMethod))
+  if(CompressionMethodIsWavelet(compressionMethod))
   {
     const void *data = serializedData.data();
 
@@ -291,44 +291,44 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
   {
     DataBlockDescriptor *dataBlockDescriptor = (DataBlockDescriptor *)serializedData.data();
 
-    if(!dataBlockDescriptor->isValid())
+    if(!dataBlockDescriptor->IsValid())
     {
       error.Code = -1;
       error.String = "Failed to decode DataBlockDescriptor";
       return false;
     }
 
-    if (!initializeDataBlock(*dataBlockDescriptor, dataBlock, error))
+    if (!InitializeDataBlock(*dataBlockDescriptor, dataBlock, error))
       return false;
 
     void * source = dataBlockDescriptor + 1;
 
-    int32_t byteSize = getByteSize(*dataBlockDescriptor);
+    int32_t byteSize = GetByteSize(*dataBlockDescriptor);
     std::unique_ptr<uint8_t[]>buffer(new uint8_t[byteSize]);
 
-    int32_t decompressedSize = rle_Decompress((uint8_t *)buffer.get(), byteSize, (uint8_t *)source);
+    int32_t decompressedSize = RleDecompress((uint8_t *)buffer.get(), byteSize, (uint8_t *)source);
     assert(decompressedSize == byteSize);
 
-    int allocatedSize = getAllocatedByteSize(dataBlock);
+    int allocatedSize = GetAllocatedByteSize(dataBlock);
     destination.resize(allocatedSize);
-    copyLinearBufferIntoDataBlock(buffer.get(), dataBlock, destination);
+    CopyLinearBufferIntoDataBlock(buffer.get(), dataBlock, destination);
   }
   else if(compressionMethod == CompressionMethod::Zip)
   {
     DataBlockDescriptor *dataBlockDescriptor = (DataBlockDescriptor *)serializedData.data();
 
-    if(!dataBlockDescriptor->isValid())
+    if(!dataBlockDescriptor->IsValid())
     {
       error.Code = -1;
       error.String = "Failed to decode DataBlockDescriptor";
       return false;
     }
-    if (!initializeDataBlock(*dataBlockDescriptor, dataBlock, error))
+    if (!InitializeDataBlock(*dataBlockDescriptor, dataBlock, error))
       return false;
 
     void * source = dataBlockDescriptor + 1;
 
-    int32_t byteSize = getByteSize(*dataBlockDescriptor);
+    int32_t byteSize = GetByteSize(*dataBlockDescriptor);
     std::unique_ptr<uint8_t[]> buffer(new uint8_t[byteSize]);
 
     unsigned long destLen = byteSize;
@@ -341,31 +341,31 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
       return false;
     }
 
-    int allocatedSize = getAllocatedByteSize(dataBlock);
+    int allocatedSize = GetAllocatedByteSize(dataBlock);
     destination.resize(allocatedSize);
-    copyLinearBufferIntoDataBlock(buffer.get(), dataBlock, destination);
+    CopyLinearBufferIntoDataBlock(buffer.get(), dataBlock, destination);
   }
   else if(compressionMethod == CompressionMethod::None)
   {
     DataBlockDescriptor *dataBlockDescriptor = (DataBlockDescriptor *)serializedData.data();
 
-    if(!dataBlockDescriptor->isValid())
+    if(!dataBlockDescriptor->IsValid())
     {
       error.Code = -1;
       error.String = "Failed to decode DataBlockDescriptor";
       return false;
     }
-    if (!initializeDataBlock(*dataBlockDescriptor, dataBlock, error))
+    if (!InitializeDataBlock(*dataBlockDescriptor, dataBlock, error))
       return false;
 
     void * source = dataBlockDescriptor + 1;
 
-    int32_t byteSize = getAllocatedByteSize(dataBlock);
+    int32_t byteSize = GetAllocatedByteSize(dataBlock);
     destination.resize(byteSize);
-    copyLinearBufferIntoDataBlock(source, dataBlock, destination);
+    CopyLinearBufferIntoDataBlock(source, dataBlock, destination);
   }
 
-  if(dataBlock.format != format)
+  if(dataBlock.Format != format)
   {
     error.String = "Formats doesn't match in deserialization\n";
     error.Code = -2;
@@ -374,24 +374,24 @@ bool deserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
   return true;
 }
 
-static float getConvertedConstantValue(VolumeDataChannelDescriptor const &volumeDataChannelDescriptor, VolumeDataChannelDescriptor::Format format, float noValue, VolumeDataHash const &constantValueVolumeDataHash)
+static float GetConvertedConstantValue(VolumeDataChannelDescriptor const &volumeDataChannelDescriptor, VolumeDataChannelDescriptor::Format format, float noValue, VolumeDataHash const &constantValueVolumeDataHash)
 {
   if(format == VolumeDataChannelDescriptor::Format_1Bit)
   {
-    return float(constantValueVolumeDataHash.getConstantValue(0) != 0);
+    return float(constantValueVolumeDataHash.GetConstantValue(0) != 0);
   }
   else if(format == VolumeDataChannelDescriptor::Format_U8 || format == VolumeDataChannelDescriptor::Format_U16)
   {
-    if(constantValueVolumeDataHash.isNoValue())
+    if(constantValueVolumeDataHash.IsNoValue())
     {
       if(format == VolumeDataChannelDescriptor::Format_U8)
       {
-        return convertNoValue<uint8_t>(noValue);
+        return ConvertNoValue<uint8_t>(noValue);
       }
       else
       {
         assert(format == VolumeDataChannelDescriptor::Format_U16);
-        return convertNoValue<uint16_t>(noValue);
+        return ConvertNoValue<uint16_t>(noValue);
       }
     }
 
@@ -411,19 +411,19 @@ static float getConvertedConstantValue(VolumeDataChannelDescriptor const &volume
       reciprocalScale = 1.0f / volumeDataChannelDescriptor.GetIntegerScale();
     }
 
-    return (float)quantizeValueWithReciprocalScale(constantValueVolumeDataHash.getConstantValue(noValue), offset, reciprocalScale, buckets);
+    return (float)QuantizeValueWithReciprocalScale(constantValueVolumeDataHash.GetConstantValue(noValue), offset, reciprocalScale, buckets);
   }
   else
   {
     assert(format == VolumeDataChannelDescriptor::Format_R32 || format == VolumeDataChannelDescriptor::Format_U32 || format == VolumeDataChannelDescriptor::Format_R64 || format == VolumeDataChannelDescriptor::Format_U64);
-    return constantValueVolumeDataHash.getConstantValue(noValue);
+    return constantValueVolumeDataHash.GetConstantValue(noValue);
   }
 }
 
 template <typename T>
-static void fillConstantValueBuffer(std::vector<uint8_t> &buffer, int32_t allocatedElements, float value)
+static void FillConstantValueBuffer(std::vector<uint8_t> &buffer, int32_t allocatedElements, float value)
 {
-  T v = convertValue<T>(value);
+  T v = ConvertValue<T>(value);
   T *b = reinterpret_cast<T *>(buffer.data());
   for(int32_t element = 0; element < allocatedElements; element++)
   {
@@ -431,23 +431,23 @@ static void fillConstantValueBuffer(std::vector<uint8_t> &buffer, int32_t alloca
   }
 }
 
-bool VolumeDataStore::createConstantValueDataBlock(VolumeDataChunk const &volumeDataChunk, VolumeDataChannelDescriptor::Format format, float noValue, VolumeDataChannelDescriptor::Components components, VolumeDataHash const &constantValueVolumeDataHash, DataBlock &dataBlock, std::vector<uint8_t> &buffer, Error &error)
+bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volumeDataChunk, VolumeDataChannelDescriptor::Format format, float noValue, VolumeDataChannelDescriptor::Components components, VolumeDataHash const &constantValueVolumeDataHash, DataBlock &dataBlock, std::vector<uint8_t> &buffer, Error &error)
 {
   int32_t size[4];
-  volumeDataChunk.layer->getChunkVoxelSize(volumeDataChunk.chunkIndex, size);
-  int32_t dimensionality = volumeDataChunk.layer->getChunkDimensionality();
-  if (!initializeDataBlock(format, components, Dimensionality(dimensionality), size, dataBlock, error))
+  volumeDataChunk.Layer->GetChunkVoxelSize(volumeDataChunk.Index, size);
+  int32_t dimensionality = volumeDataChunk.Layer->GetChunkDimensionality();
+  if (!InitializeDataBlock(format, components, Dimensionality(dimensionality), size, dataBlock, error))
     return false;
 
  
-  int32_t allocatedSize = getAllocatedByteSize(dataBlock);
+  int32_t allocatedSize = GetAllocatedByteSize(dataBlock);
   buffer.resize(allocatedSize);
 
-  int32_t allocatedElements = dataBlock.allocatedSize[0] * dataBlock.allocatedSize[1] * dataBlock.allocatedSize[2] * dataBlock.allocatedSize[3] * dataBlock.components;
+  int32_t allocatedElements = dataBlock.AllocatedSize[0] * dataBlock.AllocatedSize[1] * dataBlock.AllocatedSize[2] * dataBlock.AllocatedSize[3] * dataBlock.Components;
 
-  float convertedConstantValue = getConvertedConstantValue(volumeDataChunk.layer->getVolumeDataChannelDescriptor(), format, noValue, constantValueVolumeDataHash);
+  float convertedConstantValue = GetConvertedConstantValue(volumeDataChunk.Layer->GetVolumeDataChannelDescriptor(), format, noValue, constantValueVolumeDataHash);
 
-  assert(dataBlock.format == format);
+  assert(dataBlock.Format == format);
 
   VolumeDataChannelDescriptor::Format effectiveFormat = format;
 
@@ -455,7 +455,7 @@ bool VolumeDataStore::createConstantValueDataBlock(VolumeDataChunk const &volume
   if(format == VolumeDataChannelDescriptor::Format_1Bit)
   {
     effectiveFormat = VolumeDataChannelDescriptor::Format_U8;
-    convertedConstantValue = convertValue<bool>(convertedConstantValue) ? 255.0f : 0.0f;
+    convertedConstantValue = ConvertValue<bool>(convertedConstantValue) ? 255.0f : 0.0f;
   }
 
   switch (effectiveFormat)
@@ -464,28 +464,28 @@ bool VolumeDataStore::createConstantValueDataBlock(VolumeDataChunk const &volume
     error.Code = -3;
     error.String = "Invalid format in createConstantValuedataBlock";
     return false;
-  case VolumeDataChannelDescriptor::Format_U8:  fillConstantValueBuffer<uint8_t>(buffer, allocatedElements, convertedConstantValue); break;
-  case VolumeDataChannelDescriptor::Format_U16: fillConstantValueBuffer<uint16_t>(buffer, allocatedElements, convertedConstantValue); break;
-  case VolumeDataChannelDescriptor::Format_R32: fillConstantValueBuffer<float>(buffer, allocatedElements, convertedConstantValue); break;
-  case VolumeDataChannelDescriptor::Format_U32: fillConstantValueBuffer<uint32_t>(buffer, allocatedElements, convertedConstantValue); break;
-  case VolumeDataChannelDescriptor::Format_R64: fillConstantValueBuffer<double>(buffer, allocatedElements, convertedConstantValue); break;
-  case VolumeDataChannelDescriptor::Format_U64: fillConstantValueBuffer<uint64_t>(buffer, allocatedElements, convertedConstantValue); break;
+  case VolumeDataChannelDescriptor::Format_U8:  FillConstantValueBuffer<uint8_t>(buffer, allocatedElements, convertedConstantValue); break;
+  case VolumeDataChannelDescriptor::Format_U16: FillConstantValueBuffer<uint16_t>(buffer, allocatedElements, convertedConstantValue); break;
+  case VolumeDataChannelDescriptor::Format_R32: FillConstantValueBuffer<float>(buffer, allocatedElements, convertedConstantValue); break;
+  case VolumeDataChannelDescriptor::Format_U32: FillConstantValueBuffer<uint32_t>(buffer, allocatedElements, convertedConstantValue); break;
+  case VolumeDataChannelDescriptor::Format_R64: FillConstantValueBuffer<double>(buffer, allocatedElements, convertedConstantValue); break;
+  case VolumeDataChannelDescriptor::Format_U64: FillConstantValueBuffer<uint64_t>(buffer, allocatedElements, convertedConstantValue); break;
   }
 
   return true;
 }
 
-bool VolumeDataStore::deserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error)
+bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error)
 {
   uint64_t volumeDataHashValue = VolumeDataHash::UNKNOWN;
 
   bool isWaveletAdaptive = false;
 
-  if (compressionMethodIsWavelet(compressionMethod) && metadata.size() == sizeof(uint64_t) + sizeof(uint8_t[WAVELET_ADAPTIVE_LEVELS]) && VolumeDataStore::verify(volumeDataChunk, serializedData, compressionMethod, false))
+  if (CompressionMethodIsWavelet(compressionMethod) && metadata.size() == sizeof(uint64_t) + sizeof(uint8_t[WAVELET_ADAPTIVE_LEVELS]) && VolumeDataStore::Verify(volumeDataChunk, serializedData, compressionMethod, false))
   {
     isWaveletAdaptive = true;
   }
-  else if (metadata.size() != sizeof(uint64_t) || !verify(volumeDataChunk, serializedData, compressionMethod, true))
+  else if (metadata.size() != sizeof(uint64_t) || !Verify(volumeDataChunk, serializedData, compressionMethod, true))
   {
     return false;
   }
@@ -494,11 +494,11 @@ bool VolumeDataStore::deserializeVolumeData(const VolumeDataChunk &volumeDataChu
   
   VolumeDataHash volumeDataHash(volumeDataHashValue);
 
-  const VolumeDataLayer* volumeDataLayer = volumeDataChunk.layer;
+  const VolumeDataLayer* volumeDataLayer = volumeDataChunk.Layer;
 
-  if (volumeDataHash.isConstant())
+  if (volumeDataHash.IsConstant())
   {
-    if (!createConstantValueDataBlock(volumeDataChunk, volumeDataLayer->getFormat(), volumeDataLayer->getNoValue(), volumeDataLayer->getComponents(), volumeDataHash, dataBlock, target, error))
+    if (!CreateConstantValueDataBlock(volumeDataChunk, volumeDataLayer->GetFormat(), volumeDataLayer->GetNoValue(), volumeDataLayer->GetComponents(), volumeDataHash, dataBlock, target, error))
       return false;
   }
   else
@@ -507,23 +507,23 @@ bool VolumeDataStore::deserializeVolumeData(const VolumeDataChunk &volumeDataChu
 
     {
       //create a value range from scale and offset so that conversion to 8 or 16 bit is done correctly inside deserialization
-      FloatRange deserializeValueRange = volumeDataLayer->getValueRange();
+      FloatRange deserializeValueRange = volumeDataLayer->GetValueRange();
 
-      if (volumeDataLayer->getFormat() == VolumeDataChannelDescriptor::Format_U16 || volumeDataLayer->getFormat() == VolumeDataChannelDescriptor::Format_U8)
+      if (volumeDataLayer->GetFormat() == VolumeDataChannelDescriptor::Format_U16 || volumeDataLayer->GetFormat() == VolumeDataChannelDescriptor::Format_U8)
       {
         if (loadFormat == VolumeDataChannelDescriptor::Format_U16)
         {
-          deserializeValueRange.Min = volumeDataLayer->getIntegerOffset();
-          deserializeValueRange.Max = volumeDataLayer->getIntegerScale() * (volumeDataLayer->isUseNoValue() ? 65534.0f : 65535.0f) + volumeDataLayer->getIntegerOffset();
+          deserializeValueRange.Min = volumeDataLayer->GetIntegerOffset();
+          deserializeValueRange.Max = volumeDataLayer->GetIntegerScale() * (volumeDataLayer->IsUseNoValue() ? 65534.0f : 65535.0f) + volumeDataLayer->GetIntegerOffset();
         }
-        else if (loadFormat == VolumeDataChannelDescriptor::Format_U8 && volumeDataLayer->getFormat() != VolumeDataChannelDescriptor::Format_U16)
+        else if (loadFormat == VolumeDataChannelDescriptor::Format_U8 && volumeDataLayer->GetFormat() != VolumeDataChannelDescriptor::Format_U16)
         {
-          deserializeValueRange.Min = volumeDataLayer->getIntegerOffset();
-          deserializeValueRange.Max = volumeDataLayer->getIntegerScale() * (volumeDataLayer->isUseNoValue() ? 254.0f : 255.0f) + volumeDataLayer->getIntegerOffset();
+          deserializeValueRange.Min = volumeDataLayer->GetIntegerOffset();
+          deserializeValueRange.Max = volumeDataLayer->GetIntegerScale() * (volumeDataLayer->IsUseNoValue() ? 254.0f : 255.0f) + volumeDataLayer->GetIntegerOffset();
         }
       }
 
-      if (!OpenVDS::deserializeVolumeData(serializedData, loadFormat, compressionMethod, deserializeValueRange, volumeDataLayer->getIntegerScale(), volumeDataLayer->getIntegerOffset(), volumeDataLayer->isUseNoValue(), volumeDataLayer->getNoValue(), adaptiveLevel, dataBlock, target, error))
+      if (!OpenVDS::DeserializeVolumeData(serializedData, loadFormat, compressionMethod, deserializeValueRange, volumeDataLayer->GetIntegerScale(), volumeDataLayer->GetIntegerOffset(), volumeDataLayer->IsUseNoValue(), volumeDataLayer->GetNoValue(), adaptiveLevel, dataBlock, target, error))
         return false;
 
     }
@@ -532,21 +532,21 @@ bool VolumeDataStore::deserializeVolumeData(const VolumeDataChunk &volumeDataChu
   return true;
 }
 
-bool VolumeDataStore::serializeVolumeData(const VolumeDataChunk& chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, std::vector<uint8_t>& destinationBuffer, uint64_t& outputHash, Error& error)
+bool VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, std::vector<uint8_t>& destinationBuffer, uint64_t& outputHash, Error& error)
 {
   DataBlockDescriptor dataBlockHeader;
-  dataBlockHeader.components = dataBlock.components;
-  dataBlockHeader.dimensionality = dataBlock.dimensionality;
-  dataBlockHeader.format = dataBlock.format;
-  dataBlockHeader.sizeX = dataBlock.size[0];
-  dataBlockHeader.sizeY = dataBlock.size[1];
-  dataBlockHeader.sizeZ = dataBlock.size[2];
+  dataBlockHeader.Components = dataBlock.Components;
+  dataBlockHeader.Dimensionality = dataBlock.Dimensionality;
+  dataBlockHeader.Format = dataBlock.Format;
+  dataBlockHeader.SizeX = dataBlock.Size[0];
+  dataBlockHeader.SizeY = dataBlock.Size[1];
+  dataBlockHeader.SizeZ = dataBlock.Size[2];
 
   switch (compressionMethod)
   {
   case CompressionMethod::None:
   {
-    int32_t byteSize = getByteSize(dataBlock) + sizeof(DataBlockDescriptor);
+    int32_t byteSize = GetByteSize(dataBlock) + sizeof(DataBlockDescriptor);
 
     destinationBuffer.resize(byteSize);
 
@@ -554,28 +554,28 @@ bool VolumeDataStore::serializeVolumeData(const VolumeDataChunk& chunk, const Da
     memcpy(targetBuffer, &dataBlockHeader, sizeof(dataBlockHeader));
     targetBuffer = ((uint8_t *)targetBuffer) + sizeof(dataBlockHeader);
 
-    bool isConstant = copyDataBlockIntoLinearBuffer(dataBlock, chunkData.data(), targetBuffer, byteSize - sizeof(dataBlockHeader));
+    bool isConstant = CopyDataBlockIntoLinearBuffer(dataBlock, chunkData.data(), targetBuffer, byteSize - sizeof(dataBlockHeader));
 
     if(isConstant)
     {
       destinationBuffer.resize(0);
-      auto& layer = *chunk.layer;
-      outputHash = getConstantValueVolumeDataHash(dataBlock, (const uint8_t *) targetBuffer, layer.getValueRange(), layer.getIntegerScale(), layer.getIntegerOffset(), layer.isUseNoValue(), layer.getNoValue());
+      auto& layer = *chunk.Layer;
+      outputHash = GetConstantValueVolumeDataHash(dataBlock, (const uint8_t *) targetBuffer, layer.GetValueRange(), layer.GetIntegerScale(), layer.GetIntegerOffset(), layer.IsUseNoValue(), layer.GetNoValue());
       return true;
     }
     break;
   }
   case CompressionMethod::Zip:
   {
-    uint32_t tmpbuffersize = getByteSize(dataBlock);
+    uint32_t tmpbuffersize = GetByteSize(dataBlock);
     std::unique_ptr<uint8_t[]> tmpdata(new uint8_t[tmpbuffersize]);
-    bool isConstant = copyDataBlockIntoLinearBuffer(dataBlock, chunkData.data(), tmpdata.get(), tmpbuffersize);
+    bool isConstant = CopyDataBlockIntoLinearBuffer(dataBlock, chunkData.data(), tmpdata.get(), tmpbuffersize);
 
     if (isConstant)
     {
       destinationBuffer.resize(0);
-      auto& layer = *chunk.layer;
-      outputHash = getConstantValueVolumeDataHash(dataBlock, tmpdata.get(), layer.getValueRange(), layer.getIntegerScale(), layer.getIntegerOffset(), layer.isUseNoValue(), layer.getNoValue());
+      auto& layer = *chunk.Layer;
+      outputHash = GetConstantValueVolumeDataHash(dataBlock, tmpdata.get(), layer.GetValueRange(), layer.GetIntegerScale(), layer.GetIntegerOffset(), layer.IsUseNoValue(), layer.GetNoValue());
       return true;
     }
     unsigned long compressedMaxSize = compressBound(tmpbuffersize);

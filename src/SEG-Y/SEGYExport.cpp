@@ -93,7 +93,7 @@ main(int argc, char *argv[])
   OpenVDS::IOError
     error;
 
-  file.open(fileName.c_str(), true, true, true, error);
+  file.Open(fileName.c_str(), true, true, true, error);
 
   if(error.code != 0)
   {
@@ -137,7 +137,7 @@ main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  file.write(textHeader.data(), 0, SEGY::TextualFileHeaderSize, error) && file.write(binaryHeader.data(), SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize, error);
+  file.Write(textHeader.data(), 0, SEGY::TextualFileHeaderSize, error) && file.Write(binaryHeader.data(), SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize, error);
   if(error.code != 0)
   {
     fmt::print(stderr, "Error writing SEG-Y headers to file: {}", fileName);
@@ -196,7 +196,7 @@ main(int argc, char *argv[])
 
     SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian;
 
-    auto dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(readFieldFromHeader(binaryHeader.data(), SEGY::BinaryHeader::DataSampleFormatCodeHeaderField, headerEndianness));
+    auto dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(ReadFieldFromHeader(binaryHeader.data(), SEGY::BinaryHeader::DataSampleFormatCodeHeaderField, headerEndianness));
 
     for(int trace = 0; trace < traceCount; trace++)
     {
@@ -208,7 +208,7 @@ main(int argc, char *argv[])
         // Convert trace data
         if(dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
         {
-          SEGY::ieee2ibm(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, data.get() + trace * traceDataSize, sampleCount);
+          SEGY::Ieee2ibm(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, data.get() + trace * traceDataSize, sampleCount);
         }
         else if(dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat)
         {
@@ -223,7 +223,7 @@ main(int argc, char *argv[])
       }
     }
 
-    file.write(writeBuffer.get(), offset, activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize), error);
+    file.Write(writeBuffer.get(), offset, activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize), error);
     if(error.code != 0)
     {
       fmt::print(stderr, "Error writing SEG-Y traces to file: {}", fileName);

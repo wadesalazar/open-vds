@@ -54,13 +54,13 @@ private:
   IntrusiveListNode<VolumeDataPageAccessorImpl> m_volumeDataPageAccessorListNode;
 
 private:
-  void limitPageListSize(int maxPages, std::unique_lock<std::mutex> &pageListMutexLock);
+  void LimitPageListSize(int maxPages, std::unique_lock<std::mutex> &pageListMutexLock);
 
 public:
-  VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl *acccessManager, VolumeDataLayer* layer, int maxPages, bool isReadWrite);
+  VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl *acccessManager, VolumeDataLayer* layer, int maxPages, bool IsReadWrite);
 
   VolumeDataLayout const* GetLayout() const override;
-  VolumeDataLayer const * getLayer() const { return m_layer; }
+  VolumeDataLayer const * GetLayer() const { return m_layer; }
 
   int   GetLOD() const override;
   int   GetChannelIndex() const override;
@@ -75,8 +75,8 @@ public:
   int   AddReference() override;
   int   RemoveReference() override;
 
-  VolumeDataPage* prepareReadPage(int64_t chunk, bool *needToCallReadPreparePage);
-  bool readPreparedPaged(VolumeDataPage *page);
+  VolumeDataPage* PrepareReadPage(int64_t chunk, bool *needToCallReadPreparePage);
+  bool ReadPreparedPaged(VolumeDataPage *page);
 
   int   GetMaxPages() override;
   void  SetMaxPages(int maxPages) override;
@@ -84,13 +84,13 @@ public:
   VolumeDataPage *CreatePage(int64_t chunk) override;
   VolumeDataPage *ReadPage(int64_t chunk) override;
  
-  int64_t requestWritePage(int64_t chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data);
+  int64_t RequestWritePage(int64_t chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data);
 
   void  Commit() override;
 
-  bool isReadWrite() const { return m_isReadWrite; }
+  bool IsReadWrite() const { return m_isReadWrite; }
 
-  VolumeDataAccessManagerImpl *getManager() const { return m_accessManager; }
+  VolumeDataAccessManagerImpl *GetManager() const { return m_accessManager; }
 };
 
 }

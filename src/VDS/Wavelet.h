@@ -72,13 +72,13 @@ class Wavelet
 
 public:
   Wavelet(const void *compressedData, int32_t transformSizeX, int32_t transformSizeY, int32_t transformSizeZ, int32_t allocatedSizeX, int32_t allocatedSizeY, int32_t allocatedSizeZ, int32_t dimensions, int32_t dataVersion);
-  void initCoder();
+  void InitCoder();
 
-  bool deCompress(bool isTransform, int32_t decompressInfo, float decompressSlice, int32_t decompressFlip, float *startThreshold, float *threshold, VolumeDataChannelDescriptor::Format dataBlockFormat, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, bool *isAnyNoValue, float *waveletNoValue, bool isNormalize, int decompressLevel, bool isLossless, int compressedAdaptiveDataSize, DataBlock &dataBlock, std::vector<uint8_t> &target, Error &error);
-  void deCompressNoValuesHeader();
-  void inverseTransform(float *source);
-  void deCompressNoValues(float* noValue, std::vector<uint32_t> &buffer);
-  void applyNoValues(float *source, uint32_t* bitBuffer, float noValue);
+  bool DeCompress(bool isTransform, int32_t decompressInfo, float decompressSlice, int32_t decompressFlip, float *startThreshold, float *threshold, VolumeDataChannelDescriptor::Format dataBlockFormat, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, bool *isAnyNoValue, float *waveletNoValue, bool isNormalize, int decompressLevel, bool isLossless, int compressedAdaptiveDataSize, DataBlock &dataBlock, std::vector<uint8_t> &target, Error &error);
+  void DeCompressNoValuesHeader();
+  void InverseTransform(float *source);
+  void DeCompressNoValues(float* noValue, std::vector<uint32_t> &buffer);
+  void ApplyNoValues(float *source, uint32_t* bitBuffer, float noValue);
 };
 
 }

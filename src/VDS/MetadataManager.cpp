@@ -35,12 +35,12 @@ MetadataPageTransfer(MetadataManager *manager, VolumeDataAccessManagerImpl *acce
   , metadataPage(metadataPage)
 { }
 
-void handleData(std::vector<uint8_t> &&data) override
+void HandleData(std::vector<uint8_t> &&data) override
 {
-  manager->pageTransferCompleted(accessManager, metadataPage, std::move(data));
+  manager->PageTransferCompleted(accessManager, metadataPage, std::move(data));
 }
 
-void completed(const Request &request, const Error &error) override
+void Completed(const Request &request, const Error &error) override
 {
 }
 
@@ -61,7 +61,7 @@ MetadataManager::~MetadataManager()
 {
 }
 
-void MetadataManager::limitPages()
+void MetadataManager::LimitPages()
 {
   assert(m_pageMap.size() == m_pageList.size() + m_dirtyPageList.size());
 
@@ -75,7 +75,7 @@ void MetadataManager::limitPages()
 }
 
 MetadataPage*
-MetadataManager::lockPage(int pageIndex, bool* initiateTransfer)
+MetadataManager::LockPage(int pageIndex, bool* initiateTransfer)
 {
   assert(initiateTransfer);
 
@@ -108,7 +108,7 @@ MetadataManager::lockPage(int pageIndex, bool* initiateTransfer)
 
   page.m_lockCount++;
 
-  limitPages();
+  LimitPages();
 
   assert(m_pageMap.size() == m_pageList.size() + m_dirtyPageList.size());
   assert(m_pageMap.find(pageIndex) != m_pageMap.end());
@@ -118,7 +118,7 @@ MetadataManager::lockPage(int pageIndex, bool* initiateTransfer)
 }
 
 void
-MetadataManager::initPage(MetadataPage* page)
+MetadataManager::InitPage(MetadataPage* page)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   page->m_data.resize(m_metadataStatus.m_chunkMetadataByteSize * m_metadataStatus.m_chunkMetadataPageSize);
@@ -126,16 +126,16 @@ MetadataManager::initPage(MetadataPage* page)
   lock.unlock();
 }
 
-void MetadataManager::initiateTransfer(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::string const& url, bool verbose)
+void MetadataManager::InitiateTransfer(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::string const& url, bool verbose)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
   assert(!page->m_valid && !page->m_activeTransfer);
 
-  page->m_activeTransfer = m_iomanager->download(url, std::make_shared<MetadataPageTransfer>(this, accessManager, page));
+  page->m_activeTransfer = m_iomanager->Download(url, std::make_shared<MetadataPageTransfer>(this, accessManager, page));
 }
 
-void MetadataManager::uploadDirtyPages(VolumeDataAccessManagerImpl *accessManager)
+void MetadataManager::UploadDirtyPages(VolumeDataAccessManagerImpl *accessManager)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -147,7 +147,7 @@ void MetadataManager::uploadDirtyPages(VolumeDataAccessManagerImpl *accessManage
     // We need to keep a separate 'next' iterator since we're moving the current element to another list if the write is successful
     next = std::next(it);
 
-    bool success = accessManager->writeMetadataPage(&page, page.m_data);
+    bool success = accessManager->WriteMetadataPage(&page, page.m_data);
     if(success)
     {
       page.m_dirty = false;
@@ -156,7 +156,7 @@ void MetadataManager::uploadDirtyPages(VolumeDataAccessManagerImpl *accessManage
   }
 }
 
-void MetadataManager::pageTransferError(MetadataPage* page, const char* msg)
+void MetadataManager::PageTransferError(MetadataPage* page, const char* msg)
 {
   std::string
     errorString = std::string("Failed to transfer metadata page: ") + std::string(msg);
@@ -174,24 +174,24 @@ void MetadataManager::pageTransferError(MetadataPage* page, const char* msg)
   //TODO pendingrequestchangedcondition.notify_all
 }
 
-void MetadataManager::pageTransferCompleted(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::vector<uint8_t> &&data)
+void MetadataManager::PageTransferCompleted(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::vector<uint8_t> &&data)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   page->m_data = std::move(data);
   page->m_valid = true;
   lock.unlock();
 
-  accessManager->pageTransferCompleted(page);
+  accessManager->PageTransferCompleted(page);
 }
 
-uint8_t const *MetadataManager::getPageEntry(MetadataPage *page, int entryIndex) const
+uint8_t const *MetadataManager::GetPageEntry(MetadataPage *page, int entryIndex) const
 {
   assert(page->IsValid());
 
   return &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize];
 }
 
-void MetadataManager::setPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength)
+void MetadataManager::SetPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -209,7 +209,7 @@ void MetadataManager::setPageEntry(MetadataPage *page, int entryIndex, uint8_t c
   std::copy(metadata, metadata + metadataLength, &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize]);
 }
 
-void MetadataManager::unlockPage(MetadataPage *page)
+void MetadataManager::UnlockPage(MetadataPage *page)
 {
   assert(page);
   assert(page->m_lockCount > 0);
@@ -225,7 +225,7 @@ void MetadataManager::unlockPage(MetadataPage *page)
   {
     if(page->m_activeTransfer)
     {
-      page->m_activeTransfer->cancel();
+      page->m_activeTransfer->Cancel();
       page->m_activeTransfer = nullptr;
     }
 
@@ -237,7 +237,7 @@ void MetadataManager::unlockPage(MetadataPage *page)
     m_pageList.erase(pageListIterator);
   }
 
-  limitPages();
+  LimitPages();
 }
 
 } 

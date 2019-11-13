@@ -39,11 +39,11 @@ private:
   int64_t m_layerModulo[Dimensionality_Max];
 
 public:
-  int64_t getNumChunksInRegion() const;
-  int64_t getChunkIndexInRegion(int64_t chunkInRegion) const;
-  void getChunkInRegion(int64_t chunkInRegion, VolumeDataChunk *volumeDataChunk) const { *volumeDataChunk = m_volumeDataLayer->getChunkFromIndex(getChunkIndexInRegion(chunkInRegion)); }
-  void getChunksInRegion(std::vector<VolumeDataChunk> *volumeDataChunk, bool isAppend = false) const;
-  bool isChunkInRegion(VolumeDataChunk const &volumeDataChunk) const;
+  int64_t GetNumChunksInRegion() const;
+  int64_t GetChunkIndexInRegion(int64_t chunkInRegion) const;
+  void GetChunkInRegion(int64_t chunkInRegion, VolumeDataChunk *volumeDataChunk) const { *volumeDataChunk = m_volumeDataLayer->GetChunkFromIndex(GetChunkIndexInRegion(chunkInRegion)); }
+  void GetChunksInRegion(std::vector<VolumeDataChunk> *volumeDataChunk, bool isAppend = false) const;
+  bool IsChunkInRegion(VolumeDataChunk const &volumeDataChunk) const;
 
   VolumeDataRegion() : m_volumeDataLayer(nullptr), m_chunksInRegion(0) {};
 

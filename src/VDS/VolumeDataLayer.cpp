@@ -41,7 +41,7 @@ namespace OpenVDS
 VolumeDataLayer::VolumeDataLayer(VolumeDataPartition const &volumeDataPartition, VolumeDataLayoutImpl *volumeDataLayout, int32_t channel, VolumeDataLayer *primaryChannelLayer, VolumeDataLayer *lowerLOD, VolumeDataLayer::LayerType layerType, const VolumeDataChannelMapping *volumeDataChannelMapping)
   : VolumeDataPartition(volumeDataPartition)
   , m_volumeDataLayout(volumeDataLayout)
-  , m_layerID(volumeDataLayout->addDataLayer(this))
+  , m_layerID(volumeDataLayout->AddDataLayer(this))
   , m_channel(channel)
   , m_volumeDataChannelMapping(volumeDataChannelMapping)
   , m_layerType(layerType)
@@ -54,18 +54,18 @@ VolumeDataLayer::VolumeDataLayer(VolumeDataPartition const &volumeDataPartition,
 {
   assert(volumeDataLayout);
   assert((channel == 0 && primaryChannelLayer == nullptr) || (channel > 0 && primaryChannelLayer != nullptr));
-  assert(volumeDataChannelMapping == volumeDataLayout->getVolumeDataChannelMapping(channel));
+  assert(volumeDataChannelMapping == volumeDataLayout->GetVolumeDataChannelMapping(channel));
 
   if(lowerLOD)
   {
     assert(!lowerLOD->m_higherLOD);
-    assert(lowerLOD->getLOD() + 1 == getLOD());
+    assert(lowerLOD->GetLOD() + 1 == GetLOD());
     lowerLOD->m_higherLOD = this;
   }
 
   if(primaryChannelLayer)
   {
-    assert(primaryChannelLayer->getLOD() == getLOD());
+    assert(primaryChannelLayer->GetLOD() == GetLOD());
 
     VolumeDataLayer *link = primaryChannelLayer;
 
@@ -77,69 +77,69 @@ VolumeDataLayer::VolumeDataLayer(VolumeDataPartition const &volumeDataPartition,
   }
 }
 
-const VolumeDataChannelMapping* VolumeDataLayer::getVolumeDataChannelMapping() const
+const VolumeDataChannelMapping* VolumeDataLayer::GetVolumeDataChannelMapping() const
 {
   return m_volumeDataChannelMapping;
 }
 
-int32_t VolumeDataLayer::getMappedValueCount() const
+int32_t VolumeDataLayer::GetMappedValueCount() const
 {
-  return m_volumeDataLayout->getChannelMappedValueCount(m_channel);
+  return m_volumeDataLayout->GetChannelMappedValueCount(m_channel);
 }
 
-void VolumeDataLayer::getChunkIndexArrayFromVoxel(const IndexArray& voxel, IndexArray& chunk) const
+void VolumeDataLayer::GetChunkIndexArrayFromVoxel(const IndexArray& voxel, IndexArray& chunk) const
 {
-  for(int32_t iDimension = 0; iDimension < array_size(chunk); iDimension++)
+  for(int32_t iDimension = 0; iDimension < ArraySize(chunk); iDimension++)
   {
     if(m_volumeDataChannelMapping)
     {
-      chunk[iDimension] = m_volumeDataChannelMapping->getMappedChunkIndexFromVoxel(getPrimaryChannelLayer(), voxel[iDimension], iDimension);
+      chunk[iDimension] = m_volumeDataChannelMapping->GetMappedChunkIndexFromVoxel(GetPrimaryChannelLayer(), voxel[iDimension], iDimension);
     }
     else
     {
-      chunk[iDimension] = voxelToIndex(voxel[iDimension], iDimension);
+      chunk[iDimension] = VoxelToIndex(voxel[iDimension], iDimension);
     }
   }
 }
 
 int64_t
-VolumeDataLayer::getChunkIndexFromNDPos(const NDPos &ndPos) const
+VolumeDataLayer::GetChunkIndexFromNDPos(const NDPos &ndPos) const
 {
   IndexArray chunk;
 
-  for(int32_t iDimension = 0; iDimension < array_size(chunk); iDimension++)
+  for(int32_t iDimension = 0; iDimension < ArraySize(chunk); iDimension++)
   {
     if(m_volumeDataChannelMapping)
     {
-      chunk[iDimension] = m_volumeDataChannelMapping->getMappedChunkIndexFromVoxel(getPrimaryChannelLayer(), (int32_t)floorf(ndPos.data[iDimension]), iDimension);
+      chunk[iDimension] = m_volumeDataChannelMapping->GetMappedChunkIndexFromVoxel(GetPrimaryChannelLayer(), (int32_t)floorf(ndPos.Data[iDimension]), iDimension);
     }
     else
     {
-      chunk[iDimension] = voxelToIndex((int32_t)floorf(ndPos.data[iDimension]), iDimension);
+      chunk[iDimension] = VoxelToIndex((int32_t)floorf(ndPos.Data[iDimension]), iDimension);
     }
   }
 
-  return indexArrayToChunkIndex(chunk);
+  return IndexArrayToChunkIndex(chunk);
 }
 
-void VolumeDataLayer::getChunksInRegion(const IndexArray& min, const IndexArray& max, std::vector<VolumeDataChunk> *volumeDataChunk, bool isAppend) const
+void VolumeDataLayer::GetChunksInRegion(const IndexArray& min, const IndexArray& max, std::vector<VolumeDataChunk> *volumeDataChunk, bool isAppend) const
 {
   VolumeDataRegion volumeDataRegion(*this, min, max);
 
-  volumeDataRegion.getChunksInRegion(volumeDataChunk, isAppend);
+  volumeDataRegion.GetChunksInRegion(volumeDataChunk, isAppend);
 }
 
-void VolumeDataLayer::getChunksOverlappingChunk(VolumeDataChunk const &cVolumeDataChunk, std::vector<VolumeDataChunk> *volumeDataChunk, bool isAppend) const
+void VolumeDataLayer::GetChunksOverlappingChunk(VolumeDataChunk const &cVolumeDataChunk, std::vector<VolumeDataChunk> *volumeDataChunk, bool isAppend) const
 {
   static IndexArray null; // static variables are initialized to 0, no need to provide initializer
 
   VolumeDataRegion
     volumeDataRegion = VolumeDataRegion::VolumeDataRegionOverlappingChunk(*this, cVolumeDataChunk, null);
 
-  volumeDataRegion.getChunksInRegion(volumeDataChunk, isAppend);
+  volumeDataRegion.GetChunksInRegion(volumeDataChunk, isAppend);
 }
 
-const VolumeDataLayer * VolumeDataLayer::getLayerToRemapFrom() const
+const VolumeDataLayer * VolumeDataLayer::GetLayerToRemapFrom() const
 {
   return m_remapFromLayer;
 }
@@ -156,45 +156,45 @@ const VolumeDataLayer * VolumeDataLayer::getLayerToRemapFrom() const
 //  }
 //}
 
-VolumeDataLayer::ProduceStatus VolumeDataLayer::getProduceStatus() const
+VolumeDataLayer::ProduceStatus VolumeDataLayer::GetProduceStatus() const
 {
   return m_produceStatus;
 }
 
 
-const VolumeDataChannelDescriptor & VolumeDataLayer::getVolumeDataChannelDescriptor() const
+const VolumeDataChannelDescriptor & VolumeDataLayer::GetVolumeDataChannelDescriptor() const
 {
-  return m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel);
+  return m_volumeDataLayout->GetVolumeDataChannelDescriptor(m_channel);
 }
 
-FloatRange const &VolumeDataLayer::getValueRange() const
+FloatRange const &VolumeDataLayer::GetValueRange() const
 {
-  return m_volumeDataLayout->getChannelValueRange(m_channel);
+  return m_volumeDataLayout->GetChannelValueRange(m_channel);
 }
 
-FloatRange const &VolumeDataLayer::getActualValueRange() const
+FloatRange const &VolumeDataLayer::GetActualValueRange() const
 {
-  return m_volumeDataLayout->getChannelActualValueRange(m_channel);
+  return m_volumeDataLayout->GetChannelActualValueRange(m_channel);
 }
 
-VolumeDataChannelDescriptor::Format VolumeDataLayer::getFormat() const
+VolumeDataChannelDescriptor::Format VolumeDataLayer::GetFormat() const
 {
   return m_volumeDataLayout->GetChannelFormat(m_channel);
 }
 
-VolumeDataChannelDescriptor::Components VolumeDataLayer::getComponents() const
+VolumeDataChannelDescriptor::Components VolumeDataLayer::GetComponents() const
 {
   return m_volumeDataLayout->GetChannelComponents(m_channel);
 }
 
-bool VolumeDataLayer::isDiscrete() const
+bool VolumeDataLayer::IsDiscrete() const
 {
   return m_volumeDataLayout->IsChannelDiscrete(m_channel);
 }
 
-uint64_t VolumeDataLayer::getFormatHash(VolumeDataChannelDescriptor::Format actualFormat, bool isReplaceNoValue, float replacementNoValue) const
+uint64_t VolumeDataLayer::GetFormatHash(VolumeDataChannelDescriptor::Format actualFormat, bool isReplaceNoValue, float replacementNoValue) const
 {
-  VolumeDataChannelDescriptor const & volumeDataChannelDescriptor = m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel);
+  VolumeDataChannelDescriptor const & volumeDataChannelDescriptor = m_volumeDataLayout->GetVolumeDataChannelDescriptor(m_channel);
 
   if(actualFormat == VolumeDataChannelDescriptor::Format_Any)
   {
@@ -203,38 +203,38 @@ uint64_t VolumeDataLayer::getFormatHash(VolumeDataChannelDescriptor::Format actu
 
   HashCombiner hashCombiner(actualFormat);
 
-  hashCombiner.add(volumeDataChannelDescriptor.GetComponents());
+  hashCombiner.Add(volumeDataChannelDescriptor.GetComponents());
 
   bool isConvertWithValueRange = (actualFormat == VolumeDataChannelDescriptor::Format_U8 || actualFormat == VolumeDataChannelDescriptor::Format_U16) &&
                                  (volumeDataChannelDescriptor.GetFormat() != VolumeDataChannelDescriptor::Format_U8 && volumeDataChannelDescriptor.GetFormat() != VolumeDataChannelDescriptor::Format_U16);
 
   if(isConvertWithValueRange)
   {
-    hashCombiner.add(volumeDataChannelDescriptor.GetValueRange());
+    hashCombiner.Add(volumeDataChannelDescriptor.GetValueRange());
   }
 
   if(volumeDataChannelDescriptor.GetFormat() == VolumeDataChannelDescriptor::Format_U8 || volumeDataChannelDescriptor.GetFormat() == VolumeDataChannelDescriptor::Format_U16)
   {
-    hashCombiner.add(volumeDataChannelDescriptor.GetIntegerScale());
-    hashCombiner.add(volumeDataChannelDescriptor.GetIntegerOffset());
+    hashCombiner.Add(volumeDataChannelDescriptor.GetIntegerScale());
+    hashCombiner.Add(volumeDataChannelDescriptor.GetIntegerOffset());
   }
 
-  hashCombiner.add(volumeDataChannelDescriptor.IsUseNoValue());
+  hashCombiner.Add(volumeDataChannelDescriptor.IsUseNoValue());
 
   if(volumeDataChannelDescriptor.IsUseNoValue() && isReplaceNoValue)
   {
-    hashCombiner.add(replacementNoValue);
+    hashCombiner.Add(replacementNoValue);
   }
 
-  return hashCombiner.getCombinedHash();
+  return hashCombiner.GetCombinedHash();
 }
 
-bool VolumeDataLayer::isUseNoValue() const
+bool VolumeDataLayer::IsUseNoValue() const
 {
   return m_volumeDataLayout->IsChannelUseNoValue(m_channel);
 }
 
-float VolumeDataLayer::getNoValue() const
+float VolumeDataLayer::GetNoValue() const
 {
   return m_volumeDataLayout->GetChannelNoValue(m_channel);
 }
@@ -247,13 +247,13 @@ static bool CompressionMethod_IsWavelet(CompressionMethod compressionMethod)
          compressionMethod == CompressionMethod::WaveletNormalizeBlockLossless;
 }
 
-CompressionMethod VolumeDataLayer::getEffectiveCompressionMethod() const
+CompressionMethod VolumeDataLayer::GetEffectiveCompressionMethod() const
 {
-  auto &channelDescriptor = m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel);
+  auto &channelDescriptor = m_volumeDataLayout->GetVolumeDataChannelDescriptor(m_channel);
 
-  if(!channelDescriptor.IsAllowLossyCompression() && CompressionMethod_IsWavelet(m_volumeDataLayout->getCompressionMethod()))
+  if(!channelDescriptor.IsAllowLossyCompression() && CompressionMethod_IsWavelet(m_volumeDataLayout->GetCompressionMethod()))
   {
-    if(m_volumeDataLayout->isZipLosslessChannels() || channelDescriptor.IsUseZipForLosslessCompression())
+    if(m_volumeDataLayout->IsZipLosslessChannels() || channelDescriptor.IsUseZipForLosslessCompression())
     {
       return CompressionMethod::Zip;
     }
@@ -263,8 +263,8 @@ CompressionMethod VolumeDataLayer::getEffectiveCompressionMethod() const
     }
   }
  
-  auto overallCompressionMethod = m_volumeDataLayout->getCompressionMethod();
-  if(getLOD() > 0)
+  auto overallCompressionMethod = m_volumeDataLayout->GetCompressionMethod();
+  if(GetLOD() > 0)
   {
     if(overallCompressionMethod  == CompressionMethod::WaveletLossless)
     {
@@ -278,27 +278,27 @@ CompressionMethod VolumeDataLayer::getEffectiveCompressionMethod() const
   return overallCompressionMethod;
 }
 
-float VolumeDataLayer::getEffectiveCompressionTolerance() const
+float VolumeDataLayer::GetEffectiveCompressionTolerance() const
 { 
-  auto &channelDescriptor = m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel);
+  auto &channelDescriptor = m_volumeDataLayout->GetVolumeDataChannelDescriptor(m_channel);
   //return m_volumeDataLayout->getVolumeDataChannelDescriptor(m_channel).getEffectiveCompressionTolerance(m_volumeDataLayout->m_compressionTolerance, getLOD());
   if(!channelDescriptor.IsAllowLossyCompression())
   {
     return 0.0f;
   }
 
-  float effectiveCompressionTolerance = m_volumeDataLayout->getCompressionTolerance();
+  float effectiveCompressionTolerance = m_volumeDataLayout->GetCompressionTolerance();
 
-  if(getLOD() > 0)
+  if(GetLOD() > 0)
   {
     effectiveCompressionTolerance = std::max(effectiveCompressionTolerance, 2.0f);// This means that lod 1 is never smaller than tolerance 4.0 and lod 2 8.0 ...... 0.5f);
-    effectiveCompressionTolerance *= 1 << (std::min(getLOD(), 2));
+    effectiveCompressionTolerance *= 1 << (std::min(GetLOD(), 2));
   }
 
   return effectiveCompressionTolerance;
 }
 
-int32_t VolumeDataLayer::getEffectiveWaveletAdaptiveLoadLevel(float rEffectiveCompressionTolerance, float rCompressionTolerance)
+int32_t VolumeDataLayer::GetEffectiveWaveletAdaptiveLoadLevel(float rEffectiveCompressionTolerance, float rCompressionTolerance)
 {
   assert(rEffectiveCompressionTolerance >= WAVELET_MIN_COMPRESSION_TOLERANCE);
   assert(rCompressionTolerance >= WAVELET_MIN_COMPRESSION_TOLERANCE);
@@ -308,22 +308,22 @@ int32_t VolumeDataLayer::getEffectiveWaveletAdaptiveLoadLevel(float rEffectiveCo
   return std::max(0, waveletAdaptiveLoadLevel);
 }
 
-int32_t VolumeDataLayer::getEffectiveWaveletAdaptiveLoadLevel() const
+int32_t VolumeDataLayer::GetEffectiveWaveletAdaptiveLoadLevel() const
 {
-  if(!CompressionMethod_IsWavelet(getEffectiveCompressionMethod())) return -1;
+  if(!CompressionMethod_IsWavelet(GetEffectiveCompressionMethod())) return -1;
 
   // If we have lower lods, this layer is not the base layer
   if(m_lowerLOD)
   {
-    assert(getBaseLayer().getEffectiveCompressionTolerance() == m_volumeDataLayout->getCompressionTolerance());
+    assert(GetBaseLayer().GetEffectiveCompressionTolerance() == m_volumeDataLayout->GetCompressionTolerance());
 
-    float effectiveCompressionTolerance = getEffectiveCompressionTolerance();
+    float effectiveCompressionTolerance = GetEffectiveCompressionTolerance();
 
-    assert(effectiveCompressionTolerance >= m_volumeDataLayout->getCompressionTolerance());
+    assert(effectiveCompressionTolerance >= m_volumeDataLayout->GetCompressionTolerance());
 
-    int lodAdaptiveDifference = getEffectiveWaveletAdaptiveLoadLevel(effectiveCompressionTolerance, m_volumeDataLayout->getCompressionTolerance());
+    int lodAdaptiveDifference = GetEffectiveWaveletAdaptiveLoadLevel(effectiveCompressionTolerance, m_volumeDataLayout->GetCompressionTolerance());
 
-    int adaptiveLODLevel = (m_volumeDataLayout->getWaveletAdaptiveLoadLevel() - lodAdaptiveDifference);
+    int adaptiveLODLevel = (m_volumeDataLayout->GetWaveletAdaptiveLoadLevel() - lodAdaptiveDifference);
 
     // make sure lod adaptiveness stops at same as max level of lod0
     adaptiveLODLevel = std::min(WAVELET_ADAPTIVE_LEVELS - 1 - lodAdaptiveDifference, adaptiveLODLevel);
@@ -334,20 +334,20 @@ int32_t VolumeDataLayer::getEffectiveWaveletAdaptiveLoadLevel() const
     return std::max(0, adaptiveLODLevel);
   }
 
-  return m_volumeDataLayout->getWaveletAdaptiveLoadLevel();
+  return m_volumeDataLayout->GetWaveletAdaptiveLoadLevel();
 }
 
-float VolumeDataLayer::getIntegerScale() const
+float VolumeDataLayer::GetIntegerScale() const
 {
   return m_volumeDataLayout->GetChannelIntegerScale(m_channel);
 }
 
-float VolumeDataLayer::getIntegerOffset() const
+float VolumeDataLayer::GetIntegerOffset() const
 {
   return m_volumeDataLayout->GetChannelIntegerOffset(m_channel);
 }
 
-void VolumeDataLayer::setProduceStatus(ProduceStatus produceStatus)
+void VolumeDataLayer::GetProduceStatus(ProduceStatus produceStatus)
 {
   m_produceStatus = produceStatus;
 }

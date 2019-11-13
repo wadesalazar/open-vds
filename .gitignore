@@ -2,6 +2,7 @@
 Builds
 Dist
 CMakeSettings.json
+CMakeLists.txt.user
 python/.eggs
 python/_skbuild
 python/**/*.pyd

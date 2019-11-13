@@ -37,7 +37,7 @@ struct RLEHeader
 };
 
 template<class T>
-static uint64_t rle_Pack(T value)
+static uint64_t RlePack(T value)
 {
   uint16_t packed16;
   uint32_t packed32;
@@ -75,7 +75,7 @@ static uint64_t rle_Pack(T value)
 
 
 template <typename T>
-int32_t RLE_Decompress(uint8_t *target_parameter, int32_t nTargetSize, uint8_t *source)
+int32_t RleDecompress(uint8_t *target_parameter, int32_t nTargetSize, uint8_t *source)
 {
   RLEHeader * rleHeader = (RLEHeader *)source;
 
@@ -138,7 +138,7 @@ int32_t RLE_Decompress(uint8_t *target_parameter, int32_t nTargetSize, uint8_t *
 
         assert(!((int64_t)target & (sizeof(T) - 1)));
 
-        uint64_t packedValue = rle_Pack(t0);
+        uint64_t packedValue = RlePack(t0);
 
         while (runLength >= jafs)
         {
@@ -161,7 +161,7 @@ int32_t RLE_Decompress(uint8_t *target_parameter, int32_t nTargetSize, uint8_t *
 
   return rleHeader->originalSize;
 }
-int32_t rle_Decompress(uint8_t *target, int32_t targetSize, uint8_t *source)
+int32_t RleDecompress(uint8_t *target, int32_t targetSize, uint8_t *source)
 {
   RLEHeader *rleHeader = (RLEHeader *)source;
 
@@ -170,16 +170,16 @@ int32_t rle_Decompress(uint8_t *target, int32_t targetSize, uint8_t *source)
   switch (rleHeader->rleUnitSize)
   {
     case 1:
-      return RLE_Decompress<uint8_t>(target, targetSize, source);
+      return RleDecompress<uint8_t>(target, targetSize, source);
 
     case 2:
-      return RLE_Decompress<uint16_t>(target, targetSize, source);
+      return RleDecompress<uint16_t>(target, targetSize, source);
 
     case 4:
-      return RLE_Decompress<uint32_t>(target, targetSize, source);
+      return RleDecompress<uint32_t>(target, targetSize, source);
 
     case 8:
-      return RLE_Decompress<uint64_t>(target, targetSize, source);
+      return RleDecompress<uint64_t>(target, targetSize, source);
 
     default:
       assert(("Unsupported unit size"));

@@ -40,19 +40,19 @@ VDSHandle* Open(IOManager *ioManager, Error& error)
   std::unique_ptr<VDSHandle> ret(new VDSHandle(ioManager));
 
   error = Error();
-  if (!downloadAndParseVolumeDataLayoutAndLayerStatus(*ret.get(), error))
+  if (!DownloadAndParseVolumeDataLayoutAndLayerStatus(*ret.get(), error))
   {
     return nullptr;
   }
-  ret->dataAccessManager.reset(new VolumeDataAccessManagerImpl(*ret.get()));
-  ret->requestProcessor.reset(new VolumeDataRequestProcessor(*ret->dataAccessManager.get()));
+  ret->DataAccessManager.reset(new VolumeDataAccessManagerImpl(*ret.get()));
+  ret->RequestProcessor.reset(new VolumeDataRequestProcessor(*ret->DataAccessManager.get()));
   return ret.release();
 }
 
 VDSHandle *Open(const OpenOptions &options, Error &error)
 {
   error = Error();
-  IOManager* ioManager = IOManager::createIOManager(options, error);
+  IOManager* ioManager = IOManager::CreateIOManager(options, error);
   if (error.Code)
     return nullptr;
 
@@ -63,26 +63,26 @@ VolumeDataLayout *GetLayout(VDSHandle *handle)
 {
   if (!handle)
     return nullptr;
-  return handle->volumeDataLayout.get();
+  return handle->VolumeDataLayout.get();
 }
 
 VolumeDataAccessManager *GetDataAccessManager(VDSHandle *handle)
 {
   if (!handle)
     return nullptr;
-  return handle->dataAccessManager.get();
+  return handle->DataAccessManager.get();
 }
 
-const char *addDescriptorString(std::string const &descriptorString, VDSHandle &handle)
+const char *AddDescriptorString(std::string const &descriptorString, VDSHandle &handle)
 {
   char *data = new char[descriptorString.size() + 1];
   memcpy(data, descriptorString.data(), descriptorString.size());
   data[descriptorString.size()] = 0;
-  handle.descriptorStrings.emplace_back(data);
+  handle.DescriptorStrings.emplace_back(data);
   return data;
 }
 
-static int32_t getInternalCubeSizeLOD0(const VolumeDataLayoutDescriptor &desc)
+static int32_t GetInternalCubeSizeLOD0(const VolumeDataLayoutDescriptor &desc)
 {
   int32_t size = int32_t(1) << desc.GetBrickSize();
 
@@ -94,61 +94,61 @@ static int32_t getInternalCubeSizeLOD0(const VolumeDataLayoutDescriptor &desc)
   return size;
 }
 
-static int32_t getLODCount(const VolumeDataLayoutDescriptor &desc)
+static int32_t GetLODCount(const VolumeDataLayoutDescriptor &desc)
 {
   return desc.GetLODLevels() + 1;
 }
 
-std::string getLayerName(VolumeDataLayer const &volumeDataLayer)
+std::string GetLayerName(VolumeDataLayer const &volumeDataLayer)
 {
-  if(volumeDataLayer.getChannelIndex() == 0)
+  if(volumeDataLayer.GetChannelIndex() == 0)
   {
-    return fmt::format("{}LOD{}", DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getChunkDimensionGroup()), volumeDataLayer.getLOD());
+    return fmt::format("{}LOD{}", DimensionGroupUtil::GetDimensionGroupName(volumeDataLayer.GetChunkDimensionGroup()), volumeDataLayer.GetLOD());
   }
   else
   {
-    assert(std::string(volumeDataLayer.getVolumeDataChannelDescriptor().GetName()) != "");
-    return fmt::format("{}{}LOD{}", volumeDataLayer.getVolumeDataChannelDescriptor().GetName(), DimensionGroupUtil::getDimensionGroupName(volumeDataLayer.getPrimaryChannelLayer().getChunkDimensionGroup()), volumeDataLayer.getLOD());
+    assert(std::string(volumeDataLayer.GetVolumeDataChannelDescriptor().GetName()) != "");
+    return fmt::format("{}{}LOD{}", volumeDataLayer.GetVolumeDataChannelDescriptor().GetName(), DimensionGroupUtil::GetDimensionGroupName(volumeDataLayer.GetPrimaryChannelLayer().GetChunkDimensionGroup()), volumeDataLayer.GetLOD());
   }
 }
 
-MetadataManager *findMetadataManager(LayerMetadataContainer const &layerMetadataContainer, std::string const &layerName)
+MetadataManager *FindMetadataManager(LayerMetadataContainer const &layerMetadataContainer, std::string const &layerName)
 {
   std::unique_lock<std::mutex> metadataManagersMutexLock(layerMetadataContainer.mutex);
   auto it = layerMetadataContainer.managers.find(layerName);
   return (it != layerMetadataContainer.managers.end()) ? it->second.get() : nullptr;
 }
 
-MetadataManager *createMetadataManager(VDSHandle &handle, std::string const &layerName, MetadataStatus const &metadataStatus)
+MetadataManager *CreateMetadataManager(VDSHandle &handle, std::string const &layerName, MetadataStatus const &metadataStatus)
 {
-  std::unique_lock<std::mutex> metadataManagersMutexLock(handle.layerMetadataContainer.mutex);
+  std::unique_lock<std::mutex> metadataManagersMutexLock(handle.LayerMetadataContainer.mutex);
 
-  assert(handle.layerMetadataContainer.managers.find(layerName) == handle.layerMetadataContainer.managers.end());
-  int pageLimit = handle.axisDescriptors.size() <= 3 ? 64 : 1024;
-  return handle.layerMetadataContainer.managers.insert(std::make_pair(layerName, std::unique_ptr<MetadataManager>(new MetadataManager(handle.ioManager.get(), layerName, metadataStatus, pageLimit)))).first->second.get();
+  assert(handle.LayerMetadataContainer.managers.find(layerName) == handle.LayerMetadataContainer.managers.end());
+  int pageLimit = handle.AxisDescriptors.size() <= 3 ? 64 : 1024;
+  return handle.LayerMetadataContainer.managers.insert(std::make_pair(layerName, std::unique_ptr<MetadataManager>(new MetadataManager(handle.IoManager.get(), layerName, metadataStatus, pageLimit)))).first->second.get();
 }
 
-void createVolumeDataLayout(VDSHandle &handle)
+void CreateVolumeDataLayout(VDSHandle &handle)
 {
   //handle.volumeDataLayout.reset(new VolumeDataLayout(handle.channelDescriptors)
-  int32_t dimensionality = int32_t(handle.axisDescriptors.size());
+  int32_t dimensionality = int32_t(handle.AxisDescriptors.size());
 
   // Check if input layouts are valid so we can create a new layout
   if (dimensionality < 2)
   {
-    handle.volumeDataLayout.reset();
+    handle.VolumeDataLayout.reset();
     return;
   }
 
-  handle.volumeDataLayout.reset(
+  handle.VolumeDataLayout.reset(
     new VolumeDataLayoutImpl(
       handle,
-      handle.layoutDescriptor,
-      handle.axisDescriptors,
-      handle.channelDescriptors,
+      handle.LayoutDescriptor,
+      handle.AxisDescriptors,
+      handle.ChannelDescriptors,
       0, //MIA for now
       { 1, 0 }, //MIA for now
-      VolumeDataHash::getUniqueHash(),
+      VolumeDataHash::GetUniqueHash(),
       CompressionMethod::None,
       0,
       false,
@@ -158,10 +158,10 @@ void createVolumeDataLayout(VDSHandle &handle)
   {
     DimensionGroup dimensionGroup = (DimensionGroup)dimensionGroupIndex;
 
-    int32_t nChunkDimensionality = DimensionGroupUtil::getDimensionality(dimensionGroup);
+    int32_t nChunkDimensionality = DimensionGroupUtil::GetDimensionality(dimensionGroup);
 
         // Check if highest dimension in chunk is higher than the highest dimension in the dataset or 1D
-    if(DimensionGroupUtil::getDimension(dimensionGroup, nChunkDimensionality - 1) >= dimensionality ||
+    if(DimensionGroupUtil::GetDimension(dimensionGroup, nChunkDimensionality - 1) >= dimensionality ||
        nChunkDimensionality == 1)
     {
       continue;
@@ -169,10 +169,10 @@ void createVolumeDataLayout(VDSHandle &handle)
 
     assert(nChunkDimensionality == 2 || nChunkDimensionality == 3);
 
-    int32_t physicalLODLevels = (nChunkDimensionality == 3 || handle.layoutDescriptor.IsCreate2DLODs()) ? getLODCount(handle.layoutDescriptor) : 1;
-    int32_t brickSize = getInternalCubeSizeLOD0(handle.layoutDescriptor) * (nChunkDimensionality == 2 ? handle.layoutDescriptor.GetBrickSizeMultiplier2D() : 1);
+    int32_t physicalLODLevels = (nChunkDimensionality == 3 || handle.LayoutDescriptor.IsCreate2DLODs()) ? GetLODCount(handle.LayoutDescriptor) : 1;
+    int32_t brickSize = GetInternalCubeSizeLOD0(handle.LayoutDescriptor) * (nChunkDimensionality == 2 ? handle.LayoutDescriptor.GetBrickSizeMultiplier2D() : 1);
 
-    handle.volumeDataLayout->createLayers(dimensionGroup, brickSize, physicalLODLevels, handle.produceStatuses[DimensionGroupUtil::getDimensionsNDFromDimensionGroup(dimensionGroup)]);
+    handle.VolumeDataLayout->CreateLayers(dimensionGroup, brickSize, physicalLODLevels, handle.ProduceStatuses[DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(dimensionGroup)]);
   }
 }
 
@@ -181,11 +181,11 @@ VDSHandle* Create(IOManager *ioManager, VolumeDataLayoutDescriptor const &layout
   error = Error();
   std::unique_ptr<VDSHandle> handle(new VDSHandle(ioManager));
 
-  handle->layoutDescriptor = layoutDescriptor;
+  handle->LayoutDescriptor = layoutDescriptor;
 
   for(auto axisDescriptor : axisDescriptors)
   {
-    handle->axisDescriptors.push_back(VolumeDataAxisDescriptor(axisDescriptor.GetNumSamples(), addDescriptorString(axisDescriptor.GetName(), *handle), addDescriptorString(axisDescriptor.GetUnit(), *handle), axisDescriptor.GetCoordinateMin(), axisDescriptor.GetCoordinateMax()));
+    handle->AxisDescriptors.push_back(VolumeDataAxisDescriptor(axisDescriptor.GetNumSamples(), AddDescriptorString(axisDescriptor.GetName(), *handle), AddDescriptorString(axisDescriptor.GetUnit(), *handle), axisDescriptor.GetCoordinateMin(), axisDescriptor.GetCoordinateMax()));
   }
 
   for(auto channelDescriptor : channelDescriptors)
@@ -199,29 +199,29 @@ VDSHandle* Create(IOManager *ioManager, VolumeDataLayoutDescriptor const &layout
 
     if(channelDescriptor.IsUseNoValue())
     {
-      handle->channelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.GetFormat(), channelDescriptor.GetComponents(), addDescriptorString(channelDescriptor.GetName(), *handle), addDescriptorString(channelDescriptor.GetUnit(), *handle), channelDescriptor.GetValueRangeMin(), channelDescriptor.GetValueRangeMax(), channelDescriptor.GetMapping(), channelDescriptor.GetMappedValueCount(), flags, channelDescriptor.GetNoValue(), channelDescriptor.GetIntegerScale(), channelDescriptor.GetIntegerOffset()));
+      handle->ChannelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.GetFormat(), channelDescriptor.GetComponents(), AddDescriptorString(channelDescriptor.GetName(), *handle), AddDescriptorString(channelDescriptor.GetUnit(), *handle), channelDescriptor.GetValueRangeMin(), channelDescriptor.GetValueRangeMax(), channelDescriptor.GetMapping(), channelDescriptor.GetMappedValueCount(), flags, channelDescriptor.GetNoValue(), channelDescriptor.GetIntegerScale(), channelDescriptor.GetIntegerOffset()));
     }
     else
     {
-      handle->channelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.GetFormat(), channelDescriptor.GetComponents(), addDescriptorString(channelDescriptor.GetName(), *handle), addDescriptorString(channelDescriptor.GetUnit(), *handle), channelDescriptor.GetValueRangeMin(), channelDescriptor.GetValueRangeMax(), channelDescriptor.GetMapping(), channelDescriptor.GetMappedValueCount(), flags, channelDescriptor.GetIntegerScale(), channelDescriptor.GetIntegerOffset()));
+      handle->ChannelDescriptors.push_back(VolumeDataChannelDescriptor(channelDescriptor.GetFormat(), channelDescriptor.GetComponents(), AddDescriptorString(channelDescriptor.GetName(), *handle), AddDescriptorString(channelDescriptor.GetUnit(), *handle), channelDescriptor.GetValueRangeMin(), channelDescriptor.GetValueRangeMax(), channelDescriptor.GetMapping(), channelDescriptor.GetMappedValueCount(), flags, channelDescriptor.GetIntegerScale(), channelDescriptor.GetIntegerOffset()));
     }
   }
 
-  handle->metadataContainer = metadataContainer;
+  handle->MetadataContainer = metadataContainer;
 
-  handle->produceStatuses.clear();
-  handle->produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
+  handle->ProduceStatuses.clear();
+  handle->ProduceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
 
-  createVolumeDataLayout(*handle);
+  CreateVolumeDataLayout(*handle);
 
   if (error.Code)
     return nullptr;
 
-  if (!serializeAndUploadVolumeDataLayout(*handle, error))
+  if (!SerializeAndUploadVolumeDataLayout(*handle, error))
     return nullptr;
 
-  handle->dataAccessManager.reset(new VolumeDataAccessManagerImpl(*handle.get()));
-  handle->requestProcessor.reset(new VolumeDataRequestProcessor(*handle->dataAccessManager.get()));
+  handle->DataAccessManager.reset(new VolumeDataAccessManagerImpl(*handle.get()));
+  handle->RequestProcessor.reset(new VolumeDataRequestProcessor(*handle->DataAccessManager.get()));
 
   return handle.release();
 }
@@ -229,7 +229,7 @@ VDSHandle* Create(IOManager *ioManager, VolumeDataLayoutDescriptor const &layout
 VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const& axisDescriptors, std::vector<VolumeDataChannelDescriptor> const& channelDescriptors, MetadataContainer const& metadataContainer, Error& error)
 {
   error = Error();
-  IOManager* ioManager = IOManager::createIOManager(options, error);
+  IOManager* ioManager = IOManager::CreateIOManager(options, error);
   if (error.Code)
     return nullptr;
 

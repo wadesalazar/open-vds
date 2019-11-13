@@ -104,31 +104,31 @@ namespace OpenVDS
     MetadataPageList m_pageList;
     MetadataPageList m_dirtyPageList;
 
-    void limitPages();
+    void LimitPages();
   public:
-    MetadataManager(IOManager *iomanager, std::string const &layerURL, MetadataStatus const &metadataStatus, int pageLimit);
+    MetadataManager(IOManager *iomanager, std::string const &layerURL, MetadataStatus const &MetadataStatus, int pageLimit);
     ~MetadataManager();
 
-    const char *layerUrl() const { return m_layerUrl.c_str(); }
-    const std::string &layerUrlStr() const { return m_layerUrl; }
+    const char *LayerUrl() const { return m_layerUrl.c_str(); }
+    const std::string &LayerUrlStr() const { return m_layerUrl; }
 
-    MetadataPage *lockPage(int pageIndex, bool *initiateTransfer);
+    MetadataPage *LockPage(int pageIndex, bool *InitiateTransfer);
 
-    void initPage(MetadataPage* page);
+    void InitPage(MetadataPage* page);
 
-    void pageTransferError(MetadataPage *page, const char *msg);
+    void PageTransferError(MetadataPage *page, const char *msg);
 
-    void pageTransferCompleted(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::vector<uint8_t>&& data);
+    void PageTransferCompleted(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::vector<uint8_t>&& data);
 
-    void initiateTransfer(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::string const& url, bool verbose);
-    void uploadDirtyPages(VolumeDataAccessManagerImpl* accessManager);
+    void InitiateTransfer(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::string const& url, bool verbose);
+    void UploadDirtyPages(VolumeDataAccessManagerImpl* accessManager);
 
-    uint8_t const *getPageEntry(MetadataPage *page, int entry) const;
-    void setPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength);
+    uint8_t const *GetPageEntry(MetadataPage *page, int entry) const;
+    void SetPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength);
 
-    void unlockPage(MetadataPage *page);
+    void UnlockPage(MetadataPage *page);
 
-    MetadataStatus const &metadataStatus() const { return m_metadataStatus; }
+    MetadataStatus const &GetMetadataStatus() const { return m_metadataStatus; }
   };
 }
 

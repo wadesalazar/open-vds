@@ -23,7 +23,7 @@
 namespace OpenVDS
 {
 
-int32_t rle_Decompress(uint8_t *target, int32_t targetSize, uint8_t* source);
+int32_t RleDecompress(uint8_t *target, int32_t targetSize, uint8_t* source);
 
 }
 

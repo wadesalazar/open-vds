@@ -76,11 +76,11 @@ class VolumeDataRequestProcessor
 public:
   VolumeDataRequestProcessor(VolumeDataAccessManagerImpl &manager);
 
-  int64_t addJob(const std::vector<VolumeDataChunk> &chunks, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &volumeDataChunk, Error &error)> processor);
-  bool  isCompleted(int64_t requestID);
-  bool  isCanceled(int64_t requestID);
-  bool  waitForCompletion(int64_t requestID, int millisecondsBeforeTimeout = 0);
-  void  cancel(int64_t requestID);
+  int64_t AddJob(const std::vector<VolumeDataChunk> &chunks, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &volumeDataChunk, Error &error)> processor);
+  bool  IsCompleted(int64_t requestID);
+  bool  IsCanceled(int64_t requestID);
+  bool  WaitForCompletion(int64_t requestID, int millisecondsBeforeTimeout = 0);
+  void  Cancel(int64_t requestID);
 
 private:
   VolumeDataAccessManagerImpl &m_manager;

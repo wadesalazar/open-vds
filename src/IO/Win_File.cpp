@@ -35,7 +35,7 @@ static void s2ws(const std::string& source, std::wstring& target)
   MultiByteToWideChar(CP_UTF8, 0, source.c_str(), slength, &target[0], len);
 }
 
-static std::string error_to_string(DWORD error)
+static std::string ErrorToString(DWORD error)
 {
   LPVOID lpMsgBuf;
 
@@ -52,37 +52,37 @@ static std::string error_to_string(DWORD error)
   return ret;
 }
 
-static void set_io_error(DWORD error, IOError &io_error)
+static void SetIoError(DWORD error, IOError &io_error)
 {
   io_error.code = error;
-  io_error.string = error_to_string(error);
+  io_error.string = ErrorToString(error);
 }
 
 template<size_t N>
-void set_io_error(DWORD error, const char (&error_string_prefix)[N], IOError &io_error)
+void SetIoError(DWORD error, const char (&error_string_prefix)[N], IOError &io_error)
 {
   io_error.code = error;
-  io_error.string = std::string(error_string_prefix, N) + error_to_string(error);
+  io_error.string = std::string(error_string_prefix, N) + ErrorToString(error);
 }
 
-bool FileView::SystemFileMappingObject::open(SystemFileMappingObject** ppcFileMappingObject, File& file, IOError& error)
+bool FileView::SystemFileMappingObject::Open(SystemFileMappingObject** ppcFileMappingObject, File& file, IOError& error)
 {
   assert(ppcFileMappingObject && !*ppcFileMappingObject);
 
   HANDLE
-    hFile = file.handle();
+    hFile = file.Handle();
 
   *ppcFileMappingObject = reinterpret_cast<SystemFileMappingObject*>(CreateFileMapping(hFile, NULL, PAGE_READONLY, 0, 0, NULL));
 
   if (!*ppcFileMappingObject)
   {
-    set_io_error(GetLastError(), error);
+    SetIoError(GetLastError(), error);
     return false;
   }
   return true;
 }
 
-void FileView::SystemFileMappingObject::close(SystemFileMappingObject** ppcFileMappingObject)
+void FileView::SystemFileMappingObject::Close(SystemFileMappingObject** ppcFileMappingObject)
 {
   assert(ppcFileMappingObject && *ppcFileMappingObject);
 
@@ -108,8 +108,7 @@ class SystemFileView : public FileView
 
   LPVOID                m_lpBaseAddress;
 
-  static DWORD
-    staticPageSize()
+  static DWORD StaticPageSize()
   {
     SYSTEM_INFO
       siSysInfo;
@@ -119,7 +118,7 @@ class SystemFileView : public FileView
     return siSysInfo.dwAllocationGranularity;
   }
 
-  static PrefetchVirtualMemory_pf staticGetPrefetchVirtualMemoryProcAddress()
+  static PrefetchVirtualMemory_pf StaticGetPrefetchVirtualMemoryProcAddress()
   {
     HMODULE hKernel32 = LoadLibraryW(L"Kernel32");
     if (!hKernel32)
@@ -152,13 +151,13 @@ public:
     {
       m_pData = NULL;
 
-      set_io_error(GetLastError(), error);
+      SetIoError(GetLastError(), error);
       return;
     }
 
     if (isPopulate)
     {
-      prefetch(m_pData, m_nSize, error);
+      Prefetch(m_pData, m_nSize, error);
     }
   }
 
@@ -175,7 +174,7 @@ public:
     }
   }
 
-  bool prefetch(const void* pData, int64_t nSize, IOError &error ) const override
+  bool Prefetch(const void* pData, int64_t nSize, IOError &error ) const override
   {
     if (!s_pfPrefetchVirtualMemory)
     {
@@ -198,7 +197,7 @@ public:
 
     if (!isSuccess)
     {
-      set_io_error(GetLastError(), error);
+      SetIoError(GetLastError(), error);
       return false;
     }
 
@@ -206,10 +205,10 @@ public:
   }
 };
 
-SystemFileView::PrefetchVirtualMemory_pf SystemFileView::s_pfPrefetchVirtualMemory = staticGetPrefetchVirtualMemoryProcAddress();
-DWORD SystemFileView::s_dwPageSize = SystemFileView::staticPageSize();
+SystemFileView::PrefetchVirtualMemory_pf SystemFileView::s_pfPrefetchVirtualMemory = StaticGetPrefetchVirtualMemoryProcAddress();
+DWORD SystemFileView::s_dwPageSize = SystemFileView::StaticPageSize();
 
-bool File::exists(const std::string& filename)
+bool File::Exists(const std::string& filename)
 {
   std::wstring native_name;
   s2ws(filename, native_name);
@@ -219,9 +218,9 @@ bool File::exists(const std::string& filename)
   return (result != INVALID_FILE_ATTRIBUTES) && ((result & FILE_ATTRIBUTE_DIRECTORY) == 0);
 }
 
-bool File::open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError& error)
+bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError& error)
 {
-  assert(!isOpen());
+  assert(!IsOpen());
   assert(!isDestroyExisting || isCreate);
   assert(!isCreate || isWriteAccess || !"it is meaningless to demand creation with RO access");
   assert(!_pxPlatformHandle || ("RawFileAccess_c::Open: file already open"));
@@ -243,7 +242,7 @@ bool File::open(const std::string& filename, bool isCreate, bool isDestroyExisti
 
   if (_pxPlatformHandle == INVALID_HANDLE_VALUE)
   {
-    set_io_error(GetLastError(), "File::Open: ", error);
+    SetIoError(GetLastError(), "File::Open: ", error);
 
     _pxPlatformHandle = 0;
     _cFileName.clear();
@@ -255,9 +254,9 @@ bool File::open(const std::string& filename, bool isCreate, bool isDestroyExisti
   return true;
 }
 
-void File::close()
+void File::Close()
 {
-  assert(isOpen());
+  assert(IsOpen());
 
   CloseHandle(_pxPlatformHandle);
 
@@ -265,20 +264,20 @@ void File::close()
   _cFileName.clear();
 }
 
-int64_t File::size(IOError& error) const
+int64_t File::Size(IOError& error) const
 {
   LARGE_INTEGER
     li;
 
   if (!GetFileSizeEx(_pxPlatformHandle, &li))
   {
-    set_io_error(GetLastError(), "GetFileSizeEx: ", error);
+    SetIoError(GetLastError(), "GetFileSizeEx: ", error);
     return -1;
   }
   return int64_t(li.QuadPart);
 }
 
-bool File::read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const
+bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const
 {
   assert(nOffset >= 0);
 
@@ -306,7 +305,7 @@ bool File::read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) 
 
     if (uLastError != ERROR_IO_PENDING)
     {
-      set_io_error(uLastError, "ReadSync::ReadFile: ", error);
+      SetIoError(uLastError, "ReadSync::ReadFile: ", error);
     }
     else
     {
@@ -317,7 +316,7 @@ bool File::read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) 
 
       if (!isOKGetOverlappedResult)
       {
-        set_io_error(GetLastError(), "ReadSync::GetOverlappedResult: ", error);
+        SetIoError(GetLastError(), "ReadSync::GetOverlappedResult: ", error);
       }
 
       isOK = isOKGetOverlappedResult;
@@ -327,7 +326,7 @@ bool File::read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) 
   return isOK;
 }
 
-bool File::write(const void* pxData, int64_t nOffset, int32_t nLength, IOError & error)
+bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, IOError & error)
 {
   assert(nOffset >= 0);
 
@@ -362,7 +361,7 @@ bool File::write(const void* pxData, int64_t nOffset, int32_t nLength, IOError &
 
     if (uLastError != ERROR_IO_PENDING)
     {
-      set_io_error(uLastError, "WriteSync::WriteFile: ", error);
+      SetIoError(uLastError, "WriteSync::WriteFile: ", error);
     }
     else
     {
@@ -373,7 +372,7 @@ bool File::write(const void* pxData, int64_t nOffset, int32_t nLength, IOError &
 
       if (!isOKGetOverlappedResult)
       {
-        set_io_error(GetLastError(), "WriteSync::GetOverlappedResult: ", error);
+        SetIoError(GetLastError(), "WriteSync::GetOverlappedResult: ", error);
       }
 
       isOK = isOKGetOverlappedResult;
@@ -383,7 +382,7 @@ bool File::write(const void* pxData, int64_t nOffset, int32_t nLength, IOError &
   return isOK;
 }
 
-bool File::flush()
+bool File::Flush()
 {
   if (!_isWriteable)
     return false;
@@ -392,17 +391,17 @@ bool File::flush()
   return isOK;
 }
 
-FileView *File::createFileView(int64_t nPos, int64_t nSize, bool isPopulate, IOError &error)
+FileView *File::CreateFileView(int64_t nPos, int64_t nSize, bool isPopulate, IOError &error)
 {
   if(!m_pFileMappingObject)
   {
-    if (!FileView::SystemFileMappingObject::open(&m_pFileMappingObject, *this, error))
+    if (!FileView::SystemFileMappingObject::Open(&m_pFileMappingObject, *this, error))
       return nullptr;
   }
   FileView *ret = new SystemFileView(m_pFileMappingObject, nPos, nSize, isPopulate, error);
   if (error.code)
   {
-    bool deleted = FileView::removeReference(ret);
+    bool deleted = FileView::RemoveReference(ret);
     assert(deleted);
     ret = nullptr;
   }

@@ -48,45 +48,45 @@ VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerIm
   
 VolumeDataLayout const* VolumeDataPageAccessorImpl::GetLayout() const
 {
-  return m_layer->getLayout();
+  return m_layer->GetLayout();
 }
 
 int VolumeDataPageAccessorImpl::GetLOD() const
 {
-  return m_layer->getLOD();
+  return m_layer->GetLOD();
 }
 
 int VolumeDataPageAccessorImpl::GetChannelIndex() const
 {
-  return m_layer->getChannelIndex();
+  return m_layer->GetChannelIndex();
 }
 
 VolumeDataChannelDescriptor const& VolumeDataPageAccessorImpl::GetChannelDescriptor() const
 {
-  return m_layer->getVolumeDataChannelDescriptor();
+  return m_layer->GetVolumeDataChannelDescriptor();
 }
 
 void  VolumeDataPageAccessorImpl::GetNumSamples(int(&numSamples)[Dimensionality_Max]) const
 {
   for (int i = 0; i < Dimensionality_Max; i++)
   {
-    numSamples[i] = m_layer->getDimensionNumSamples(i);
+    numSamples[i] = m_layer->GetDimensionNumSamples(i);
   }
 }
 
 int64_t VolumeDataPageAccessorImpl::GetChunkCount() const
 {
-  return m_layer->getTotalChunkCount();
+  return m_layer->GetTotalChunkCount();
 }
 
 void  VolumeDataPageAccessorImpl::GetChunkMinMax(int64_t chunk, int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const
 {
-  m_layer->getChunkMinMax(chunk, min, max, true);
+  m_layer->GetChunkMinMax(chunk, min, max, true);
 }
 
 void  VolumeDataPageAccessorImpl::GetChunkMinMaxExcludingMargin(int64_t chunk, int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const
 {
-  m_layer->getChunkMinMax(chunk, min, max, false);
+  m_layer->GetChunkMinMax(chunk, min, max, false);
 }
 
 int64_t VolumeDataPageAccessorImpl::GetChunkIndex(const int(&position)[Dimensionality_Max]) const
@@ -94,9 +94,9 @@ int64_t VolumeDataPageAccessorImpl::GetChunkIndex(const int(&position)[Dimension
   int32_t index_array[Dimensionality_Max];
   for (int i = 0; i < Dimensionality_Max; i++)
   {
-    index_array[i] = m_layer->voxelToIndex(position[i], i);
+    index_array[i] = m_layer->VoxelToIndex(position[i], i);
   }
-  return m_layer->indexArrayToChunkIndex(index_array); 
+  return m_layer->IndexArrayToChunkIndex(index_array);
 }
 
 int VolumeDataPageAccessorImpl::AddReference()
@@ -119,7 +119,7 @@ void VolumeDataPageAccessorImpl::SetMaxPages(int maxPages)
 {
   std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
   m_maxPages = maxPages;
-  limitPageListSize(m_maxPages, pageListMutexLock);
+  LimitPageListSize(m_maxPages, pageListMutexLock);
 }
 
 VolumeDataPage* VolumeDataPageAccessorImpl::CreatePage(int64_t chunk)
@@ -131,13 +131,13 @@ VolumeDataPage* VolumeDataPageAccessorImpl::CreatePage(int64_t chunk)
     return nullptr;
   }
 
-  if (m_layer->getProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
+  if (m_layer->GetProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
   {
     fprintf(stderr, "The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)");
     return nullptr;
   }
 
-  auto page_it = std::find_if(m_pages.begin(), m_pages.end(), [chunk](VolumeDataPageImpl *page)->bool { return page->getChunkIndex() == chunk; });
+  auto page_it = std::find_if(m_pages.begin(), m_pages.end(), [chunk](VolumeDataPageImpl *page)->bool { return page->GetChunkIndex() == chunk; });
   if(page_it != m_pages.end())
   {
     throw std::runtime_error("Cannot create a page that already exists");
@@ -158,51 +158,51 @@ VolumeDataPage* VolumeDataPageAccessorImpl::CreatePage(int64_t chunk)
 
   m_pages.push_front(page);
 
-  assert(page->isPinned());
+  assert(page->IsPinned());
 
   Error error;
-  VolumeDataChunk volumeDataChunk = m_layer->getChunkFromIndex(chunk);
+  VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(chunk);
 
   pageListMutexLock.unlock();
 
   std::vector<uint8_t> page_data;
   DataBlock dataBlock;
-  if (!VolumeDataStore::createConstantValueDataBlock(volumeDataChunk, m_layer->getFormat(), m_layer->getNoValue(), m_layer->getComponents(), m_layer->isUseNoValue() ? VolumeDataHash::NOVALUE : VolumeDataHash(0.0f), dataBlock, page_data, error))
+  if (!VolumeDataStore::CreateConstantValueDataBlock(volumeDataChunk, m_layer->GetFormat(), m_layer->GetNoValue(), m_layer->GetComponents(), m_layer->IsUseNoValue() ? VolumeDataHash::NOVALUE : VolumeDataHash(0.0f), dataBlock, page_data, error))
   {
     pageListMutexLock.lock();
-    page->unPin();
+    page->UnPin();
     fprintf(stderr, "Failed when creating chunk: %s\n", error.String.c_str());
     return nullptr;
   }
 
   int pitch[Dimensionality_Max] = {};
 
-  for(int chunkDimension = 0; chunkDimension < m_layer->getChunkDimensionality(); chunkDimension++)
+  for(int chunkDimension = 0; chunkDimension < m_layer->GetChunkDimensionality(); chunkDimension++)
   {
-    int dimension = DimensionGroupUtil::getDimension(m_layer->getChunkDimensionGroup(), chunkDimension);
+    int dimension = DimensionGroupUtil::GetDimension(m_layer->GetChunkDimensionGroup(), chunkDimension);
 
     assert(dimension >= 0 && dimension < Dimensionality_Max);
-    pitch[dimension] = dataBlock.pitch[chunkDimension];
+    pitch[dimension] = dataBlock.Pitch[chunkDimension];
   }
 
   pageListMutexLock.lock();
-  page->setBufferData(dataBlock, pitch, std::move(page_data));
-  page->makeDirty();
+  page->SetBufferData(dataBlock, pitch, std::move(page_data));
+  page->MakeDirty();
 
   m_pageReadCondition.notify_all();
 
   if(!m_layer)
   {
-    page->unPin();
+    page->UnPin();
     page = nullptr;
   }
 
-  limitPageListSize(m_maxPages, pageListMutexLock);
+  LimitPageListSize(m_maxPages, pageListMutexLock);
 
   return page;
 }
 
-VolumeDataPage* VolumeDataPageAccessorImpl::prepareReadPage(int64_t chunk, bool *needToCallReadPreparePage)
+VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk, bool *needToCallReadPreparePage)
 {
   assert(needToCallReadPreparePage);
   *needToCallReadPreparePage = true;
@@ -213,7 +213,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::prepareReadPage(int64_t chunk, bool 
     return nullptr;
   }
 
-  if (m_layer->getProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
+  if (m_layer->GetProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
   {
     fprintf(stderr, "The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)");
     return nullptr;
@@ -221,21 +221,21 @@ VolumeDataPage* VolumeDataPageAccessorImpl::prepareReadPage(int64_t chunk, bool 
 
   for(auto page_it = m_pages.begin(); page_it != m_pages.end(); ++page_it)
   {
-    if((*page_it)->getChunkIndex() == chunk)
+    if((*page_it)->GetChunkIndex() == chunk)
     {
       if (page_it != m_pages.begin())
       {
         m_pages.splice(m_pages.begin(), m_pages, page_it, std::next(page_it));
       }
-      (*page_it)->pin();
+      (*page_it)->Pin();
 
-      while((*page_it)->isEmpty())
+      while((*page_it)->IsEmpty())
       {
         m_pageReadCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
 
         if(!m_layer)
         {
-          (*page_it)->unPin();
+          (*page_it)->UnPin();
           return nullptr;
         }
       }
@@ -261,13 +261,13 @@ VolumeDataPage* VolumeDataPageAccessorImpl::prepareReadPage(int64_t chunk, bool 
 
   m_pages.push_front(page);
 
-  assert(page->isPinned());
+  assert(page->IsPinned());
 
   Error error;
-  VolumeDataChunk volumeDataChunk = m_layer->getChunkFromIndex(chunk);
-  if (!m_accessManager->prepareReadChunkData(volumeDataChunk, true, error))
+  VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(chunk);
+  if (!m_accessManager->PrepareReadChunkData(volumeDataChunk, true, error))
   {
-    page->unPin();
+    page->UnPin();
     fprintf(stderr, "Failed to download chunk: %s\n", error.String.c_str());
     return nullptr;
   }
@@ -275,74 +275,74 @@ VolumeDataPage* VolumeDataPageAccessorImpl::prepareReadPage(int64_t chunk, bool 
   return page;
 }
 
-bool VolumeDataPageAccessorImpl::readPreparedPaged(VolumeDataPage* page)
+bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
 {
   VolumeDataPageImpl *pageImpl = static_cast<VolumeDataPageImpl *>(page);
   
   Error error;
-  VolumeDataChunk volumeDataChunk = m_layer->getChunkFromIndex(pageImpl->getChunkIndex());
+  VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(pageImpl->GetChunkIndex());
   std::vector<uint8_t> serialized_data;
   std::vector<uint8_t> metadata;
   CompressionInfo compressionInfo;
 
 
   std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex, std::defer_lock);
-  if (!m_accessManager->readChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, error))
+  if (!m_accessManager->ReadChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, error))
   {
     pageListMutexLock.lock();
-    pageImpl->unPin();
+    pageImpl->UnPin();
     fprintf(stderr, "Failed when waiting for chunk: %s\n", error.String.c_str());
     return false;
   }
 
   std::vector<uint8_t> page_data;
   DataBlock dataBlock;
-  if (!VolumeDataStore::deserializeVolumeData(volumeDataChunk, serialized_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->getFormat(), dataBlock, page_data, error))
+  if (!VolumeDataStore::DeserializeVolumeData(volumeDataChunk, serialized_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->GetFormat(), dataBlock, page_data, error))
   {
     pageListMutexLock.lock();
-    pageImpl->unPin();
+    pageImpl->UnPin();
     fprintf(stderr, "Failed when deserializing chunk: %s\n", error.String.c_str());
     return false;
   }
 
   int pitch[Dimensionality_Max] = {};
 
-  for(int chunkDimension = 0; chunkDimension < m_layer->getChunkDimensionality(); chunkDimension++)
+  for(int chunkDimension = 0; chunkDimension < m_layer->GetChunkDimensionality(); chunkDimension++)
   {
-    int dimension = DimensionGroupUtil::getDimension(m_layer->getChunkDimensionGroup(), chunkDimension);
+    int dimension = DimensionGroupUtil::GetDimension(m_layer->GetChunkDimensionGroup(), chunkDimension);
 
     assert(dimension >= 0 && dimension < Dimensionality_Max);
-    pitch[dimension] = dataBlock.pitch[chunkDimension];
+    pitch[dimension] = dataBlock.Pitch[chunkDimension];
   }
 
   pageListMutexLock.lock();
-  pageImpl->setBufferData(dataBlock, pitch, std::move(page_data));
+  pageImpl->SetBufferData(dataBlock, pitch, std::move(page_data));
   m_pagesRead++;
 
   m_pageReadCondition.notify_all();
 
   if(!m_layer)
   {
-    pageImpl->unPin();
+    pageImpl->UnPin();
     page = nullptr;
   }
 
-  limitPageListSize(m_maxPages, pageListMutexLock);
+  LimitPageListSize(m_maxPages, pageListMutexLock);
   return m_layer;
 }
 
 VolumeDataPage* VolumeDataPageAccessorImpl::ReadPage(int64_t chunk)
 {
   bool needToRead;
-  VolumeDataPage *page = prepareReadPage(chunk, &needToRead);
+  VolumeDataPage *page = PrepareReadPage(chunk, &needToRead);
   if (!page)
     return nullptr;
-  if (needToRead && !readPreparedPaged(page))
+  if (needToRead && !ReadPreparedPaged(page))
       return nullptr;
   return page;
 }
 
-void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_lock<std::mutex>& pageListMutexLock)
+void VolumeDataPageAccessorImpl::LimitPageListSize(int maxPages, std::unique_lock<std::mutex>& pageListMutexLock)
 {
   while(m_pages.size() > m_maxPages)
   {
@@ -353,7 +353,7 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
     }
 
     // Find a page to evict
-    auto page_it = std::find_if(m_pages.rbegin(), m_pages.rend(), [](VolumeDataPageImpl *page)->bool { return !page->isPinned(); });
+    auto page_it = std::find_if(m_pages.rbegin(), m_pages.rend(), [](VolumeDataPageImpl *page)->bool { return !page->IsPinned(); });
 
     if(page_it == m_pages.rend())
     {
@@ -362,7 +362,7 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
 
     VolumeDataPageImpl *page = *page_it;
 
-    if(page->isWritten())
+    if(page->IsWritten())
     {
       // Finish reading all pages currently being read
       while(1)
@@ -371,9 +371,9 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
 
         for(VolumeDataPageImpl *targetPage : m_pages)
         {
-          if(page->isCopyMarginNeeded(targetPage))
+          if(page->IsCopyMarginNeeded(targetPage))
           {
-            if(targetPage->isEmpty())
+            if(targetPage->IsEmpty())
             {
               isReadInProgress = true;
               break;
@@ -386,34 +386,34 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
           break;
         }
 
-        page->pin(); // Make sure this page isn't deleted by LimitPageListSize!
+        page->Pin(); // Make sure this page isn't deleted by LimitPageListSize!
 
         // Wait for the page getting read
         m_pageReadCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
 
-        page->unPin();
+        page->UnPin();
 
         // Check if the page was pinned while we released the mutex, we have to abort evicting this page
-        if(page->isPinned())
+        if(page->IsPinned())
         {
           break;
         }
       }
 
       // Check if the page was pinned while we released the mutex, we have to abort evicting this page
-      if(page->isPinned())
+      if(page->IsPinned())
       {
         continue;
       }
 
       // Copy margins
-      if(page->isWritten())
+      if(page->IsWritten())
       {
         for(VolumeDataPageImpl *targetPage : m_pages)
         {
-          if(page->isCopyMarginNeeded(targetPage))
+          if(page->IsCopyMarginNeeded(targetPage))
           {
-            page->copyMargin(targetPage);
+            page->CopyMargin(targetPage);
           }
         }
       }
@@ -421,9 +421,9 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
 
     m_pages.erase(std::prev(page_it.base()));
 
-    if(page->isDirty())
+    if(page->IsDirty())
     {
-      page->writeBack(m_layer, pageListMutexLock);
+      page->WriteBack(m_layer, pageListMutexLock);
       m_pagesWritten++;
     }
 
@@ -431,9 +431,9 @@ void VolumeDataPageAccessorImpl::limitPageListSize(int maxPages, std::unique_loc
   }
 }
 
-int64_t VolumeDataPageAccessorImpl::requestWritePage(int64_t chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& data)
+int64_t VolumeDataPageAccessorImpl::RequestWritePage(int64_t chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& data)
 {
-  return m_accessManager->requestWriteChunk({ m_layer, chunk }, dataBlock, data);
+  return m_accessManager->RequestWriteChunk({ m_layer, chunk }, dataBlock, data);
 }
 /////////////////////////////////////////////////////////////////////////////
 // Commit
@@ -453,7 +453,7 @@ void VolumeDataPageAccessorImpl::Commit()
   // Finish reading all pages currently being read
   for(VolumeDataPageImpl *page : m_pages)
   {
-    while(page->isEmpty())
+    while(page->IsEmpty())
     {
       // Wait for the page getting read
       m_pageReadCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
@@ -463,13 +463,13 @@ void VolumeDataPageAccessorImpl::Commit()
   // Copy all margins
   for(VolumeDataPageImpl *page : m_pages)
   {
-    if(page->isWritten())
+    if(page->IsWritten())
     {
       for(VolumeDataPageImpl *targetPage : m_pages)
       {
-        if(page->isCopyMarginNeeded(targetPage))
+        if(page->IsCopyMarginNeeded(targetPage))
         {
-          page->copyMargin(targetPage);
+          page->CopyMargin(targetPage);
         }
       }
     }
@@ -477,9 +477,9 @@ void VolumeDataPageAccessorImpl::Commit()
 
   for(VolumeDataPageImpl *page : m_pages)
   {
-    if(page->isDirty() && m_layer)
+    if(page->IsDirty() && m_layer)
     {
-      page->writeBack(m_layer, pageListMutexLock);
+      page->WriteBack(m_layer, pageListMutexLock);
       m_pagesWritten++;
     }
   }
@@ -494,7 +494,7 @@ void VolumeDataPageAccessorImpl::Commit()
   {
     // FIXME: Make sure *all* invalidates are received, this is just a stop-gap measure.
     pageListMutexLock.unlock();
-    m_layer->getLayout()->completePendingWriteChunkRequests(0);
+    m_layer->GetLayout()->CompletePendingWriteChunkRequests(0);
     m_accessManager->FlushUploadQueue();
   }
 }

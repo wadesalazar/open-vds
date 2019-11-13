@@ -31,13 +31,13 @@ Request::~Request()
 TransferDownloadHandler::~TransferDownloadHandler()
 {
 }
-void TransferDownloadHandler::handleMetadata(const std::string& key, const std::string& header)
+void TransferDownloadHandler::HandleMetadata(const std::string& key, const std::string& header)
 {
 }
 
 IOManager::~IOManager()
 {}
-IOManager* IOManager::createIOManager(const OpenOptions& options, Error &error)
+IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
 {
   switch(options.connectionType)
   {

@@ -47,7 +47,7 @@ public:
   {
   }
 
-  void handleMetadata(const std::string& key, const std::string& header) override
+  void HandleMetadata(const std::string& key, const std::string& header) override
   {
     if (key == "vdschunkmetadata")
     {
@@ -59,12 +59,12 @@ public:
     }
   }
 
-  void handleData(std::vector<uint8_t>&& data) override
+  void HandleData(std::vector<uint8_t>&& data) override
   {
     m_data = data;
   }
 
-  void completed(const Request &req, const Error & error) override
+  void Completed(const Request &req, const Error & error) override
   {
     m_error = error;
   }
@@ -100,25 +100,25 @@ struct PendingDownloadRequest
 
 inline bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
 {
-  if (a.layer->getChunkDimensionGroup() == b.layer->getChunkDimensionGroup())
+  if (a.Layer->GetChunkDimensionGroup() == b.Layer->GetChunkDimensionGroup())
   {
-    if (a.layer->getLOD() == b.layer->getLOD())
+    if (a.Layer->GetLOD() == b.Layer->GetLOD())
     {
-      if (a.layer->getChannelIndex() == b.layer->getChannelIndex())
+      if (a.Layer->GetChannelIndex() == b.Layer->GetChannelIndex())
       {
-        return a.chunkIndex < b.chunkIndex;
+        return a.Index < b.Index;
       }
       else
       {
-        return a.layer->getChannelIndex() < b.layer->getChannelIndex();
+        return a.Layer->GetChannelIndex() < b.Layer->GetChannelIndex();
       }
     }
     else
     {
-      return a.layer->getLOD() < b.layer->getLOD();
+      return a.Layer->GetLOD() < b.Layer->GetLOD();
     }
   }
-  return DimensionGroupUtil::getDimensionsNDFromDimensionGroup(a.layer->getChunkDimensionGroup()) < DimensionGroupUtil::getDimensionsNDFromDimensionGroup(b.layer->getChunkDimensionGroup());
+  return DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(a.Layer->GetChunkDimensionGroup()) < DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(b.Layer->GetChunkDimensionGroup());
 }
 
 struct PendingUploadRequest
@@ -145,12 +145,12 @@ struct PendingUploadRequest
     , completedCallback(completedCallback)
     , attempts(0)
   {
-    startNewUpload(ioManager);
+    StartNewUpload(ioManager);
   }
 
-  void startNewUpload(IOManager &ioManager)
+  void StartNewUpload(IOManager &ioManager)
   {
-    request = ioManager.uploadBinary(url, contentDispositionName, metaMap, data, completedCallback);
+    request = ioManager.UploadBinary(url, contentDispositionName, metaMap, data, completedCallback);
     attempts++;
   }
 };
@@ -171,7 +171,7 @@ public:
   VolumeDataAccessManagerImpl(VDSHandle &handle);
   ~VolumeDataAccessManagerImpl() override;
   VolumeDataLayout const *GetVolumeDataLayout() const override;
-  VolumeDataLayoutImpl const *getVolumeDataLayoutImpl() const;
+  VolumeDataLayoutImpl const *GetVolumeDataLayoutImpl() const;
   VolumeDataPageAccessor *CreateVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) override;
 
   void  DestroyVolumeDataPageAccessor(VolumeDataPageAccessor *volumeDataPageAccessor) override;
@@ -225,14 +225,14 @@ public:
   int64_t RequestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int nTraceCount, InterpolationMethod eInterpolationMethod, int iTraceDimension, float rReplacementNoValue) override;
   int64_t PrefetchVolumeChunk(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk) override;
 
-  bool prepareReadChunkData(const VolumeDataChunk& chunk, bool verbose, Error& error);
-  bool readChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
-  void pageTransferCompleted(MetadataPage* metadataPage);
-  bool writeMetadataPage(MetadataPage* metadataPage, const std::vector<uint8_t> &data);
+  bool PrepareReadChunkData(const VolumeDataChunk& chunk, bool verbose, Error& error);
+  bool ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
+  void PageTransferCompleted(MetadataPage* metadataPage);
+  bool WriteMetadataPage(MetadataPage* metadataPage, const std::vector<uint8_t> &data);
 
-  int64_t requestWriteChunk(const VolumeDataChunk &chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data);
+  int64_t RequestWriteChunk(const VolumeDataChunk &chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data);
   
-  IOManager *getIoManager() const { return m_ioManager; }
+  IOManager *GetIoManager() const { return m_ioManager; }
 
   void FlushUploadQueue() override;
   void ClearUploadErrors() override;

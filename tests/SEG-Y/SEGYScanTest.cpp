@@ -33,18 +33,18 @@ TEST(SEGYScanTest, scan)
   std::string
     fileName = TEST_DATA_PATH R"(/SEGY/TeapotDome/filt_mig.sgy)";
 
-  if(!OpenVDS::File::exists(fileName))
+  if(!OpenVDS::File::Exists(fileName))
   {
     GTEST_SKIP() << "Could not locate test data";
   }
 
-  file.open(fileName, false, false, false, error);
+  file.Open(fileName, false, false, false, error);
   EXPECT_EQ(error.code, 0);
 
   SEGYFileInfo
     fileInfo;
 
-  bool success = fileInfo.scan(file, HeaderField(189, FieldWidth::FourByte));
+  bool success = fileInfo.Scan(file, HeaderField(189, FieldWidth::FourByte));
   EXPECT_TRUE(success);
 
 

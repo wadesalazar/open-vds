@@ -30,9 +30,9 @@ namespace OpenVDS
   {
   public:
     virtual ~TransferDownloadHandler();
-    virtual void handleMetadata(const std::string &key, const std::string &header);
-    virtual void handleData(std::vector<uint8_t> &&data) = 0;
-    virtual void completed(const Request &request, const Error &error) = 0;
+    virtual void HandleMetadata(const std::string &key, const std::string &header);
+    virtual void HandleData(std::vector<uint8_t> &&data) = 0;
+    virtual void Completed(const Request &request, const Error &error) = 0;
   };
 
   class Request
@@ -40,11 +40,11 @@ namespace OpenVDS
   public:
     Request(const std::string &objectName);
     virtual ~Request();
-    virtual void waitForFinish() = 0;
-    virtual bool isDone() const = 0;
-    virtual bool isSuccess(Error &error) const = 0;
-    virtual void cancel() = 0;
-    const std::string &getObjectName() const { return m_objectName; }
+    virtual void WaitForFinish() = 0;
+    virtual bool IsDone() const = 0;
+    virtual bool IsSuccess(Error &error) const = 0;
+    virtual void Cancel() = 0;
+    const std::string &GetObjectName() const { return m_objectName; }
 
   private:
     std::string m_objectName;
@@ -60,19 +60,19 @@ namespace OpenVDS
   {
   public:
     virtual ~IOManager();
-    virtual std::shared_ptr<Request> download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
-    virtual std::shared_ptr<Request> upload(const std::string objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr) = 0;
-    std::shared_ptr<Request> uploadBinary(const std::string objectName, const std::string &contentDispositionFilename, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
+    virtual std::shared_ptr<Request> Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
+    virtual std::shared_ptr<Request> Upload(const std::string objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr) = 0;
+    std::shared_ptr<Request> UploadBinary(const std::string objectName, const std::string &contentDispositionFilename, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
     {
-      return upload(objectName, contentDispositionFilename, "application/octet-stream", metadataHeader, data, completedCallback);
+      return Upload(objectName, contentDispositionFilename, "application/octet-stream", metadataHeader, data, completedCallback);
     }
-    std::shared_ptr<Request> uploadJson(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
+    std::shared_ptr<Request> UploadJson(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
     {
-      return upload(objectName, "", "application/json", std::vector<std::pair<std::string, std::string>>(), data, completedCallback);
+      return Upload(objectName, "", "application/json", std::vector<std::pair<std::string, std::string>>(), data, completedCallback);
     }
 
 
-    static IOManager *createIOManager(const OpenOptions &options, Error &error);
+    static IOManager *CreateIOManager(const OpenOptions &options, Error &error);
   };
 
 }

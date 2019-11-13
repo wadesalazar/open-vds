@@ -3,5 +3,5 @@
 
 TEST(AzureTest, basicDownload)
 {
-  downloadObject();
+  DownloadObject();
 }

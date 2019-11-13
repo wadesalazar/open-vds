@@ -27,14 +27,14 @@
 
 namespace OpenVDS
 {
-  bool parseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error);
-  bool parseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error);
-  bool parseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error);
+  bool ParseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error);
+  bool ParseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error);
+  bool ParseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error);
 
-  Json::Value serializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayout, MetadataContainer const &metadataContainer);
-  Json::Value serializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayout, LayerMetadataContainer const &layerMetadataContainer);
+  Json::Value SerializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayout, MetadataContainer const &metadataContainer);
+  Json::Value SerializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayout, LayerMetadataContainer const &layerMetadataContainer);
 
-  std::vector<uint8_t> writeJson(Json::Value root);
+  std::vector<uint8_t> WriteJson(Json::Value root);
 }
 
 GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
@@ -48,15 +48,15 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
 
     OpenVDS::IOError error;
 
-    volumeDataLayoutFile.open(TEST_DATA_PATH "/VolumeDataLayout.json", false, false, false, error);
+    volumeDataLayoutFile.Open(TEST_DATA_PATH "/VolumeDataLayout.json", false, false, false, error);
     EXPECT_EQ(error.code, 0);
 
     int64_t
-      fileSize = volumeDataLayoutFile.size(error);
+      fileSize = volumeDataLayoutFile.Size(error);
     EXPECT_EQ(error.code, 0);
 
     serializedVolumeDataLayout.resize(fileSize);
-    volumeDataLayoutFile.read(serializedVolumeDataLayout.data(), 0, (int32_t)fileSize, error);
+    volumeDataLayoutFile.Read(serializedVolumeDataLayout.data(), 0, (int32_t)fileSize, error);
     EXPECT_EQ(error.code, 0);
   }
 
@@ -69,15 +69,15 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
 
     OpenVDS::IOError error;
 
-    layerStatusFile.open(TEST_DATA_PATH "/LayerStatus.json", false, false, false, error);
+    layerStatusFile.Open(TEST_DATA_PATH "/LayerStatus.json", false, false, false, error);
     EXPECT_EQ(error.code, 0);
 
     int64_t
-      fileSize = layerStatusFile.size(error);
+      fileSize = layerStatusFile.Size(error);
     EXPECT_EQ(error.code, 0);
 
     serializedLayerStatus.resize(fileSize);
-    layerStatusFile.read(serializedLayerStatus.data(), 0, (int32_t)fileSize, error);
+    layerStatusFile.Read(serializedLayerStatus.data(), 0, (int32_t)fileSize, error);
     EXPECT_EQ(error.code, 0);
   }
 
@@ -91,24 +91,24 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
   error = OpenVDS::Error();
 
   // Parse volume data layout
-  OpenVDS::parseVolumeDataLayout(serializedVolumeDataLayout, handle, error);
+  OpenVDS::ParseVolumeDataLayout(serializedVolumeDataLayout, handle, error);
   EXPECT_EQ(error.Code, 0);
 
   // Parse layer status
-  OpenVDS::parseLayerStatus(serializedLayerStatus, handle, error);
+  OpenVDS::ParseLayerStatus(serializedLayerStatus, handle, error);
   EXPECT_EQ(error.Code, 0);
 
   // Create volume data layout from descriptors
-  createVolumeDataLayout(handle);
+  CreateVolumeDataLayout(handle);
 
   // Serialize volume data layout
   Json::Value
-    volumeDataLayoutJson = OpenVDS::serializeVolumeDataLayout(*handle.volumeDataLayout, handle.metadataContainer);
+    volumeDataLayoutJson = OpenVDS::SerializeVolumeDataLayout(*handle.VolumeDataLayout, handle.MetadataContainer);
 
   // Compare volume data layout with original
   {
     std::vector<uint8_t>
-      result = OpenVDS::writeJson(volumeDataLayoutJson);
+      result = OpenVDS::WriteJson(volumeDataLayoutJson);
 
     std::string
       originalString(serializedVolumeDataLayout.data(), serializedVolumeDataLayout.data() + serializedVolumeDataLayout.size()),
@@ -119,10 +119,10 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
 
     Json::Value originalJson, resultJson;
 
-    OpenVDS::parseJSONFromBuffer(serializedVolumeDataLayout, originalJson, error);
+    OpenVDS::ParseJSONFromBuffer(serializedVolumeDataLayout, originalJson, error);
     EXPECT_EQ(error.Code, 0);
 
-    OpenVDS::parseJSONFromBuffer(result, resultJson, error);
+    OpenVDS::ParseJSONFromBuffer(result, resultJson, error);
     EXPECT_EQ(error.Code, 0);
 
     EXPECT_TRUE(originalJson.compare(resultJson) == 0);
@@ -130,12 +130,12 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
 
   // Serialize layer status
   Json::Value
-    layerStatusJson = OpenVDS::serializeLayerStatusArray(*handle.volumeDataLayout, handle.layerMetadataContainer);
+    layerStatusJson = OpenVDS::SerializeLayerStatusArray(*handle.VolumeDataLayout, handle.LayerMetadataContainer);
 
   // Compare layer status with original
   {
     std::vector<uint8_t>
-      result = OpenVDS::writeJson(layerStatusJson);
+      result = OpenVDS::WriteJson(layerStatusJson);
 
     std::string
       originalString(serializedLayerStatus.data(), serializedLayerStatus.data() + serializedLayerStatus.size()),
@@ -146,10 +146,10 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
 
     Json::Value originalJson, resultJson;
 
-    OpenVDS::parseJSONFromBuffer(serializedLayerStatus, originalJson, error);
+    OpenVDS::ParseJSONFromBuffer(serializedLayerStatus, originalJson, error);
     EXPECT_EQ(error.Code, 0);
 
-    OpenVDS::parseJSONFromBuffer(result, resultJson, error);
+    OpenVDS::ParseJSONFromBuffer(result, resultJson, error);
     EXPECT_EQ(error.Code, 0);
 
     EXPECT_TRUE(originalJson.compare(resultJson) == 0);

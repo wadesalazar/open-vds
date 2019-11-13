@@ -112,7 +112,7 @@ namespace OpenVDS
       Aws::S3::Model::GetObjectResult result = const_cast<Aws::S3::Model::GetObjectOutcome&>(getObjectOutcome).GetResultWithOwnership();
       for (auto it : result.GetMetadata())
       {
-        objReq->m_handler->handleMetadata(convertAwsString(it.first), convertAwsString(it.second));
+        objReq->m_handler->HandleMetadata(convertAwsString(it.first), convertAwsString(it.second));
       }
       auto& retrieved_object = result.GetBody();
       auto content_length = result.GetContentLength();
@@ -122,7 +122,7 @@ namespace OpenVDS
       {
         data.resize(content_length);
         retrieved_object.read((char*)&data[0], content_length);
-        objReq->m_handler->handleData(std::move(data));
+        objReq->m_handler->HandleData(std::move(data));
       }
       lock.lock();
     }
@@ -137,7 +137,7 @@ namespace OpenVDS
     objReq->m_done = true;
     objReq->m_waitForFinish.notify_all();
     lock.unlock();
-    objReq->m_handler->completed(*objReq, objReq->m_error);
+    objReq->m_handler->Completed(*objReq, objReq->m_error);
   }
 
   DownloadRequestAWS::DownloadRequestAWS(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
@@ -150,14 +150,14 @@ namespace OpenVDS
 
   DownloadRequestAWS::~DownloadRequestAWS()
   {
-    DownloadRequestAWS::cancel(); 
+    DownloadRequestAWS::Cancel();
   }
 
   void DownloadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestAWS> downloadRequest)
   {
     Aws::S3::Model::GetObjectRequest object_request;
     object_request.SetBucket(convertStdString(bucket));
-    object_request.SetKey(convertStdString(getObjectName()));
+    object_request.SetKey(convertStdString(GetObjectName()));
     if (range.end)
     {
       object_request.SetRange(convertStdString(fmt::format("bytes={}-{}", range.start, range.end)));
@@ -169,18 +169,18 @@ namespace OpenVDS
     client.GetObjectAsync(object_request, bounded_callback);
   }
 
-  void DownloadRequestAWS::waitForFinish()
+  void DownloadRequestAWS::WaitForFinish()
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_waitForFinish.wait(lock, [this]{ return m_done; });
   }
-  bool DownloadRequestAWS::isDone() const
+  bool DownloadRequestAWS::IsDone() const
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     return m_done;
   }
 
-  bool DownloadRequestAWS::isSuccess(Error& error) const
+  bool DownloadRequestAWS::IsSuccess(Error& error) const
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     if (!m_done)
@@ -193,7 +193,7 @@ namespace OpenVDS
     return m_error.Code == 0;
   }
 
-  void DownloadRequestAWS::cancel()
+  void DownloadRequestAWS::Cancel()
   {
     m_cancelled = true;
   }
@@ -234,7 +234,7 @@ namespace OpenVDS
 
     Aws::S3::Model::PutObjectRequest put;
     put.SetBucket(convertStdString(bucket));
-    put.SetKey(convertStdString(getObjectName()));
+    put.SetKey(convertStdString(GetObjectName()));
     put.SetBody(m_stream);
     put.SetContentType(convertStdString(contentType));
     put.SetContentLength(data->size());
@@ -250,17 +250,17 @@ namespace OpenVDS
 
   }
 
-  void UploadRequestAWS::waitForFinish()
+  void UploadRequestAWS::WaitForFinish()
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_waitForFinish.wait(lock, [this]{ return this->m_done; });
   }
-  bool UploadRequestAWS::isDone() const
+  bool UploadRequestAWS::IsDone() const
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     return m_done;
   }
-  bool UploadRequestAWS::isSuccess(Error& error) const
+  bool UploadRequestAWS::IsSuccess(Error& error) const
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     if (!m_done)
@@ -272,7 +272,7 @@ namespace OpenVDS
     error = m_error;
     return m_error.Code == 0;
   }
-  void UploadRequestAWS::cancel()
+  void UploadRequestAWS::Cancel()
   {
     m_cancelled = true;
   }
@@ -307,7 +307,7 @@ namespace OpenVDS
     deinitizlieAWSSDK();
   }
 
-  std::shared_ptr<Request> IOManagerAWS::download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
+  std::shared_ptr<Request> IOManagerAWS::Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
     auto ret = std::make_shared<DownloadRequestAWS>(id, handler);
@@ -315,7 +315,7 @@ namespace OpenVDS
     return ret;
   }
 
-  std::shared_ptr<Request> IOManagerAWS::upload(const std::string objectName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
+  std::shared_ptr<Request> IOManagerAWS::Upload(const std::string objectName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
     auto ret = std::make_shared<UploadRequestAWS>(id, completedCallback);

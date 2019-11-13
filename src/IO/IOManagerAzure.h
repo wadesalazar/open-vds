@@ -18,6 +18,6 @@
 #ifndef IOMANAGERAZURE_H
 #define IOMANAGERAZURE_H
 
-void downloadObject();
+void DownloadObject();
 
 #endif //IOMANAGERAZURE_H
