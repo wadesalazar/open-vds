@@ -12,8 +12,11 @@ set (TEST_AWS_BUCKET "" CACHE STRING "Test AWS bucket")
 set (TEST_AWS_OBJECTID "" CACHE STRING "Test AWS object ID")
 
 set(OPENVDS_LIBDIR_SUFFIX "" CACHE STRING "Suffix to add to lib directories on linux")
+option(FORCE_NO_LIBDIR_SUFFIX "Force there to be no suffix on lib directories linux")
 
-if (OPENVDS_LIBDIR_SUFFIX)
+if (FORCE_NO_LIBDIR_SUFFIX)
+  set(LIBSUFFIX "")
+elseif (OPENVDS_LIBDIR_SUFFIX)
   set(LIBSUFFIX ${OPENVDS_LIBDIR_SUFFIX})
 else()
   get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
