@@ -27,7 +27,7 @@
 
 #include <gtest/gtest.h>
 
-static inline void GenerateRandomPosition(std::mt19937 &gen, const std::vector<std::uniform_real_distribution<float>> dimensionDistribution, int dimension, float (&pos)[OpenVDS::Dimensionality_Max])
+static inline void GenerateRandomPosition(std::mt19937 &gen, std::vector<std::uniform_real_distribution<float>> &dimensionDistribution, int dimension, float (&pos)[OpenVDS::Dimensionality_Max])
 {
   for (int i = 0; i < dimension; i++)
   {

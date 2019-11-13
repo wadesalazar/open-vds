@@ -37,7 +37,7 @@ struct DataBlock
 {
   VolumeDataChannelDescriptor::Format Format;
   VolumeDataChannelDescriptor::Components Components;
-  Dimensionality Dimensionality;
+  enum Dimensionality Dimensionality;
   int32_t Size[DataStoreDimensionality_Max];
   int32_t AllocatedSize[DataStoreDimensionality_Max];
   int32_t Pitch[DataStoreDimensionality_Max];

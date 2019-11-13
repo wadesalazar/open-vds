@@ -67,7 +67,7 @@ struct VDSHandle
   std::vector<VolumeDataLayer::ProduceStatus>
                     ProduceStatuses;
 
-  MetadataContainer MetadataContainer;
+  class MetadataContainer MetadataContainer;
 
   std::unique_ptr<VolumeDataLayoutImpl>
                     VolumeDataLayout;
@@ -75,7 +75,7 @@ struct VDSHandle
                     DataAccessManager;
   std::unique_ptr<IOManager>
                     IoManager;
-  LayerMetadataContainer
+  class LayerMetadataContainer
                     LayerMetadataContainer;
   std::unique_ptr<VolumeDataRequestProcessor>
                     RequestProcessor;
