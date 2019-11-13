@@ -15,7 +15,6 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "OpenVDS/OpenVDS.h"
 #include "PyGlobal.h"
 
 void 
@@ -63,5 +62,11 @@ PyGlobal::initModule(py::module& m)
   py::class_<native::VDSHandle>(m, "VDSHandle");
 
   m.def("open", native::open);
+  m.def(/* VDSHandle*                 */ OVSTR(open                ), native::open                 ); //    (const OpenOptions& options, Error &error);
+  m.def(/* VDSHandle*                 */ OVSTR(create              ), native::create               ); //    (const OpenOptions& options, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
+  m.def(/* void                       */ OVSTR(destroy             ), native::destroy              ); //    (VDSHandle *handle);
+  m.def(/* VolumeDataLayout *         */ OVSTR(getLayout           ), native::getLayout            ); //    (VDSHandle *handle);
+  m.def(/* VolumeDataAccessManager *  */ OVSTR(getDataAccessManager), native::getDataAccessManager ); //    (VDSHandle *handle);
+
 }
 

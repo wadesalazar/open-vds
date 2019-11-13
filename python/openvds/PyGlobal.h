@@ -19,6 +19,14 @@
 
 #include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/VolumeDataAxisDescriptor.h>
+#include <OpenVDS/VolumeDataLayout.h>
+#include <OpenVDS/VolumeDataLayoutDescriptor.h>
+#include <OpenVDS/VolumeDataChannelDescriptor.h>
+#include <OpenVDS/VolumeData.h>
+#include <OpenVDS/VolumeDataAccess.h>
+
+#define _OVSTR(str) #str
+#define OVSTR(str) _OVSTR(str)
 
 namespace OpenVDS {
 

@@ -20,5 +20,6 @@
 void 
 PyVolumeDataLayout::initModule(py::module& m)
 {
+  //py::class_<native::VolumeDataLayout> layout(m, "VolumeDataLayout");
 }
 
