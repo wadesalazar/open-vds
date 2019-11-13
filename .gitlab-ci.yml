@@ -4,6 +4,7 @@ stages:
 
 variables:
     SHA_IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+    CMAKE_OPTIONS: -DFORCE_NO_LIBDIR_SUFFIX=ON
 
 # --------------------------------------------------------------------------------
 
@@ -26,5 +27,5 @@ compile:
   script:
     - mkdir -p build
     - cd build
-    - cmake ..
+    - cmake $CMAKE_OPTIONS ..
     - make -j8
