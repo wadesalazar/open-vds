@@ -64,11 +64,6 @@ struct Error
   std::string String;
 };
 
-enum class Access
-{
-  Read = 1 << 0,
-  Write = 1 << 1
-};
 typedef struct VDS *VDSHandle;
 class VolumeDataLayout;
 class VolumeDataAccessManager;
