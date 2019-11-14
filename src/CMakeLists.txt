@@ -35,6 +35,7 @@ set (PRIVATE_HEADER_FILES
   IO/IOManager.h
   IO/IOManagerAWS.h
   IO/IOManagerAzure.h
+  VDS/VDS.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataChannelMapping.h
   VDS/VolumeDataLayer.h
@@ -115,7 +116,7 @@ get_property(runtime_3rdparty_release GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_RELEA
 get_property(runtime_3rdparty_debug   GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_DEBUG)
 get_property(include_3rdparty      GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES)
 
-add_dependencies(openvds_objects aws-cpp-sdk)
+add_dependencies(openvds_objects aws-cpp-sdk azure-storage)
 
 target_include_directories(openvds_objects SYSTEM PRIVATE ${include_3rdparty} "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(openvds_objects PRIVATE openvds_EXPORTS)

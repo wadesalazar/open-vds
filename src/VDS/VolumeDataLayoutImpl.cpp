@@ -20,7 +20,7 @@
 #include "VolumeDataLayoutImpl.h"
 #include "VolumeDataChannelMapping.h"
 #include "DimensionGroup.h"
-#include "OpenVDSHandle.h"
+#include "VDS.h"
 
 #include "Bitmask.h"
 
@@ -42,7 +42,7 @@ static std::condition_variable &StaticGetPendingRequestCountChangedCondition()
   return pendingRequestCountChangedCondition;
 }
 
-VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDSHandle &handle,
+VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDS &vds,
                    const VolumeDataLayoutDescriptor &layoutDescriptor,
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
                    const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
@@ -53,7 +53,7 @@ VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDSHandle &handle,
                    float compressionTolerance,
                    bool isZipLosslessChannels,
                    int32_t waveletAdaptiveLoadLevel)
-  : m_handle(handle)
+  : m_vds(vds)
   , m_dimensionality(int32_t(axisDescriptor.size()))
   , m_baseBrickSize(int32_t(1) << layoutDescriptor.GetBrickSize())
   , m_negativeRenderMargin(layoutDescriptor.GetNegativeMargin())
@@ -424,34 +424,34 @@ void VolumeDataLayoutImpl::CreateLayers(DimensionGroup dimensionGroup, int32_t b
   }
 }
 
-bool        VolumeDataLayoutImpl::IsMetadataIntAvailable(const char* category, const char* name) const           { return m_handle.MetadataContainer.IsMetadataIntAvailable(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataIntVector2Available(const char* category, const char* name) const    { return m_handle.MetadataContainer.IsMetadataIntVector2Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataIntVector3Available(const char* category, const char* name) const    { return m_handle.MetadataContainer.IsMetadataIntVector3Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataIntVector4Available(const char* category, const char* name) const    { return m_handle.MetadataContainer.IsMetadataIntVector4Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataFloatAvailable(const char* category, const char* name) const         { return m_handle.MetadataContainer.IsMetadataFloatAvailable(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataFloatVector2Available(const char* category, const char* name) const  { return m_handle.MetadataContainer.IsMetadataFloatVector2Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataFloatVector3Available(const char* category, const char* name) const  { return m_handle.MetadataContainer.IsMetadataFloatVector3Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataFloatVector4Available(const char* category, const char* name) const  { return m_handle.MetadataContainer.IsMetadataFloatVector4Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataDoubleAvailable(const char* category, const char* name) const        { return m_handle.MetadataContainer.IsMetadataDoubleAvailable(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataDoubleVector2Available(const char* category, const char* name) const { return m_handle.MetadataContainer.IsMetadataDoubleVector2Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataDoubleVector3Available(const char* category, const char* name) const { return m_handle.MetadataContainer.IsMetadataDoubleVector3Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataDoubleVector4Available(const char* category, const char* name) const { return m_handle.MetadataContainer.IsMetadataDoubleVector4Available(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataStringAvailable(const char* category, const char* name) const        { return m_handle.MetadataContainer.IsMetadataStringAvailable(category, name); }
-bool        VolumeDataLayoutImpl::IsMetadataBLOBAvailable(const char* category, const char* name) const          { return m_handle.MetadataContainer.IsMetadataBLOBAvailable(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataIntAvailable(const char* category, const char* name) const           { return m_vds.MetadataContainer.IsMetadataIntAvailable(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataIntVector2Available(const char* category, const char* name) const    { return m_vds.MetadataContainer.IsMetadataIntVector2Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataIntVector3Available(const char* category, const char* name) const    { return m_vds.MetadataContainer.IsMetadataIntVector3Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataIntVector4Available(const char* category, const char* name) const    { return m_vds.MetadataContainer.IsMetadataIntVector4Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataFloatAvailable(const char* category, const char* name) const         { return m_vds.MetadataContainer.IsMetadataFloatAvailable(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataFloatVector2Available(const char* category, const char* name) const  { return m_vds.MetadataContainer.IsMetadataFloatVector2Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataFloatVector3Available(const char* category, const char* name) const  { return m_vds.MetadataContainer.IsMetadataFloatVector3Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataFloatVector4Available(const char* category, const char* name) const  { return m_vds.MetadataContainer.IsMetadataFloatVector4Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataDoubleAvailable(const char* category, const char* name) const        { return m_vds.MetadataContainer.IsMetadataDoubleAvailable(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataDoubleVector2Available(const char* category, const char* name) const { return m_vds.MetadataContainer.IsMetadataDoubleVector2Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataDoubleVector3Available(const char* category, const char* name) const { return m_vds.MetadataContainer.IsMetadataDoubleVector3Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataDoubleVector4Available(const char* category, const char* name) const { return m_vds.MetadataContainer.IsMetadataDoubleVector4Available(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataStringAvailable(const char* category, const char* name) const        { return m_vds.MetadataContainer.IsMetadataStringAvailable(category, name); }
+bool        VolumeDataLayoutImpl::IsMetadataBLOBAvailable(const char* category, const char* name) const          { return m_vds.MetadataContainer.IsMetadataBLOBAvailable(category, name); }
 
-int           VolumeDataLayoutImpl::GetMetadataInt(const char* category, const char* name) const             { return m_handle.MetadataContainer.GetMetadataInt(category, name); }
-IntVector2    VolumeDataLayoutImpl::GetMetadataIntVector2(const char* category, const char* name) const      { return m_handle.MetadataContainer.GetMetadataIntVector2(category, name); }
-IntVector3    VolumeDataLayoutImpl::GetMetadataIntVector3(const char* category, const char* name) const      { return m_handle.MetadataContainer.GetMetadataIntVector3(category, name); }
-IntVector4    VolumeDataLayoutImpl::GetMetadataIntVector4(const char* category, const char* name) const      { return m_handle.MetadataContainer.GetMetadataIntVector4(category, name); }
-float         VolumeDataLayoutImpl::GetMetadataFloat(const char* category, const char* name) const          { return m_handle.MetadataContainer.GetMetadataFloat(category, name); }
-FloatVector2  VolumeDataLayoutImpl::GetMetadataFloatVector2(const char* category, const char* name) const   { return m_handle.MetadataContainer.GetMetadataFloatVector2(category, name); }
-FloatVector3  VolumeDataLayoutImpl::GetMetadataFloatVector3(const char* category, const char* name) const   { return m_handle.MetadataContainer.GetMetadataFloatVector3(category, name); }
-FloatVector4  VolumeDataLayoutImpl::GetMetadataFloatVector4(const char* category, const char* name) const   { return m_handle.MetadataContainer.GetMetadataFloatVector4(category, name); }
-double        VolumeDataLayoutImpl::GetMetadataDouble(const char* category, const char* name) const        { return m_handle.MetadataContainer.GetMetadataDouble(category, name); }
-DoubleVector2 VolumeDataLayoutImpl::GetMetadataDoubleVector2(const char* category, const char* name) const { return m_handle.MetadataContainer.GetMetadataDoubleVector2(category, name); }
-DoubleVector3 VolumeDataLayoutImpl::GetMetadataDoubleVector3(const char* category, const char* name) const { return m_handle.MetadataContainer.GetMetadataDoubleVector3(category, name); }
-DoubleVector4 VolumeDataLayoutImpl::GetMetadataDoubleVector4(const char* category, const char* name) const { return m_handle.MetadataContainer.GetMetadataDoubleVector4(category, name); }
-const char*   VolumeDataLayoutImpl::GetMetadataString(const char* category, const char* name) const          { return m_handle.MetadataContainer.GetMetadataString(category, name); }
-void          VolumeDataLayoutImpl::GetMetadataBLOB(const char* category, const char* name, const void **data, size_t *size)  const { return m_handle.MetadataContainer.GetMetadataBLOB(category, name, data, size); }
+int           VolumeDataLayoutImpl::GetMetadataInt(const char* category, const char* name) const             { return m_vds.MetadataContainer.GetMetadataInt(category, name); }
+IntVector2    VolumeDataLayoutImpl::GetMetadataIntVector2(const char* category, const char* name) const      { return m_vds.MetadataContainer.GetMetadataIntVector2(category, name); }
+IntVector3    VolumeDataLayoutImpl::GetMetadataIntVector3(const char* category, const char* name) const      { return m_vds.MetadataContainer.GetMetadataIntVector3(category, name); }
+IntVector4    VolumeDataLayoutImpl::GetMetadataIntVector4(const char* category, const char* name) const      { return m_vds.MetadataContainer.GetMetadataIntVector4(category, name); }
+float         VolumeDataLayoutImpl::GetMetadataFloat(const char* category, const char* name) const          { return m_vds.MetadataContainer.GetMetadataFloat(category, name); }
+FloatVector2  VolumeDataLayoutImpl::GetMetadataFloatVector2(const char* category, const char* name) const   { return m_vds.MetadataContainer.GetMetadataFloatVector2(category, name); }
+FloatVector3  VolumeDataLayoutImpl::GetMetadataFloatVector3(const char* category, const char* name) const   { return m_vds.MetadataContainer.GetMetadataFloatVector3(category, name); }
+FloatVector4  VolumeDataLayoutImpl::GetMetadataFloatVector4(const char* category, const char* name) const   { return m_vds.MetadataContainer.GetMetadataFloatVector4(category, name); }
+double        VolumeDataLayoutImpl::GetMetadataDouble(const char* category, const char* name) const        { return m_vds.MetadataContainer.GetMetadataDouble(category, name); }
+DoubleVector2 VolumeDataLayoutImpl::GetMetadataDoubleVector2(const char* category, const char* name) const { return m_vds.MetadataContainer.GetMetadataDoubleVector2(category, name); }
+DoubleVector3 VolumeDataLayoutImpl::GetMetadataDoubleVector3(const char* category, const char* name) const { return m_vds.MetadataContainer.GetMetadataDoubleVector3(category, name); }
+DoubleVector4 VolumeDataLayoutImpl::GetMetadataDoubleVector4(const char* category, const char* name) const { return m_vds.MetadataContainer.GetMetadataDoubleVector4(category, name); }
+const char*   VolumeDataLayoutImpl::GetMetadataString(const char* category, const char* name) const          { return m_vds.MetadataContainer.GetMetadataString(category, name); }
+void          VolumeDataLayoutImpl::GetMetadataBLOB(const char* category, const char* name, const void **data, size_t *size)  const { return m_vds.MetadataContainer.GetMetadataBLOB(category, name, data, size); }
 
 }

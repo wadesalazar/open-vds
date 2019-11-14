@@ -69,7 +69,7 @@ enum class Access
   Read = 1 << 0,
   Write = 1 << 1
 };
-struct VDSHandle;
+typedef struct VDS *VDSHandle;
 class VolumeDataLayout;
 class VolumeDataAccessManager;
 class VolumeDataPageAccessor;
@@ -86,7 +86,7 @@ class VolumeDataPageAccessor;
 /// <returns>
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
-OPENVDS_EXPORT VDSHandle* Open(const OpenOptions& options, Error& error);
+OPENVDS_EXPORT VDSHandle Open(const OpenOptions& options, Error& error);
 
 /// <summary>
 /// Open an existing VDS
@@ -100,7 +100,7 @@ OPENVDS_EXPORT VDSHandle* Open(const OpenOptions& options, Error& error);
 /// <returns>
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
-OPENVDS_EXPORT VDSHandle* Open(IOManager*ioManager, Error &error);
+OPENVDS_EXPORT VDSHandle Open(IOManager*ioManager, Error &error);
 
 /// <summary>
 /// Create a new VDS
@@ -114,7 +114,7 @@ OPENVDS_EXPORT VDSHandle* Open(IOManager*ioManager, Error &error);
 /// <returns>
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
-OPENVDS_EXPORT VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const& axisDescriptors, std::vector<VolumeDataChannelDescriptor> const& channelDescriptors, MetadataContainer const& metadataContainer, Error& error);
+OPENVDS_EXPORT VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const& axisDescriptors, std::vector<VolumeDataChannelDescriptor> const& channelDescriptors, MetadataContainer const& metadataContainer, Error& error);
 
 /// <summary>
 /// Create a new VDS
@@ -128,7 +128,7 @@ OPENVDS_EXPORT VDSHandle* Create(const OpenOptions& options, VolumeDataLayoutDes
 /// <returns>
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
-OPENVDS_EXPORT VDSHandle* Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
+OPENVDS_EXPORT VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
 
 /// <summary>
 /// Close a VDS and free up all associated resources
@@ -136,10 +136,10 @@ OPENVDS_EXPORT VDSHandle* Create(IOManager* ioManager, VolumeDataLayoutDescripto
 /// <param name="handle">
 /// The handle to close
 /// </param>
-OPENVDS_EXPORT void Close(VDSHandle *handle);
+OPENVDS_EXPORT void Close(VDSHandle handle);
 
-OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle *handle);
-OPENVDS_EXPORT VolumeDataAccessManager *GetDataAccessManager(VDSHandle *handle);
+OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle handle);
+OPENVDS_EXPORT VolumeDataAccessManager *GetDataAccessManager(VDSHandle handle);
 }
 
 #endif //OPENVDS_H

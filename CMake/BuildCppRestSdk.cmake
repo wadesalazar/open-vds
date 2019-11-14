@@ -1,12 +1,4 @@
 function(BuildCppRestSdk)
-    get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
-
-    if ("${LIB64}" STREQUAL "TRUE")
-        set(LIBSUFFIX 64)
-    else()
-        set(LIBSUFFIX "")
-    endif()
-
   if (WIN32)
     get_property(_isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
     if (${_isMultiConfig})

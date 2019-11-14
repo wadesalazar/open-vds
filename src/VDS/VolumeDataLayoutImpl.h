@@ -29,12 +29,12 @@
 
 namespace OpenVDS
 {
-struct VDSHandle;
+struct VDS;
 class VolumeDataLayoutDescriptor;
 class VolumeDataLayoutImpl : public VolumeDataLayout
 {
 private:
-  VDSHandle     &m_handle;
+  VDS     &m_vds;
   std::vector<VolumeDataLayer *> m_volumeDataLayers;
   std::vector<VolumeDataChannelDescriptor> m_volumeDataChannelDescriptor;
   bool           m_isReadOnly;
@@ -65,7 +65,7 @@ private:
   int32_t m_fullResolutionDimension;
 
 public:
-  VolumeDataLayoutImpl(VDSHandle &handle,
+  VolumeDataLayoutImpl(VDS &vds,
                    const VolumeDataLayoutDescriptor &layoutDescriptor,
                    const std::vector<VolumeDataAxisDescriptor> &axisDescriptor,
                    const std::vector<VolumeDataChannelDescriptor> &volumeDataChannelDescriptor,
@@ -79,7 +79,7 @@ public:
 
   ~VolumeDataLayoutImpl() override;
 
-  VDSHandle       &GetHandle() { return m_handle; }
+  VDS       &GetHandle() { return m_vds; }
 
   uint64_t         GetContentsHash() const override { return uint64_t(m_contentsHash); }
   VolumeDataLayer::VolumeDataLayerID AddDataLayer(VolumeDataLayer *layer);

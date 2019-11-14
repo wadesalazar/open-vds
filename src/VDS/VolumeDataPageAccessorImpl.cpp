@@ -17,13 +17,13 @@
 
 #include "VolumeDataPageAccessorImpl.h"
 #include "VolumeDataLayoutImpl.h"
+#include "VolumeDataAccessManagerImpl.h"
 #include "VolumeDataLayer.h"
 #include "VolumeDataPageImpl.h"
 #include "VolumeDataStore.h"
 #include "MetadataManager.h"
 
 #include <IO/IOManager.h>
-#include "OpenVDSHandle.h"
 
 #include "DimensionGroup.h"
 

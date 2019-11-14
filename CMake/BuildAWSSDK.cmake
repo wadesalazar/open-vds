@@ -1,12 +1,4 @@
 macro(BuildAWSSDK)
-    get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
-
-    if ("${LIB64}" STREQUAL "TRUE")
-        set(LIBSUFFIX 64)
-    else()
-        set(LIBSUFFIX "")
-    endif()
-
   if (WIN32)
     list(APPEND AWS_LIBS_LIST "bin/aws-cpp-sdk-core.lib")
     list(APPEND AWS_LIBS_LIST "bin/aws-cpp-sdk-s3.lib")

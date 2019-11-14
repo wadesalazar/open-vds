@@ -19,13 +19,13 @@
 #define PARSEVDSJSON_H
 
 #include <OpenVDS/OpenVDS.h>
-#include <OpenVDSHandle.h>
+#include <VDS/VDS.h>
 
 namespace OpenVDS
 {
-bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDSHandle &handle, Error &error);
-bool SerializeAndUploadVolumeDataLayout(VDSHandle& handle, Error& error);
-bool SerializeAndUploadLayerStatus(VDSHandle& handle, Error& error);
+bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDS &handle, Error &error);
+bool SerializeAndUploadVolumeDataLayout(VDS& handle, Error& error);
+bool SerializeAndUploadLayerStatus(VDS& handle, Error& error);
 }
 
 #endif //PARSEVDSJSON_H

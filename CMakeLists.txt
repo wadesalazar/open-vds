@@ -11,6 +11,16 @@ set (TEST_AWS_REGION "" CACHE STRING "Test AWS region")
 set (TEST_AWS_BUCKET "" CACHE STRING "Test AWS bucket")
 set (TEST_AWS_OBJECTID "" CACHE STRING "Test AWS object ID")
 
+set(OPENVDS_LIBDIR_SUFFIX "" CACHE STRING "Suffix to add to lib directories on linux")
+option(FORCE_NO_LIBDIR_SUFFIX "Force there to be no suffix on lib directories linux")
+
+get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
+if ("${LIB64}" STREQUAL "TRUE")
+  set(LIBSUFFIX 64)
+else()
+  set(LIBSUFFIX "")
+endif()
+
 set(BUILD_PYTHON_DEFAULT ON)
 find_package(Python3 COMPONENTS Interpreter)
 if (Python3_FOUND)

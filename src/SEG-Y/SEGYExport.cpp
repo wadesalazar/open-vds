@@ -79,7 +79,7 @@ main(int argc, char *argv[])
   std::string
     key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
 
-  std::unique_ptr<OpenVDS::VDSHandle, decltype(&OpenVDS::Close)> vds(OpenVDS::Open(OpenVDS::AWSOpenOptions(bucket, key, region), openError), &OpenVDS::Close);
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vds(OpenVDS::Open(OpenVDS::AWSOpenOptions(bucket, key, region), openError), &OpenVDS::Close);
 
   if(openError.Code != 0)
   {

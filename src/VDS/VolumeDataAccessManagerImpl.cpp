@@ -18,7 +18,7 @@
 #define _USE_MATH_DEFINES
 #include "VolumeDataAccessManagerImpl.h"
 
-#include <OpenVDSHandle.h>
+#include "VDS.h"
 #include "VolumeDataPageAccessorImpl.h"
 #include "ValueConversion.h"
 #include "VolumeSampler.h"
@@ -217,9 +217,9 @@ static VolumeDataLayer *GetVolumeDataLayer(VolumeDataLayoutImpl const *layout, D
   return (layer && layer->GetLayerType() != VolumeDataLayer::Virtual) ? layer : nullptr;
 }
 
-VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDSHandle &handle)
-  : m_handle(handle)
-  , m_ioManager(handle.IoManager.get())
+VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDS &vds)
+  : m_vds(vds)
+  , m_ioManager(vds.IoManager.get())
   , m_currentErrorIndex(0)
   , m_requestProcessor(*this)
 {
@@ -235,12 +235,12 @@ VolumeDataAccessManagerImpl::~VolumeDataAccessManagerImpl()
 
 VolumeDataLayout const* VolumeDataAccessManagerImpl::GetVolumeDataLayout() const
 {
-  return m_handle.VolumeDataLayout.get();
+  return m_vds.VolumeDataLayout.get();
 }
 
 VolumeDataLayoutImpl const* VolumeDataAccessManagerImpl::GetVolumeDataLayoutImpl() const
 {
-  return m_handle.VolumeDataLayout.get();
+  return m_vds.VolumeDataLayout.get();
 }
 
 VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode)
@@ -259,7 +259,7 @@ VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccesso
     metadataStatus.m_chunkMetadataByteSize = sizeof(int64_t);
     metadataStatus.m_compressionMethod = layer->GetEffectiveCompressionMethod();
     metadataStatus.m_compressionTolerance = layer->GetEffectiveCompressionTolerance();
-    CreateMetadataManager(m_handle, GetLayerName(*layer), metadataStatus);
+    CreateMetadataManager(m_vds, GetLayerName(*layer), metadataStatus);
   }
   else if (layer->GetProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
   {
@@ -336,7 +336,7 @@ static inline std::string CreateUrlForChunk(const std::string &layerName, uint64
 bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &chunk, bool verbose, Error &error)
 {
   std::string layerName = GetLayerName(*chunk.Layer);
-  auto metadataManager = GetMetadataMangerForLayer(m_handle.LayerMetadataContainer, layerName);
+  auto metadataManager = GetMetadataMangerForLayer(m_vds.LayerMetadataContainer, layerName);
   //do fallback
   if (!metadataManager)
   {
@@ -533,7 +533,7 @@ int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &ch
     hash = VolumeDataHash::GetUniqueHash();
   }
 
-  auto metadataManager = GetMetadataMangerForLayer(m_handle.LayerMetadataContainer, layerName);
+  auto metadataManager = GetMetadataMangerForLayer(m_vds.LayerMetadataContainer, layerName);
 
   int pageIndex  = (int)(chunk.Index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
   int entryIndex = (int)(chunk.Index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
@@ -598,7 +598,7 @@ void VolumeDataAccessManagerImpl::FlushUploadQueue()
     request.WaitForFinish();
   }
 
-  for(auto it = m_handle.LayerMetadataContainer.managers.begin(); it != m_handle.LayerMetadataContainer.managers.end(); ++it)
+  for(auto it = m_vds.LayerMetadataContainer.managers.begin(); it != m_vds.LayerMetadataContainer.managers.end(); ++it)
   {
     auto metadataManager = it->second.get();
 
@@ -606,7 +606,7 @@ void VolumeDataAccessManagerImpl::FlushUploadQueue()
   }
 
   Error error;
-  SerializeAndUploadLayerStatus(m_handle, error);
+  SerializeAndUploadLayerStatus(m_vds, error);
 
   if(error.Code != 0)
   {

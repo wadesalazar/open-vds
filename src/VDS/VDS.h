@@ -15,8 +15,8 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#ifndef OPENVDSHANDLE_H
-#define OPENVDSHANDLE_H
+#ifndef VDS_H
+#define VDS_H
 
 #include <OpenVDS/VolumeDataLayoutDescriptor.h>
 #include <OpenVDS/VolumeDataAxisDescriptor.h>
@@ -46,9 +46,9 @@ public:
   std::map<std::string, std::unique_ptr<MetadataManager>> managers;
 };
 
-struct VDSHandle
+struct VDS
 {
-  VDSHandle(IOManager *ioManager)
+  VDS(IOManager *ioManager)
     : IoManager(ioManager)
   {
   }
@@ -81,14 +81,14 @@ struct VDSHandle
                     RequestProcessor;
 };
 
-const char *AddDescriptorString(std::string const &descriptorString, VDSHandle &handle);
+const char *AddDescriptorString(std::string const &descriptorString, VDS &handle);
 
-void CreateVolumeDataLayout(VDSHandle &handle);
+void CreateVolumeDataLayout(VDS &handle);
 
 std::string GetLayerName(VolumeDataLayer const &volumeDataLayer);
 MetadataManager *FindMetadataManager(LayerMetadataContainer const &layerMetadataContainer, std::string const &layerName);
-MetadataManager *CreateMetadataManager(VDSHandle &handle, std::string const &layerName, MetadataStatus const &metadataStatus);
+MetadataManager *CreateMetadataManager(VDS &handle, std::string const &layerName, MetadataStatus const &metadataStatus);
 
 }
 
-#endif //OPENVDSHANDLE_H
+#endif //VDS_H

@@ -16,7 +16,7 @@
 ****************************************************************************/
 
 #include <OpenVDS/OpenVDS.h>
-#include <OpenVDSHandle.h>
+#include <VDS/VDS.h>
 #include <IO/File.h>
 
 #include <json/json.h>
@@ -27,8 +27,8 @@
 
 namespace OpenVDS
 {
-  bool ParseVolumeDataLayout(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error);
-  bool ParseLayerStatus(const std::vector<uint8_t> &json, VDSHandle &handle, Error &error);
+  bool ParseVolumeDataLayout(const std::vector<uint8_t> &json, VDS &handle, Error &error);
+  bool ParseLayerStatus(const std::vector<uint8_t> &json, VDS &handle, Error &error);
   bool ParseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error);
 
   Json::Value SerializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayout, MetadataContainer const &metadataContainer);
@@ -84,7 +84,7 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
   OpenVDS::Error
     error;
 
-  OpenVDS::VDSHandle
+  OpenVDS::VDS
     handle(nullptr);
 
   // Clear error
