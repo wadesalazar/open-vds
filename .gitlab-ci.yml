@@ -1,6 +1,7 @@
 stages:
   - prepare
   - build
+  - test
 
 variables:
     SHA_IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
@@ -17,11 +18,14 @@ devel-container:
     - docker build -t $SHA_IMAGE_TAG -f build-environment.Dockerfile .
     - docker push $SHA_IMAGE_TAG
 
+# --------------------------------------------------------------------------------
+
 compile:
   stage: build
   image: $SHA_IMAGE_TAG
   tags: ['docker-runner']
-  cache:
+  artifacts:
+    expire_in: 1 hr
     paths:
       - build
   script:
@@ -29,3 +33,13 @@ compile:
     - cd build
     - cmake $CMAKE_OPTIONS ..
     - make -j8
+
+# --------------------------------------------------------------------------------
+
+unit-tests:
+  stage: test
+  image: $SHA_IMAGE_TAG
+  tags: ['docker-runner']
+  script:
+    - cd build
+    - make test
