@@ -21,7 +21,7 @@
 #include "VolumeDataChannelMapping.h"
 #include "VolumeDataLayoutImpl.h"
 #include "VolumeDataPageImpl.h"
-#include <OpenVDSHandle.h>
+#include "VDS.h"
 
 #include <cstdint>
 #include <algorithm>

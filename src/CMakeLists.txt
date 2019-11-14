@@ -35,6 +35,7 @@ set (PRIVATE_HEADER_FILES
   IO/IOManager.h
   IO/IOManagerAWS.h
   IO/IOManagerAzure.h
+  VDS/VDS.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataChannelMapping.h
   VDS/VolumeDataLayer.h

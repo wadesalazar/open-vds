@@ -26,7 +26,7 @@ namespace OpenVDS {
 
 class VolumeDataPageAccessor;
 class VolumeDataLayout;
-struct VDSHandle;
+struct VDS;
 
 template <typename INDEX, typename T> class VolumeDataReadAccessor;
 template <typename INDEX, typename T> class VolumeDataReadWriteAccessor;

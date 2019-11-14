@@ -168,7 +168,7 @@ struct UploadError
 class VolumeDataAccessManagerImpl : public VolumeDataAccessManager
 {
 public:
-  VolumeDataAccessManagerImpl(VDSHandle &handle);
+  VolumeDataAccessManagerImpl(VDS &vds);
   ~VolumeDataAccessManagerImpl() override;
   VolumeDataLayout const *GetVolumeDataLayout() const override;
   VolumeDataLayoutImpl const *GetVolumeDataLayoutImpl() const;
@@ -241,7 +241,7 @@ public:
   void GetCurrentUploadError(const char **objectId, int32_t *errorCode, const char **errorString) override;
 
 private:
-  VDSHandle &m_handle;
+  VDS &m_vds;
   IOManager *m_ioManager;
   VolumeDataRequestProcessor m_requestProcessor;
   IntrusiveList<VolumeDataPageAccessorImpl, &VolumeDataPageAccessorImpl::m_volumeDataPageAccessorListNode> m_volumeDataPageAccessorList;
