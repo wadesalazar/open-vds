@@ -25,6 +25,10 @@
 #include <OpenVDS/VolumeData.h>
 #include <OpenVDS/VolumeDataAccess.h>
 
+#include "generated_docstrings.h"
+
+#define OPENVDS_DOCSTRING(name) __doc_OpenVDS_ ## name
+
 namespace OpenVDS {
 
 #ifdef OPENVDS_DEVELOPMENT_BUILD
