@@ -65,10 +65,8 @@ job_semaphore = Semaphore(job_count)
 class NoFilenamesError(ValueError):
     pass
 
-
 def d(s):
     return s if isinstance(s, str) else s.decode('utf8')
-
 
 def sanitize_name(name):
     name = re.sub(r'type-parameter-0-([0-9]+)', r'T\1', name)
@@ -237,8 +235,6 @@ def read_args(args):
     filenames = []
     if "-x" not in args:
         parameters.extend(['-x', 'c++'])
-    if not any(it.startswith("-std=") for it in args):
-        parameters.append('-std=c++11')
 
     if platform.system() == 'Darwin':
         dev_path = '/Applications/Xcode.app/Contents/Developer/'
@@ -267,7 +263,12 @@ def read_args(args):
         ), default=None, key=clang_folder_version)
         if clang_include_dir:
             parameters.extend(['-isystem', clang_include_dir])
+    elif platform.system() == 'Windows':
+        parameters.extend(['-fms-compatibility', '-std=c++14'])
 
+    if not any(it.startswith("-std=") for it in parameters):
+        parameters.append('-std=c++11')
+        
     for item in args:
         if item.startswith('-'):
             parameters.append(item)

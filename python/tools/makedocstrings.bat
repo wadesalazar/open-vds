@@ -2,4 +2,4 @@
 @REM The first pass converts microsoft-style XML documentation to doxygen format. This pass is 
 @REM necessary because mkdoc.py (actually clang) does not recognize the microsoft format.
 python preprocess_header.py ..\..\src\OpenVDS\*.h
-python mkdoc.py -fms-compatibility -std=c++14 -Itmpinclude tmpinclude\OpenVDS\*.h >..\openvds\generated_docstrings.h
+python mkdoc.py -Itmpinclude tmpinclude\OpenVDS\*.h >..\openvds\generated_docstrings.h
