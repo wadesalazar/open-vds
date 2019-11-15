@@ -39,6 +39,14 @@ VolumeDataRequestProcessor::VolumeDataRequestProcessor(VolumeDataAccessManagerIm
   , m_threadPool(std::thread::hardware_concurrency())
 {}
 
+VolumeDataRequestProcessor::~VolumeDataRequestProcessor()
+{
+  for (auto &pair : m_pageAccessors)
+  {
+    m_manager.DestroyVolumeDataPageAccessor(pair.second);
+  }
+}
+
 static int64_t GenJobId()
 {
   static std::atomic< std::int64_t > id(0);
