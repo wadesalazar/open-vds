@@ -67,7 +67,7 @@ struct VDS
   std::vector<VolumeDataLayer::ProduceStatus>
                     ProduceStatuses;
 
-  MetadataContainer MetadataContainer;
+  struct MetadataContainer MetadataContainer;
 
   std::unique_ptr<VolumeDataLayoutImpl>
                     VolumeDataLayout;
