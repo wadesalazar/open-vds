@@ -75,13 +75,14 @@ VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDS &vds,
 
   for(int32_t dimension = 0; dimension < ArraySize(m_dimensionNumSamples); dimension++)
   {
-    if(dimension < m_dimensionality)
+    if (dimension < m_dimensionality)
     {
       assert(axisDescriptor[dimension].GetNumSamples() >= 1);
       m_dimensionNumSamples[dimension] = axisDescriptor[dimension].GetNumSamples();
       m_dimensionName[dimension] = axisDescriptor[dimension].GetName();
       m_dimensionUnit[dimension] = axisDescriptor[dimension].GetUnit();
-      m_dimensionRange[dimension] = { axisDescriptor[dimension].GetCoordinateMin(), axisDescriptor[dimension].GetCoordinateMax() };
+      m_dimensionCoordinateMin[dimension] = axisDescriptor[dimension].GetCoordinateMin();
+      m_dimensionCoordinateMax[dimension] = axisDescriptor[dimension].GetCoordinateMax();
     }
     else
     {
@@ -133,12 +134,6 @@ int32_t VolumeDataLayoutImpl::GetChannelMappedValueCount(int32_t channel) const
 {
   assert(channel >= 0 && channel < GetChannelCount());
   return m_volumeDataChannelDescriptor[channel].GetMappedValueCount();
-}
-
-FloatRange const& VolumeDataLayoutImpl::GetDimensionRange(int32_t dimension) const
-{
-  assert(dimension >= 0 && dimension < m_dimensionality);
-  return m_dimensionRange[dimension];
 }
 
 const VolumeDataChannelMapping* VolumeDataLayoutImpl::GetVolumeDataChannelMapping(int32_t channel) const
@@ -304,7 +299,8 @@ VolumeDataAxisDescriptor VolumeDataLayoutImpl::GetAxisDescriptor(int32_t dimensi
   return VolumeDataAxisDescriptor(GetDimensionNumSamples(dimension),
                                   GetDimensionName(dimension),
                                   GetDimensionUnit(dimension),
-                                  GetDimensionRange(dimension));
+                                  GetDimensionMin(dimension),
+                                  GetDimensionMax(dimension));
 }
 
 int VolumeDataLayoutImpl::GetDimensionNumSamples(int32_t dimension) const

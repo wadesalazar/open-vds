@@ -25,43 +25,113 @@
 
 namespace OpenVDS
 {
+/// <summary>
+/// Describes the number of samples, name, unit and coordinates (annotation) of an axis (dimension) of the volume
+/// </summary>
 class VolumeDataAxisDescriptor
 {
   int         m_numSamples;
   const char *m_name;
   const char *m_unit;
-  FloatRange m_coordinateRange;
+  float       m_coordinateMin;
+  float       m_coordinateMax;
 
 public:
-  VolumeDataAxisDescriptor() : m_numSamples(-1), m_name(nullptr), m_unit(nullptr), m_coordinateRange({0.0f, 0.0f}) {}
+  /// <summary>
+  /// Default constructor
+  /// </summary>
+  VolumeDataAxisDescriptor() : m_numSamples(), m_name(), m_unit(), m_coordinateMin(), m_coordinateMax() {}
 
-  /// \param numSamples the number of samples along this axis
-  /// \param pName the name of this axis
-  /// \param pUnit the unit for this axis
-  /// \param coordinateMin the minumum coordinate for this axis
-  /// \param coordinateMax the maximum coordinate for this axis
+  /// <summary>
+  /// Constructor
+  /// </summary>
+  /// <param name="numSamples">
+  /// The number of samples along this axis
+  /// </param>
+  /// <param name="name">
+  /// The name of this axis
+  /// </param>
+  /// <param name="unit">
+  /// The unit of the coordinates of this axis
+  /// </param>
+  /// <param name="coordinateMin">
+  /// The coordinate of the first sample of this axis
+  /// </param>
+  /// <param name="coordinateMax">
+  /// The coordinate of the last sample of this axis
+  /// </param>
   VolumeDataAxisDescriptor(int numSamples, const char *name, const char *unit, float coordinateMin, float coordinateMax)
-    : m_numSamples(numSamples), m_name(name), m_unit(unit), m_coordinateRange({coordinateMin, coordinateMax}) {}
+    : m_numSamples(numSamples), m_name(name), m_unit(unit), m_coordinateMin(coordinateMin), m_coordinateMax(coordinateMax) {}
 
-  VolumeDataAxisDescriptor(int numSamples, const char *name, const char *unit, const FloatRange &coordinateRange)
-    : m_numSamples(numSamples), m_name(name), m_unit(unit), m_coordinateRange(coordinateRange) {}
+  /// <summary>
+  /// Get the number of samples along this axis
+  /// </summary>
+  /// <returns>
+  /// The number of samples along this axis
+  /// </returns>
   int GetNumSamples()    const { return m_numSamples; }
+
+  /// <summary>
+  /// Get the name of this axis
+  /// </summary>
+  /// <returns>
+  /// The name of this axis
+  /// </returns>
   const char *GetName()          const { return m_name; }
+
+  /// <summary>
+  /// Get the unit of the coordinates of this axis
+  /// </summary>
+  /// <returns>
+  /// The unit of the coordinates of this axis
+  /// </returns>
   const char *GetUnit()          const { return m_unit; }
-  float GetCoordinateMin() const { return m_coordinateRange.Min; }
-  float GetCoordinateMax() const { return m_coordinateRange.Max; }
-  const FloatRange &GetCoordinateRange() const { return m_coordinateRange; }
-  float GetCoordinateStep() const { return (m_numSamples > 1) ? ((m_coordinateRange.Max - m_coordinateRange.Min) / (m_numSamples - 1)) : 0; }
 
-  /// Convert a sample index on this axis to a coordinate value
-  /// \param sampleIndex the sample index to convert
-  /// \return the coordinate
-  float SampleIndexToCoordinate(int sampleIndex)  { return m_coordinateRange.Min + sampleIndex * GetCoordinateStep(); }
+  /// <summary>
+  /// Get the coordinate of the first sample of this axis
+  /// </summary>
+  /// <returns>
+  /// The coordinate of the first sample of this axis
+  /// </returns>
+  float GetCoordinateMin() const { return m_coordinateMin; }
 
+  /// <summary>
+  /// Get the coordinate of the last sample of this axis
+  /// </summary>
+  /// <returns>
+  /// The coordinate of the last sample of this axis
+  /// </returns>
+  float GetCoordinateMax() const { return m_coordinateMax; }
+
+  /// <summary>
+  /// Get the coordiante step size per sample
+  /// </summary>
+  /// <returns>
+  /// The coordiante step size per sample
+  /// </returns>
+  float GetCoordinateStep() const { return (m_numSamples > 1) ? ((m_coordinateMax - m_coordinateMin) / (m_numSamples - 1)) : 0; }
+
+  /// <summary>
+  /// Convert a sample index on this axis to a coordinate 
+  /// </summary>
+  /// <param name="sampleIndex">
+  /// The sample index get the coordinate of
+  /// </param>
+  /// <returns>
+  /// The coordinate of the sample index
+  /// </returns>
+  float SampleIndexToCoordinate(int sampleIndex)  { return m_coordinateMin + sampleIndex * GetCoordinateStep(); }
+
+  /// <summary>
   /// Convert a coordinate to a sample index (rounding to the closest index)
-  /// \param coordinate the coordinate to convert
-  /// \return the sample index
-  int CoordinateToSampleIndex(float coordinate) { return (coordinate == m_coordinateRange.Min) ? 0 : (int)floorf(((coordinate - m_coordinateRange.Min) / (m_coordinateRange.Max - m_coordinateRange.Min)) * (m_numSamples - 1) + 0.5f); }
+  /// </summary>
+  /// <param name="coordinate">
+  /// The coordinate to get the sample index of
+  /// </param>
+  /// <returns>
+  /// The sample index of the coordinate
+  /// </returns>
+  int CoordinateToSampleIndex(float coordinate) { return (coordinate == m_coordinateMin) ? 0 : (int)floorf(((coordinate - m_coordinateMin) / (m_coordinateMax - m_coordinateMin)) * (m_numSamples - 1) + 0.5f); }
 };
 }
 #endif //VOLUMEDATAAXISDESCRIPTOR_H

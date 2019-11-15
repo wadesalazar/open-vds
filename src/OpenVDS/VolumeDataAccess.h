@@ -83,9 +83,6 @@ public:
   /// <summary>
   /// Get the VolumeDataLayout object for a VDS.
   /// </summary>
-  /// <param name="cVDS">
-  /// The VDS object to get the layout for.
-  /// </param>
   /// <returns>
   /// The VolumeDataLayout object associated with the VDS or NULL if there is no valid VolumeDataLayout.
   /// </returns>

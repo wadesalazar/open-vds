@@ -61,7 +61,8 @@ private:
   IndexArray m_dimensionNumSamples;
   const char *m_dimensionName[Dimensionality_Max];
   const char *m_dimensionUnit[Dimensionality_Max];
-  FloatRange m_dimensionRange[Dimensionality_Max];
+  float m_dimensionCoordinateMin[Dimensionality_Max];
+  float m_dimensionCoordinateMax[Dimensionality_Max];
   int32_t m_fullResolutionDimension;
 
 public:
@@ -92,8 +93,6 @@ public:
                    GetVolumeDataChannelMapping(int32_t channel) const;
 
   int32_t          GetChannelMappedValueCount(int32_t channel) const;
-
-  FloatRange const &GetDimensionRange(int32_t dimension) const;
 
   VolumeDataLayer *GetVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) const;
   VolumeDataLayer *GetVolumeDataLayerFromID(VolumeDataLayer::VolumeDataLayerID volumeDataLayerID) { return const_cast<VolumeDataLayer *>(const_cast<const VolumeDataLayoutImpl *>(this)->GetVolumeDataLayerFromID(volumeDataLayerID)); }
@@ -155,8 +154,8 @@ public:
 
   const char *GetDimensionUnit(int32_t dimension) const override;
 
-  float GetDimensionMin(int32_t dimension) const override { return GetDimensionRange(dimension).Min; }
-  float GetDimensionMax(int32_t dimension) const override { return GetDimensionRange(dimension).Max; }
+  float GetDimensionMin(int32_t dimension) const override { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_dimensionCoordinateMin[dimension]; }
+  float GetDimensionMax(int32_t dimension) const override { assert(dimension >= 0 && dimension < Dimensionality_Max); return m_dimensionCoordinateMax[dimension]; }
 
   bool  IsChannelUseNoValue(int32_t channel) const override { assert(channel >= 0 && channel < GetChannelCount()); return m_volumeDataChannelDescriptor[channel].IsUseNoValue(); }
 
