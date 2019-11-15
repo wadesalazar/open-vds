@@ -52,7 +52,15 @@ PyGlobal::initModule(py::module& m)
   // These are opaque pointers, so they must not be destructed from pybind11 code
   py::class_<VDSHandle, std::unique_ptr<VDSHandle, py::nodelete>>(m, "VDSHandle");
   py::class_<IOManager, std::unique_ptr<IOManager, py::nodelete>>(m, "IOManager");
-
+#if 0
+  m.def("open", static_cast<OpenVDS::VDSHandle *(*)(const OpenVDS::OpenOptions &, OpenVDS::Error &)>(&native::Open), OPENVDS_DOCSTRING(Open));
+  m.def("open", static_cast<OpenVDS::VDSHandle *(*)(OpenVDS::IOManager *, OpenVDS::Error &)>(&native::Open), OPENVDS_DOCSTRING(Open_2));
+  m.def("create", static_cast<OpenVDS::VDSHandle *(*)(const OpenVDS::OpenOptions &, const OpenVDS::VolumeDataLayoutDescriptor &, const int &, const int &, const OpenVDS::MetadataContainer &, OpenVDS::Error &)>(&native::Create), OPENVDS_DOCSTRING(Create));
+  m.def("create", static_cast<OpenVDS::VDSHandle *(*)(OpenVDS::IOManager *, const OpenVDS::VolumeDataLayoutDescriptor &, const int &, const int &, const OpenVDS::MetadataContainer &, OpenVDS::Error &)>(&native::Create), OPENVDS_DOCSTRING(Create_2));
+  m.def("close", static_cast<void(*)(OpenVDS::VDSHandle *)>(&native::Close), OPENVDS_DOCSTRING(Close));
+  m.def("getLayout", static_cast<OpenVDS::VolumeDataLayout *(*)(OpenVDS::VDSHandle *)>(&native::GetLayout), OPENVDS_DOCSTRING(GetLayout));
+  m.def("getDataAccessManager", static_cast<OpenVDS::VolumeDataAccessManager *(*)(OpenVDS::VDSHandle *)>(&native::GetDataAccessManager), OPENVDS_DOCSTRING(GetDataAccessManager));
+#else
 //OPENVDS_EXPORT VDSHANDLE Open(const OpenOptions& options, Error& error);
   m.def("open", static_cast<VDSHANDLE (*)(const OpenOptions& options, native::Error& error)>(&native::Open), OPENVDS_DOCSTRING(Open));
 
@@ -73,6 +81,6 @@ PyGlobal::initModule(py::module& m)
 
 //OPENVDS_EXPORT VolumeDataAccessManager *GetDataAccessManager(VDSHandle *handle);
   m.def("getDataAccessManager", &native::GetDataAccessManager, OPENVDS_DOCSTRING(GetDataAccessManager));
-
+#endif
 }
 
