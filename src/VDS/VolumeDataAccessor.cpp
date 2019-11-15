@@ -22,7 +22,7 @@
 #include "VolumeDataRequestProcessor.h"
 #include "DataBlock.h"
 #include "DimensionGroup.h"
-#include "ValueConversion.h"
+#include <OpenVDS/ValueConversion.h>
 
 #include <inttypes.h>
 

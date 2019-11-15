@@ -23,7 +23,7 @@
 #include "VolumeDataHash.h"
 #include "Rle.h"
 #include "DataBlock.h"
-#include "ValueConversion.h"
+#include <OpenVDS/ValueConversion.h>
 
 
 #include <stdlib.h>

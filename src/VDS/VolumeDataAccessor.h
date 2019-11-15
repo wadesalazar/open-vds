@@ -22,7 +22,7 @@
 
 #include "VolumeDataPageImpl.h"
 #include "VolumeDataPageAccessorImpl.h"
-#include "VolumeSampler.h"
+#include <OpenVDS/VolumeSampler.h>
 
 
 namespace OpenVDS

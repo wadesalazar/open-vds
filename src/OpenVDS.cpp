@@ -15,11 +15,11 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "OpenVDS/OpenVDS.h"
+#include <OpenVDS/OpenVDS.h>
 
-#include <VDS/VDS.h>
+#include "VDS/VDS.h"
 
-#include <VDS/ParseVDSJson.h>
+#include "VDS/ParseVDSJson.h"
 
 #include <memory>
 

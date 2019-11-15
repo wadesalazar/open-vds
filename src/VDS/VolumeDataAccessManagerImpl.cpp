@@ -20,8 +20,8 @@
 
 #include "VDS.h"
 #include "VolumeDataPageAccessorImpl.h"
-#include "ValueConversion.h"
-#include "VolumeSampler.h"
+#include <OpenVDS/ValueConversion.h>
+#include <OpenVDS/VolumeSampler.h>
 #include "ParseVDSJson.h"
 #include "VolumeDataStore.h"
 #include "VolumeDataHash.h"

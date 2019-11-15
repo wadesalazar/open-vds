@@ -66,26 +66,27 @@ set (PRIVATE_HEADER_FILES
   VDS/FSE/mem.h
   VDS/FSE/fse.h
   VDS/Rle.h
-  VDS/ValueConversion.h
-  VDS/VolumeSampler.h
   VDS/VolumeDataRequestProcessor.h
   VDS/ThreadPool.h
   )
 
 set (EXPORTED_HEADER_FILES
-  OpenVDS/OpenVDS.h
+  OpenVDS/GlobalMetadataCommon.h
   OpenVDS/KnownMetadata.h
   OpenVDS/Metadata.h
-  OpenVDS/VolumeData.h
-  OpenVDS/VolumeDataLayoutDescriptor.h
-  OpenVDS/VolumeDataChannelDescriptor.h
-  OpenVDS/VolumeDataAxisDescriptor.h
-  OpenVDS/VolumeDataAccess.h
-  OpenVDS/VolumeDataLayout.h
-  OpenVDS/Vector.h
+  OpenVDS/OpenVDS.h
+  OpenVDS/openvds_export.h
   OpenVDS/Range.h
-  OpenVDS/openvds_export.h)
-
+  OpenVDS/ValueConversion.h
+  OpenVDS/Vector.h
+  OpenVDS/VolumeData.h
+  OpenVDS/VolumeDataAccess.h
+  OpenVDS/VolumeDataAxisDescriptor.h
+  OpenVDS/VolumeDataChannelDescriptor.h
+  OpenVDS/VolumeDataLayout.h
+  OpenVDS/VolumeDataLayoutDescriptor.h
+  OpenVDS/VolumeSampler.h
+  )
 
 add_library(openvds_objects OBJECT
   ${PRIVATE_HEADER_FILES}
