@@ -137,7 +137,7 @@ def getvarname(node, all):
     return getfullname(node, all).replace('::', '_') + '_'
     
 def format_docstring_decl(fullname):
-    return "OPENVDS_DOCSTRING({})".format(fullname)
+    return "OPENVDS_DOCSTRING({})".format(fullname.replace('::', '_'))
     
 def resolve_overload_name(node, all):
     overloads = getoverloads(node, all)
@@ -189,26 +189,38 @@ def generate_class(node, all, output, indent, parent_prefix, context):
         for b in bases:
             basesdecl += ', native::{}'.format(b.get_definition().displayname)
         code = [ 
-            indent + """py::class_<native::{}{}> {}({},"{}", {});""".format(
+            '',
+            indent + """py::class_<native::{}{}> \n{}  {}({},"{}", {});""".format(
                 getfullname(node, all),
                 basesdecl,
+                indent,
                 varname,
                 parent_prefix,
                 getfullname(node, all),
                 format_docstring_decl(getfullname(node, all))
-            )
+            ),
+            ''
         ]
-        for kind in CLASS_HANDLERS.keys():
+        for kind in CLASS_NODES:
             children = getchildren(node, all, kind)
             for child in children:
-                generate = CLASS_HANDLERS[kind]
+                generate = NODE_HANDLERS[kind]
                 generate(child, all, code, indent, varname, context)
         output.extend(code)
+        output.append('')
     else:
         pass
 
 def generate_enumvalue(node, all, output, indent, parent_prefix, context):
-    pass
+    code = [
+        indent + """{}.value("{}", native::{}, {});""".format(
+            parent_prefix,
+            node.spelling,
+            getfullname(node, all),
+            format_docstring_decl(getfullname(node, all))
+        ),
+    ]
+    output.extend(code)
     
 def generate_enum(node, all, output, indent, parent_prefix, context):
     if node.get_definition():
@@ -218,46 +230,54 @@ def generate_enum(node, all, output, indent, parent_prefix, context):
         for b in bases:
             basesdecl += ', native::{}'.format(b.get_definition().displayname)
         code = [ 
-            indent + """py::enum_<native::{}> {}({},"{}", {});""".format(
+            '',
+            indent + """py::enum_<native::{}> \n{}  {}({},"{}", {});""".format(
                 getfullname(node, all),
+                indent,
                 varname,
                 parent_prefix,
                 node.spelling,
                 format_docstring_decl(getfullname(node, all))
-            )
+            ),
+            ''
         ]
-        for kind in ENUM_HANDLERS.keys():
+        for kind in ENUM_NODES:
             children = getchildren(node, all, kind)
             for child in children:
-                generate = ENUM_HANDLERS[kind]
+                generate = NODE_HANDLERS[kind]
                 generate(child, all, code, indent, varname, context)
         output.extend(code)
+        output.append('')
     else:
         pass
     
 def generate_struct(*args):
     generate_class(*args)
     
-ROOT_HANDLERS = {
-    CursorKind.STRUCT_DECL:     generate_struct,
-    CursorKind.CLASS_DECL:      generate_class,
-    CursorKind.ENUM_DECL:       generate_enum,
-    CursorKind.FUNCTION_DECL:   generate_function
+NODE_HANDLERS = {
+    CursorKind.STRUCT_DECL:         generate_struct,
+    CursorKind.CLASS_DECL:          generate_class,
+    CursorKind.ENUM_DECL:           generate_enum,
+    CursorKind.ENUM_CONSTANT_DECL:  generate_enumvalue,
+    CursorKind.FUNCTION_DECL:       generate_function,
+    CursorKind.FIELD_DECL:          generate_field,
+    CursorKind.CONSTRUCTOR:         generate_constructor,
+    CursorKind.CXX_METHOD:          generate_function,
 }
 
-ENUM_HANDLERS = {
-    CursorKind.ENUM_CONSTANT_DECL: generate_enumvalue
-}
+ENUM_NODES = [
+    CursorKind.ENUM_CONSTANT_DECL,
+]
 
-CLASS_HANDLERS = {
-    CursorKind.STRUCT_DECL:     generate_struct,
-    CursorKind.CLASS_DECL:      generate_class,
-    CursorKind.ENUM_DECL:       generate_enum,
-    CursorKind.FUNCTION_DECL:   generate_function,
-    CursorKind.FIELD_DECL:      generate_field,
-    CursorKind.CONSTRUCTOR:     generate_constructor,
-    CursorKind.CXX_METHOD:      generate_function
-}
+CLASS_NODES = [
+    CursorKind.CONSTRUCTOR,
+    CursorKind.CXX_METHOD,
+    CursorKind.FIELD_DECL,
+    CursorKind.FUNCTION_DECL,
+    CursorKind.CLASS_DECL,
+    CursorKind.STRUCT_DECL,
+    CursorKind.ENUM_DECL,
+]
 
 class Parser(object):
     def __init__(self, filename, parameters, output):
@@ -279,11 +299,9 @@ class Parser(object):
 #            dump_node(n)
             p = getparent(n, self.nodes)
             if p is None or p.kind == CursorKind.NAMESPACE or p.kind == CursorKind.TRANSLATION_UNIT:
-                if n.kind in ROOT_HANDLERS.keys():
-                    func = ROOT_HANDLERS[n.kind]
+                if n.kind in NODE_HANDLERS.keys():
+                    func = NODE_HANDLERS[n.kind]
                     func(n, self.nodes, self.output, '  ', 'm', context)
-        for l in self.output:
-            print(l)
 
 def parse_args(args):
     parameters = []
@@ -332,6 +350,15 @@ def parse_args(args):
 class NoFilenamesError(ValueError):
     pass
 
+def cleanup_output(output):
+    cleaned = []
+    prev = ''
+    for line in output:
+        if not line == prev:
+            cleaned.append(line)
+            prev = line
+    return cleaned
+    
 def generate_all(args):
     parameters, filenames = parse_args(args)
     output = []
@@ -339,6 +366,9 @@ def generate_all(args):
         for filename in filenames:
             parser = Parser(filename, parameters, output)
             parser.run()
+            output = cleanup_output(output)
+            for l in output:
+                print(l)
     else:
         raise NoFilenamesError
 
