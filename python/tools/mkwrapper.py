@@ -30,12 +30,28 @@ PRINT_LIST = [
     CursorKind.FUNCTION_TEMPLATE,
     CursorKind.CONVERSION_FUNCTION,
     CursorKind.CXX_METHOD,
+    CursorKind.CXX_BASE_SPECIFIER,
     CursorKind.CONSTRUCTOR,
     CursorKind.FIELD_DECL
 ]
 
 PREFIX_BLACKLIST = [
     CursorKind.TRANSLATION_UNIT
+]
+
+PUBLIC_LIST = [
+  cindex.AccessSpecifier.PUBLIC
+]
+
+PROTECTED_LIST = [
+  cindex.AccessSpecifier.PUBLIC,
+  cindex.AccessSpecifier.PROTECTED
+]
+
+PRIVATE_LIST = [
+  cindex.AccessSpecifier.PUBLIC,
+  cindex.AccessSpecifier.PROTECTED,
+  cindex.AccessSpecifier.PRIVATE
 ]
 
 CPP_OPERATORS = {
@@ -63,7 +79,7 @@ def sanitize_name(name):
     name = re.sub('_$', '', re.sub('_+', '_', name))
     return '__doc_' + name
 
-def extract_nodes(filename, node, output=[], prefix=''):
+def extract_nodes(filename, node, output, prefix=''):
     if not (node.location.file is None or
             os.path.samefile(d(node.location.file.name), filename)):
         return 0
@@ -85,66 +101,162 @@ def dump_node(n):
 def getpyname(name):
     return name[0].lower() + name[1:]
 
-def getchildren(node, all, kind=None):
-    return [x for x in all if x.semantic_parent == node and (kind is None or x.kind == kind)]
+def getparent(node, all):
+    for n in all:
+        if node in n.get_children():
+            return n
+    return None
     
-def get_overloads(node, all):
+def getchildren(node, all, kind=None, access_filter = PUBLIC_LIST):
+    children = list(node.get_children())
+    return [x for x in all if x in children and (kind is None or x.kind == kind) and x.access_specifier in access_filter]
+    
+def getbases(node, all):
+    return getchildren(node, all, CursorKind.CXX_BASE_SPECIFIER)
+    
+def getoverloads(node, all, access_filter = PUBLIC_LIST):
+    children = getchildren(node, all, node.kind, access_filter)
     return [x for x in all if x.kind == node.kind and x.spelling == node.spelling]
+
+def getscope(node, all, output):
+    p = getparent(node, all)
+    while p:
+        output.append(p)
+        p = getparent(p, all)
+    return output
+
+def getfullname(node, all):
+    scope = getscope(node, all, [])
+    scope.reverse()
+    prefix = ''
+    for s in scope:
+        prefix += s.spelling + '::'
+    return "{}{}".format(prefix, node.spelling)
+
+def getvarname(node, all):
+    return getfullname(node, all).replace('::', '_') + '_'
+    
+def format_docstring_decl(fullname):
+    return "OPENVDS_DOCSTRING({})".format(fullname)
     
 def resolve_overload_name(node, all):
-    overloads = get_overloads(node, all)
+    overloads = getoverloads(node, all)
     suffix = ''
     index = overloads.index(node)
     if index > 0:
         suffix += '_{}'.format(index + 1)
-    return node.spelling + suffix
+    return getfullname(node, all).replace('::', '_') + suffix
     
 def generate_none(node, all, output, indent, parent_prefix, context):
     pass
+
+def generate_field(node, all, output, indent, parent_prefix, context):
+    overload_name = resolve_overload_name(node, all)
+    code = """.def_readwrite("{}", native::{}, {});""".format(
+        getpyname(node.spelling),
+        getfullname(node, all),
+        format_docstring_decl(overload_name)
+    )
+    output.append(indent + parent_prefix + code)
+
+def generate_constructor(node, all, output, indent, parent_prefix, context):
+    overload_name = resolve_overload_name(node, all)
+    arglist = node.displayname[node.displayname.find('(') + 1:-1]
+    code = """.def(py::init<{}>, {});""".format(
+       arglist,
+       format_docstring_decl(overload_name)
+    )
+    output.append(indent + parent_prefix + code)
 
 def generate_function(node, all, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all)
     restype   = node.result_type.spelling
     arglist = node.displayname[node.displayname.find('('):]
-    code = """.def("{}", static_cast<{}(*){}>(&native::{}), OPENVDS_DOCSTRING({}));""".format(
+    code = """.def("{}", static_cast<{}(*){}>(&native::{}), {});""".format(
        getpyname(node.spelling),
        restype,
        arglist,
        node.spelling,
-       overload_name
+       format_docstring_decl(overload_name)
     )
     output.append(indent + parent_prefix + code)
     
 def generate_class(node, all, output, indent, parent_prefix, context):
     if node.get_definition():
-        varname = "_" + node.spelling
+        varname = getvarname(node, all)
+        bases = getbases(node, all)
+        basesdecl = ''
+        for b in bases:
+            basesdecl += ', native::{}'.format(b.get_definition().displayname)
         code = [ 
-            indent + """py::class_<native::{}> {}({},"{}", OPENVDS_DOCSTRING({}));""".format(
-                node.spelling,
+            indent + """py::class_<native::{}{}> {}({},"{}", {});""".format(
+                getfullname(node, all),
+                basesdecl,
+                varname,
+                parent_prefix,
+                getfullname(node, all),
+                format_docstring_decl(getfullname(node, all))
+            )
+        ]
+        for kind in CLASS_HANDLERS.keys():
+            children = getchildren(node, all, kind)
+            for child in children:
+                generate = CLASS_HANDLERS[kind]
+                generate(child, all, code, indent, varname, context)
+        output.extend(code)
+    else:
+        pass
+
+def generate_enumvalue(node, all, output, indent, parent_prefix, context):
+    pass
+    
+def generate_enum(node, all, output, indent, parent_prefix, context):
+    if node.get_definition():
+        varname = getvarname(node, all)
+        bases = getbases(node, all)
+        basesdecl = ''
+        for b in bases:
+            basesdecl += ', native::{}'.format(b.get_definition().displayname)
+        code = [ 
+            indent + """py::enum_<native::{}> {}({},"{}", {});""".format(
+                getfullname(node, all),
                 varname,
                 parent_prefix,
                 node.spelling,
-                node.spelling
+                format_docstring_decl(getfullname(node, all))
             )
         ]
-        methods = getchildren(node, all, CursorKind.CXX_METHOD)
-        for m in methods:
-            generate_function(m, all, code, indent + '    ', varname, context)
+        for kind in ENUM_HANDLERS.keys():
+            children = getchildren(node, all, kind)
+            for child in children:
+                generate = ENUM_HANDLERS[kind]
+                generate(child, all, code, indent, varname, context)
         output.extend(code)
     else:
         pass
     
-def generate_enum(node, all, output, indent, parent_prefix, context):
-    pass
-    
 def generate_struct(*args):
     generate_class(*args)
     
-NODE_HANDLERS = {
+ROOT_HANDLERS = {
     CursorKind.STRUCT_DECL:     generate_struct,
     CursorKind.CLASS_DECL:      generate_class,
     CursorKind.ENUM_DECL:       generate_enum,
     CursorKind.FUNCTION_DECL:   generate_function
+}
+
+ENUM_HANDLERS = {
+    CursorKind.ENUM_CONSTANT_DECL: generate_enumvalue
+}
+
+CLASS_HANDLERS = {
+    CursorKind.STRUCT_DECL:     generate_struct,
+    CursorKind.CLASS_DECL:      generate_class,
+    CursorKind.ENUM_DECL:       generate_enum,
+    CursorKind.FUNCTION_DECL:   generate_function,
+    CursorKind.FIELD_DECL:      generate_field,
+    CursorKind.CONSTRUCTOR:     generate_constructor,
+    CursorKind.CXX_METHOD:      generate_function
 }
 
 class Parser(object):
@@ -160,16 +272,16 @@ class Parser(object):
           "filename":   self.filename,
           "parameters": self.parameters
         }
-        index = cindex.Index(
-            cindex.conf.lib.clang_createIndex(False, True))
+        index = cindex.Index(cindex.conf.lib.clang_createIndex(False, True))
         tu = index.parse(self.filename, self.parameters)
         extract_nodes(self.filename, tu.cursor, self.nodes)
         for n in self.nodes:
 #            dump_node(n)
-            func = generate_none
-            if n.kind in NODE_HANDLERS.keys():
-                func = NODE_HANDLERS[n.kind]
-            func(n, self.nodes, self.output, '  ', 'm', context)
+            p = getparent(n, self.nodes)
+            if p is None or p.kind == CursorKind.NAMESPACE or p.kind == CursorKind.TRANSLATION_UNIT:
+                if n.kind in ROOT_HANDLERS.keys():
+                    func = ROOT_HANDLERS[n.kind]
+                    func(n, self.nodes, self.output, '  ', 'm', context)
         for l in self.output:
             print(l)
 
