@@ -162,7 +162,7 @@ def generate_field(node, all, output, indent, parent_prefix, context):
 def generate_constructor(node, all, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all)
     arglist = node.displayname[node.displayname.find('(') + 1:-1]
-    code = """.def(py::init<{}>, {});""".format(
+    code = """.def(py::init<{}>(), {});""".format(
        arglist,
        format_docstring_decl(overload_name)
     )
