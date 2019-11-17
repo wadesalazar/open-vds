@@ -20,10 +20,24 @@
 void 
 PyVolumeDataAxisDescriptor::initModule(py::module& m)
 {
-  py::class_< native::VolumeDataAxisDescriptor >(m, "VolumeDataAxisDescriptor ")
-      .def(py::init<>())
-      .def(py::init<int, const char*, const char*, float, float>())
-      .def_property_readonly("name", &native::VolumeDataAxisDescriptor::GetName)
-  ;
+#if 0
+//AUTOGEN-BEGIN
+  // VolumeDataAxisDescriptor
+  py::class_<native::VolumeDataAxisDescriptor> 
+    VolumeDataAxisDescriptor_(m,"VolumeDataAxisDescriptor", OPENVDS_DOCSTRING(VolumeDataAxisDescriptor));
+
+  VolumeDataAxisDescriptor_.def(py::init<                              >(), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_VolumeDataAxisDescriptor));
+  VolumeDataAxisDescriptor_.def(py::init<int, const char *, const char *, float, float>(), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_VolumeDataAxisDescriptor_2));
+  VolumeDataAxisDescriptor_.def("getNumSamples"               , static_cast<int(*)()>(&native::GetNumSamples), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetNumSamples));
+  VolumeDataAxisDescriptor_.def("getName"                     , static_cast<const char *(*)()>(&native::GetName), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetName));
+  VolumeDataAxisDescriptor_.def("getUnit"                     , static_cast<const char *(*)()>(&native::GetUnit), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetUnit));
+  VolumeDataAxisDescriptor_.def("getCoordinateMin"            , static_cast<float(*)()>(&native::GetCoordinateMin), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetCoordinateMin));
+  VolumeDataAxisDescriptor_.def("getCoordinateMax"            , static_cast<float(*)()>(&native::GetCoordinateMax), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetCoordinateMax));
+  VolumeDataAxisDescriptor_.def("getCoordinateStep"           , static_cast<float(*)()>(&native::GetCoordinateStep), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetCoordinateStep));
+  VolumeDataAxisDescriptor_.def("sampleIndexToCoordinate"     , static_cast<float(*)(int)>(&native::SampleIndexToCoordinate), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_SampleIndexToCoordinate));
+  VolumeDataAxisDescriptor_.def("coordinateToSampleIndex"     , static_cast<int(*)(float)>(&native::CoordinateToSampleIndex), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_CoordinateToSampleIndex));
+
+//AUTOGEN-END
+#endif
 }
 

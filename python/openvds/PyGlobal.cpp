@@ -43,44 +43,50 @@ PyGlobal::initModule(py::module& m)
     .def(py::init<>())
     .def_readwrite("code",    &native::Error::Code)
     .def_readwrite("string",  &native::Error::String);
-  error.def("__repr__", [](native::Error const& self){ char tmp[256]; _itoa_s(self.Code, tmp, 16); return std::string("Error(code=") + tmp + ", string='" + self.String + "')"; });
-
-  py::enum_<Access>(m, "Access")
-    .value("Read",      Access::Read)
-    .value("ReadWrite", Access::Write);
 
   // These are opaque pointers, so they must not be destructed from pybind11 code
   py::class_<VDSHandle, std::unique_ptr<VDSHandle, py::nodelete>>(m, "VDSHandle");
   py::class_<IOManager, std::unique_ptr<IOManager, py::nodelete>>(m, "IOManager");
-#if 0
-  m.def("open", static_cast<OpenVDS::VDSHandle *(*)(const OpenVDS::OpenOptions &, OpenVDS::Error &)>(&native::Open), OPENVDS_DOCSTRING(Open));
-  m.def("open", static_cast<OpenVDS::VDSHandle *(*)(OpenVDS::IOManager *, OpenVDS::Error &)>(&native::Open), OPENVDS_DOCSTRING(Open_2));
-  m.def("create", static_cast<OpenVDS::VDSHandle *(*)(const OpenVDS::OpenOptions &, const OpenVDS::VolumeDataLayoutDescriptor &, const int &, const int &, const OpenVDS::MetadataContainer &, OpenVDS::Error &)>(&native::Create), OPENVDS_DOCSTRING(Create));
-  m.def("create", static_cast<OpenVDS::VDSHandle *(*)(OpenVDS::IOManager *, const OpenVDS::VolumeDataLayoutDescriptor &, const int &, const int &, const OpenVDS::MetadataContainer &, OpenVDS::Error &)>(&native::Create), OPENVDS_DOCSTRING(Create_2));
-  m.def("close", static_cast<void(*)(OpenVDS::VDSHandle *)>(&native::Close), OPENVDS_DOCSTRING(Close));
-  m.def("getLayout", static_cast<OpenVDS::VolumeDataLayout *(*)(OpenVDS::VDSHandle *)>(&native::GetLayout), OPENVDS_DOCSTRING(GetLayout));
-  m.def("getDataAccessManager", static_cast<OpenVDS::VolumeDataAccessManager *(*)(OpenVDS::VDSHandle *)>(&native::GetDataAccessManager), OPENVDS_DOCSTRING(GetDataAccessManager));
-#else
-//OPENVDS_EXPORT VDSHANDLE Open(const OpenOptions& options, Error& error);
-  m.def("open", static_cast<VDSHANDLE (*)(const OpenOptions& options, native::Error& error)>(&native::Open), OPENVDS_DOCSTRING(Open));
 
-//OPENVDS_EXPORT VDSHANDLE Open(IOManager*ioManager, Error &error);
-  m.def("open", static_cast<VDSHANDLE (*)(IOMANAGERHANDLE ioManager, Error &error)>(&native::Open), OPENVDS_DOCSTRING(Open_2));
+//AUTOGEN-BEGIN
+  // OpenOptions
+  py::class_<native::OpenOptions> 
+    OpenOptions_(m,"OpenOptions", OPENVDS_DOCSTRING(OpenOptions));
 
-//OPENVDS_EXPORT VDSHANDLE Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const& axisDescriptors, std::vector<VolumeDataChannelDescriptor> const& channelDescriptors, MetadataContainer const& metadataContainer, Error& error);
-  m.def("create", static_cast<VDSHANDLE (*)(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const& axisDescriptors, std::vector<VolumeDataChannelDescriptor> const& channelDescriptors, MetadataContainer const& metadataContainer, Error& error)>(&native::Create), OPENVDS_DOCSTRING(Create));
+  OpenOptions_.def_readwrite("connectionType"              , &native::OpenOptions::connectionType   , OPENVDS_DOCSTRING(OpenOptions_connectionType));
 
-//OPENVDS_EXPORT VDSHANDLE Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
-  m.def("create", static_cast<VDSHANDLE (*)(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error)>(&native::Create), OPENVDS_DOCSTRING(Create_2));
+  py::enum_<native::OpenOptions::ConnectionType> 
+    OpenOptions_ConnectionType_(OpenOptions_,"ConnectionType", OPENVDS_DOCSTRING(OpenOptions_ConnectionType));
 
-//OPENVDS_EXPORT void Close(VDSHandle *handle);
-  m.def("close", &native::Close, OPENVDS_DOCSTRING(Close));
+  OpenOptions_ConnectionType_.value("AWS"                         , native::OpenOptions::ConnectionType::AWS        , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_AWS));
+  OpenOptions_ConnectionType_.value("Azure"                       , native::OpenOptions::ConnectionType::Azure      , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_Azure));
+  OpenOptions_ConnectionType_.value("File"                        , native::OpenOptions::ConnectionType::File       , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_File));
 
-//OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle *handle);
-  m.def("getLayout", &native::GetLayout, OPENVDS_DOCSTRING(GetLayout));
+  // AWSOpenOptions
+  py::class_<native::AWSOpenOptions, native::OpenOptions> 
+    AWSOpenOptions_(m,"AWSOpenOptions", OPENVDS_DOCSTRING(AWSOpenOptions));
 
-//OPENVDS_EXPORT VolumeDataAccessManager *GetDataAccessManager(VDSHandle *handle);
-  m.def("getDataAccessManager", &native::GetDataAccessManager, OPENVDS_DOCSTRING(GetDataAccessManager));
-#endif
+  AWSOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions));
+  AWSOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &>(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions_2));
+  AWSOpenOptions_.def_readwrite("bucket"                      , &native::AWSOpenOptions::Bucket        , OPENVDS_DOCSTRING(AWSOpenOptions_Bucket));
+  AWSOpenOptions_.def_readwrite("key"                         , &native::AWSOpenOptions::Key           , OPENVDS_DOCSTRING(AWSOpenOptions_Key));
+  AWSOpenOptions_.def_readwrite("region"                      , &native::AWSOpenOptions::Region        , OPENVDS_DOCSTRING(AWSOpenOptions_Region));
+
+  // Error
+  py::class_<native::Error> 
+    Error_(m,"Error", OPENVDS_DOCSTRING(Error));
+
+  Error_.def_readwrite("code"                        , &native::Error::Code                   , OPENVDS_DOCSTRING(Error_Code));
+  Error_.def_readwrite("string"                      , &native::Error::String                 , OPENVDS_DOCSTRING(Error_String));
+
+  m.def("open"                        , static_cast<OpenVDS::VDSHandle(*)(const OpenVDS::OpenOptions &, OpenVDS::Error &)>(&native::Open), OPENVDS_DOCSTRING(Open));
+  m.def("open"                        , static_cast<OpenVDS::VDSHandle(*)(OpenVDS::IOManager *, OpenVDS::Error &)>(&native::Open), OPENVDS_DOCSTRING(Open_2));
+  m.def("create"                      , static_cast<OpenVDS::VDSHandle(*)(const OpenVDS::OpenOptions &, const OpenVDS::VolumeDataLayoutDescriptor &, const std::vector<VolumeDataAxisDescriptor> &, const std::vector<VolumeDataChannelDescriptor> &, const OpenVDS::MetadataContainer &, OpenVDS::Error &)>(&native::Create), OPENVDS_DOCSTRING(Create));
+  m.def("create"                      , static_cast<OpenVDS::VDSHandle(*)(OpenVDS::IOManager *, const OpenVDS::VolumeDataLayoutDescriptor &, const std::vector<VolumeDataAxisDescriptor> &, const std::vector<VolumeDataChannelDescriptor> &, const OpenVDS::MetadataContainer &, OpenVDS::Error &)>(&native::Create), OPENVDS_DOCSTRING(Create_2));
+  m.def("close"                       , static_cast<void(*)(OpenVDS::VDSHandle)>(&native::Close), OPENVDS_DOCSTRING(Close));
+  m.def("getLayout"                   , static_cast<OpenVDS::VolumeDataLayout *(*)(OpenVDS::VDSHandle)>(&native::GetLayout), OPENVDS_DOCSTRING(GetLayout));
+  m.def("getDataAccessManager"        , static_cast<OpenVDS::VolumeDataAccessManager *(*)(OpenVDS::VDSHandle)>(&native::GetDataAccessManager), OPENVDS_DOCSTRING(GetDataAccessManager));
+//AUTOGEN-END
+  Error_.def("__repr__", [](native::Error const& self){ char tmp[256]; _itoa_s(self.Code, tmp, 16); return std::string("Error(code=") + tmp + ", string='" + self.String + "')"; });
 }
 

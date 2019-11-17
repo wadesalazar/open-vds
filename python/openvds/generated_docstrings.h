@@ -35,12 +35,6 @@ static const char *__doc_OpenVDS_AWSOpenOptions_Key = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_Region = R"doc()doc";
 
-static const char *__doc_OpenVDS_Access = R"doc()doc";
-
-static const char *__doc_OpenVDS_Access_Read = R"doc()doc";
-
-static const char *__doc_OpenVDS_Access_Write = R"doc()doc";
-
 static const char *__doc_OpenVDS_Close =
 R"doc(!
 
@@ -78,6 +72,32 @@ static const char *__doc_OpenVDS_CompressionMethod_WaveletNormalizeBlock = R"doc
 static const char *__doc_OpenVDS_CompressionMethod_WaveletNormalizeBlockLossless = R"doc()doc";
 
 static const char *__doc_OpenVDS_CompressionMethod_Zip = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertNoValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertNoValue_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertNoValue_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertNoValue_4 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertNoValue_5 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertNoValue_6 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertNoValue_7 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertNoValue_8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertValue_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertValue_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertValue_4 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ConvertValue_5 = R"doc()doc";
 
 static const char *__doc_OpenVDS_Create =
 R"doc(!
@@ -275,6 +295,14 @@ static const char *__doc_OpenVDS_IndexRegion_IndexRegion_2 = R"doc()doc";
 static const char *__doc_OpenVDS_IndexRegion_Max = R"doc()doc";
 
 static const char *__doc_OpenVDS_IndexRegion_Min = R"doc()doc";
+
+static const char *__doc_OpenVDS_InterpolatedRealType = R"doc()doc";
+
+static const char *__doc_OpenVDS_InterpolatedRealType_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_InterpolatedRealType_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_InterpolatedRealType_4 = R"doc()doc";
 
 static const char *__doc_OpenVDS_InterpolationMethod = R"doc(Interpolation method used for sampling)doc";
 
@@ -570,6 +598,44 @@ static const char *__doc_OpenVDS_OpenOptions_OpenOptions = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_connectionType = R"doc()doc";
 
+static const char *__doc_OpenVDS_PitchScale = R"doc()doc";
+
+static const char *__doc_OpenVDS_PitchScale_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizeValueWithReciprocalScale = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizedTypesToFloatConverter = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizedTypesToFloatConverter_ConvertValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizedTypesToFloatConverter_QuantizedTypesToFloatConverter = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizedTypesToFloatConverter_QuantizedTypesToFloatConverter_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_ConvertValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_QuantizingValueConverterWithNoValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_QuantizingValueConverterWithNoValue_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_QuantizingValueConverterWithNoValue_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_QuantizingValueConverterWithNoValue_4 = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_QuantizingValueConverterWithNoValue_5 = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_m_integerOffset = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_m_noValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_m_quantizedTypesToFloatConverter = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_m_reciprocalScale = R"doc()doc";
+
+static const char *__doc_OpenVDS_QuantizingValueConverterWithNoValue_m_replacementNoValue = R"doc()doc";
+
 static const char *__doc_OpenVDS_Range = R"doc()doc";
 
 static const char *__doc_OpenVDS_Range_Max = R"doc()doc";
@@ -580,9 +646,19 @@ static const char *__doc_OpenVDS_Range_Range = R"doc()doc";
 
 static const char *__doc_OpenVDS_Range_Range_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_VDSHandle = R"doc()doc";
+static const char *__doc_OpenVDS_ReadElement = R"doc()doc";
 
-static const char *__doc_OpenVDS_VDSHandle_2 = R"doc()doc";
+static const char *__doc_OpenVDS_ReadElement_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ResultConverter = R"doc()doc";
+
+static const char *__doc_OpenVDS_ResultConverter_ConvertValueT = R"doc()doc";
+
+static const char *__doc_OpenVDS_ResultConverter_ReciprocalScale = R"doc()doc";
+
+static const char *__doc_OpenVDS_VDS = R"doc()doc";
+
+static const char *__doc_OpenVDS_VDS_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_Vector2 = R"doc()doc";
 
@@ -772,9 +848,6 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeDataLayout =
 R"doc(!
 
 Get the VolumeDataLayout object for a VDS.
-
-Parameter ``cVDS``:
-    The VDS object to get the layout for.
 
 Returns:
     The VolumeDataLayout object associated with the VDS or NULL if
@@ -1216,61 +1289,110 @@ static const char *__doc_OpenVDS_VolumeDataAccessor_VolumeDataAccessor = R"doc()
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_2 = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_2 =
+R"doc(!
+
+Describes the number of samples, name, unit and coordinates
+(annotation) of an axis (dimension) of the volume)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_CoordinateToSampleIndex =
-R"doc(Convert a coordinate to a sample index (rounding to the closest index)
+R"doc(!
+
+Convert a coordinate to a sample index (rounding to the closest index)
 
 Parameter ``coordinate``:
-    the coordinate to convert
+    The coordinate to get the sample index of
 
 Returns:
-    the sample index)doc";
+    The sample index of the coordinate)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateMax = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateMax =
+R"doc(!
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateMin = R"doc()doc";
+Get the coordinate of the last sample of this axis
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateRange = R"doc()doc";
+Returns:
+    The coordinate of the last sample of this axis)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateStep = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateMin =
+R"doc(!
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetName = R"doc()doc";
+Get the coordinate of the first sample of this axis
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetNumSamples = R"doc()doc";
+Returns:
+    The coordinate of the first sample of this axis)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetUnit = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateStep =
+R"doc(!
+
+Get the coordiante step size per sample
+
+Returns:
+    The coordiante step size per sample)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetName =
+R"doc(!
+
+Get the name of this axis
+
+Returns:
+    The name of this axis)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetNumSamples =
+R"doc(!
+
+Get the number of samples along this axis
+
+Returns:
+    The number of samples along this axis)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetUnit =
+R"doc(!
+
+Get the unit of the coordinates of this axis
+
+Returns:
+    The unit of the coordinates of this axis)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_SampleIndexToCoordinate =
-R"doc(Convert a sample index on this axis to a coordinate value
+R"doc(!
+
+Convert a sample index on this axis to a coordinate
 
 Parameter ``sampleIndex``:
-    the sample index to convert
+    The sample index get the coordinate of
 
 Returns:
-    the coordinate)doc";
+    The coordinate of the sample index)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_VolumeDataAxisDescriptor = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_VolumeDataAxisDescriptor =
+R"doc(!
+
+Default constructor)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_VolumeDataAxisDescriptor_2 =
-R"doc(Parameter ``numSamples``:
-    the number of samples along this axis
+R"doc(!
 
-Parameter ``pName``:
-    the name of this axis
+Constructor
 
-Parameter ``pUnit``:
-    the unit for this axis
+Parameter ``numSamples``:
+    The number of samples along this axis
+
+Parameter ``name``:
+    The name of this axis
+
+Parameter ``unit``:
+    The unit of the coordinates of this axis
 
 Parameter ``coordinateMin``:
-    the minumum coordinate for this axis
+    The coordinate of the first sample of this axis
 
 Parameter ``coordinateMax``:
-    the maximum coordinate for this axis)doc";
+    The coordinate of the last sample of this axis)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_VolumeDataAxisDescriptor_3 = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_m_coordinateMax = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_m_coordinateRange = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_m_coordinateMin = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_m_name = R"doc()doc";
 
@@ -1908,6 +2030,89 @@ static const char *__doc_OpenVDS_VolumeDataRegions_Region = R"doc()doc";
 static const char *__doc_OpenVDS_VolumeDataRegions_RegionCount = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataRegions_RegionFromIndex = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_Clamp = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_GetCubicInterpolationWeights = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_IsHeightValid = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_Sample2D =
+R"doc(Sample the given buffer at the the given 2D index\n The returned TREAL
+type is double when T is double, int32, or int64 and float for all
+other types
+
+Parameter ``ptBuffer``:
+    pointer to the buffer to be samples
+
+Parameter ``localIndex``:
+    the local 2D index into the buffer
+
+Returns:
+    a TREAL sampled using the ::InterpolationType at the given index)doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_Sample3D =
+R"doc(Sample the given buffer at the the given 3D index\n The returned TREAL
+type is double when T is double, int32, or int64 and float for all
+other types
+
+Parameter ``ptBuffer``:
+    pointer to the buffer to be samples
+
+Parameter ``localIndex``:
+    the local 3D index into the buffer
+
+Returns:
+    a TREAL sampled using the ::InterpolationType at the given index)doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_VolumeSampler = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_VolumeSampler_2 =
+R"doc(Parameter ``anSize``:
+    the 6D size of the buffer to be sampled
+
+Parameter ``anPitch``:
+    the pitch of the buffer to be sampled
+
+Parameter ``rangeMin``:
+    the value range minimum of the data to be sampled
+
+Parameter ``rangemax``:
+    the value range maximum of the data to be sampled
+
+Parameter ``noValalue``:
+    the no value for the data to be sampled
+
+Parameter ``replacementNoValue``:
+    the value to replace any NoValues with)doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_WrapToClosestAngle = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_WrapToRange = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_noValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_pitchX = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_pitchY = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_pitchZ = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_quantizedTypesToFloatConverter = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_rangeMax = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_rangeMin = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_replacementNoValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_sizeX = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_sizeY = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeSampler_m_sizeZ = R"doc()doc";
 
 static const char *__doc_OpenVDS_operator_bor = R"doc()doc";
 

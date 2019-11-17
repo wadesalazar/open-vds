@@ -1,1 +1,13 @@
-python mkwrapper.py -Itmpinclude tmpinclude\OpenVDS\OpenVDS.h >gen_OpenVDS.cpp
+@echo off
+md generated 2>NUL
+ECHO Generating...
+python mkwrapper.py -I..\..\src ..\..\src\OpenVDS\*.h
+IF ERRORLEVEL 1 GOTO end
+del generated\Global.h
+rename generated\OpenVDS.h Global.h
+IF ERRORLEVEL 1 GOTO end
+ECHO Merging...
+python merge_generated.py
+IF ERRORLEVEL 1 GOTO end
+:end
+

@@ -3,6 +3,7 @@ import sys
 import platform
 import re
 import textwrap
+from os import path
 
 from clang import cindex
 from clang.cindex import CursorKind
@@ -17,7 +18,7 @@ RECURSE_LIST = [
     CursorKind.CLASS_DECL,
     CursorKind.STRUCT_DECL,
     CursorKind.ENUM_DECL,
-    CursorKind.CLASS_TEMPLATE
+#    CursorKind.CLASS_TEMPLATE
 ]
 
 PRINT_LIST = [
@@ -25,9 +26,9 @@ PRINT_LIST = [
     CursorKind.STRUCT_DECL,
     CursorKind.ENUM_DECL,
     CursorKind.ENUM_CONSTANT_DECL,
-    CursorKind.CLASS_TEMPLATE,
+#   CursorKind.CLASS_TEMPLATE,
     CursorKind.FUNCTION_DECL,
-    CursorKind.FUNCTION_TEMPLATE,
+#    CursorKind.FUNCTION_TEMPLATE,
     CursorKind.CONVERSION_FUNCTION,
     CursorKind.CXX_METHOD,
     CursorKind.CXX_BASE_SPECIFIER,
@@ -69,6 +70,9 @@ CPP_OPERATORS = OrderedDict(
 
 def d(s):
     return s if isinstance(s, str) else s.decode('utf8')
+    
+def q(s):
+    return '"' + s + '"'
     
 def sanitize_name(name):
     name = re.sub(r'type-parameter-0-([0-9]+)', r'T\1', name)
@@ -152,8 +156,8 @@ def generate_none(node, all, output, indent, parent_prefix, context):
 
 def generate_field(node, all, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all)
-    code = """.def_readwrite("{}", native::{}, {});""".format(
-        getpyname(node.spelling),
+    code = """.def_readwrite({0:30}, &native::{1:30}, {2});""".format(
+        q(getpyname(node.spelling)),
         getfullname(node, all),
         format_docstring_decl(overload_name)
     )
@@ -162,7 +166,7 @@ def generate_field(node, all, output, indent, parent_prefix, context):
 def generate_constructor(node, all, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all)
     arglist = node.displayname[node.displayname.find('(') + 1:-1]
-    code = """.def(py::init<{}>(), {});""".format(
+    code = """.def(py::init<{0:30}>(), {1});""".format(
        arglist,
        format_docstring_decl(overload_name)
     )
@@ -172,8 +176,8 @@ def generate_function(node, all, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all)
     restype   = node.result_type.spelling
     arglist = node.displayname[node.displayname.find('('):]
-    code = """.def("{}", static_cast<{}(*){}>(&native::{}), {});""".format(
-       getpyname(node.spelling),
+    code = """.def({0:30}, static_cast<{1}(*){2}>(&native::{3}), {4});""".format(
+       q(getpyname(node.spelling)),
        restype,
        arglist,
        node.spelling,
@@ -190,6 +194,9 @@ def generate_class(node, all, output, indent, parent_prefix, context):
             basesdecl += ', native::{}'.format(b.get_definition().displayname)
         code = [ 
             '',
+            indent + """// {}""".format(
+                getfullname(node, all)
+            ),
             indent + """py::class_<native::{}{}> \n{}  {}({},"{}", {});""".format(
                 getfullname(node, all),
                 basesdecl,
@@ -213,9 +220,9 @@ def generate_class(node, all, output, indent, parent_prefix, context):
 
 def generate_enumvalue(node, all, output, indent, parent_prefix, context):
     code = [
-        indent + """{}.value("{}", native::{}, {});""".format(
+        indent + """{0}.value({1:30}, native::{2:40}, {3});""".format(
             parent_prefix,
-            node.spelling,
+            q(node.spelling),
             getfullname(node, all),
             format_docstring_decl(getfullname(node, all))
         ),
@@ -361,14 +368,15 @@ def cleanup_output(output):
     
 def generate_all(args):
     parameters, filenames = parse_args(args)
-    output = []
     if filenames:
         for filename in filenames:
+            output = []
             parser = Parser(filename, parameters, output)
             parser.run()
             output = cleanup_output(output)
-            for l in output:
-                print(l)
+            outfile = path.split(filename)[1]
+            with open("generated/" + outfile, "wb") as wr:
+                wr.writelines([(line+'\n').encode() for line in output])
     else:
         raise NoFilenamesError
 

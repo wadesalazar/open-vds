@@ -38,11 +38,11 @@ class IOManager;
 
 #else
 
-struct VDSHandle
+struct VDS
 {
 private:
-  VDSHandle();
-  ~VDSHandle();
+  VDS();
+  ~VDS();
 };
 
 class IOManager
@@ -53,10 +53,6 @@ private:
 };
 
 #endif
-
-
-typedef VDSHandle* VDSHANDLE;
-typedef IOManager* IOMANAGERHANDLE;
 
 }
 
