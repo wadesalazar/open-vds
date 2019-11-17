@@ -19,15 +19,31 @@
 #include <pybind11/stl.h>
 
 #include "PyGlobal.h"
-#include "PyVolumeDataAccessManager.h"
-#include "PyVolumeDataLayout.h"
-#include "PyVolumeDataPageAccessor.h"
+#include "PyGlobalMetadataCommon.h"
+#include "PyKnownMetadata.h"
+#include "PyMetadata.h"
+#include "PyRange.h"
+#include "PyVector.h"
+#include "PyVolumeData.h"
+#include "PyVolumeDataAccess.h"
 #include "PyVolumeDataAxisDescriptor.h"
+#include "PyVolumeDataChannelDescriptor.h"
+#include "PyVolumeDataLayout.h"
+#include "PyVolumeDataLayoutDescriptor.h"
+#include "PyVolumeSampler.h"
 
 PYBIND11_MODULE(core, m) {
   PyGlobal::initModule(m);
-  PyVolumeDataAccessManager::initModule(m);
-  PyVolumeDataLayout::initModule(m);
-  PyVolumeDataPageAccessor::initModule(m);
+  PyGlobalMetadataCommon::initModule(m);
+  PyKnownMetadata::initModule(m);
+  PyMetadata::initModule(m);
+  PyRange::initModule(m);
+  PyVector::initModule(m);
+  PyVolumeData::initModule(m);
+  PyVolumeDataAccess::initModule(m);
   PyVolumeDataAxisDescriptor::initModule(m);
+  PyVolumeDataChannelDescriptor::initModule(m);
+  PyVolumeDataLayout::initModule(m);
+  PyVolumeDataLayoutDescriptor::initModule(m);
+  PyVolumeSampler::initModule(m);
 }

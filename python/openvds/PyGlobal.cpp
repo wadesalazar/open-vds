@@ -22,28 +22,28 @@ using namespace native;
 void 
 PyGlobal::initModule(py::module& m)
 {
-  py::class_<native::OpenOptions> openOptions(m, "OpenOptions");
-  openOptions.def_readwrite("connectionType", &native::OpenOptions::connectionType);
-
-  py::enum_<native::OpenOptions::ConnectionType>(openOptions, "ConnectionType", OPENVDS_DOCSTRING(OpenOptions_ConnectionType))
-    .value("AWS",   native::OpenOptions::AWS,   OPENVDS_DOCSTRING(OpenOptions_ConnectionType_AWS))
-    .value("Azure", native::OpenOptions::Azure, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_Azure))
-    .value("File",  native::OpenOptions::File,  OPENVDS_DOCSTRING(OpenOptions_ConnectionType_File))
-    .export_values();
-
-  py::class_<native::AWSOpenOptions, native::OpenOptions>(m, "AWSOpenOptions")
-    .def(py::init<>(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions))
-    .def(py::init<const std::string&, const std::string&, const std::string&>(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions_2))
-    .def_readwrite("bucket", &native::AWSOpenOptions::Bucket)
-    .def_readwrite("key",    &native::AWSOpenOptions::Key)
-    .def_readwrite("region", &native::AWSOpenOptions::Region);
-
-  py::class_<native::Error> error(m, "Error");
-  error
-    .def(py::init<>())
-    .def_readwrite("code",    &native::Error::Code)
-    .def_readwrite("string",  &native::Error::String);
-
+//  py::class_<native::OpenOptions> openOptions(m, "OpenOptions");
+//  openOptions.def_readwrite("connectionType", &native::OpenOptions::connectionType);
+//
+//  py::enum_<native::OpenOptions::ConnectionType>(openOptions, "ConnectionType", OPENVDS_DOCSTRING(OpenOptions_ConnectionType))
+//    .value("AWS",   native::OpenOptions::AWS,   OPENVDS_DOCSTRING(OpenOptions_ConnectionType_AWS))
+//    .value("Azure", native::OpenOptions::Azure, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_Azure))
+//    .value("File",  native::OpenOptions::File,  OPENVDS_DOCSTRING(OpenOptions_ConnectionType_File))
+//    .export_values();
+//
+//  py::class_<native::AWSOpenOptions, native::OpenOptions>(m, "AWSOpenOptions")
+//    .def(py::init<>(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions))
+//    .def(py::init<const std::string&, const std::string&, const std::string&>(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions_2))
+//    .def_readwrite("bucket", &native::AWSOpenOptions::Bucket)
+//    .def_readwrite("key",    &native::AWSOpenOptions::Key)
+//    .def_readwrite("region", &native::AWSOpenOptions::Region);
+//
+//  py::class_<native::Error> error(m, "Error");
+//  error
+//    .def(py::init<>())
+//    .def_readwrite("code",    &native::Error::Code)
+//    .def_readwrite("string",  &native::Error::String);
+//
   // These are opaque pointers, so they must not be destructed from pybind11 code
   py::class_<VDSHandle, std::unique_ptr<VDSHandle, py::nodelete>>(m, "VDSHandle");
   py::class_<IOManager, std::unique_ptr<IOManager, py::nodelete>>(m, "IOManager");

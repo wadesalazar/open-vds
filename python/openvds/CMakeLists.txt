@@ -28,15 +28,32 @@ add_library(core MODULE
     core.cpp
     PyGlobal.cpp
     PyGlobal.h
-	PyVolumeDataLayout.cpp
-	PyVolumeDataLayout.h
-	PyVolumeDataAccessManager.cpp
-	PyVolumeDataAccessManager.h
-	PyVolumeDataPageAccessor.cpp
-	PyVolumeDataPageAccessor.h
-	PyVolumeDataAxisDescriptor.cpp
-	PyVolumeDataAxisDescriptor.h
-  )
+    PyGlobalMetadataCommon.cpp
+    PyGlobalMetadataCommon.h
+    PyKnownMetadata.cpp
+    PyKnownMetadata.h
+    PyMetadata.cpp
+    PyMetadata.h
+    PyRange.cpp
+    PyRange.h
+    PyVector.cpp
+    PyVector.h
+    PyVolumeData.cpp
+    PyVolumeData.h
+    PyVolumeDataAccess.cpp
+    PyVolumeDataAccess.h
+    PyVolumeDataAxisDescriptor.cpp
+    PyVolumeDataAxisDescriptor.h
+    PyVolumeDataChannelDescriptor.cpp
+    PyVolumeDataChannelDescriptor.h
+    PyVolumeDataLayout.cpp
+    PyVolumeDataLayout.h
+    PyVolumeDataLayoutDescriptor.cpp
+    PyVolumeDataLayoutDescriptor.h
+    PyVolumeSampler.cpp
+    PyVolumeSampler.h
+)
+
 target_include_directories(core
     PRIVATE
         ${PYBIND11_INCLUDE_DIRS}
