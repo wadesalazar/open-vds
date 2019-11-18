@@ -22,7 +22,6 @@ using namespace native;
 void 
 PyVolumeData::initModule(py::module& m)
 {
-#if 1
 //AUTOGEN-BEGIN
   py::enum_<InterpolationMethod> 
     InterpolationMethod_(m,"InterpolationMethod", OPENVDS_DOCSTRING(InterpolationMethod));
@@ -41,7 +40,7 @@ PyVolumeData::initModule(py::module& m)
     CompressionInfo_(m,"CompressionInfo", OPENVDS_DOCSTRING(CompressionInfo));
 
   CompressionInfo_.def(py::init<                              >(), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo));
-  CompressionInfo_.def(py::init<OpenVDS::CompressionMethod, int>(), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo_2));
+  CompressionInfo_.def(py::init<native::CompressionMethod, int>(), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo_2));
   CompressionInfo_.def("getCompressionMethod"        , static_cast<native::CompressionMethod(CompressionInfo::*)() const>(&CompressionInfo::GetCompressionMethod), OPENVDS_DOCSTRING(CompressionInfo_GetCompressionMethod));
   CompressionInfo_.def("getAdaptiveLevel"            , static_cast<int(CompressionInfo::*)() const>(&CompressionInfo::GetAdaptiveLevel), OPENVDS_DOCSTRING(CompressionInfo_GetAdaptiveLevel));
 
@@ -49,6 +48,5 @@ PyVolumeData::initModule(py::module& m)
     Dimensionality_(m,"Dimensionality", OPENVDS_DOCSTRING(Dimensionality));
 
 //AUTOGEN-END
-#endif
 }
 

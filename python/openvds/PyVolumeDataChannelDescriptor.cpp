@@ -22,21 +22,20 @@ using namespace native;
 void 
 PyVolumeDataChannelDescriptor::initModule(py::module& m)
 {
-#if 0
 //AUTOGEN-BEGIN
   // VolumeDataChannelDescriptor
   py::class_<VolumeDataChannelDescriptor> 
     VolumeDataChannelDescriptor_(m,"VolumeDataChannelDescriptor", OPENVDS_DOCSTRING(VolumeDataChannelDescriptor));
 
   VolumeDataChannelDescriptor_.def(py::init<                              >(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor));
-  VolumeDataChannelDescriptor_.def(py::init<OpenVDS::VolumeDataChannelDescriptor::Format, OpenVDS::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_2));
-  VolumeDataChannelDescriptor_.def(py::init<OpenVDS::VolumeDataChannelDescriptor::Format, OpenVDS::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, OpenVDS::VolumeDataMapping>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_3));
-  VolumeDataChannelDescriptor_.def(py::init<OpenVDS::VolumeDataChannelDescriptor::Format, OpenVDS::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, enum Flags>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_4));
-  VolumeDataChannelDescriptor_.def(py::init<OpenVDS::VolumeDataChannelDescriptor::Format, OpenVDS::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, OpenVDS::VolumeDataMapping, enum Flags>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_5));
-  VolumeDataChannelDescriptor_.def(py::init<OpenVDS::VolumeDataChannelDescriptor::Format, OpenVDS::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, OpenVDS::VolumeDataMapping, int, enum Flags, float, float>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_6));
-  VolumeDataChannelDescriptor_.def(py::init<OpenVDS::VolumeDataChannelDescriptor::Format, OpenVDS::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, float>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_7));
-  VolumeDataChannelDescriptor_.def(py::init<OpenVDS::VolumeDataChannelDescriptor::Format, OpenVDS::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, float, OpenVDS::VolumeDataMapping, enum Flags>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_8));
-  VolumeDataChannelDescriptor_.def(py::init<OpenVDS::VolumeDataChannelDescriptor::Format, OpenVDS::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, OpenVDS::VolumeDataMapping, int, enum Flags, float, float, float>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_9));
+  VolumeDataChannelDescriptor_.def(py::init<native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_2));
+  VolumeDataChannelDescriptor_.def(py::init<native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, native::VolumeDataMapping>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_3));
+  VolumeDataChannelDescriptor_.def(py::init<native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, VolumeDataChannelDescriptor::Flags>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_4));
+  VolumeDataChannelDescriptor_.def(py::init<native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, native::VolumeDataMapping, VolumeDataChannelDescriptor::Flags>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_5));
+  VolumeDataChannelDescriptor_.def(py::init<native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, native::VolumeDataMapping, int, VolumeDataChannelDescriptor::Flags, float, float>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_6));
+  VolumeDataChannelDescriptor_.def(py::init<native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, float>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_7));
+  VolumeDataChannelDescriptor_.def(py::init<native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, float, native::VolumeDataMapping, VolumeDataChannelDescriptor::Flags>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_8));
+  VolumeDataChannelDescriptor_.def(py::init<native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, native::VolumeDataMapping, int, VolumeDataChannelDescriptor::Flags, float, float, float>(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor_9));
   VolumeDataChannelDescriptor_.def("getFormat"                   , static_cast<native::VolumeDataChannelDescriptor::Format(VolumeDataChannelDescriptor::*)() const>(&VolumeDataChannelDescriptor::GetFormat), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_GetFormat));
   VolumeDataChannelDescriptor_.def("getComponents"               , static_cast<native::VolumeDataChannelDescriptor::Components(VolumeDataChannelDescriptor::*)() const>(&VolumeDataChannelDescriptor::GetComponents), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_GetComponents));
   VolumeDataChannelDescriptor_.def("isDiscrete"                  , static_cast<bool(VolumeDataChannelDescriptor::*)() const>(&VolumeDataChannelDescriptor::IsDiscrete), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_IsDiscrete));
@@ -54,8 +53,8 @@ PyVolumeDataChannelDescriptor::initModule(py::module& m)
   VolumeDataChannelDescriptor_.def("getNoValue"                  , static_cast<float(VolumeDataChannelDescriptor::*)() const>(&VolumeDataChannelDescriptor::GetNoValue), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_GetNoValue));
   VolumeDataChannelDescriptor_.def("getIntegerScale"             , static_cast<float(VolumeDataChannelDescriptor::*)() const>(&VolumeDataChannelDescriptor::GetIntegerScale), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_GetIntegerScale));
   VolumeDataChannelDescriptor_.def("getIntegerOffset"            , static_cast<float(VolumeDataChannelDescriptor::*)() const>(&VolumeDataChannelDescriptor::GetIntegerOffset), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_GetIntegerOffset));
-  VolumeDataChannelDescriptor_.def("traceMappedVolumeDataChannelDescriptor", static_cast<native::VolumeDataChannelDescriptor(VolumeDataChannelDescriptor::*)(native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, int, enum Flags)>(&VolumeDataChannelDescriptor::TraceMappedVolumeDataChannelDescriptor), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_TraceMappedVolumeDataChannelDescriptor));
-  VolumeDataChannelDescriptor_.def("traceMappedVolumeDataChannelDescriptor", static_cast<native::VolumeDataChannelDescriptor(VolumeDataChannelDescriptor::*)(native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, int, enum Flags, float)>(&VolumeDataChannelDescriptor::TraceMappedVolumeDataChannelDescriptor), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_TraceMappedVolumeDataChannelDescriptor_2));
+  VolumeDataChannelDescriptor_.def_static("traceMappedVolumeDataChannelDescriptor", static_cast<native::VolumeDataChannelDescriptor(*)(native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, int, VolumeDataChannelDescriptor::Flags)>(&VolumeDataChannelDescriptor::TraceMappedVolumeDataChannelDescriptor), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_TraceMappedVolumeDataChannelDescriptor));
+  VolumeDataChannelDescriptor_.def_static("traceMappedVolumeDataChannelDescriptor", static_cast<native::VolumeDataChannelDescriptor(*)(native::VolumeDataChannelDescriptor::Format, native::VolumeDataChannelDescriptor::Components, const char *, const char *, float, float, int, VolumeDataChannelDescriptor::Flags, float)>(&VolumeDataChannelDescriptor::TraceMappedVolumeDataChannelDescriptor), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_TraceMappedVolumeDataChannelDescriptor_2));
 
   py::enum_<VolumeDataChannelDescriptor::Flags> 
     VolumeDataChannelDescriptor_Flags_(VolumeDataChannelDescriptor_,"Flags", OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_Flags));
@@ -87,6 +86,5 @@ PyVolumeDataChannelDescriptor::initModule(py::module& m)
 
   m.def("operator_bor"                , static_cast<VolumeDataChannelDescriptor::Flags(*)(VolumeDataChannelDescriptor::Flags, VolumeDataChannelDescriptor::Flags)>(&operator|), OPENVDS_DOCSTRING(operator_bor));
 //AUTOGEN-END
-#endif
 }
 

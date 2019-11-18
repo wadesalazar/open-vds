@@ -22,7 +22,6 @@ using namespace native;
 void 
 PyVolumeDataAxisDescriptor::initModule(py::module& m)
 {
-#if 1
 //AUTOGEN-BEGIN
   // VolumeDataAxisDescriptor
   py::class_<VolumeDataAxisDescriptor> 
@@ -40,6 +39,5 @@ PyVolumeDataAxisDescriptor::initModule(py::module& m)
   VolumeDataAxisDescriptor_.def("coordinateToSampleIndex"     , static_cast<int(VolumeDataAxisDescriptor::*)(float)>(&VolumeDataAxisDescriptor::CoordinateToSampleIndex), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_CoordinateToSampleIndex));
 
 //AUTOGEN-END
-#endif
 }
 

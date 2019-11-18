@@ -22,7 +22,6 @@ using namespace native;
 void 
 PyMetadata::initModule(py::module& m)
 {
-#if 1
 //AUTOGEN-BEGIN
   py::enum_<MetadataType> 
     MetadataType_(m,"MetadataType", OPENVDS_DOCSTRING(MetadataType));
@@ -139,6 +138,5 @@ PyMetadata::initModule(py::module& m)
   MetadataContainer_.def_readwrite("keys"                        , &MetadataContainer::keys       , OPENVDS_DOCSTRING(MetadataContainer_keys));
 
 //AUTOGEN-END
-#endif
 }
 

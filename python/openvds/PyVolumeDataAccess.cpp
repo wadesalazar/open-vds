@@ -22,7 +22,6 @@ using namespace native;
 void 
 PyVolumeDataAccess::initModule(py::module& m)
 {
-#if 1
 //AUTOGEN-BEGIN
   // VolumeDataAccessor
   py::class_<VolumeDataAccessor, std::unique_ptr<VolumeDataAccessor, py::nodelete>> 
@@ -132,6 +131,5 @@ PyVolumeDataAccess::initModule(py::module& m)
   VolumeDataPageAccessor_.def("commit"                      , static_cast<void(VolumeDataPageAccessor::*)()>(&VolumeDataPageAccessor::Commit), OPENVDS_DOCSTRING(VolumeDataPageAccessor_Commit));
 
 //AUTOGEN-END
-#endif
 }
 

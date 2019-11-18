@@ -22,7 +22,6 @@ using namespace native;
 void 
 PyVolumeDataLayout::initModule(py::module& m)
 {
-#if 1
 //AUTOGEN-BEGIN
   // VolumeDataLayout
   py::class_<VolumeDataLayout, MetadataReadAccess, std::unique_ptr<VolumeDataLayout, py::nodelete>> 
@@ -57,6 +56,5 @@ PyVolumeDataLayout::initModule(py::module& m)
   VolumeDataLayout_.def("getChannelIntegerOffset"     , static_cast<float(VolumeDataLayout::*)(int) const>(&VolumeDataLayout::GetChannelIntegerOffset), OPENVDS_DOCSTRING(VolumeDataLayout_GetChannelIntegerOffset));
 
 //AUTOGEN-END
-#endif
 }
 

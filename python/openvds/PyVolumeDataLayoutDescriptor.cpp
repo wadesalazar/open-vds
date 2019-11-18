@@ -22,14 +22,13 @@ using namespace native;
 void 
 PyVolumeDataLayoutDescriptor::initModule(py::module& m)
 {
-#if 1
 //AUTOGEN-BEGIN
   // VolumeDataLayoutDescriptor
   py::class_<VolumeDataLayoutDescriptor> 
     VolumeDataLayoutDescriptor_(m,"VolumeDataLayoutDescriptor", OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor));
 
   VolumeDataLayoutDescriptor_.def(py::init<                              >(), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_VolumeDataLayoutDescriptor));
-  VolumeDataLayoutDescriptor_.def(py::init<OpenVDS::VolumeDataLayoutDescriptor::BrickSize, int, int, int, OpenVDS::VolumeDataLayoutDescriptor::LODLevels, OpenVDS::VolumeDataLayoutDescriptor::Options, int>(), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_VolumeDataLayoutDescriptor_2));
+  VolumeDataLayoutDescriptor_.def(py::init<native::VolumeDataLayoutDescriptor::BrickSize, int, int, int, native::VolumeDataLayoutDescriptor::LODLevels, native::VolumeDataLayoutDescriptor::Options, int>(), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_VolumeDataLayoutDescriptor_2));
   VolumeDataLayoutDescriptor_.def("isValid"                     , static_cast<bool(VolumeDataLayoutDescriptor::*)() const>(&VolumeDataLayoutDescriptor::IsValid), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_IsValid));
   VolumeDataLayoutDescriptor_.def("getBrickSize"                , static_cast<native::VolumeDataLayoutDescriptor::BrickSize(VolumeDataLayoutDescriptor::*)() const>(&VolumeDataLayoutDescriptor::GetBrickSize), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_GetBrickSize));
   VolumeDataLayoutDescriptor_.def("getNegativeMargin"           , static_cast<int(VolumeDataLayoutDescriptor::*)() const>(&VolumeDataLayoutDescriptor::GetNegativeMargin), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_GetNegativeMargin));
@@ -78,6 +77,5 @@ PyVolumeDataLayoutDescriptor::initModule(py::module& m)
 
   m.def("operator_bor"                , static_cast<VolumeDataLayoutDescriptor::Options(*)(VolumeDataLayoutDescriptor::Options, VolumeDataLayoutDescriptor::Options)>(&operator|), OPENVDS_DOCSTRING(operator_bor));
 //AUTOGEN-END
-#endif
 }
 
