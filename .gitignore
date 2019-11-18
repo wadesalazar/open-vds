@@ -15,3 +15,4 @@ build/
 python/tools/tmpinclude/
 python/tools/generated
 python/tools/.vscode
+python/tools/WrapperReport.txt
