@@ -14,3 +14,4 @@ out
 build/
 python/tools/tmpinclude/
 python/tools/generated
+python/tools/.vscode
