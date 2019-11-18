@@ -17,33 +17,35 @@
 
 #include "PyVolumeData.h"
 
+using namespace native;
+
 void 
 PyVolumeData::initModule(py::module& m)
 {
-#if 0
+#if 1
 //AUTOGEN-BEGIN
-  py::enum_<native::InterpolationMethod> 
+  py::enum_<InterpolationMethod> 
     InterpolationMethod_(m,"InterpolationMethod", OPENVDS_DOCSTRING(InterpolationMethod));
 
-  py::enum_<native::DimensionsND> 
+  py::enum_<DimensionsND> 
     DimensionsND_(m,"DimensionsND", OPENVDS_DOCSTRING(DimensionsND));
 
-  py::enum_<native::VolumeDataMapping> 
+  py::enum_<VolumeDataMapping> 
     VolumeDataMapping_(m,"VolumeDataMapping", OPENVDS_DOCSTRING(VolumeDataMapping));
 
-  py::enum_<native::CompressionMethod> 
+  py::enum_<CompressionMethod> 
     CompressionMethod_(m,"CompressionMethod", OPENVDS_DOCSTRING(CompressionMethod));
 
   // CompressionInfo
-  py::class_<native::CompressionInfo> 
+  py::class_<CompressionInfo> 
     CompressionInfo_(m,"CompressionInfo", OPENVDS_DOCSTRING(CompressionInfo));
 
   CompressionInfo_.def(py::init<                              >(), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo));
   CompressionInfo_.def(py::init<OpenVDS::CompressionMethod, int>(), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo_2));
-  CompressionInfo_.def("getCompressionMethod"        , static_cast<OpenVDS::CompressionMethod(*)()>(&native::GetCompressionMethod), OPENVDS_DOCSTRING(CompressionInfo_GetCompressionMethod));
-  CompressionInfo_.def("getAdaptiveLevel"            , static_cast<int(*)()>(&native::GetAdaptiveLevel), OPENVDS_DOCSTRING(CompressionInfo_GetAdaptiveLevel));
+  CompressionInfo_.def("getCompressionMethod"        , static_cast<native::CompressionMethod(CompressionInfo::*)() const>(&CompressionInfo::GetCompressionMethod), OPENVDS_DOCSTRING(CompressionInfo_GetCompressionMethod));
+  CompressionInfo_.def("getAdaptiveLevel"            , static_cast<int(CompressionInfo::*)() const>(&CompressionInfo::GetAdaptiveLevel), OPENVDS_DOCSTRING(CompressionInfo_GetAdaptiveLevel));
 
-  py::enum_<native::Dimensionality> 
+  py::enum_<Dimensionality> 
     Dimensionality_(m,"Dimensionality", OPENVDS_DOCSTRING(Dimensionality));
 
 //AUTOGEN-END

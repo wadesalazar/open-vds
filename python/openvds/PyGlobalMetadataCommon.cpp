@@ -17,6 +17,8 @@
 
 #include "PyGlobalMetadataCommon.h"
 
+using namespace native;
+
 void 
 PyGlobalMetadataCommon::initModule(py::module& m)
 {

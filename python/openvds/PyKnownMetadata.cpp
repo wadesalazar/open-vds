@@ -17,6 +17,8 @@
 
 #include "PyKnownMetadata.h"
 
+using namespace native;
+
 void 
 PyKnownMetadata::initModule(py::module& m)
 {

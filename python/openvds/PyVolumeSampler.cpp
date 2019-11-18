@@ -17,26 +17,15 @@
 
 #include "PyVolumeSampler.h"
 
+using namespace native;
+
 void 
 PyVolumeSampler::initModule(py::module& m)
 {
 #if 0
 //AUTOGEN-BEGIN
-  m.def("readElement"                 , static_cast<bool(*)(const bool *, size_t)>(&native::ReadElement), OPENVDS_DOCSTRING(ReadElement));
-  m.def("pitchScale"                  , static_cast<int(*)()>(&native::PitchScale), OPENVDS_DOCSTRING(PitchScale));
-
-  // InterpolatedRealType
-  py::class_<native::InterpolatedRealType> 
-    InterpolatedRealType_(m,"InterpolatedRealType", OPENVDS_DOCSTRING(InterpolatedRealType));
-
-  // InterpolatedRealType
-  py::class_<native::InterpolatedRealType> 
-    InterpolatedRealType_(m,"InterpolatedRealType", OPENVDS_DOCSTRING(InterpolatedRealType));
-
-  // InterpolatedRealType
-  py::class_<native::InterpolatedRealType> 
-    InterpolatedRealType_(m,"InterpolatedRealType", OPENVDS_DOCSTRING(InterpolatedRealType));
-
+  m.def("readElement"                 , static_cast<bool(*)(const bool *, size_t)>(&ReadElement), OPENVDS_DOCSTRING(ReadElement));
+  m.def("pitchScale"                  , static_cast<int(*)()>(&PitchScale), OPENVDS_DOCSTRING(PitchScale));
 //AUTOGEN-END
 #endif
 }
