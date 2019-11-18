@@ -102,8 +102,8 @@ def extract_nodes(filename, node, output, prefix=''):
         output.append(node)
     return output
 
-def dump_node(n):
-    print("name: {0:40} {2:20} displayname: {1}".format(n.spelling, n.displayname, str(n.kind).replace('CursorKind.', '')))
+def dump_node(n, file=sys.stdout):
+    print("name: {0:40} {2:20} displayname: {1}".format(n.spelling, n.displayname, str(n.kind).replace('CursorKind.', '')), file)
 
 def getpyname(name):
     return name[0].lower() + name[1:]
@@ -425,6 +425,16 @@ def cleanup_output(output):
             prev = line
     return cleaned
     
+def get_node_info(node):
+    root = node
+    while root.semantic_parent:
+        root = root.semantic_parent
+    info = """{} : {}""".format(
+       root.spelling,
+       node.displayname 
+    )
+    return info
+
 def generate_all(args):
     global _AUTOGEN_FAIL_LIST
     _AUTOGEN_FAIL_LIST = []
@@ -438,6 +448,17 @@ def generate_all(args):
             outfile = path.split(filename)[1]
             with open("generated/" + outfile, "wb") as wr:
                 wr.writelines([(line+'\n').encode() for line in output])
+        with open("WrapperReport.txt", "wb") as reportfile:
+            reportlines = [
+                """ *** OpenVDS wrapper generator report ***"""                
+            ]
+            if _AUTOGEN_FAIL_LIST:
+                reportlines.append("Wrapper generator errors:")
+                reportlines.extend([get_node_info(node) for node in _AUTOGEN_FAIL_LIST])
+            else:
+                reportlines.append("No errors in wrapper generation.")
+            utflines = [(l + '\n').encode() for l in reportlines]
+            reportfile.writelines(utflines)
     else:
         raise NoFilenamesError
 
