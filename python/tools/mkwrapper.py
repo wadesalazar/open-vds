@@ -151,6 +151,14 @@ def getnativename(node, all_):
     name = fixname(getfullname(node, all_))
     return name
 
+def fixarglist(arglist, node, all_):
+    if 'enum ' in arglist:
+        if node.spelling == 'TraceMappedVolumeDataChannelDescriptor':
+            hepp = 'hepp'
+        p = getparent(node, all_)
+        arglist = arglist.replace('enum ', getnativename(p, all_) + '::') # well...
+    return fixname(arglist)
+
 def getvarname(node, all_):
     return getfullname(node, all_).replace('::', '_') + '_'
     
@@ -187,7 +195,7 @@ def generate_field(node, all_, output, indent, parent_prefix, context):
 
 def generate_constructor(node, all_, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all_)
-    arglist = node.displayname[node.displayname.find('(') + 1:-1]
+    arglist = fixarglist(node.displayname[node.displayname.find('(') + 1:-1], node, all_)
     code = """.def(py::init<{0:30}>(), {1});""".format(
        arglist,
        format_docstring_decl(overload_name)
@@ -200,13 +208,16 @@ def can_generate_function(arglist):
     return True
 
 def generate_function(node, all_, output, indent, parent_prefix, context):
+    if node.spelling == 'TraceMappedVolumeDataChannelDescriptor':
+        hepp = 'hepp'
     overload_name = resolve_overload_name(node, all_)
     restype   = fixname(node.result_type.spelling)
-    arglist = fixname(node.displayname[node.displayname.find('('):])
+    arglist = fixarglist(fixname(node.displayname[node.displayname.find('('):]), node, all)
     method_prefix = ''
     method_suffix = ''
     if node.kind == CursorKind.CXX_METHOD:
-        method_prefix = getnativename(node.semantic_parent, all_) + '::'
+        if not node.is_static_method():
+            method_prefix = getnativename(node.semantic_parent, all_) + '::'
         if node.is_const_method():
             method_suffix = " const"
     code = """.def({0:30}, static_cast<{1}({2}*){3}{4}>(&{5}), {6});""".format(
@@ -218,6 +229,8 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
        getnativename(node, all_),
        format_docstring_decl(overload_name)
     )
+    if node.is_static_method():
+        code = code.replace('.def(', '.def_static(')
     line = indent + parent_prefix + code
     if not can_generate_function(arglist):
         line = '// AUTOGENERATE FAIL : ' + line
