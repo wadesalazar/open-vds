@@ -56,6 +56,8 @@ PRIVATE_LIST = [
   cindex.AccessSpecifier.PRIVATE
 ]
 
+_AUTOGEN_FAIL_LIST = []
+
 CPP_OPERATORS = {
     '<=': 'le', '>=': 'ge', '==': 'eq', '!=': 'ne', '[]': 'array',
     '+=': 'iadd', '-=': 'isub', '*=': 'imul', '/=': 'idiv', '%=':
@@ -106,71 +108,85 @@ def dump_node(n):
 def getpyname(name):
     return name[0].lower() + name[1:]
 
-def getparent(node, all):
-    for n in all:
+def getparent(node, all_):
+    if node.semantic_parent:
+        return node.semantic_parent
+    for n in all_:
         if node in n.get_children():
             return n
     return None
     
-def getchildren(node, all, kind=None, access_filter = PUBLIC_LIST):
+def getchildren(node, all_, kind=None, access_filter = PUBLIC_LIST):
     children = list(node.get_children())
-    return [x for x in all if x in children and (kind is None or x.kind == kind) and x.access_specifier in access_filter]
+    return [x for x in all_ if x in children and (kind is None or x.kind == kind) and x.access_specifier in access_filter]
     
-def getbases(node, all):
-    return getchildren(node, all, CursorKind.CXX_BASE_SPECIFIER)
+def getbases(node, all_):
+    return getchildren(node, all_, CursorKind.CXX_BASE_SPECIFIER)
     
-def getoverloads(node, all, access_filter = PUBLIC_LIST):
-    parent = getparent(node, all)
-    children = all if not parent else getchildren(parent, all, node.kind, access_filter)
+def getoverloads(node, all_, access_filter = PUBLIC_LIST):
+    parent = getparent(node, all_)
+    children = all_ if not parent else getchildren(parent, all_, node.kind, access_filter)
     return [x for x in children if x.kind == node.kind and x.spelling == node.spelling]
 
-def getscope(node, all, output):
-    p = getparent(node, all)
-    while p:
+def getscope(node, all_, output):
+    p = getparent(node, all_)
+    while p and not p.kind == CursorKind.NAMESPACE:
         output.append(p)
-        p = getparent(p, all)
+        p = getparent(p, all_)
     output  .reverse()
     return output
 
-def getfullname(node, all):
-    scope = getscope(node, all, [])
+def getfullname(node, all_):
+    scope = getscope(node, all_, [])
     prefix = ''
     for s in scope:
         prefix += s.spelling + '::'
     return "{}{}".format(prefix, node.spelling)
 
-def getnativename(node, all):
-    name = getfullname(node, all).replace("OpenVDS::", "native::")
+def fixname(name):
+    name = name.replace("OpenVDS::", "native::")
     return name
 
-def getvarname(node, all):
-    return getfullname(node, all).replace('::', '_') + '_'
+def getnativename(node, all_):
+    name = fixname(getfullname(node, all_))
+    return name
+
+def getvarname(node, all_):
+    return getfullname(node, all_).replace('::', '_') + '_'
     
+def getdestructor(node, all_):
+    dtor = next(iter([x for x in all_ if x.kind == CursorKind.DESTRUCTOR and x.semantic_parent == node]), None)
+    return dtor
+
 def format_docstring_decl(fullname):
     return "OPENVDS_DOCSTRING({})".format(fullname.replace('::', '_'))
     
-def resolve_overload_name(node, all):
-    overloads = getoverloads(node, all)
+def resolve_overload_name(node, all_):
+    overloads = getoverloads(node, all_)
     suffix = ''
-    index = overloads.index(node)
+    index = 0
+    try:
+        index = overloads.index(node)
+    except:
+        pass
     if index > 0:
         suffix += '_{}'.format(index + 1)
-    return sanitize_name(getfullname(node, all).replace('::', '_')) + suffix
+    return sanitize_name(getfullname(node, all_).replace('::', '_')) + suffix
     
-def generate_none(node, all, output, indent, parent_prefix, context):
+def generate_none(node, all_, output, indent, parent_prefix, context):
     pass
 
-def generate_field(node, all, output, indent, parent_prefix, context):
-    overload_name = resolve_overload_name(node, all)
+def generate_field(node, all_, output, indent, parent_prefix, context):
+    overload_name = resolve_overload_name(node, all_)
     code = """.def_readwrite({0:30}, &{1:30}, {2});""".format(
         q(getpyname(node.spelling)),
-        getnativename(node, all),
+        getnativename(node, all_),
         format_docstring_decl(overload_name)
     )
     output.append(indent + parent_prefix + code)
 
-def generate_constructor(node, all, output, indent, parent_prefix, context):
-    overload_name = resolve_overload_name(node, all)
+def generate_constructor(node, all_, output, indent, parent_prefix, context):
+    overload_name = resolve_overload_name(node, all_)
     arglist = node.displayname[node.displayname.find('(') + 1:-1]
     code = """.def(py::init<{0:30}>(), {1});""".format(
        arglist,
@@ -178,14 +194,19 @@ def generate_constructor(node, all, output, indent, parent_prefix, context):
     )
     output.append(indent + parent_prefix + code)
 
-def generate_function(node, all, output, indent, parent_prefix, context):
-    overload_name = resolve_overload_name(node, all)
-    restype   = node.result_type.spelling
-    arglist = node.displayname[node.displayname.find('('):]
+def can_generate_function(arglist):
+    if '[' in arglist or 'void *' in arglist or '**' in arglist:
+        return False
+    return True
+
+def generate_function(node, all_, output, indent, parent_prefix, context):
+    overload_name = resolve_overload_name(node, all_)
+    restype   = fixname(node.result_type.spelling)
+    arglist = fixname(node.displayname[node.displayname.find('('):])
     method_prefix = ''
     method_suffix = ''
     if node.kind == CursorKind.CXX_METHOD:
-        method_prefix = getnativename(node.semantic_parent, all) + '::'
+        method_prefix = getnativename(node.semantic_parent, all_) + '::'
         if node.is_const_method():
             method_suffix = " const"
     code = """.def({0:30}, static_cast<{1}({2}*){3}{4}>(&{5}), {6});""".format(
@@ -194,93 +215,90 @@ def generate_function(node, all, output, indent, parent_prefix, context):
        method_prefix,
        arglist,
        method_suffix,
-       getnativename(node, all),
+       getnativename(node, all_),
        format_docstring_decl(overload_name)
     )
-    output.append(indent + parent_prefix + code)
+    line = indent + parent_prefix + code
+    if not can_generate_function(arglist):
+        line = '// AUTOGENERATE FAIL : ' + line
+        _AUTOGEN_FAIL_LIST.append(node)
+    output.append(line)
     
-def getdestructor(node, all):
-    d = [x for x in all if x.kind == CursorKind.DESTRUCTOR and x.semantic_parent == node]
-    if d:
-        return d[0]
-    return None
-
-def generate_class(node, all, output, indent, parent_prefix, context):
-    if node.get_definition():
+def generate_class(node, all_, output, indent, parent_prefix, context):
+    if node.is_definition():
         if '<' in node.displayname:
             return
-        varname = getvarname(node, all)
-        bases = getbases(node, all)
+        varname = getvarname(node, all_)
+        bases = getbases(node, all_)
         basesdecl = ''
         for b in bases:
-            basesdecl += ', {}'.format(getnativename(b.get_definition(), all))
+            basesdecl += ', {}'.format(getnativename(b.get_definition(), all_))
         deletor = ''
-        dtor = getdestructor(node, all)
+        dtor = getdestructor(node, all_)
         if dtor and not dtor.access_specifier == cindex.AccessSpecifier.PUBLIC:
-            deletor = ", std::unique_ptr<{}, py::nodelete>".format(getnativename(node, all))
+            deletor = ", std::unique_ptr<{}, py::nodelete>".format(getnativename(node, all_))
         code = [ 
             '',
             indent + """// {}""".format(
-                getfullname(node, all)
+                getfullname(node, all_)
             ),
             indent + """py::class_<{}{}{}> \n{}  {}({},"{}", {});""".format(
-#                getfullname(node, all),
-                getnativename(node, all),
+                getnativename(node, all_),
                 basesdecl,
                 deletor,
                 indent,
                 varname,
                 parent_prefix,
-                getfullname(node, all),
-                format_docstring_decl(getfullname(node, all))
+                getfullname(node, all_),
+                format_docstring_decl(getfullname(node, all_))
             ),
             ''
         ]
         for kind in CLASS_NODES:
-            children = getchildren(node, all, kind)
+            children = getchildren(node, all_, kind)
             for child in children:
                 generate = NODE_HANDLERS[kind]
-                generate(child, all, code, indent, varname, context)
+                generate(child, all_, code, indent, varname, context)
         output.extend(code)
         output.append('')
     else:
         pass
 
-def generate_enumvalue(node, all, output, indent, parent_prefix, context):
+def generate_enumvalue(node, all_, output, indent, parent_prefix, context):
     code = [
         indent + """{0}.value({1:30}, {2:40}, {3});""".format(
             parent_prefix,
             q(node.spelling),
-            getnativename(node, all),
-            format_docstring_decl(getfullname(node, all))
+            getnativename(node, all_),
+            format_docstring_decl(getfullname(node, all_))
         ),
     ]
     output.extend(code)
     
-def generate_enum(node, all, output, indent, parent_prefix, context):
+def generate_enum(node, all_, output, indent, parent_prefix, context):
     if node.get_definition():
-        varname = getvarname(node, all)
-        bases = getbases(node, all)
+        varname = getvarname(node, all_)
+        bases = getbases(node, all_)
         basesdecl = ''
         for b in bases:
-            basesdecl += ', {}'.format(getnativename(b.get_definition(), all))
+            basesdecl += ', {}'.format(getnativename(b.get_definition(), all_))
         code = [ 
             '',
             indent + """py::enum_<{}> \n{}  {}({},"{}", {});""".format(
-                getnativename(node, all),
+                getnativename(node, all_),
                 indent,
                 varname,
                 parent_prefix,
                 node.spelling,
-                format_docstring_decl(getfullname(node, all))
+                format_docstring_decl(getfullname(node, all_))
             ),
             ''
         ]
         for kind in ENUM_NODES:
-            children = getchildren(node, all, kind)
+            children = getchildren(node, all_, kind)
             for child in children:
                 generate = NODE_HANDLERS[kind]
-                generate(child, all, code, indent, varname, context)
+                generate(child, all_, code, indent, varname, context)
         output.extend(code)
         output.append('')
     else:
@@ -331,7 +349,7 @@ class Parser(object):
         tu = index.parse(self.filename, self.parameters)
         extract_nodes(self.filename, tu.cursor, self.nodes)
         for n in self.nodes:
-            dump_node(n)
+#            dump_node(n)
             p = getparent(n, self.nodes)
             if p is None or p.kind == CursorKind.NAMESPACE or p.kind == CursorKind.TRANSLATION_UNIT:
                 if n.kind in NODE_HANDLERS.keys():
@@ -395,6 +413,8 @@ def cleanup_output(output):
     return cleaned
     
 def generate_all(args):
+    global _AUTOGEN_FAIL_LIST
+    _AUTOGEN_FAIL_LIST = []
     parameters, filenames = parse_args(args)
     if filenames:
         for filename in filenames:
