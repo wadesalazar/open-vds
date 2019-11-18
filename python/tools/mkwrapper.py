@@ -33,6 +33,7 @@ PRINT_LIST = [
     CursorKind.CXX_METHOD,
     CursorKind.CXX_BASE_SPECIFIER,
     CursorKind.CONSTRUCTOR,
+    CursorKind.DESTRUCTOR,
     CursorKind.FIELD_DECL
 ]
 
@@ -81,7 +82,7 @@ def sanitize_name(name):
     name = re.sub('<.*>', '', name)
     name = ''.join([ch if ch.isalnum() else '_' for ch in name])
     name = re.sub('_$', '', re.sub('_+', '_', name))
-    return '__doc_' + name
+    return name
 
 def extract_nodes(filename, node, output, prefix=''):
     if not (node.location.file is None or
@@ -119,23 +120,28 @@ def getbases(node, all):
     return getchildren(node, all, CursorKind.CXX_BASE_SPECIFIER)
     
 def getoverloads(node, all, access_filter = PUBLIC_LIST):
-    children = getchildren(node, all, node.kind, access_filter)
-    return [x for x in all if x.kind == node.kind and x.spelling == node.spelling]
+    parent = getparent(node, all)
+    children = all if not parent else getchildren(parent, all, node.kind, access_filter)
+    return [x for x in children if x.kind == node.kind and x.spelling == node.spelling]
 
 def getscope(node, all, output):
     p = getparent(node, all)
     while p:
         output.append(p)
         p = getparent(p, all)
+    output  .reverse()
     return output
 
 def getfullname(node, all):
     scope = getscope(node, all, [])
-    scope.reverse()
     prefix = ''
     for s in scope:
         prefix += s.spelling + '::'
     return "{}{}".format(prefix, node.spelling)
+
+def getnativename(node, all):
+    name = getfullname(node, all).replace("OpenVDS::", "native::")
+    return name
 
 def getvarname(node, all):
     return getfullname(node, all).replace('::', '_') + '_'
@@ -149,16 +155,16 @@ def resolve_overload_name(node, all):
     index = overloads.index(node)
     if index > 0:
         suffix += '_{}'.format(index + 1)
-    return getfullname(node, all).replace('::', '_') + suffix
+    return sanitize_name(getfullname(node, all).replace('::', '_')) + suffix
     
 def generate_none(node, all, output, indent, parent_prefix, context):
     pass
 
 def generate_field(node, all, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all)
-    code = """.def_readwrite({0:30}, &native::{1:30}, {2});""".format(
+    code = """.def_readwrite({0:30}, &{1:30}, {2});""".format(
         q(getpyname(node.spelling)),
-        getfullname(node, all),
+        getnativename(node, all),
         format_docstring_decl(overload_name)
     )
     output.append(indent + parent_prefix + code)
@@ -176,30 +182,52 @@ def generate_function(node, all, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all)
     restype   = node.result_type.spelling
     arglist = node.displayname[node.displayname.find('('):]
-    code = """.def({0:30}, static_cast<{1}(*){2}>(&native::{3}), {4});""".format(
-       q(getpyname(node.spelling)),
+    method_prefix = ''
+    method_suffix = ''
+    if node.kind == CursorKind.CXX_METHOD:
+        method_prefix = getnativename(node.semantic_parent, all) + '::'
+        if node.is_const_method():
+            method_suffix = " const"
+    code = """.def({0:30}, static_cast<{1}({2}*){3}{4}>(&{5}), {6});""".format(
+       q(getpyname(sanitize_name(node.spelling))),
        restype,
+       method_prefix,
        arglist,
-       node.spelling,
+       method_suffix,
+       getnativename(node, all),
        format_docstring_decl(overload_name)
     )
     output.append(indent + parent_prefix + code)
     
+def getdestructor(node, all):
+    d = [x for x in all if x.kind == CursorKind.DESTRUCTOR and x.semantic_parent == node]
+    if d:
+        return d[0]
+    return None
+
 def generate_class(node, all, output, indent, parent_prefix, context):
     if node.get_definition():
+        if '<' in node.displayname:
+            return
         varname = getvarname(node, all)
         bases = getbases(node, all)
         basesdecl = ''
         for b in bases:
-            basesdecl += ', native::{}'.format(b.get_definition().displayname)
+            basesdecl += ', {}'.format(getnativename(b.get_definition(), all))
+        deletor = ''
+        dtor = getdestructor(node, all)
+        if dtor and not dtor.access_specifier == cindex.AccessSpecifier.PUBLIC:
+            deletor = ", std::unique_ptr<{}, py::nodelete>".format(getnativename(node, all))
         code = [ 
             '',
             indent + """// {}""".format(
                 getfullname(node, all)
             ),
-            indent + """py::class_<native::{}{}> \n{}  {}({},"{}", {});""".format(
-                getfullname(node, all),
+            indent + """py::class_<{}{}{}> \n{}  {}({},"{}", {});""".format(
+#                getfullname(node, all),
+                getnativename(node, all),
                 basesdecl,
+                deletor,
                 indent,
                 varname,
                 parent_prefix,
@@ -220,10 +248,10 @@ def generate_class(node, all, output, indent, parent_prefix, context):
 
 def generate_enumvalue(node, all, output, indent, parent_prefix, context):
     code = [
-        indent + """{0}.value({1:30}, native::{2:40}, {3});""".format(
+        indent + """{0}.value({1:30}, {2:40}, {3});""".format(
             parent_prefix,
             q(node.spelling),
-            getfullname(node, all),
+            getnativename(node, all),
             format_docstring_decl(getfullname(node, all))
         ),
     ]
@@ -235,11 +263,11 @@ def generate_enum(node, all, output, indent, parent_prefix, context):
         bases = getbases(node, all)
         basesdecl = ''
         for b in bases:
-            basesdecl += ', native::{}'.format(b.get_definition().displayname)
+            basesdecl += ', {}'.format(getnativename(b.get_definition(), all))
         code = [ 
             '',
-            indent + """py::enum_<native::{}> \n{}  {}({},"{}", {});""".format(
-                getfullname(node, all),
+            indent + """py::enum_<{}> \n{}  {}({},"{}", {});""".format(
+                getnativename(node, all),
                 indent,
                 varname,
                 parent_prefix,
@@ -303,7 +331,7 @@ class Parser(object):
         tu = index.parse(self.filename, self.parameters)
         extract_nodes(self.filename, tu.cursor, self.nodes)
         for n in self.nodes:
-#            dump_node(n)
+            dump_node(n)
             p = getparent(n, self.nodes)
             if p is None or p.kind == CursorKind.NAMESPACE or p.kind == CursorKind.TRANSLATION_UNIT:
                 if n.kind in NODE_HANDLERS.keys():
