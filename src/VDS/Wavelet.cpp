@@ -65,8 +65,8 @@ bool Wavelet_Decompress(const void *compressedData, int nCompressedAdaptiveDataS
     createSize[2] < 0 ||
     createSize[2] > 512)
   {
-    error.Code = 100;
-    error.String = "Invalid wavelet header";
+    error.code = 100;
+    error.string = "Invalid wavelet header";
     return false;
   }
 
@@ -712,8 +712,8 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
   // no data?
   if (compressedSize < WAVELET_MIN_COMPRESSED_HEADER)
   {
-    error.String = "Invalid size of compressed wavlet data";
-    error.Code = -1;
+    error.string = "Invalid size of compressed wavlet data";
+    error.code = -1;
     *isAnyNoValue = false;
     *waveletNoValue = 0.0f;
     return false;

@@ -92,18 +92,18 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
 
   // Parse volume data layout
   OpenVDS::ParseVolumeDataLayout(serializedVolumeDataLayout, handle, error);
-  EXPECT_EQ(error.Code, 0);
+  EXPECT_EQ(error.code, 0);
 
   // Parse layer status
   OpenVDS::ParseLayerStatus(serializedLayerStatus, handle, error);
-  EXPECT_EQ(error.Code, 0);
+  EXPECT_EQ(error.code, 0);
 
   // Create volume data layout from descriptors
   CreateVolumeDataLayout(handle);
 
   // Serialize volume data layout
   Json::Value
-    volumeDataLayoutJson = OpenVDS::SerializeVolumeDataLayout(*handle.VolumeDataLayout, handle.MetadataContainer);
+    volumeDataLayoutJson = OpenVDS::SerializeVolumeDataLayout(*handle.volumeDataLayout, handle.metadataContainer);
 
   // Compare volume data layout with original
   {
@@ -120,17 +120,17 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
     Json::Value originalJson, resultJson;
 
     OpenVDS::ParseJSONFromBuffer(serializedVolumeDataLayout, originalJson, error);
-    EXPECT_EQ(error.Code, 0);
+    EXPECT_EQ(error.code, 0);
 
     OpenVDS::ParseJSONFromBuffer(result, resultJson, error);
-    EXPECT_EQ(error.Code, 0);
+    EXPECT_EQ(error.code, 0);
 
     EXPECT_TRUE(originalJson.compare(resultJson) == 0);
   }
 
   // Serialize layer status
   Json::Value
-    layerStatusJson = OpenVDS::SerializeLayerStatusArray(*handle.VolumeDataLayout, handle.LayerMetadataContainer);
+    layerStatusJson = OpenVDS::SerializeLayerStatusArray(*handle.volumeDataLayout, handle.layerMetadataContainer);
 
   // Compare layer status with original
   {
@@ -147,10 +147,10 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
     Json::Value originalJson, resultJson;
 
     OpenVDS::ParseJSONFromBuffer(serializedLayerStatus, originalJson, error);
-    EXPECT_EQ(error.Code, 0);
+    EXPECT_EQ(error.code, 0);
 
     OpenVDS::ParseJSONFromBuffer(result, resultJson, error);
-    EXPECT_EQ(error.Code, 0);
+    EXPECT_EQ(error.code, 0);
 
     EXPECT_TRUE(originalJson.compare(resultJson) == 0);
   }

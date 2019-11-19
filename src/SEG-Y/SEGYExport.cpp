@@ -81,9 +81,9 @@ main(int argc, char *argv[])
 
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vds(OpenVDS::Open(OpenVDS::AWSOpenOptions(bucket, key, region), openError), &OpenVDS::Close);
 
-  if(openError.Code != 0)
+  if(openError.code != 0)
   {
-    fmt::print(stderr, "Could not open VDS: {}", openError.String);
+    fmt::print(stderr, "Could not open VDS: {}", openError.string);
     return EXIT_FAILURE;
   }
 

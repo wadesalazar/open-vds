@@ -26,16 +26,16 @@ GTEST_TEST(OpenVDS_integration, DownloadJson)
   OpenVDS::Error error;
   OpenVDS::AWSOpenOptions options;
 
-  options.Region = TEST_AWS_REGION;
-  options.Bucket = TEST_AWS_BUCKET;
-  options.Key = TEST_AWS_OBJECTID;
+  options.region = TEST_AWS_REGION;
+  options.bucket = TEST_AWS_BUCKET;
+  options.key = TEST_AWS_OBJECTID;
 
-  if(options.Region.empty() || options.Bucket.empty() || options.Key.empty())
+  if(options.region.empty() || options.bucket.empty() || options.key.empty())
   {
     GTEST_SKIP() << "Environment variables not set";
   }
 
-  ASSERT_TRUE(options.Region.size() && options.Bucket.size() && options.Key.size());
+  ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(options, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 }

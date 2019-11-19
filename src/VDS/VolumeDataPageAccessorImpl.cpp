@@ -171,7 +171,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::CreatePage(int64_t chunk)
   {
     pageListMutexLock.lock();
     page->UnPin();
-    fprintf(stderr, "Failed when creating chunk: %s\n", error.String.c_str());
+    fprintf(stderr, "Failed when creating chunk: %s\n", error.string.c_str());
     return nullptr;
   }
 
@@ -268,7 +268,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk, bool 
   if (!m_accessManager->PrepareReadChunkData(volumeDataChunk, true, error))
   {
     page->UnPin();
-    fprintf(stderr, "Failed to download chunk: %s\n", error.String.c_str());
+    fprintf(stderr, "Failed to download chunk: %s\n", error.string.c_str());
     return nullptr;
   }
 
@@ -291,7 +291,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
   {
     pageListMutexLock.lock();
     pageImpl->UnPin();
-    fprintf(stderr, "Failed when waiting for chunk: %s\n", error.String.c_str());
+    fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
     return false;
   }
 
@@ -301,7 +301,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
   {
     pageListMutexLock.lock();
     pageImpl->UnPin();
-    fprintf(stderr, "Failed when deserializing chunk: %s\n", error.String.c_str());
+    fprintf(stderr, "Failed when deserializing chunk: %s\n", error.string.c_str());
     return false;
   }
 

@@ -43,13 +43,13 @@ enum class Endianness
 
 struct HeaderField
 {
-  int        ByteLocation;
-  enum FieldWidth FieldWidth;
+  int        byteLocation;
+  enum FieldWidth fieldWidth;
 
   HeaderField() = default;
-  HeaderField(int byteLocation, enum FieldWidth fieldWidth) : ByteLocation(byteLocation), FieldWidth(fieldWidth) {}
+  HeaderField(int byteLocation, FieldWidth fieldWidth) : byteLocation(byteLocation), fieldWidth(fieldWidth) {}
 
-  bool       Defined() const { return ByteLocation != 0; }
+  bool       Defined() const { return byteLocation != 0; }
 };
 
 namespace BinaryHeader

@@ -156,14 +156,14 @@ GTEST_TEST(VDS_integration, DeSerializeVolumeData)
   std::vector<uint8_t> dataNone;
   OpenVDS::DataBlock dataBlockNone;
   OpenVDS::DeserializeVolumeData(serializedNone, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::None, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockNone, dataNone, error);
-  EXPECT_EQ(error.Code, 0);
+  EXPECT_EQ(error.code, 0);
   
   
   std::vector<uint8_t> serializedWavelet = LoadTestFile("/chunk.CompressionMethod_Wavelet");
   std::vector<uint8_t> dataWavelet;
   OpenVDS::DataBlock dataBlockWavelet;
   OpenVDS::DeserializeVolumeData(serializedWavelet, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::Wavelet, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockWavelet, dataWavelet, error);
-  EXPECT_EQ(error.Code, 0);
+  EXPECT_EQ(error.code, 0);
 
   EXPECT_EQ(dataNone.size(), dataWavelet.size());
 
@@ -183,7 +183,7 @@ GTEST_TEST(VDS_integration, DeSerializeVolumeData)
   std::vector<uint8_t> dataRLE;
   OpenVDS::DataBlock dataBlockRLE;
   OpenVDS::DeserializeVolumeData(serializedRLE, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::RLE, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockRLE, dataRLE, error);
-  EXPECT_EQ(error.Code, 0);
+  EXPECT_EQ(error.code, 0);
 
   EXPECT_EQ(dataNone.size(), dataRLE.size());
   int comp_rle = memcmp(dataNone.data(), dataRLE.data(), dataNone.size());
@@ -193,7 +193,7 @@ GTEST_TEST(VDS_integration, DeSerializeVolumeData)
   std::vector<uint8_t> dataZip;
   OpenVDS::DataBlock dataBlockZip;
   OpenVDS::DeserializeVolumeData(serializedZip, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::Zip, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockZip, dataZip, error);
-  EXPECT_EQ(error.Code, 0);
+  EXPECT_EQ(error.code, 0);
 
   EXPECT_EQ(dataNone.size(), dataZip.size());
   int comp_zip = memcmp(dataNone.data(), dataZip.data(), dataNone.size());

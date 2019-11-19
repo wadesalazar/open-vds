@@ -238,12 +238,12 @@ ReadFieldFromHeader(const void *header, HeaderField const &headerField, Endianne
   }
 
   // NOTE: SEG-Y byte locations start at 1
-  int index = headerField.ByteLocation - 1;
+  int index = headerField.byteLocation - 1;
 
   auto signed_header   = reinterpret_cast<const signed   char *>(header);
   auto unsigned_header = reinterpret_cast<const unsigned char *>(header);
 
-  if(headerField.FieldWidth == FieldWidth::FourByte)
+  if(headerField.fieldWidth == FieldWidth::FourByte)
   {
     if(endianness == Endianness::BigEndian)
     {
@@ -257,7 +257,7 @@ ReadFieldFromHeader(const void *header, HeaderField const &headerField, Endianne
   }
   else
   {
-    assert(headerField.FieldWidth == FieldWidth::TwoByte);
+    assert(headerField.fieldWidth == FieldWidth::TwoByte);
     if(endianness == Endianness::BigEndian)
     {
       return (int16_t)(signed_header[index + 0] << 8 | unsigned_header[index + 1]);

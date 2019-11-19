@@ -50,18 +50,18 @@ protected:
 
 struct AWSOpenOptions : OpenOptions
 {
-  std::string Bucket;
-  std::string Key;
-  std::string Region;
+  std::string bucket;
+  std::string key;
+  std::string region;
 
   AWSOpenOptions() : OpenOptions(AWS) {}
-  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), Bucket(bucket), Key(key), Region(region) {}
+  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), bucket(bucket), key(key), region(region) {}
 };
 
 struct Error
 {
-  int Code = 0;
-  std::string String;
+  int code = 0;
+  std::string string;
 };
 
 typedef struct VDS *VDSHandle;

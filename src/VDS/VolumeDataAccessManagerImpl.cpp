@@ -219,7 +219,7 @@ static VolumeDataLayer *GetVolumeDataLayer(VolumeDataLayoutImpl const *layout, D
 
 VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDS &vds)
   : m_vds(vds)
-  , m_ioManager(vds.IoManager.get())
+  , m_ioManager(vds.ioManager.get())
   , m_currentErrorIndex(0)
   , m_requestProcessor(*this)
 {
@@ -235,12 +235,12 @@ VolumeDataAccessManagerImpl::~VolumeDataAccessManagerImpl()
 
 VolumeDataLayout const* VolumeDataAccessManagerImpl::GetVolumeDataLayout() const
 {
-  return m_vds.VolumeDataLayout.get();
+  return m_vds.volumeDataLayout.get();
 }
 
 VolumeDataLayoutImpl const* VolumeDataAccessManagerImpl::GetVolumeDataLayoutImpl() const
 {
-  return m_vds.VolumeDataLayout.get();
+  return m_vds.volumeDataLayout.get();
 }
 
 VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode)
@@ -336,12 +336,12 @@ static inline std::string CreateUrlForChunk(const std::string &layerName, uint64
 bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &chunk, bool verbose, Error &error)
 {
   std::string layerName = GetLayerName(*chunk.Layer);
-  auto metadataManager = GetMetadataMangerForLayer(m_vds.LayerMetadataContainer, layerName);
+  auto metadataManager = GetMetadataMangerForLayer(m_vds.layerMetadataContainer, layerName);
   //do fallback
   if (!metadataManager)
   {
-    error.Code = -1;
-    error.String = "No metdadataManager";
+    error.code = -1;
+    error.string = "No metdadataManager";
     return false;
   }
   
@@ -399,8 +399,8 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
 
   if(pendingRequestIterator == m_pendingDownloadRequests.end())
   {
-    error.Code = -1;
-    error.String = "Missing request for chunk: " + std::to_string(chunk.Index);
+    error.code = -1;
+    error.string = "Missing request for chunk: " + std::to_string(chunk.Index);
     return false;
   }
   PendingDownloadRequest& pendingRequest = pendingRequestIterator->second;
@@ -418,7 +418,7 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
   lock.unlock();
 
   activeTransfer->WaitForFinish();
-  if (transferHandler->m_error.Code)
+  if (transferHandler->m_error.code)
   {
     error = transferHandler->m_error;
     return false;
@@ -497,7 +497,7 @@ bool VolumeDataAccessManagerImpl::WriteMetadataPage(MetadataPage* metadataPage, 
   req->WaitForFinish();
   bool success = req->IsSuccess(error);
 
-  if(error.Code != 0)
+  if(error.code != 0)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_uploadErrors.emplace_back(new UploadError(error, "LayerStatus"));
@@ -533,7 +533,7 @@ int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &ch
     hash = VolumeDataHash::GetUniqueHash();
   }
 
-  auto metadataManager = GetMetadataMangerForLayer(m_vds.LayerMetadataContainer, layerName);
+  auto metadataManager = GetMetadataMangerForLayer(m_vds.layerMetadataContainer, layerName);
 
   int pageIndex  = (int)(chunk.Index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
   int entryIndex = (int)(chunk.Index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
@@ -554,7 +554,7 @@ int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &ch
   {
     std::unique_lock<std::mutex> lock(m_mutex);
 
-    if(error.Code != 0)
+    if(error.code != 0)
     {
       auto &uploadRequest = m_pendingUploadRequests[jobId];
       if (uploadRequest.attempts < 2)
@@ -598,7 +598,7 @@ void VolumeDataAccessManagerImpl::FlushUploadQueue()
     request.WaitForFinish();
   }
 
-  for(auto it = m_vds.LayerMetadataContainer.managers.begin(); it != m_vds.LayerMetadataContainer.managers.end(); ++it)
+  for(auto it = m_vds.layerMetadataContainer.managers.begin(); it != m_vds.layerMetadataContainer.managers.end(); ++it)
   {
     auto metadataManager = it->second.get();
 
@@ -608,7 +608,7 @@ void VolumeDataAccessManagerImpl::FlushUploadQueue()
   Error error;
   SerializeAndUploadLayerStatus(m_vds, error);
 
-  if(error.Code != 0)
+  if(error.code != 0)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_uploadErrors.emplace_back(new UploadError(error, "LayerStatus"));
@@ -654,9 +654,9 @@ void VolumeDataAccessManagerImpl::GetCurrentUploadError(const char** objectId, i
   if (objectId)
     *objectId = error->urlObject.c_str();
   if (errorCode)
-    *errorCode = error->error.Code;
+    *errorCode = error->error.code;
   if (errorString)
-    *errorString = error->error.String.c_str();
+    *errorString = error->error.string.c_str();
   lock.unlock();
 }
 }

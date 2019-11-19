@@ -859,9 +859,9 @@ main(int argc, char *argv[])
 
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vds(OpenVDS::Create(OpenVDS::AWSOpenOptions(bucket, key, region), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError), &OpenVDS::Close);
 
-  if(createError.Code != 0)
+  if(createError.code != 0)
   {
-    std::cerr << std::string("Create error: " + createError.String);
+    std::cerr << std::string("Create error: " + createError.string);
     return EXIT_FAILURE;
   }
 

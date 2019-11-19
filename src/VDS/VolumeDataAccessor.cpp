@@ -1140,8 +1140,8 @@ static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
 
   if (dataBlock.Components != VolumeDataChannelDescriptor::Components_1)
   {
-    error.String = "Cannot request volume subset from multi component VDSs";
-    error.Code = -1;
+    error.string = "Cannot request volume subset from multi component VDSs";
+    error.code = -1;
     return false;
   }
 
@@ -1152,15 +1152,15 @@ static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
 
   if (DimensionGroupUtil::GetDimensionality(volumeDataLayer->GetChunkDimensionGroup()) < 3)
   {
-    error.String = "The requested dimension group must contain at least 3 dimensions.";
-    error.Code = -1;
+    error.string = "The requested dimension group must contain at least 3 dimensions.";
+    error.code = -1;
     return false;
   }
 
   if (DimensionGroupUtil::GetDimensionality(projectedDimensionsEnum) != 2)
   {
-    error.String = "The projected dimension group must contain 2 dimensions.";
-    error.Code = -1;
+    error.string = "The projected dimension group must contain 2 dimensions.";
+    error.code = -1;
     return false;
   }
 
@@ -1183,8 +1183,8 @@ static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
 
     if (!DimensionGroupUtil::IsDimensionInGroup(volumeDataLayer->GetChunkDimensionGroup(), iDim))
     {
-      error.String = "The requested dimension group must contain the dimensions of the projected dimension group.";
-      error.Code = -1;
+      error.string = "The requested dimension group must contain the dimensions of the projected dimension group.";
+      error.code = -1;
       return false;
     }
   }

@@ -78,15 +78,15 @@ static Error ProcessPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessor
   {
     if (!pageAccessor->ReadPreparedPaged(jobPage.page))
     {
-      error.Code = -1;
-      error.String = fmt::format("Failed to read page {}.", jobPage.page->GetChunkIndex());
+      error.code = -1;
+      error.string = fmt::format("Failed to read page {}.", jobPage.page->GetChunkIndex());
       return error;
     }
   }
   if (job->cancelled)
   {
-    error.Code = -4;
-    error.String = fmt::format("Request: {} has been cancelled.", job->jobId);
+    error.code = -4;
+    error.string = fmt::format("Request: {} has been cancelled.", job->jobId);
     return error;
   }
 

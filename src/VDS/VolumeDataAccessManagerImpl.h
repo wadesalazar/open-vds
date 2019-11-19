@@ -53,8 +53,8 @@ public:
     {
       if (!Base64Decode(header.data(), (int)header.size(), m_metadata))
       {
-        m_error.Code = -1;
-        m_error.String = "Failed to decode chunk metadata";
+        m_error.code = -1;
+        m_error.string = "Failed to decode chunk metadata";
       }
     }
   }

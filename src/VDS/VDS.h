@@ -49,36 +49,36 @@ public:
 struct VDS
 {
   VDS(IOManager *ioManager)
-    : IoManager(ioManager)
+    : ioManager(ioManager)
   {
   }
   VolumeDataLayoutDescriptor
-                    LayoutDescriptor;
+                    layoutDescriptor;
 
   std::vector<VolumeDataAxisDescriptor>
-                    AxisDescriptors;
+                    axisDescriptors;
 
   std::vector<VolumeDataChannelDescriptor>
-                    ChannelDescriptors;
+                    channelDescriptors;
 
   std::vector<std::unique_ptr<char[]>>
-                    DescriptorStrings;
+                    descriptorStrings;
 
   std::vector<VolumeDataLayer::ProduceStatus>
-                    ProduceStatuses;
+                    produceStatuses;
 
-  struct MetadataContainer MetadataContainer;
+  MetadataContainer metadataContainer;
 
   std::unique_ptr<VolumeDataLayoutImpl>
-                    VolumeDataLayout;
+                    volumeDataLayout;
   std::unique_ptr<VolumeDataAccessManagerImpl>
-                    DataAccessManager;
+                    dataAccessManager;
   std::unique_ptr<IOManager>
-                    IoManager;
-  class LayerMetadataContainer
-                    LayerMetadataContainer;
+                    ioManager;
+  LayerMetadataContainer
+                    layerMetadataContainer;
   std::unique_ptr<VolumeDataRequestProcessor>
-                    RequestProcessor;
+                    requestProcessor;
 };
 
 const char *AddDescriptorString(std::string const &descriptorString, VDS &handle);

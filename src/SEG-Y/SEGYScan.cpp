@@ -86,8 +86,8 @@ SerializeSEGYHeaderField(SEGY::HeaderField const &headerField)
   Json::Value
     jsonHeaderField(Json::ValueType::arrayValue);
 
-  jsonHeaderField.append(headerField.ByteLocation);
-  jsonHeaderField.append(ToString(headerField.FieldWidth));
+  jsonHeaderField.append(headerField.byteLocation);
+  jsonHeaderField.append(ToString(headerField.fieldWidth));
 
   return jsonHeaderField;
 }

@@ -44,8 +44,8 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
   case OpenOptions::AWS:
     return new IOManagerAWS(static_cast<const AWSOpenOptions &>(options), error);
   default:
-    error.Code = -1;
-    error.String = "Unknwon type for OpenOptions";
+    error.code = -1;
+    error.string = "Unknwon type for OpenOptions";
     return nullptr;
   }
 }
