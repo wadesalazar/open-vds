@@ -32,5 +32,5 @@ void DownloadObject()
   concurrency::streams::container_buffer<std::vector<uint8_t>> buffer;
   concurrency::streams::ostream output_stream(buffer);
   azure::storage::cloud_block_blob binary_blob = container.get_block_blob_reference(_XPLATSTR("my-blob-1"));
-  binary_blob.download_to_stream(output_stream);
+  //binary_blob.download_to_stream(output_stream);
 }
