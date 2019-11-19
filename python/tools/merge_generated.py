@@ -12,7 +12,7 @@ for f in sourcefiles:
     target = [t for t in targetfiles if t.endswith(tmp)]
     if target:
         t = target[0]
-        print("Processing: {}".format(t))
+        print("Merging: {}".format(t), end=' ')
         source_contents = ''
         target_contents = ''
         with open(f, "rb") as infile:
@@ -23,8 +23,12 @@ for f in sourcefiles:
             prefix = target_contents[:target_contents.index(merge_begin)+len(merge_begin)+1]
             suffix = target_contents[target_contents.index(merge_end):]
             merged = prefix + source_contents + suffix
-            with open(t, 'wb') as outfile:
-                outfile.write(merged.encode())
+            if merged == target_contents:
+                print("[unchanged]")
+            else:
+                with open(t, 'wb') as outfile:
+                    outfile.write(merged.encode())
+                    print("[written]")
         else:
             print('Merge patterns not found in {}, skipping.'.format(t), file=sys.stdout)
             
