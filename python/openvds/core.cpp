@@ -17,6 +17,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 #include "PyGlobal.h"
 #include "PyGlobalMetadataCommon.h"
@@ -32,7 +33,90 @@
 #include "PyVolumeDataLayoutDescriptor.h"
 #include "PyVolumeSampler.h"
 
+#ifndef TEST_ARRAY_WRAP 
+#define TEST_ARRAY_WRAP 1
+#endif
+
+#if TEST_ARRAY_WRAP
+
+#include <array>
+
+static int sumArray(const int (&data)[6])
+{
+  int sum = 0;
+  for (int i = 0; i < 6; ++i) 
+  {
+    sum += data[i];
+  }
+  return sum;
+}
+
+static void populateArray(int(&data)[6])
+{
+  for (int i = 0; i < 6; ++i) 
+  {
+    data[i] = 0;
+  }
+}
+
+struct TestArray
+{
+  int m_Data[6];
+
+  TestArray()
+  {
+    for (int i = 0; i < 6; ++i) 
+    {
+      m_Data[i] = 0;
+    }
+  }
+
+  void setValues(const int (&data)[6])
+  {
+    for (int i = 0; i < 6; ++i) 
+    {
+      m_Data[i] = data[i];
+    }
+  }
+
+  void getValues(int (&data)[6])
+  {
+    for (int i = 0; i < 6; ++i) 
+    {
+      data[i] = m_Data[i];
+    }
+  }
+
+};
+
+#endif
+
 PYBIND11_MODULE(core, m) {
+#if TEST_ARRAY_WRAP
+  m.def("sumArray", [](std::array<int, 6> const& data) 
+    {
+      return sumArray((const int(&)[6])data);
+    });
+  m.def("populateArray", [](std::array<int, 6>& data) 
+    {
+      return populateArray((int(&)[6])data);
+    });
+  py::class_<TestArray>(m, "TestArray")
+    .def(py::init<>())
+    .def("setValues", [](TestArray* self, py::array_t<int> const& data) 
+      { 
+        return self->setValues((const int(&)[6])*PyArrayAdapter<int, 6, false>::getArrayBufferChecked(data)); 
+      },
+      py::arg().noconvert()
+    )
+    .def("getValues", [](TestArray* self, py::array_t<int> data) 
+      {
+        return self->getValues((int(&)[6])*PyArrayAdapter<int, 6, true>::getArrayBufferChecked(data));
+      }, 
+      py::arg().noconvert()
+    )
+  ;
+#endif
   PyGlobal::initModule(m);
   PyGlobalMetadataCommon::initModule(m);
   PyKnownMetadata::initModule(m);
