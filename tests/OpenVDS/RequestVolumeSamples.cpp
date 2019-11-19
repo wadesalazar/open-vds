@@ -31,7 +31,7 @@ static inline void GenerateRandomPosition(std::mt19937 &gen, std::vector<std::un
 {
   for (int i = 0; i < dimension; i++)
   {
-    pos[i] = dimensionDistribution[i](gen);
+    pos[i] = dimensionDistribution[size_t(i)](gen);
   }
 }
 GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
@@ -76,7 +76,7 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
     GenerateRandomPosition(gen, dimensionDistribution, dimension, positions[i]);
   }
   float buffer[100];
-  int request = dataAccessManager->RequestVolumeSamples(buffer, layout, OpenVDS::Dimensions_012, 0, 0, positions, 100, OpenVDS::InterpolationMethod::Linear);
+  int64_t request = dataAccessManager->RequestVolumeSamples(buffer, layout, OpenVDS::Dimensions_012, 0, 0, positions, 100, OpenVDS::InterpolationMethod::Linear);
   dataAccessManager->WaitForCompletion(request);
 
   OpenVDS::VolumeDataPageAccessor *pageAccessor = dataAccessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
