@@ -27,6 +27,8 @@
 
 #include "generated_docstrings.h"
 
+#include <stdexcept>
+
 #define OPENVDS_DOCSTRING(name) __doc_OpenVDS_ ## name
 
 namespace OpenVDS {
@@ -58,9 +60,50 @@ private:
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 namespace py = pybind11;
 namespace native = OpenVDS;
+
+
+// Adapter class to check fixed-size numpy arrays
+template<typename T, int LEN, bool MUTABLE>
+struct PyArrayAdapter;
+
+template<typename T, int LEN>
+struct PyArrayAdapter<T, LEN, true>
+{
+  static T*
+  getArrayBufferChecked(py::array_t<T>& arr)
+  {
+    if (arr.ndim() != 1 || arr.size() != LEN)
+    {
+      throw std::invalid_argument("Array has the wrong size/dimensions.");
+    }
+    else
+    {
+      return arr.mutable_unchecked<1>().mutable_data(0);
+    }
+  }
+};
+
+template<typename T, int LEN>
+struct PyArrayAdapter<T, LEN, false>
+{
+  static const T*
+  getArrayBufferChecked(py::array_t<T> const& arr)
+  {
+    if (arr.ndim() != 1 || arr.size() != LEN)
+    {
+      throw std::invalid_argument("Array has the wrong size/dimensions.");
+    }
+    else
+    {
+      return arr.unchecked<1>().data(0);
+    }
+  }
+};
+
 
 class PyGlobal
 {
