@@ -129,6 +129,9 @@ if (aws-cpp-sdk_EXTERNAL_LIBS)
 endif()
 target_link_libraries(openvds_objects PUBLIC $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)
 
+# this need to be explicitly included on centos7 for some reason
+target_link_libraries(openvds_objects PUBLIC "ssl")
+
 #Azure storage exposes boost_system on linux et al.
 if (UNIX)
     target_link_libraries(openvds_objects PUBLIC boost_system)
