@@ -55,15 +55,17 @@ struct JobPage
 
 struct Job
 {
-  Job(int64_t jobId, std::condition_variable &doneNotify)
+  Job(int64_t jobId, std::condition_variable &doneNotify, VolumeDataPageAccessorImpl &pageAccessor)
     : jobId(jobId)
     , doneNotify(doneNotify)
+    , pageAccessor(pageAccessor)
     , completed(0)
     , cancelled(false)
   {}
 
   int64_t jobId;
   std::condition_variable &doneNotify;
+  VolumeDataPageAccessorImpl &pageAccessor;
   std::vector<JobPage> pages;
   std::vector<std::future<Error>> future;
   std::atomic_int completed;
@@ -83,6 +85,7 @@ public:
   bool  WaitForCompletion(int64_t requestID, int millisecondsBeforeTimeout = 0);
   void  Cancel(int64_t requestID);
 
+  int CountActivePages();
 private:
   VolumeDataAccessManagerImpl &m_manager;
   std::map<PageAccessorKey, VolumeDataPageAccessorImpl *> m_pageAccessors;
@@ -90,6 +93,8 @@ private:
   std::mutex m_mutex;
   std::condition_variable m_jobNotification;
   ThreadPool m_threadPool;
+  std::atomic_bool m_cleanupExit;
+  std::thread m_cleanupThread;
 };
 
 }

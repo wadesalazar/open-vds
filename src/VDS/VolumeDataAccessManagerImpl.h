@@ -240,6 +240,7 @@ public:
   int32_t UploadErrorCount() override;
   void GetCurrentUploadError(const char **objectId, int32_t *errorCode, const char **errorString) override;
 
+  int CountActivePages() { return m_requestProcessor.CountActivePages(); }
 private:
   VDS &m_vds;
   IOManager *m_ioManager;

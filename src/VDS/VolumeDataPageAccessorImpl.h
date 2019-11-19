@@ -25,6 +25,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <vector>
+#include <atomic>
+#include <chrono>
 
 namespace OpenVDS
 {
@@ -42,9 +44,10 @@ private:
   int m_pagesRead;
   int m_pagesWritten;
   int m_maxPages;
-  int m_references;
+  std::atomic_int m_references;
   bool m_isReadWrite;
   bool m_isCommitInProgress;
+  std::atomic<std::chrono::time_point<std::chrono::steady_clock>> m_lastUsed;
   std::list<VolumeDataPageImpl *> m_pages;
   std::condition_variable m_pageReadCondition;
   std::condition_variable m_commitFinishedCondition;
@@ -74,6 +77,7 @@ public:
 
   int   AddReference() override;
   int   RemoveReference() override;
+  int   GetReferenceCount() const { return m_references.load(); }
 
   VolumeDataPage* PrepareReadPage(int64_t chunk, bool *needToCallReadPreparePage);
   bool ReadPreparedPaged(VolumeDataPage *page);
@@ -91,6 +95,10 @@ public:
   bool IsReadWrite() const { return m_isReadWrite; }
 
   VolumeDataAccessManagerImpl *GetManager() const { return m_accessManager; }
+
+  void SetLastUsed(std::chrono::time_point<std::chrono::steady_clock> lastUsed) { m_lastUsed = lastUsed; }
+  std::chrono::time_point<std::chrono::steady_clock> GetLastUsed() const { return m_lastUsed.load(); }
+
 };
 
 }

@@ -45,9 +45,9 @@ target_compile_definitions(segy_tests PRIVATE -DTEST_DATA_PATH="${TEST_DATA_PATH
 target_include_directories(segy_tests PRIVATE ../src/SEG-Y)
 
 add_test_executable(vds_integration_tests
-  VDS/VDSIntegrationTest.cpp
   VDS/ParseVDSJsonTest.cpp
   VDS/DeserializeVolumeDataTest.cpp
+  VDS/RequestVolumeCleanupThread.cpp
   )
 target_compile_definitions(vds_integration_tests PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
 target_compile_definitions(vds_integration_tests PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
@@ -55,6 +55,7 @@ target_compile_definitions(vds_integration_tests PRIVATE -DTEST_AWS_BUCKET="${TE
 target_compile_definitions(vds_integration_tests PRIVATE -DTEST_AWS_OBJECTID="${TEST_AWS_OBJECTID}")
 
 add_test_executable(openvds_integration_tests
+  OpenVDS/OpenVDSIntegrationTest.cpp
   OpenVDS/DataAccess.cpp
   OpenVDS/RequestVolumeSamples.cpp
   OpenVDS/RequestVolumeTraces.cpp

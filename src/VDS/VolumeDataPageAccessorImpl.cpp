@@ -43,6 +43,7 @@ VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerIm
   , m_references(0)
   , m_isReadWrite(isReadWrite)
   , m_isCommitInProgress(false)
+  , m_lastUsed(std::chrono::steady_clock::now())
 {
 }
   
