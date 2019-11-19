@@ -23,7 +23,7 @@ void
 PyGlobal::initModule(py::module& m)
 {
   // These are opaque pointers, so they must not be destructed from pybind11 code
-  py::class_<VDSHandle, std::unique_ptr<VDSHandle, py::nodelete>>(m, "VDSHandle");
+  py::class_<VDS, std::unique_ptr<VDS, py::nodelete>>(m, "VDS");
   py::class_<IOManager, std::unique_ptr<IOManager, py::nodelete>>(m, "IOManager");
 
 //AUTOGEN-BEGIN
@@ -65,6 +65,7 @@ PyGlobal::initModule(py::module& m)
   m.def("getLayout"                   , static_cast<native::VolumeDataLayout *(*)(native::VDSHandle)>(&GetLayout), OPENVDS_DOCSTRING(GetLayout));
   m.def("getDataAccessManager"        , static_cast<native::VolumeDataAccessManager *(*)(native::VDSHandle)>(&GetDataAccessManager), OPENVDS_DOCSTRING(GetDataAccessManager));
 //AUTOGEN-END
+  Error_.def(py::init<>());
   Error_.def("__repr__", [](native::Error const& self){ char tmp[256]; _itoa_s(self.Code, tmp, 16); return std::string("Error(code=") + tmp + ", string='" + self.String + "')"; });
 }
 

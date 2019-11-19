@@ -153,8 +153,6 @@ def getnativename(node, all_):
 
 def fixarglist(arglist, node, all_):
     if 'enum ' in arglist:
-        if node.spelling == 'TraceMappedVolumeDataChannelDescriptor':
-            hepp = 'hepp'
         p = getparent(node, all_)
         arglist = arglist.replace('enum ', getnativename(p, all_) + '::') # well...
     return fixname(arglist)
@@ -179,7 +177,7 @@ def resolve_overload_name(node, all_):
         pass
     if index > 0:
         suffix += '_{}'.format(index + 1)
-    return sanitize_name(getfullname(node, all_).replace('::', '_')) + suffix
+    return sanitize_name(getfullname(node, all_).replace('::', '_')) + suffix # sanitize_name is not really meant for this...
     
 def generate_none(node, all_, output, indent, parent_prefix, context):
     pass
@@ -207,9 +205,56 @@ def can_generate_function(arglist):
         return False
     return True
 
+class UnsupportedFunctionSignatureError(ValueError):
+    pass
+
+def try_generate_trampoline_function(node, all_, arglist):
+    args = arglist[1:-1].split(',')
+    newargs = []
+    codelines = []
+    iarg = 0
+    callargs = []
+    call_prefix = ''
+    if node.kind == CursorKind.CXX_METHOD:
+        instance_arg = "{}* pInstance".format(getnativename(getparent(node, all_), all_))
+        newargs.append(instance_arg)
+        call_prefix = 'pInstance->'
+    for arg in args:
+        arg = arg.strip()
+        argname = "arg{}".format(iarg)
+        if '[' in arg:
+            m=re.match(r"(.+)\((.+)\)\[(.+)\]", arg)
+            if m:
+                typ = m.groups()[0].replace('const', '').strip()
+                cnt = int(m.groups()[2])
+                const = 'const ' if 'const' in m.groups()[0] else ''
+                newarg = "{}std::array<{},{}>{}".format(
+                    const,
+                    typ,
+                    cnt,
+                    m.groups()[1]
+                )
+                callarg = "({}){}".format(arg, argname)
+                callargs.append(callarg)
+                newargs.append("{} {}".format(newarg, argname))
+                pass
+            else:
+                raise UnsupportedFunctionSignatureError(arglist)
+            pass
+        elif 'void *' in arg:
+            raise UnsupportedFunctionSignatureError(arglist)
+        elif '**' in arg:
+            raise UnsupportedFunctionSignatureError(arglist)
+        else:
+            callargs.append(argname)
+            newargs.append("{} {}".format(arg, argname))
+        iarg += 1
+    call = "return {}{}({});".format(call_prefix, node.spelling, ", ".join(callargs))
+    newarglist = ", ".join(newargs)
+    sig = "[]({}) BEGIN {} END".format(newarglist, call).replace('BEGIN', '{').replace('END', '}')
+    return sig
+
 def generate_function(node, all_, output, indent, parent_prefix, context):
-    if node.spelling == 'TraceMappedVolumeDataChannelDescriptor':
-        hepp = 'hepp'
     overload_name = resolve_overload_name(node, all_)
     restype   = fixname(node.result_type.spelling)
     arglist = fixarglist(fixname(node.displayname[node.displayname.find('('):]), node, all)
@@ -229,17 +274,26 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
        getnativename(node, all_),
        format_docstring_decl(overload_name)
     )
+    line = ''
+    if not can_generate_function(arglist):
+        try:
+            code = """.def({0:30}, {1}, {2});""".format(
+               q(getpyname(sanitize_name(node.spelling))),
+               try_generate_trampoline_function(node, all_, arglist),
+               format_docstring_decl(overload_name)
+            )
+        except UnsupportedFunctionSignatureError:
+            line = '// AUTOGENERATE FAIL : '
+            _AUTOGEN_FAIL_LIST.append(node)
     if node.is_static_method():
         code = code.replace('.def(', '.def_static(')
-    line = indent + parent_prefix + code
-    if not can_generate_function(arglist):
-        line = '// AUTOGENERATE FAIL : ' + line
-        _AUTOGEN_FAIL_LIST.append(node)
+    line = line + indent + parent_prefix + code
     output.append(line)
     
 def generate_class(node, all_, output, indent, parent_prefix, context):
     if node.is_definition():
         if '<' in node.displayname:
+            _AUTOGEN_FAIL_LIST.append(node)
             return
         varname = getvarname(node, all_)
         bases = getbases(node, all_)
@@ -427,10 +481,15 @@ def cleanup_output(output):
     
 def get_node_info(node):
     root = node
+    prefix = ''
     while root.semantic_parent:
         root = root.semantic_parent
-    info = """{} : {}""".format(
-       root.spelling,
+        if not root.kind == CursorKind.TRANSLATION_UNIT:
+            prefix = root.spelling + '::' + prefix
+    info = """{0:20} : {1:20}{2}{3}""".format(
+       path.split(root.spelling)[1],
+       node.result_type.spelling,
+       prefix,
        node.displayname 
     )
     return info
