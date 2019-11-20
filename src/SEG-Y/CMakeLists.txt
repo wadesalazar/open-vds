@@ -23,16 +23,19 @@ add_executable(SEGYExport
 
 target_include_directories(SEGYScan PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(SEGYScan PUBLIC Threads::Threads openvds jsoncpp_lib_static fmt::fmt)
+set_target_properties(SEGYScan PROPERTIES FOLDER tools)
 
 copyDllForTarget(SEGYScan)
 
 target_include_directories(SEGYUpload PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(SEGYUpload PUBLIC Threads::Threads openvds jsoncpp_lib_static fmt::fmt)
+set_target_properties(SEGYUpload PROPERTIES FOLDER tools)
 
 copyDllForTarget(SEGYUpload)
 
 target_include_directories(SEGYExport PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(SEGYExport PUBLIC Threads::Threads openvds jsoncpp_lib_static fmt::fmt)
+set_target_properties(SEGYExport PROPERTIES FOLDER tools)
 
 copyDllForTarget(SEGYExport)
 
