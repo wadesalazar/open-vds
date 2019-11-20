@@ -130,7 +130,9 @@ endif()
 target_link_libraries(openvds_objects PUBLIC $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)
 
 # this need to be explicitly included on centos7 for some reason
-target_link_libraries(openvds_objects PUBLIC "ssl")
+if (NOT WIN32)
+  target_link_libraries(openvds_objects PUBLIC ssl)
+endif()
 
 #Azure storage exposes boost_system on linux et al.
 if (UNIX)
