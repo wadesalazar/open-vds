@@ -25,6 +25,7 @@
 #include <OpenVDS/ValueConversion.h>
 
 #include <array>
+#include <limits>
 
 inline bool ends_with(std::string const &value, std::string const &ending)
 {
@@ -60,7 +61,7 @@ int main(int argc, char **argv)
   std::string region;
   std::string object;
   std::string axis = "0,1,2";
-  int axis_position = INT_MIN;
+  int axis_position = std::numeric_limits<int>::min();
   int32_t output_width = 2000;
   int32_t output_height = 2000;
 
@@ -92,7 +93,7 @@ int main(int argc, char **argv)
     missing_argument = "region";
   else if (object.empty())
     missing_argument = "object";
-  else if (axis_position == INT_MIN)
+  else if (axis_position == std::numeric_limits<int>::min())
     missing_argument = "axis";
   else if (file_name.empty())
     missing_argument = "output filename";
