@@ -18,13 +18,10 @@
 #ifndef VOLUMEINDEXER_H
 #define VOLUMEINDEXER_H
 
+#include <OpenVDS/openvds_export.h>
 #include <OpenVDS/Vector.h>
 #include <OpenVDS/VolumeData.h>
-#include <OpenVDS/openvds_export.h>
-
-#include <cstdint>
-
-#include "CoordinateTransformer.h"
+#include <OpenVDS/CoordinateTransformer.h>
 
 namespace OpenVDS
 {
