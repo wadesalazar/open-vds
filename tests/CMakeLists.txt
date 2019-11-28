@@ -27,7 +27,9 @@ endfunction()
 
 add_test_executable(io_tests
   io/filetest.cpp
-  io/azureio.cpp)
+  io/azureio.cpp
+  io/InMemoryIo.cpp
+  )
 
 add_test_executable(jsoncpp_tests
   jsoncpp/jsoncpp_parse.cpp

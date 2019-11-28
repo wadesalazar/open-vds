@@ -29,6 +29,7 @@ set(SOURCE_FILES
   VDS/FSE/fse_decompress.cpp
   VDS/Rle.cpp
   VDS/VolumeDataRequestProcessor.cpp
+  VDS/VolumeIndexer.cpp
   )
 
 set (PRIVATE_HEADER_FILES
@@ -70,6 +71,7 @@ set (PRIVATE_HEADER_FILES
   VDS/Rle.h
   VDS/VolumeDataRequestProcessor.h
   VDS/ThreadPool.h
+  VDS/SimplexNoiceKernel.h
   )
 
 set (EXPORTED_HEADER_FILES
@@ -88,6 +90,8 @@ set (EXPORTED_HEADER_FILES
   OpenVDS/VolumeDataLayout.h
   OpenVDS/VolumeDataLayoutDescriptor.h
   OpenVDS/VolumeSampler.h
+  OpenVDS/CoordinateTransformer.h
+  OpenVDS/VolumeIndexer.h
   )
 
 add_library(openvds_objects OBJECT

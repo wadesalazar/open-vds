@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <IO/IOManagerAzure.h>
 
-TEST(AzureTest, basicDownload)
+TEST(IOTests, basicAzure)
 {
   DownloadObject();
 }

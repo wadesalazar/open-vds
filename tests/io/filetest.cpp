@@ -91,7 +91,7 @@ static int TestFileViewWrapper(OpenVDS::File &file, const std::vector<uint32_t> 
   } FILEVIEW_CATCH { fprintf(stderr, "FILEVIEW EXCEPTION\n"); return -2; } FILEVIEW_FINALLY;
 }
 
-TEST(FileTest, io_file)
+TEST(IOTests, FileIO)
 {
 #ifdef _WIN32
   char dir[MAX_PATH];

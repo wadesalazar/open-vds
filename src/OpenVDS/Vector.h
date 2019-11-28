@@ -21,8 +21,25 @@
 
 namespace OpenVDS
 {
+
+template<typename T, size_t N>
+struct Vector
+{
+  T data[N];
+
+  Vector()
+    : data{}
+  {}
+  template<typename ...Args>
+  Vector(Args... args)
+    : data{args...}
+  {}
+  inline       T &operator[] (size_t n)        { return data[n]; }
+  inline const T &operator[] (size_t n) const  { return data[n]; }
+};
+
 template<typename T>
-struct Vector2
+struct Vector<T,2>
 {
   typedef T element_type;
   enum { element_count = 2 };
@@ -36,15 +53,15 @@ struct Vector2
     T data[2];
   };
 
-  Vector2() : X(), Y() {}
-  Vector2(T X, T Y) : X(X), Y(Y) {}
+  Vector() : X(), Y() {}
+  Vector(T X, T Y) : X(X), Y(Y) {}
 
   inline       T &operator[] (size_t n)        { return data[n]; }
   inline const T &operator[] (size_t n) const  { return data[n]; }
 };
 
 template<typename T>
-struct Vector3
+struct Vector<T,3>
 {
   typedef T element_type;
   enum { element_count = 3 };
@@ -58,15 +75,15 @@ struct Vector3
     T data[3];
   };
 
-  Vector3() : X(), Y(), Z() {}
-  Vector3(T X, T Y, T Z) : X(X), Y(Y), Z(Z) {}
+  Vector() : X(), Y(), Z() {}
+  Vector(T X, T Y, T Z) : X(X), Y(Y), Z(Z) {}
 
   inline       T &operator[] (size_t n)        { return data[n]; }
   inline const T &operator[] (size_t n) const  { return data[n]; }
 };
 
 template<typename TYPE>
-struct Vector4
+struct Vector<TYPE, 4>
 {
   typedef TYPE element_type;
   enum { element_count = 4 };
@@ -80,8 +97,8 @@ struct Vector4
     TYPE data[4];
   };
 
-  Vector4() : X(), Y(), Z(), T() {}
-  Vector4(TYPE X, TYPE Y, TYPE Z, TYPE T) : X(X), Y(Y), Z(Z), T(T) {}
+  Vector() : X(), Y(), Z(), T() {}
+  Vector(TYPE X, TYPE Y, TYPE Z, TYPE T) : X(X), Y(Y), Z(Z), T(T) {}
 
   inline       TYPE &operator[] (size_t n)        { return data[n]; }
   inline const TYPE &operator[] (size_t n) const  { return data[n]; }
@@ -117,17 +134,23 @@ bool operator!=(const Vector<T, N> &a, const Vector<T, N> &b)
   return true;
 }
 */
-using IntVector2 = Vector2<int>;
-using IntVector3 = Vector3<int>;
-using IntVector4 = Vector4<int>;
+using IntVector2 = Vector<int,2>;
+using IntVector3 = Vector<int,3>;
+using IntVector4 = Vector<int,4>;
 
-using FloatVector2 = Vector2<float>;
-using FloatVector3 = Vector3<float>;
-using FloatVector4 = Vector4<float>;
+using FloatVector2 = Vector<float, 2>;
+using FloatVector3 = Vector<float, 3>;
+using FloatVector4 = Vector<float, 4>;
 
-using DoubleVector2 = Vector2<double>;
-using DoubleVector3 = Vector3<double>;
-using DoubleVector4 = Vector4<double>;
+using DoubleVector2 = Vector<double, 2>;
+using DoubleVector3 = Vector<double, 3>;
+using DoubleVector4 = Vector<double, 4>;
 
+template<size_t N>
+using IntVector = Vector<int, N>;
+template<size_t N>
+using FloatVector = Vector<float, N>;
+template<size_t N>
+using DoubleVector = Vector<double, N>;
 }
 
