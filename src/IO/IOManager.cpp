@@ -18,6 +18,7 @@
 #include "IOManager.h"
 
 #include "IOManagerAWS.h"
+#include "IOManagerInMemory.h"
 
 namespace OpenVDS
 {
@@ -43,6 +44,8 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
   {
   case OpenOptions::AWS:
     return new IOManagerAWS(static_cast<const AWSOpenOptions &>(options), error);
+  case OpenOptions::InMemory:
+    return new IOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
   default:
     error.code = -1;
     error.string = "Unknwon type for OpenOptions";

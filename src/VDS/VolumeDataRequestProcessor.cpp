@@ -103,6 +103,7 @@ struct MarkJobAsDoneOnExit
     int completed = job->completed.fetch_add(1);
     if (completed == int(job->pages.size()) - 1)
     {
+      std::unique_lock<std::mutex>(job->completed_mutex);
       job->pageAccessor.SetLastUsed(std::chrono::steady_clock::now());
       job->pageAccessor.RemoveReference();
       job->doneNotify.notify_all();
@@ -169,7 +170,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
 
   pageAccessor->AddReference();
 
-  m_jobs.emplace_back(new Job(GenJobId(), m_jobNotification, *pageAccessor));
+  m_jobs.emplace_back(new Job(GenJobId(), m_jobNotification, *pageAccessor, m_mutex));
   auto &job = m_jobs.back();
 
   job->pages.reserve(chunks.size());
@@ -225,13 +226,16 @@ bool VolumeDataRequestProcessor::WaitForCompletion(int64_t jobID, int millisecon
     return false;
 
   Job *job = job_it->get();
-  if (millisecondsBeforeTimeout > 0)
+  if (job->completed < job->pages.size())
   {
-    std::chrono::milliseconds toWait(millisecondsBeforeTimeout);
-    job_it->get()->doneNotify.wait_for(lock, toWait, [job]{ return job->completed == job->pages.size();});
-  } else
-  {
-    job_it->get()->doneNotify.wait(lock, [job]{ return job->completed == job->pages.size();});
+    if (millisecondsBeforeTimeout > 0)
+    {
+      std::chrono::milliseconds toWait(millisecondsBeforeTimeout);
+      job_it->get()->doneNotify.wait_for(lock, toWait, [job]{ return job->completed == job->pages.size();});
+    } else
+    {
+      job_it->get()->doneNotify.wait(lock, [job]{ return job->completed == job->pages.size();});
+    }
   }
 
   if (job->completed == job->pages.size() && !job->cancelled)

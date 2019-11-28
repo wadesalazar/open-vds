@@ -39,7 +39,8 @@ struct OpenOptions
   {
     AWS,
     Azure,
-    File
+    File,
+    InMemory
   };
 
   ConnectionType connectionType;
@@ -56,6 +57,11 @@ struct AWSOpenOptions : OpenOptions
 
   AWSOpenOptions() : OpenOptions(AWS) {}
   AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), bucket(bucket), key(key), region(region) {}
+};
+
+struct InMemoryOpenOptions : OpenOptions
+{
+  InMemoryOpenOptions() : OpenOptions(InMemory) {}
 };
 
 struct Error

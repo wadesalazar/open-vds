@@ -6,6 +6,7 @@ set(SOURCE_FILES
   IO/IOManager.cpp
   IO/IOManagerAWS.cpp
   IO/IOManagerAzure.cpp
+  IO/IOManagerInMemory.cpp
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
@@ -35,6 +36,7 @@ set (PRIVATE_HEADER_FILES
   IO/IOManager.h
   IO/IOManagerAWS.h
   IO/IOManagerAzure.h
+  IO/IOManagerInMemory.h
   VDS/VDS.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataChannelMapping.h
