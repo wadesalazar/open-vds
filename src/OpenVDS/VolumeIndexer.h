@@ -23,6 +23,8 @@
 #include <OpenVDS/VolumeData.h>
 #include <OpenVDS/CoordinateTransformer.h>
 
+#include <assert.h>
+
 namespace OpenVDS
 {
 
