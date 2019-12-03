@@ -18,9 +18,9 @@
 #ifndef OPENVDS_H
 #define OPENVDS_H
 
-#include "openvds_export.h"
-#include "Metadata.h"
-#include "VolumeData.h"
+#include <OpenVDS/openvds_export.h>
+#include <OpenVDS/Metadata.h>
+#include <OpenVDS/VolumeData.h>
 
 #include <cstdint>
 #include <string>
@@ -70,6 +70,18 @@ struct Error
   std::string string;
 };
 
+template<typename T>
+struct VectorWrapper
+{
+  VectorWrapper(const std::vector<T> &toWrap)
+    : data(toWrap.data())
+    , size(toWrap.size())
+  {}
+
+  const T *data;
+  size_t size;
+};
+
 typedef struct VDS *VDSHandle;
 class VolumeDataLayout;
 class VolumeDataAccessManager;
@@ -115,7 +127,7 @@ OPENVDS_EXPORT VDSHandle Open(IOManager*ioManager, Error &error);
 /// <returns>
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
-OPENVDS_EXPORT VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const& axisDescriptors, std::vector<VolumeDataChannelDescriptor> const& channelDescriptors, MetadataContainer const& metadataContainer, Error& error);
+OPENVDS_EXPORT VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error);
 
 /// <summary>
 /// Create a new VDS
@@ -129,7 +141,8 @@ OPENVDS_EXPORT VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDesc
 /// <returns>
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
-OPENVDS_EXPORT VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error);
+OPENVDS_EXPORT VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, Error &error);
+
 
 /// <summary>
 /// Close a VDS and free up all associated resources

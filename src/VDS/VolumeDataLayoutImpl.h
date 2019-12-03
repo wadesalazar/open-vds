@@ -202,6 +202,8 @@ public:
   DoubleVector4 GetMetadataDoubleVector4(const char* category, const char* name) const override;
   const char* GetMetadataString(const char* category, const char* name) const override;
   void        GetMetadataBLOB(const char* category, const char* name, const void **data, size_t *size)  const override;
+  const_iterator begin() const override;
+  const_iterator end() const override;
 };
 }
 #endif //VOLUMEDATALAYOUTIMPL_H

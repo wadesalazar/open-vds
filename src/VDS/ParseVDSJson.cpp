@@ -21,6 +21,8 @@
 #include "VolumeDataHash.h"
 #include "MetadataManager.h"
 
+#include <OpenVDS/Vector.h>
+
 #include <json/json.h>
 
 #include "Bitmask.h"
@@ -512,78 +514,81 @@ bool ParseVolumeDataLayout(const std::vector<uint8_t> &json, VDS &vds, Error &er
 
   for (const Json::Value &metadata : root["metadata"])
   {
-    MetadataKey key = { MetadataTypeFromJson(metadata["type"]), metadata["category"].asString(), metadata["name"].asString() };
+    //MetadataKey key = { MetadataTypeFromJson(metadata["type"]), metadata["category"].asString(), metadata["name"].asString() };
 
-    vds.metadataContainer.keys.push_back(key);
+    //vds.metadataContainer.keys.push_back(key);
 
-    if (metadata["type"].asString() == "Int")
+    std::string type = metadata["type"].asString();
+    std::string category = metadata["category"].asString();
+    std::string name = metadata["name"].asString();
+    const Json::Value &value = metadata["value"];
+    if (type == "Int")
     {
-      vds.metadataContainer.intData[key] = metadata["value"].asInt();
+      vds.metadataContainer.SetMetadataInt(category.c_str(), name.c_str(), value.asInt());
     }
-    else if (metadata["type"].asString() == "IntVector2")
+    else if (type == "IntVector2")
     {
-      vds.metadataContainer.intVector2Data[key] = { metadata["value"][0].asInt(), metadata["value"][1].asInt()};
+      vds.metadataContainer.SetMetadataIntVector2(category.c_str(), name.c_str(), IntVector2(value[0].asInt(), value[1].asInt()));
     }
-    else if (metadata["type"].asString() == "IntVector3")
+    else if (type == "IntVector3")
     {
-      vds.metadataContainer.intVector3Data[key]  = { metadata["value"][0].asInt(), metadata["value"][1].asInt(), metadata["value"][2].asInt() };
+      vds.metadataContainer.SetMetadataIntVector3(category.c_str(), name.c_str(), IntVector3(value[0].asInt(), value[1].asInt(), value[2].asInt()));
     }
-    else if (metadata["type"].asString() == "IntVector4")
+    else if (type == "IntVector4")
     {
-      vds.metadataContainer.intVector4Data[key] = { metadata["value"][0].asInt(), metadata["value"][1].asInt(), metadata["value"][2].asInt(), metadata["value"][3].asInt() };
+      vds.metadataContainer.SetMetadataIntVector4(category.c_str(), name.c_str(), IntVector4(value[0].asInt(), value[1].asInt(), value[2].asInt(), value[3].asInt()));
     }
-    else if (metadata["type"].asString() == "Float")
+    else if (type == "Float")
     {
-      vds.metadataContainer.floatData[key] = metadata["value"].asFloat();
+      vds.metadataContainer.SetMetadataFloat(category.c_str(), name.c_str(), value.asFloat());
     }
-    else if (metadata["type"].asString() == "FloatVector2")
+    else if (type == "FloatVector2")
     {
-      vds.metadataContainer.floatVector2Data[key] = { metadata["value"][0].asFloat(), metadata["value"][1].asFloat() };
+      vds.metadataContainer.SetMetadataFloatVector2(category.c_str(), name.c_str(), FloatVector2(value[0].asFloat(), value[1].asFloat()));
     }
-    else if (metadata["type"].asString() == "FloatVector3")
+    else if (type == "FloatVector3")
     {
-      vds.metadataContainer.floatVector3Data[key] = { metadata["value"][0].asFloat(), metadata["value"][1].asFloat(), metadata["value"][2].asFloat() };
+      vds.metadataContainer.SetMetadataFloatVector3(category.c_str(), name.c_str(), FloatVector3(value[0].asFloat(), value[1].asFloat(), value[2].asFloat()));
     }
-    else if (metadata["type"].asString() == "FloatVector4")
+    else if (type == "FloatVector4")
     {
-      vds.metadataContainer.floatVector4Data[key] = { metadata["value"][0].asFloat(), metadata["value"][1].asFloat(), metadata["value"][2].asFloat(), metadata["value"][3].asFloat() };
+      vds.metadataContainer.SetMetadataFloatVector4(category.c_str(), name.c_str(), FloatVector4(value[0].asFloat(), value[1].asFloat(), value[2].asFloat(), value[3].asFloat()));
     }
-    else if (metadata["type"].asString() == "Double")
+    else if (type == "Double")
     {
-      vds.metadataContainer.doubleData[key] = metadata["value"].asDouble();
+      vds.metadataContainer.SetMetadataDouble(category.c_str(), name.c_str(), value.asDouble());
     }
-    else if (metadata["type"].asString() == "DoubleVector2")
+    else if (type == "DoubleVector2")
     {
-      vds.metadataContainer.doubleVector2Data[key] = { metadata["value"][0].asDouble(), metadata["value"][1].asDouble() };
+      vds.metadataContainer.SetMetadataDoubleVector2(category.c_str(), name.c_str(), DoubleVector2(value[0].asDouble(), value[1].asDouble()));
     }
-    else if (metadata["type"].asString() == "DoubleVector3")
+    else if (type == "DoubleVector3")
     {
-      vds.metadataContainer.doubleVector3Data[key] = { metadata["value"][0].asDouble(), metadata["value"][1].asDouble(), metadata["value"][2].asDouble() };
+      vds.metadataContainer.SetMetadataDoubleVector3(category.c_str(), name.c_str(), DoubleVector3(value[0].asDouble(), value[1].asDouble(), value[2].asDouble()));
     }
-    else if (metadata["type"].asString() == "DoubleVector4")
+    else if (type == "DoubleVector4")
     {
-      vds.metadataContainer.doubleVector4Data[key] = { metadata["value"][0].asDouble(), metadata["value"][1].asDouble(), metadata["value"][2].asDouble(), metadata["value"][3].asDouble() };
+      vds.metadataContainer.SetMetadataDoubleVector4(category.c_str(), name.c_str(), DoubleVector4(value[0].asDouble(), value[1].asDouble(), value[2].asDouble(), value[3].asDouble()));
     }
-    else if (metadata["type"].asString() == "String")
+    else if (type == "String")
     {
-      vds.metadataContainer.stringData[key] = metadata["value"].asString();
+      vds.metadataContainer.SetMetadataString(category.c_str(), name.c_str(), value.asString());
     }
-    else if (metadata["type"].asString() == "BLOB")
+    else if (type == "BLOB")
     {
-      const char* value = metadata["value"].asCString();
+      const char *v = value.asCString();
 
-      int len = (int)strlen(value);
+      int len = (int)strlen(v);
 
-      std::vector<uint8_t> &data = vds.metadataContainer.blobData[key];
-      data.clear();
-
-      bool success = Base64Decode(value, len, data);
+      std::vector<uint8_t> data;
+      bool success = Base64Decode(v, len, data);
 
       if (!success)
       {
         data.clear();
         return false;
       }
+      vds.metadataContainer.SetMetadataBLOB(category.c_str(), name.c_str(), data);
     }
   }
 
@@ -860,8 +865,10 @@ Json::Value SerializeVector(T const &vector)
   return vectorJson;
 }
 
-Json::Value SerializeBLOB(std::vector<uint8_t> const &blob)
+Json::Value SerializeBLOB(MetadataKey const &key, MetadataReadAccess const &readAccess)
 {
+  std::vector<uint8_t> blob;
+  readAccess.GetMetadataBLOB(key.category, key.name, blob);
   std::vector<char> base64;
   Base64Encode(blob.data(), blob.size(), base64);
 
@@ -873,7 +880,7 @@ Json::Value SerializeMetadata(MetadataContainer const &metadataContainer)
   Json::Value
     metadataJsonArray(Json::arrayValue);
 
-  for(auto metadataKey : metadataContainer.keys)
+  for(auto &metadataKey : metadataContainer)
   {
     Json::Value  metadataJson;
 
@@ -882,24 +889,24 @@ Json::Value SerializeMetadata(MetadataContainer const &metadataContainer)
 
     switch(metadataKey.type)
     {
-    case MetadataType::Int:        metadataJson["type"] = "Int";        metadataJson["value"] = Json::Value(metadataContainer.intData.at(metadataKey)); break;
-    case MetadataType::IntVector2: metadataJson["type"] = "IntVector2"; metadataJson["value"] = SerializeVector(metadataContainer.intVector2Data.at(metadataKey)); break;
-    case MetadataType::IntVector3: metadataJson["type"] = "IntVector3"; metadataJson["value"] = SerializeVector(metadataContainer.intVector3Data.at(metadataKey)); break;
-    case MetadataType::IntVector4: metadataJson["type"] = "IntVector4"; metadataJson["value"] = SerializeVector(metadataContainer.intVector4Data.at(metadataKey)); break;
+    case MetadataType::Int:        metadataJson["type"] = "Int";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataInt(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::IntVector2: metadataJson["type"] = "IntVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector2(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::IntVector3: metadataJson["type"] = "IntVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector3(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::IntVector4: metadataJson["type"] = "IntVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector4(metadataKey.category, metadataKey.name)); break;
 
-    case MetadataType::Float:        metadataJson["type"] = "Float";        metadataJson["value"] = Json::Value(metadataContainer.floatData.at(metadataKey)); break;
-    case MetadataType::FloatVector2: metadataJson["type"] = "FloatVector2"; metadataJson["value"] = SerializeVector(metadataContainer.floatVector2Data.at(metadataKey)); break;
-    case MetadataType::FloatVector3: metadataJson["type"] = "FloatVector3"; metadataJson["value"] = SerializeVector(metadataContainer.floatVector3Data.at(metadataKey)); break;
-    case MetadataType::FloatVector4: metadataJson["type"] = "FloatVector4"; metadataJson["value"] = SerializeVector(metadataContainer.floatVector4Data.at(metadataKey)); break;
+    case MetadataType::Float:        metadataJson["type"] = "Float";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataFloat(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::FloatVector2: metadataJson["type"] = "FloatVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector2(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::FloatVector3: metadataJson["type"] = "FloatVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector3(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::FloatVector4: metadataJson["type"] = "FloatVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector4(metadataKey.category, metadataKey.name)); break;
 
-    case MetadataType::Double:        metadataJson["type"] = "Double";        metadataJson["value"] = Json::Value(metadataContainer.doubleData.at(metadataKey)); break;
-    case MetadataType::DoubleVector2: metadataJson["type"] = "DoubleVector2"; metadataJson["value"] = SerializeVector(metadataContainer.doubleVector2Data.at(metadataKey)); break;
-    case MetadataType::DoubleVector3: metadataJson["type"] = "DoubleVector3"; metadataJson["value"] = SerializeVector(metadataContainer.doubleVector3Data.at(metadataKey)); break;
-    case MetadataType::DoubleVector4: metadataJson["type"] = "DoubleVector4"; metadataJson["value"] = SerializeVector(metadataContainer.doubleVector4Data.at(metadataKey)); break;
+    case MetadataType::Double:        metadataJson["type"] = "Double";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataDouble(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::DoubleVector2: metadataJson["type"] = "DoubleVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector2(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::DoubleVector3: metadataJson["type"] = "DoubleVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector3(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::DoubleVector4: metadataJson["type"] = "DoubleVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector4(metadataKey.category, metadataKey.name)); break;
 
-    case MetadataType::String: metadataJson["type"] = "String"; metadataJson["value"] = Json::Value(metadataContainer.stringData.at(metadataKey)); break;
+    case MetadataType::String: metadataJson["type"] = "String"; metadataJson["value"] = Json::Value(metadataContainer.GetMetadataString(metadataKey.category, metadataKey.name)); break;
 
-    case MetadataType::BLOB: metadataJson["type"] = "BLOB"; metadataJson["value"] = SerializeBLOB(metadataContainer.blobData.at(metadataKey)); break;
+    case MetadataType::BLOB: metadataJson["type"] = "BLOB"; metadataJson["value"] = SerializeBLOB(metadataKey, metadataContainer); break;
     }
 
     metadataJsonArray.append(metadataJson);

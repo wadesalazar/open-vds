@@ -262,17 +262,9 @@ createSEGYHeadersMetadata(OpenVDS::File const &file, OpenVDS::MetadataContainer 
   if(!success) return false;
 
   // Create metadata
-  {
-    OpenVDS::MetadataKey key = { OpenVDS::MetadataType::BLOB, "SEGY", "TextHeader" };
-    metadataContainer.blobData[key] = textHeader;
-    metadataContainer.keys.push_back(key);
-  }
+  metadataContainer.SetMetadataBLOB("SEGY", "TextHeader", textHeader);
 
-  {
-    OpenVDS::MetadataKey key = { OpenVDS::MetadataType::BLOB, "SEGY", "BinaryHeader" };
-    metadataContainer.blobData[key] = binaryHeader;
-    metadataContainer.keys.push_back(key);
-  }
+  metadataContainer.SetMetadataBLOB("SEGY", "BinaryHeader", binaryHeader);
 
   return success;
 }
@@ -351,23 +343,9 @@ createSurveyCoordinateSystemMetadata(SEGYFileInfo const &fileInfo, OpenVDS::Meta
   origin[1] -= crosslineSpacing[1] * firstSegmentInfo.m_binInfoStart.m_crosslineNumber;
 
   // Set coordinate system
-  {
-    OpenVDS::MetadataKey key = { OpenVDS::MetadataType::DoubleVector2, LATTICE_CATEGORY, LATTICE_ORIGIN };
-    metadataContainer.doubleVector2Data[key] = OpenVDS::DoubleVector2(origin[0], origin[1]);
-    metadataContainer.keys.push_back(key);
-  }
-
-  {
-    OpenVDS::MetadataKey key = { OpenVDS::MetadataType::DoubleVector2, LATTICE_CATEGORY, LATTICE_INLINE_SPACING };
-    metadataContainer.doubleVector2Data[key] = OpenVDS::DoubleVector2(inlineSpacing[0], inlineSpacing[1]);
-    metadataContainer.keys.push_back(key);
-  }
-
-  {
-    OpenVDS::MetadataKey key = { OpenVDS::MetadataType::DoubleVector2, LATTICE_CATEGORY, LATTICE_CROSSLINE_SPACING };
-    metadataContainer.doubleVector2Data[key] = OpenVDS::DoubleVector2(crosslineSpacing[0], crosslineSpacing[1]);
-    metadataContainer.keys.push_back(key);
-  }
+  metadataContainer.SetMetadataDoubleVector2(LATTICE_CATEGORY, LATTICE_ORIGIN, OpenVDS::DoubleVector2(origin[0], origin[1]));
+  metadataContainer.SetMetadataDoubleVector2(LATTICE_CATEGORY, LATTICE_INLINE_SPACING, OpenVDS::DoubleVector2(inlineSpacing[0], inlineSpacing[1]));
+  metadataContainer.SetMetadataDoubleVector2(LATTICE_CATEGORY, LATTICE_CROSSLINE_SPACING, OpenVDS::DoubleVector2(crosslineSpacing[0], crosslineSpacing[1]));
 }
 
 bool

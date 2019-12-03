@@ -23,6 +23,12 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
+
+#include <cassert>
+#include <cstring>
 
 namespace OpenVDS
 {
@@ -48,11 +54,9 @@ enum class MetadataType
 struct MetadataKey
 {
   MetadataType type;
-  std::string  category;
-  std::string  name;
+  const char *category;
+  const char *name;
 };
-
-inline bool operator==(const MetadataKey& a, const MetadataKey& b) { return a.type == b.type && a.category == b.category && a.name == b.name; }
 
 /// \brief Interface for read access to Metadata
 class MetadataReadAccess
@@ -101,6 +105,9 @@ public:
                         GetMetadataBLOB(category, name, &data, &size);
                         value.assign(reinterpret_cast<const T *>(data), reinterpret_cast<const T *>(data) + size/sizeof(T));
                       }
+  using const_iterator = const MetadataKey *;
+  virtual const_iterator begin() const = 0; ///< Returns a const iterator pointing to the first element in the MetadataKey collection
+  virtual const_iterator end() const = 0; ///< Returns a const iterator pointing to the past-the-end element in the MetadataKey collection
 };
 
 /// \brief Interface for write access to Metadata
@@ -146,6 +153,8 @@ public:
   virtual void        ClearMetadata(const char* category) = 0; ///< Clear the metadata with the given category
 };
 
+inline bool operator==(const MetadataKey& a, const MetadataKey& b) { return a.type == b.type && strcmp(a.category, b.category) == 0 && strcmp(a.name, b.name) == 0; }
+
 } // end namespace OpenVDS
 
 namespace std
@@ -164,64 +173,261 @@ struct hash<OpenVDS::MetadataKey>
 
 namespace OpenVDS
 {
-struct MetadataContainer : public MetadataReadAccess /*, public MetadataWriteAccess */
+class MetadataContainer : public MetadataReadAccess, public MetadataWriteAccess
 {
-  std::unordered_map<MetadataKey, int>        intData;
-  std::unordered_map<MetadataKey, IntVector2> intVector2Data;
-  std::unordered_map<MetadataKey, IntVector3> intVector3Data;
-  std::unordered_map<MetadataKey, IntVector4> intVector4Data;
+public:
+  bool        IsMetadataIntAvailable(const char* category, const char* name) const override           { MetadataKey key = { MetadataType::Int,           category, name }; return m_intData.find(key) != m_intData.end(); }
+  bool        IsMetadataIntVector2Available(const char* category, const char* name) const override    { MetadataKey key = { MetadataType::IntVector2,    category, name }; return m_intVector2Data.find(key) != m_intVector2Data.end(); }
+  bool        IsMetadataIntVector3Available(const char* category, const char* name) const override    { MetadataKey key = { MetadataType::IntVector3,    category, name }; return m_intVector3Data.find(key) != m_intVector3Data.end(); }
+  bool        IsMetadataIntVector4Available(const char* category, const char* name) const override    { MetadataKey key = { MetadataType::IntVector4,    category, name }; return m_intVector4Data.find(key) != m_intVector4Data.end(); }
+  bool        IsMetadataFloatAvailable(const char* category, const char* name) const override         { MetadataKey key = { MetadataType::Float,         category, name }; return m_floatData.find(key) != m_floatData.end(); }
+  bool        IsMetadataFloatVector2Available(const char* category, const char* name) const override  { MetadataKey key = { MetadataType::FloatVector2,  category, name }; return m_floatVector2Data.find(key) != m_floatVector2Data.end(); }
+  bool        IsMetadataFloatVector3Available(const char* category, const char* name) const override  { MetadataKey key = { MetadataType::FloatVector3,  category, name }; return m_floatVector3Data.find(key) != m_floatVector3Data.end(); }
+  bool        IsMetadataFloatVector4Available(const char* category, const char* name) const override  { MetadataKey key = { MetadataType::FloatVector4,  category, name }; return m_floatVector4Data.find(key) != m_floatVector4Data.end(); }
+  bool        IsMetadataDoubleAvailable(const char* category, const char* name) const override        { MetadataKey key = { MetadataType::Double,        category, name }; return m_doubleData.find(key) != m_doubleData.end(); }
+  bool        IsMetadataDoubleVector2Available(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector2, category, name }; return m_doubleVector2Data.find(key) != m_doubleVector2Data.end(); }
+  bool        IsMetadataDoubleVector3Available(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector3, category, name }; return m_doubleVector3Data.find(key) != m_doubleVector3Data.end(); }
+  bool        IsMetadataDoubleVector4Available(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector4, category, name }; return m_doubleVector4Data.find(key) != m_doubleVector4Data.end(); }
+  bool        IsMetadataStringAvailable(const char* category, const char* name) const override        { MetadataKey key = { MetadataType::String,        category, name }; return m_stringData.find(key) != m_stringData.end(); }
+  bool        IsMetadataBLOBAvailable(const char* category, const char* name) const override          { MetadataKey key = { MetadataType::BLOB,          category, name }; return m_blobData.find(key) != m_blobData.end(); }
 
-  std::unordered_map<MetadataKey, float>        floatData;
-  std::unordered_map<MetadataKey, FloatVector2> floatVector2Data;
-  std::unordered_map<MetadataKey, FloatVector3> floatVector3Data;
-  std::unordered_map<MetadataKey, FloatVector4> floatVector4Data;
+  int         GetMetadataInt(const char* category, const char* name) const override             { MetadataKey key = { MetadataType::Int,           category, name }; auto it = m_intData.find(key);           return it != m_intData.end() ? it->second : int(); }
+  IntVector2  GetMetadataIntVector2(const char* category, const char* name) const override      { MetadataKey key = { MetadataType::IntVector2,    category, name }; auto it = m_intVector2Data.find(key);    return it != m_intVector2Data.end() ? it->second : IntVector2(); }
+  IntVector3  GetMetadataIntVector3(const char* category, const char* name) const override      { MetadataKey key = { MetadataType::IntVector3,    category, name }; auto it = m_intVector3Data.find(key);    return it != m_intVector3Data.end() ? it->second : IntVector3(); }
+  IntVector4  GetMetadataIntVector4(const char* category, const char* name) const override      { MetadataKey key = { MetadataType::IntVector4,    category, name }; auto it = m_intVector4Data.find(key);    return it != m_intVector4Data.end() ? it->second : IntVector4(); }
+  float        GetMetadataFloat(const char* category, const char* name) const override          { MetadataKey key = { MetadataType::Float,         category, name }; auto it = m_floatData.find(key);         return it != m_floatData.end() ? it->second : float(); }
+  FloatVector2 GetMetadataFloatVector2(const char* category, const char* name) const override   { MetadataKey key = { MetadataType::FloatVector2,  category, name }; auto it = m_floatVector2Data.find(key);  return it != m_floatVector2Data.end() ? it->second : FloatVector2(); }
+  FloatVector3 GetMetadataFloatVector3(const char* category, const char* name) const override   { MetadataKey key = { MetadataType::FloatVector3,  category, name }; auto it = m_floatVector3Data.find(key);  return it != m_floatVector3Data.end() ? it->second : FloatVector3(); }
+  FloatVector4 GetMetadataFloatVector4(const char* category, const char* name) const override   { MetadataKey key = { MetadataType::FloatVector4,  category, name }; auto it = m_floatVector4Data.find(key);  return it != m_floatVector4Data.end() ? it->second : FloatVector4(); }
+  double        GetMetadataDouble(const char* category, const char* name) const override        { MetadataKey key = { MetadataType::Double,        category, name }; auto it = m_doubleData.find(key);        return it != m_doubleData.end() ? it->second : double(); }
+  DoubleVector2 GetMetadataDoubleVector2(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector2, category, name }; auto it = m_doubleVector2Data.find(key); return it != m_doubleVector2Data.end() ? it->second : DoubleVector2(); }
+  DoubleVector3 GetMetadataDoubleVector3(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector3, category, name }; auto it = m_doubleVector3Data.find(key); return it != m_doubleVector3Data.end() ? it->second : DoubleVector3(); }
+  DoubleVector4 GetMetadataDoubleVector4(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector4, category, name }; auto it = m_doubleVector4Data.find(key); return it != m_doubleVector4Data.end() ? it->second : DoubleVector4(); }
+  const char* GetMetadataString(const char* category, const char* name) const override          { MetadataKey key = { MetadataType::String,        category, name }; auto it = m_stringData.find(key);        return it != m_stringData.end() ? it->second.c_str() : ""; }
 
-  std::unordered_map<MetadataKey, double>        doubleData;
-  std::unordered_map<MetadataKey, DoubleVector2> doubleVector2Data;
-  std::unordered_map<MetadataKey, DoubleVector3> doubleVector3Data;
-  std::unordered_map<MetadataKey, DoubleVector4> doubleVector4Data;
- 
-  std::unordered_map<MetadataKey, std::string> stringData;
+  void        SetMetadataInt(const char* category, const char* name, int value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::Int, category, name); m_intData[key] = value; }
+  void        SetMetadataIntVector2(const char* category, const char* name, IntVector2 value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::IntVector2, category, name); m_intVector2Data[key] = value; }
+  void        SetMetadataIntVector3(const char* category, const char* name, IntVector3 value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::IntVector3, category, name); m_intVector3Data[key] = value; }
+  void        SetMetadataIntVector4(const char* category, const char* name, IntVector4 value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::IntVector4, category, name); m_intVector4Data[key] = value; }
 
-  std::unordered_map<MetadataKey, std::vector<uint8_t>> blobData;
+  void        SetMetadataFloat(const char* category, const char* name, float value) override      { MetadataKey key = GetOrCreateMetadataKey(MetadataType::Float, category, name); m_floatData[key] = value; }
+  void        SetMetadataFloatVector2(const char* category, const char* name, FloatVector2 value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::FloatVector2, category, name); m_floatVector2Data[key] = value; }
+  void        SetMetadataFloatVector3(const char* category, const char* name, FloatVector3 value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::FloatVector3, category, name); m_floatVector3Data[key] = value; }
+  void        SetMetadataFloatVector4(const char* category, const char* name, FloatVector4 value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::FloatVector4, category, name); m_floatVector4Data[key] = value; }
 
-  std::vector<MetadataKey> keys;
+  void        SetMetadataDouble(const char* category, const char* name, double value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::Double, category, name); m_doubleData[key] = value; }
+  void        SetMetadataDoubleVector2(const char* category, const char* name, DoubleVector2 value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::DoubleVector2, category, name); m_doubleVector2Data[key] = value; } ///< Sets a metadata DoubleVector2 with the given category and name to the given value
+  void        SetMetadataDoubleVector3(const char* category, const char* name, DoubleVector3 value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::DoubleVector3, category, name); m_doubleVector3Data[key] = value; } ///< Sets a metadata DoubleVector3 with the given category and name to the given value
+  void        SetMetadataDoubleVector4(const char* category, const char* name, DoubleVector4 value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::DoubleVector4, category, name); m_doubleVector4Data[key] = value; } ///< Sets a metadata DoubleVector4 with the given category and name to the given value
 
-  bool        IsMetadataIntAvailable(const char* category, const char* name) const override           { MetadataKey key = { MetadataType::Int,           category, name }; return intData.find(key) != intData.end(); }
-  bool        IsMetadataIntVector2Available(const char* category, const char* name) const override    { MetadataKey key = { MetadataType::IntVector2,    category, name }; return intVector2Data.find(key) != intVector2Data.end(); }
-  bool        IsMetadataIntVector3Available(const char* category, const char* name) const override    { MetadataKey key = { MetadataType::IntVector3,    category, name }; return intVector3Data.find(key) != intVector3Data.end(); }
-  bool        IsMetadataIntVector4Available(const char* category, const char* name) const override    { MetadataKey key = { MetadataType::IntVector4,    category, name }; return intVector4Data.find(key) != intVector4Data.end(); }
-  bool        IsMetadataFloatAvailable(const char* category, const char* name) const override         { MetadataKey key = { MetadataType::Float,         category, name }; return floatData.find(key) != floatData.end(); }
-  bool        IsMetadataFloatVector2Available(const char* category, const char* name) const override  { MetadataKey key = { MetadataType::FloatVector2,  category, name }; return floatVector2Data.find(key) != floatVector2Data.end(); }
-  bool        IsMetadataFloatVector3Available(const char* category, const char* name) const override  { MetadataKey key = { MetadataType::FloatVector3,  category, name }; return floatVector3Data.find(key) != floatVector3Data.end(); }
-  bool        IsMetadataFloatVector4Available(const char* category, const char* name) const override  { MetadataKey key = { MetadataType::FloatVector4,  category, name }; return floatVector4Data.find(key) != floatVector4Data.end(); }
-  bool        IsMetadataDoubleAvailable(const char* category, const char* name) const override        { MetadataKey key = { MetadataType::Double,        category, name }; return doubleData.find(key) != doubleData.end(); }
-  bool        IsMetadataDoubleVector2Available(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector2, category, name }; return doubleVector2Data.find(key) != doubleVector2Data.end(); }
-  bool        IsMetadataDoubleVector3Available(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector3, category, name }; return doubleVector3Data.find(key) != doubleVector3Data.end(); }
-  bool        IsMetadataDoubleVector4Available(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector4, category, name }; return doubleVector4Data.find(key) != doubleVector4Data.end(); }
-  bool        IsMetadataStringAvailable(const char* category, const char* name) const override        { MetadataKey key = { MetadataType::String,        category, name }; return stringData.find(key) != stringData.end(); }
-  bool        IsMetadataBLOBAvailable(const char* category, const char* name) const override          { MetadataKey key = { MetadataType::BLOB,          category, name }; return blobData.find(key) != blobData.end(); }
+  using MetadataWriteAccess::SetMetadataBLOB;
+  using MetadataWriteAccess::SetMetadataString;
+  using MetadataReadAccess::GetMetadataBLOB;
+  using MetadataReadAccess::GetMetadataString;
 
-  int         GetMetadataInt(const char* category, const char* name) const override             { MetadataKey key = { MetadataType::Int,           category, name }; auto it = intData.find(key);           return it != intData.end() ? it->second : int(); }
-  IntVector2  GetMetadataIntVector2(const char* category, const char* name) const override      { MetadataKey key = { MetadataType::IntVector2,    category, name }; auto it = intVector2Data.find(key);    return it != intVector2Data.end() ? it->second : IntVector2(); }
-  IntVector3  GetMetadataIntVector3(const char* category, const char* name) const override      { MetadataKey key = { MetadataType::IntVector3,    category, name }; auto it = intVector3Data.find(key);    return it != intVector3Data.end() ? it->second : IntVector3(); }
-  IntVector4  GetMetadataIntVector4(const char* category, const char* name) const override      { MetadataKey key = { MetadataType::IntVector4,    category, name }; auto it = intVector4Data.find(key);    return it != intVector4Data.end() ? it->second : IntVector4(); }
-  float        GetMetadataFloat(const char* category, const char* name) const override          { MetadataKey key = { MetadataType::Float,         category, name }; auto it = floatData.find(key);         return it != floatData.end() ? it->second : float(); }
-  FloatVector2 GetMetadataFloatVector2(const char* category, const char* name) const override   { MetadataKey key = { MetadataType::FloatVector2,  category, name }; auto it = floatVector2Data.find(key);  return it != floatVector2Data.end() ? it->second : FloatVector2(); }
-  FloatVector3 GetMetadataFloatVector3(const char* category, const char* name) const override   { MetadataKey key = { MetadataType::FloatVector3,  category, name }; auto it = floatVector3Data.find(key);  return it != floatVector3Data.end() ? it->second : FloatVector3(); }
-  FloatVector4 GetMetadataFloatVector4(const char* category, const char* name) const override   { MetadataKey key = { MetadataType::FloatVector4,  category, name }; auto it = floatVector4Data.find(key);  return it != floatVector4Data.end() ? it->second : FloatVector4(); }
-  double        GetMetadataDouble(const char* category, const char* name) const override        { MetadataKey key = { MetadataType::Double,        category, name }; auto it = doubleData.find(key);        return it != doubleData.end() ? it->second : double(); }
-  DoubleVector2 GetMetadataDoubleVector2(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector2, category, name }; auto it = doubleVector2Data.find(key); return it != doubleVector2Data.end() ? it->second : DoubleVector2(); }
-  DoubleVector3 GetMetadataDoubleVector3(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector3, category, name }; auto it = doubleVector3Data.find(key); return it != doubleVector3Data.end() ? it->second : DoubleVector3(); }
-  DoubleVector4 GetMetadataDoubleVector4(const char* category, const char* name) const override { MetadataKey key = { MetadataType::DoubleVector4, category, name }; auto it = doubleVector4Data.find(key); return it != doubleVector4Data.end() ? it->second : DoubleVector4(); }
-  const char* GetMetadataString(const char* category, const char* name) const override          { MetadataKey key = { MetadataType::String,        category, name }; auto it = stringData.find(key);        return it != stringData.end() ? it->second.c_str() : ""; }
+  void        CopyMetadata(const char* category, MetadataReadAccess const *metadataReadAccess) override
+  {
+    for (auto &key : *metadataReadAccess)
+    {
+      if (strcmp(key.category, category) == 0)
+      {
+        switch(key.type)
+        {
+        case MetadataType::Int:
+          SetMetadataInt(key.category, key.name, metadataReadAccess->GetMetadataInt(key.category, key.name));
+          break;
+        case MetadataType::IntVector2:
+          SetMetadataIntVector2(key.category, key.name, metadataReadAccess->GetMetadataIntVector2(key.category, key.name));
+          break;
+        case MetadataType::IntVector3:
+          SetMetadataIntVector3(key.category, key.name, metadataReadAccess->GetMetadataIntVector3(key.category, key.name));
+          break;
+        case MetadataType::IntVector4:
+          SetMetadataIntVector4(key.category, key.name, metadataReadAccess->GetMetadataIntVector4(key.category, key.name));
+          break;
+        case MetadataType::Float:
+          SetMetadataInt(key.category, key.name, metadataReadAccess->GetMetadataInt(key.category, key.name));
+          break;
+        case MetadataType::FloatVector2:
+          SetMetadataFloatVector2(key.category, key.name, metadataReadAccess->GetMetadataFloatVector2(key.category, key.name));
+          break;
+        case MetadataType::FloatVector3:
+          SetMetadataFloatVector3(key.category, key.name, metadataReadAccess->GetMetadataFloatVector3(key.category, key.name));
+          break;
+        case MetadataType::FloatVector4:
+          SetMetadataFloatVector4(key.category, key.name, metadataReadAccess->GetMetadataFloatVector4(key.category, key.name));
+          break;
+        case MetadataType::Double:
+          SetMetadataDouble(key.category, key.name, metadataReadAccess->GetMetadataDouble(key.category, key.name));
+          break;
+        case MetadataType::DoubleVector2:
+          SetMetadataDoubleVector2(key.category, key.name, metadataReadAccess->GetMetadataDoubleVector2(key.category, key.name));
+          break;
+        case MetadataType::DoubleVector3:
+          SetMetadataDoubleVector3(key.category, key.name, metadataReadAccess->GetMetadataDoubleVector3(key.category, key.name));
+          break;
+        case MetadataType::DoubleVector4:
+          SetMetadataDoubleVector4(key.category, key.name, metadataReadAccess->GetMetadataDoubleVector4(key.category, key.name));
+          break;
+        case MetadataType::String:
+          SetMetadataString(key.category, key.name, metadataReadAccess->GetMetadataString(key.category, key.name));
+          break;
+        case MetadataType::BLOB:
+          std::vector<uint8_t> data;
+          metadataReadAccess->GetMetadataBLOB(key.category, key.name, data);
+          SetMetadataBLOB(key.category, key.name, data);
+          break;
+        }
+      }
+    }
+  }
+
+  void        ClearMetadata(const char* category, const char* name) override
+  {
+    std::vector<MetadataKey> localKeys;
+    localKeys.reserve(m_keys.size());
+    for (auto &key : m_keys)
+    {
+      if (strcmp(category, key.category) == 0 && strcmp(name, key.name) == 0)
+      {
+        localKeys.push_back(key);
+      }
+    }
+    for (auto &key : localKeys)
+    {
+        RemoveMetadataForKey(key);
+    }
+  }
+  void        ClearMetadata(const char* category) override
+  {
+    std::vector<MetadataKey> localKeys;
+    localKeys.reserve(m_keys.size());
+    for (auto &key : m_keys)
+    {
+      if (strcmp(category, key.category) == 0)
+      {
+        localKeys.push_back(key);
+      }
+    }
+    for (auto &key : localKeys)
+    {
+        RemoveMetadataForKey(key);
+    }
+  }
   void        GetMetadataBLOB(const char* category, const char* name, const void **data, size_t *size)  const override
   {
     MetadataKey key = { MetadataType::BLOB, category, name };
-    auto it = blobData.find(key);
-    *data = (it != blobData.end()) ? it->second.data() : nullptr;
-    *size = (it != blobData.end()) ? it->second.size() : 0;
+    auto it = m_blobData.find(key);
+    *data = (it != m_blobData.end()) ? it->second.data() : nullptr;
+    *size = (it != m_blobData.end()) ? it->second.size() : 0;
   }
+
+  const_iterator begin() const override
+  {
+    if (m_keys.empty())
+      return nullptr;
+    return &(*m_keys.begin());
+  }
+  const_iterator end() const override
+  {
+    if (m_keys.empty())
+      return nullptr;
+    return &(*(m_keys.end() - 1)) + 1;
+  }
+
+protected:
+  void        SetMetadataString(const char* category, const char* name, const char* value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::String, category, name); m_stringData[key] = value; }
+  void        SetMetadataBLOB(const char* category, const char* name, const void *data, size_t size) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::BLOB, category, name); const uint8_t *udata = static_cast<const uint8_t *>(data); auto &vec = m_blobData[key]; vec.clear(); vec.insert(vec.begin(), udata, udata + size); }
+
+private:
+  MetadataKey GetOrCreateMetadataKey(MetadataType type, const char *category, const char *name)
+  {
+    auto category_it = m_categories.emplace(category).first;
+    auto name_it = m_names.emplace(name).first;
+    MetadataKey ret;
+    ret.type = type;
+    ret.category = category_it->c_str();
+    ret.name = name_it->c_str();
+    if (std::find_if(m_keys.begin(), m_keys.end(), [ret](const MetadataKey &a) { return ret.type == a.type && ret.category == a.category && ret.name == a.name; }) == m_keys.end())
+      m_keys.push_back(ret);
+    return ret;
+  }
+
+  void RemoveMetadataForKey(const MetadataKey &key)
+  {
+    switch(key.type)
+    {
+    case MetadataType::Int:
+      m_intData.erase(key);
+      break;
+    case MetadataType::IntVector2:
+      m_intVector2Data.erase(key);
+      break;
+    case MetadataType::IntVector3:
+      m_intVector3Data.erase(key);
+      break;
+    case MetadataType::IntVector4:
+      m_intVector4Data.erase(key);
+      break;
+    case MetadataType::Float:
+      m_floatData.erase(key);
+      break;
+    case MetadataType::FloatVector2:
+      m_floatVector2Data.erase(key);
+      break;
+    case MetadataType::FloatVector3:
+      m_floatVector3Data.erase(key);
+      break;
+    case MetadataType::FloatVector4:
+      m_floatVector4Data.erase(key);
+      break;
+    case MetadataType::Double:
+      m_doubleData.erase(key);
+      break;
+    case MetadataType::DoubleVector2:
+      m_doubleVector2Data.erase(key);
+      break;
+    case MetadataType::DoubleVector3:
+      m_doubleVector3Data.erase(key);
+      break;
+    case MetadataType::DoubleVector4:
+      m_doubleVector4Data.erase(key);
+      break;
+    case MetadataType::String:
+      m_stringData.erase(key);
+      break;
+    case MetadataType::BLOB:
+      m_blobData.erase(key);
+      break;
+    }
+    m_keys.erase(std::find_if(m_keys.begin(), m_keys.end(), [key](const MetadataKey &a) { return key.type == a.type && key.category == a.category && key.name == a.name; }));
+
+  }
+
+
+  std::unordered_map<MetadataKey, int>        m_intData;
+  std::unordered_map<MetadataKey, IntVector2> m_intVector2Data;
+  std::unordered_map<MetadataKey, IntVector3> m_intVector3Data;
+  std::unordered_map<MetadataKey, IntVector4> m_intVector4Data;
+
+  std::unordered_map<MetadataKey, float>        m_floatData;
+  std::unordered_map<MetadataKey, FloatVector2> m_floatVector2Data;
+  std::unordered_map<MetadataKey, FloatVector3> m_floatVector3Data;
+  std::unordered_map<MetadataKey, FloatVector4> m_floatVector4Data;
+
+  std::unordered_map<MetadataKey, double>        m_doubleData;
+  std::unordered_map<MetadataKey, DoubleVector2> m_doubleVector2Data;
+  std::unordered_map<MetadataKey, DoubleVector3> m_doubleVector3Data;
+  std::unordered_map<MetadataKey, DoubleVector4> m_doubleVector4Data;
+
+  std::unordered_map<MetadataKey, std::string> m_stringData;
+
+  std::unordered_map<MetadataKey, std::vector<uint8_t>> m_blobData;
+
+  std::vector<MetadataKey> m_keys;
+  std::unordered_set<std::string> m_categories;
+  std::unordered_set<std::string> m_names;
+
 };
 
 } // end namespace OpenVDS

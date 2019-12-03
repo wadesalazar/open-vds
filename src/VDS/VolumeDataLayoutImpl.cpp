@@ -449,5 +449,7 @@ DoubleVector3 VolumeDataLayoutImpl::GetMetadataDoubleVector3(const char* categor
 DoubleVector4 VolumeDataLayoutImpl::GetMetadataDoubleVector4(const char* category, const char* name) const { return m_vds.metadataContainer.GetMetadataDoubleVector4(category, name); }
 const char*   VolumeDataLayoutImpl::GetMetadataString(const char* category, const char* name) const          { return m_vds.metadataContainer.GetMetadataString(category, name); }
 void          VolumeDataLayoutImpl::GetMetadataBLOB(const char* category, const char* name, const void **data, size_t *size)  const { return m_vds.metadataContainer.GetMetadataBLOB(category, name, data, size); }
+MetadataReadAccess::const_iterator VolumeDataLayoutImpl::begin() const { return m_vds.metadataContainer.begin(); }
+MetadataReadAccess::const_iterator VolumeDataLayoutImpl::end() const { return m_vds.metadataContainer.end(); }
 
 }

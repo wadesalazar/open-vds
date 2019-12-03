@@ -175,20 +175,35 @@ void CreateVolumeDataLayout(VDS &vds)
   }
 }
 
-VDS* Create(IOManager *ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const &axisDescriptors, std::vector<VolumeDataChannelDescriptor> const &channelDescriptors, MetadataContainer const &metadataContainer, Error &error)
+static void copyMetadataToContainer(MetadataContainer &container, const MetadataReadAccess &readAccess)
+{
+  std::unordered_set<std::string> copied;
+  for (auto &key : readAccess)
+  {
+    if (copied.count(key.category))
+    {
+      continue;
+    }
+    container.CopyMetadata(key.category, &readAccess);
+  }
+}
+
+VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, Error &error)
 {
   error = Error();
   std::unique_ptr<VDS> vds(new VDS(ioManager));
 
   vds->layoutDescriptor = layoutDescriptor;
 
-  for(auto axisDescriptor : axisDescriptors)
+  for(size_t i = 0; i < axisDescriptors.size; i++)
   {
+    auto &axisDescriptor = axisDescriptors.data[i];
     vds->axisDescriptors.push_back(VolumeDataAxisDescriptor(axisDescriptor.GetNumSamples(), AddDescriptorString(axisDescriptor.GetName(), *vds), AddDescriptorString(axisDescriptor.GetUnit(), *vds), axisDescriptor.GetCoordinateMin(), axisDescriptor.GetCoordinateMax()));
   }
 
-  for(auto channelDescriptor : channelDescriptors)
+  for(size_t i = 0; i < channelDescriptors.size; i++)
   {
+    auto &channelDescriptor = channelDescriptors.data[i];
     VolumeDataChannelDescriptor::Flags flags = VolumeDataChannelDescriptor::Default;
 
     if(channelDescriptor.IsDiscrete())                     flags = flags | VolumeDataChannelDescriptor::DiscreteData;
@@ -206,7 +221,7 @@ VDS* Create(IOManager *ioManager, VolumeDataLayoutDescriptor const &layoutDescri
     }
   }
 
-  vds->metadataContainer = metadataContainer;
+  copyMetadataToContainer(vds->metadataContainer, metadata);
 
   vds->produceStatuses.clear();
   vds->produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
@@ -225,14 +240,14 @@ VDS* Create(IOManager *ioManager, VolumeDataLayoutDescriptor const &layoutDescri
   return vds.release();
 }
 
-VDS* Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, std::vector<VolumeDataAxisDescriptor> const& axisDescriptors, std::vector<VolumeDataChannelDescriptor> const& channelDescriptors, MetadataContainer const& metadataContainer, Error& error)
+VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
 {
   error = Error();
   IOManager* ioManager = IOManager::CreateIOManager(options, error);
   if (error.code)
     return nullptr;
 
-  return Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error);
+  return Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error);
 }
 
 void Close(VDS *vds)
