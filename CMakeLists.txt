@@ -40,7 +40,7 @@ option(ENABLE_OPENMP "Enable the OpenMP codepath" ON)
 option(BUILD_SHARED_LIBS "Build OpenVDS as a shared library" ON)
 option(BUILD_EXAMPLES "Build OpenVDS example projects" ON)
 option(BUILD_TESTS "Build OpenVDS tests" ON)
-option(BUILD_DOCS  "Build OpenVDS docs" ON)
+option(BUILD_DOCS  "Build OpenVDS docs" OFF)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)

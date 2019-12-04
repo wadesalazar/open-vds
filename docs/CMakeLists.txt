@@ -41,7 +41,7 @@ doxygen_add_docs(Doxygen
 #add_custom_target(Doxygen DEPENDS ${DOXYGEN_INDEX_FILE})
 
 set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR})
-set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
+set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/html)
 set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
 
 # Only regenerate Sphinx when:
@@ -62,10 +62,8 @@ add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
                    COMMENT "Generating documentation with Sphinx")
 
 # Nice named target so we can run the job easily
-add_custom_target(Sphinx DEPENDS ${SPHINX_INDEX_FILE})
+add_custom_target(Sphinx ALL DEPENDS ${SPHINX_INDEX_FILE})
 add_dependencies(Sphinx Doxygen)
 
 # Add an install target to install the docs
-include(GNUInstallDirs)
-install(DIRECTORY ${SPHINX_BUILD}
-DESTINATION ${CMAKE_INSTALL_DOCDIR})
+install(DIRECTORY ${SPHINX_BUILD} DESTINATION ${CMAKE_INSTALL_DOCDIR})

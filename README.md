@@ -57,6 +57,7 @@ Then start like other cmake projects in Visual Studio
 
 #### Build options
 - BUILD_PYTHON (ON|OFF)
+- BUILD_DOCS (ON|OFF) Default to OFF
 - ENABLE_OPENMP (ON|OFF)
 - BUILD_ZLIB (ON|OFF)
 - CMAKE_INSTALL_PREFIX (PATH)
@@ -64,3 +65,14 @@ Then start like other cmake projects in Visual Studio
 
 Build options are arguments to cmake. `$ cmake -DBUILD_PYTHON=OFF ..` would turn off building python.
 
+#### Building documentation
+The following tools are needed to build the documentation:
+- Doxygen
+- Sphinx
+- Breath
+
+On Windows download the Doxygen binary from: http://doxygen.nl/download.html
+Then install Sphinx and Breath with pip:
+C:\> pip install -U sphinx breathe
+
+Add the -DBUILD_DOCS=ON to the cmake argument list
