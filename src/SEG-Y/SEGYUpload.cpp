@@ -845,7 +845,7 @@ main(int argc, char *argv[])
 
   FileViewManager fileViewManager(file);
 
-  auto accessManager = OpenVDS::GetDataAccessManager(vds.get());
+  auto accessManager = OpenVDS::GetAccessManager(vds.get());
   auto layout = accessManager->GetVolumeDataLayout();
 
   auto amplitudeAccessor       = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);

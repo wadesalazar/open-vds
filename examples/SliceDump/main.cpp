@@ -137,7 +137,7 @@ int main(int argc, char **argv)
   }
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
-  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::GetDataAccessManager(handle.get());
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int sampleCount[3];
   sampleCount[0] = layout->GetDimensionNumSamples(axis_mapper[0]);
@@ -171,8 +171,8 @@ int main(int argc, char **argv)
   std::vector<float> data;
   data.resize(size_t(output_width) * size_t(output_height));
 
-  int64_t request = dataAccessManager->RequestVolumeSamples(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, reinterpret_cast<const float (*)[OpenVDS::Dimensionality_Max]>(samples.data()), samples.size(), OpenVDS::InterpolationMethod::Linear);
-  bool finished = dataAccessManager->WaitForCompletion(request);
+  int64_t request = accessManager->RequestVolumeSamples(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, reinterpret_cast<const float (*)[OpenVDS::Dimensionality_Max]>(samples.data()), samples.size(), OpenVDS::InterpolationMethod::Linear);
+  bool finished = accessManager->WaitForCompletion(request);
   if (!finished)
   {
     fmt::print(stderr, "Failed to download reuqest. Failing\n");

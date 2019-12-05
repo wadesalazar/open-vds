@@ -44,8 +44,8 @@ VDS* Open(IOManager *ioManager, Error& error)
   {
     return nullptr;
   }
-  ret->dataAccessManager.reset(new VolumeDataAccessManagerImpl(*ret.get()));
-  ret->requestProcessor.reset(new VolumeDataRequestProcessor(*ret->dataAccessManager.get()));
+  ret->accessManager.reset(new VolumeDataAccessManagerImpl(*ret.get()));
+  ret->requestProcessor.reset(new VolumeDataRequestProcessor(*ret->accessManager.get()));
   return ret.release();
 }
 
@@ -66,11 +66,11 @@ VolumeDataLayout *GetLayout(VDS *vds)
   return vds->volumeDataLayout.get();
 }
 
-VolumeDataAccessManager *GetDataAccessManager(VDS *vds)
+VolumeDataAccessManager *GetAccessManager(VDS *vds)
 {
   if (!vds)
     return nullptr;
-  return vds->dataAccessManager.get();
+  return vds->accessManager.get();
 }
 
 const char *AddDescriptorString(std::string const &descriptorString, VDS &vds)
@@ -234,8 +234,8 @@ VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutD
   if (!SerializeAndUploadVolumeDataLayout(*vds, error))
     return nullptr;
 
-  vds->dataAccessManager.reset(new VolumeDataAccessManagerImpl(*vds.get()));
-  vds->requestProcessor.reset(new VolumeDataRequestProcessor(*vds->dataAccessManager.get()));
+  vds->accessManager.reset(new VolumeDataAccessManagerImpl(*vds.get()));
+  vds->requestProcessor.reset(new VolumeDataRequestProcessor(*vds->accessManager.get()));
 
   return vds.release();
 }

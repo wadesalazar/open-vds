@@ -52,8 +52,8 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(options, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::GetDataAccessManager(handle.get());
-  ASSERT_TRUE(dataAccessManager);
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  ASSERT_TRUE(accessManager);
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
 
@@ -76,11 +76,11 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
     GenerateRandomPosition(gen, dimensionDistribution, dimension, positions[i]);
   }
   float buffer[100];
-  int64_t request = dataAccessManager->RequestVolumeSamples(buffer, layout, OpenVDS::Dimensions_012, 0, 0, positions, 100, OpenVDS::InterpolationMethod::Linear);
-  dataAccessManager->WaitForCompletion(request);
+  int64_t request = accessManager->RequestVolumeSamples(buffer, layout, OpenVDS::Dimensions_012, 0, 0, positions, 100, OpenVDS::InterpolationMethod::Linear);
+  accessManager->WaitForCompletion(request);
 
-  OpenVDS::VolumeDataPageAccessor *pageAccessor = dataAccessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
-  OpenVDS::VolumeDataReadAccessor<OpenVDS::FloatVector3, float >* readAccessor = dataAccessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Linear);
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  OpenVDS::VolumeDataReadAccessor<OpenVDS::FloatVector3, float >* readAccessor = accessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Linear);
 
   float verifyBuffer[100];
   for (int i = 0; i < 100; i++)

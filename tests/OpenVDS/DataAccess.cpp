@@ -44,12 +44,12 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(options, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::GetDataAccessManager(handle.get());
-  ASSERT_TRUE(dataAccessManager);
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  ASSERT_TRUE(accessManager);
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
 
-  OpenVDS::VolumeDataPageAccessor *pageAccessor = dataAccessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   ASSERT_TRUE(pageAccessor);
 
   int pos[OpenVDS::Dimensionality_Max] = {layout->GetDimensionNumSamples(0) / 2, layout->GetDimensionNumSamples(1) /2, layout->GetDimensionNumSamples(2) / 2};
@@ -95,12 +95,11 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSubset)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(options, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *dataAccessManager = OpenVDS::GetDataAccessManager(handle.get());
-  ASSERT_TRUE(dataAccessManager);
-
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetDataAccessManager(handle.get());
+  ASSERT_TRUE(layout);
 
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  ASSERT_TRUE(accessManager);
  
   int loopDimension = 4;
   int groupSize = 100;

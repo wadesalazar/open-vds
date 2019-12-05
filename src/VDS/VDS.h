@@ -72,7 +72,7 @@ struct VDS
   std::unique_ptr<VolumeDataLayoutImpl>
                     volumeDataLayout;
   std::unique_ptr<VolumeDataAccessManagerImpl>
-                    dataAccessManager;
+                    accessManager;
   std::unique_ptr<IOManager>
                     ioManager;
   LayerMetadataContainer

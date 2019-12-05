@@ -39,7 +39,7 @@ TEST(IOTests, InMemory)
   fill3DVDSWithNoice(handle.get());
 
   auto layout = OpenVDS::GetLayout(handle.get());
-  auto accessManager = OpenVDS::GetDataAccessManager(handle.get());
+  auto accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = {15, 15, 15};
   int32_t maxPos[OpenVDS::Dimensionality_Max] = {55, 55, 55};

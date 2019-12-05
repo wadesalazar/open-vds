@@ -143,17 +143,30 @@ OPENVDS_EXPORT VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDesc
 /// </returns>
 OPENVDS_EXPORT VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, Error &error);
 
+/// <summary>
+/// Get the VolumeDataLayout for a VDS
+/// </summary>
+/// <param name="handle">
+/// The handle of the VDS
+/// </param>
+OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle handle);
+
+/// <summary>
+/// Get the VolumeDataAccessManager for a VDS
+/// </summary>
+/// <param name="handle">
+/// The handle of the VDS
+/// </param>
+OPENVDS_EXPORT VolumeDataAccessManager *GetAccessManager(VDSHandle handle);
 
 /// <summary>
 /// Close a VDS and free up all associated resources
 /// </summary>
 /// <param name="handle">
-/// The handle to close
+/// The handle of the VDS
 /// </param>
 OPENVDS_EXPORT void Close(VDSHandle handle);
 
-OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle handle);
-OPENVDS_EXPORT VolumeDataAccessManager *GetDataAccessManager(VDSHandle handle);
 }
 
 #endif //OPENVDS_H

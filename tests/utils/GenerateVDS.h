@@ -37,7 +37,7 @@ static void fill3DVDSWithNoice(OpenVDS::VDS *vds, int32_t channel = 0, const Ope
 {
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(vds);
   ASSERT_TRUE(layout);
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetDataAccessManager(vds);
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(vds);
   ASSERT_TRUE(accessManager);
 
   OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, channel, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);

@@ -44,8 +44,8 @@ TEST(VDS_integration, RequestVolumeCleanupThread)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(options, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManagerImpl *dataAccessManager = static_cast<OpenVDS::VolumeDataAccessManagerImpl *>(OpenVDS::GetDataAccessManager(handle.get()));
-  ASSERT_TRUE(dataAccessManager);
+  OpenVDS::VolumeDataAccessManagerImpl *accessManager = static_cast<OpenVDS::VolumeDataAccessManagerImpl *>(OpenVDS::GetAccessManager(handle.get()));
+  ASSERT_TRUE(accessManager);
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
 
@@ -67,22 +67,22 @@ TEST(VDS_integration, RequestVolumeCleanupThread)
     tracePos[trace][5] = 0;
   }
 
-  int64_t requestId = dataAccessManager->RequestVolumeTraces(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, tracePos, 10, OpenVDS::InterpolationMethod::Nearest, 0);
+  int64_t requestId = accessManager->RequestVolumeTraces(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, tracePos, 10, OpenVDS::InterpolationMethod::Nearest, 0);
 
-  int activePages = dataAccessManager->CountActivePages();
+  int activePages = accessManager->CountActivePages();
   ASSERT_GT(activePages, 0);
   std::this_thread::sleep_for(std::chrono::seconds(10));
-  activePages = dataAccessManager->CountActivePages();
+  activePages = accessManager->CountActivePages();
   ASSERT_GT(activePages, 0);
-  dataAccessManager->WaitForCompletion(requestId);
-  activePages = dataAccessManager->CountActivePages();
+  accessManager->WaitForCompletion(requestId);
+  activePages = accessManager->CountActivePages();
   ASSERT_GT(activePages, 0);
   std::this_thread::sleep_for(std::chrono::seconds(21));
-  activePages = dataAccessManager->CountActivePages();
+  activePages = accessManager->CountActivePages();
   ASSERT_EQ(activePages, 0);
 
-  auto pageAccessor = dataAccessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
-  auto valueReader = dataAccessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Nearest);
+  auto pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  auto valueReader = accessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Nearest);
 
   std::vector<float> verify(10 * sampleCount0);
   for (int trace = 0; trace < 10; trace++)

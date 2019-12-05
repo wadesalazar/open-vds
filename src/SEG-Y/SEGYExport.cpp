@@ -101,8 +101,8 @@ main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  auto dataAccessManager = OpenVDS::GetDataAccessManager(vds.get());
-  auto volumeDataLayout = dataAccessManager->GetVolumeDataLayout();
+  auto accessManager = OpenVDS::GetAccessManager(vds.get());
+  auto volumeDataLayout = accessManager->GetVolumeDataLayout();
 
   if(!volumeDataLayout->IsChannelAvailable("Trace"))
   {
@@ -144,7 +144,7 @@ main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  int dimensionality = dataAccessManager->GetVolumeDataLayout()->GetDimensionality();
+  int dimensionality = accessManager->GetVolumeDataLayout()->GetDimensionality();
   int outerDimension = std::max(2, dimensionality - 1);
   int lineCount = volumeDataLayout->GetDimensionNumSamples(outerDimension);
 
@@ -178,18 +178,18 @@ main(int argc, char *argv[])
     min[outerDimension] = line;
     max[outerDimension] = line + 1;
 
-    int64_t dataRequestID = dataAccessManager->RequestVolumeSubset(data.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, 0, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+    int64_t dataRequestID = accessManager->RequestVolumeSubset(data.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, 0, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
 
     max[0] = 1;
-    int64_t traceFlagRequestID = dataAccessManager->RequestVolumeSubset(traceFlag.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, traceFlagChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+    int64_t traceFlagRequestID = accessManager->RequestVolumeSubset(traceFlag.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, traceFlagChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
 
     max[0] = 240;
-    int64_t segyTraceHaderRequestID = dataAccessManager->RequestVolumeSubset(segyTraceHeader.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, segyTraceHeaderChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+    int64_t segyTraceHaderRequestID = accessManager->RequestVolumeSubset(segyTraceHeader.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, segyTraceHeaderChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
 
     // Need to queue the writing on another thread to get max. performance
-    dataAccessManager->WaitForCompletion(dataRequestID);
-    dataAccessManager->WaitForCompletion(traceFlagRequestID);
-    dataAccessManager->WaitForCompletion(segyTraceHaderRequestID);
+    accessManager->WaitForCompletion(dataRequestID);
+    accessManager->WaitForCompletion(traceFlagRequestID);
+    accessManager->WaitForCompletion(segyTraceHaderRequestID);
 
     std::unique_ptr<char[]> writeBuffer(new char[traceCount * (traceDataSize + SEGY::TraceHeaderSize)]);
     int activeTraceCount = 0;
