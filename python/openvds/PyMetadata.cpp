@@ -34,8 +34,6 @@ PyMetadata::initModule(py::module& m)
   MetadataKey_.def_readwrite("category"                    , &MetadataKey::category         , OPENVDS_DOCSTRING(MetadataKey_category));
   MetadataKey_.def_readwrite("name"                        , &MetadataKey::name             , OPENVDS_DOCSTRING(MetadataKey_name));
 
-  m.def("operator_eq"                 , static_cast<bool(*)(const native::MetadataKey &, const native::MetadataKey &)>(&operator==), OPENVDS_DOCSTRING(operator_eq));
-
   // MetadataReadAccess
   py::class_<MetadataReadAccess, std::unique_ptr<MetadataReadAccess, py::nodelete>> 
     MetadataReadAccess_(m,"MetadataReadAccess", OPENVDS_DOCSTRING(MetadataReadAccess));
@@ -67,6 +65,8 @@ PyMetadata::initModule(py::module& m)
   MetadataReadAccess_.def("getMetadataDoubleVector3"    , static_cast<native::DoubleVector3(MetadataReadAccess::*)(const char *, const char *) const>(&MetadataReadAccess::GetMetadataDoubleVector3), OPENVDS_DOCSTRING(MetadataReadAccess_GetMetadataDoubleVector3));
   MetadataReadAccess_.def("getMetadataDoubleVector4"    , static_cast<native::DoubleVector4(MetadataReadAccess::*)(const char *, const char *) const>(&MetadataReadAccess::GetMetadataDoubleVector4), OPENVDS_DOCSTRING(MetadataReadAccess_GetMetadataDoubleVector4));
   MetadataReadAccess_.def("getMetadataString"           , static_cast<const char *(MetadataReadAccess::*)(const char *, const char *) const>(&MetadataReadAccess::GetMetadataString), OPENVDS_DOCSTRING(MetadataReadAccess_GetMetadataString));
+  MetadataReadAccess_.def("begin"                       , static_cast<native::MetadataReadAccess::const_iterator(MetadataReadAccess::*)() const>(&MetadataReadAccess::begin), OPENVDS_DOCSTRING(MetadataReadAccess_begin));
+  MetadataReadAccess_.def("end"                         , static_cast<native::MetadataReadAccess::const_iterator(MetadataReadAccess::*)() const>(&MetadataReadAccess::end), OPENVDS_DOCSTRING(MetadataReadAccess_end));
 
   // MetadataWriteAccess
   py::class_<MetadataWriteAccess, std::unique_ptr<MetadataWriteAccess, py::nodelete>> 
@@ -89,8 +89,10 @@ PyMetadata::initModule(py::module& m)
   MetadataWriteAccess_.def("clearMetadata"               , static_cast<void(MetadataWriteAccess::*)(const char *, const char *)>(&MetadataWriteAccess::ClearMetadata), OPENVDS_DOCSTRING(MetadataWriteAccess_ClearMetadata));
   MetadataWriteAccess_.def("clearMetadata"               , static_cast<void(MetadataWriteAccess::*)(const char *)>(&MetadataWriteAccess::ClearMetadata), OPENVDS_DOCSTRING(MetadataWriteAccess_ClearMetadata_2));
 
+  m.def("operator_eq"                 , static_cast<bool(*)(const native::MetadataKey &, const native::MetadataKey &)>(&operator==), OPENVDS_DOCSTRING(operator_eq));
+
   // MetadataContainer
-  py::class_<MetadataContainer, MetadataReadAccess> 
+  py::class_<MetadataContainer, MetadataReadAccess, MetadataWriteAccess> 
     MetadataContainer_(m,"MetadataContainer", OPENVDS_DOCSTRING(MetadataContainer));
 
   MetadataContainer_.def("isMetadataIntAvailable"      , static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataIntAvailable), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataIntAvailable));
@@ -120,22 +122,24 @@ PyMetadata::initModule(py::module& m)
   MetadataContainer_.def("getMetadataDoubleVector3"    , static_cast<native::DoubleVector3(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::GetMetadataDoubleVector3), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataDoubleVector3));
   MetadataContainer_.def("getMetadataDoubleVector4"    , static_cast<native::DoubleVector4(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::GetMetadataDoubleVector4), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataDoubleVector4));
   MetadataContainer_.def("getMetadataString"           , static_cast<const char *(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::GetMetadataString), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataString));
+  MetadataContainer_.def("setMetadataInt"              , static_cast<void(MetadataContainer::*)(const char *, const char *, int)>(&MetadataContainer::SetMetadataInt), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataInt));
+  MetadataContainer_.def("setMetadataIntVector2"       , static_cast<void(MetadataContainer::*)(const char *, const char *, native::IntVector2)>(&MetadataContainer::SetMetadataIntVector2), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataIntVector2));
+  MetadataContainer_.def("setMetadataIntVector3"       , static_cast<void(MetadataContainer::*)(const char *, const char *, native::IntVector3)>(&MetadataContainer::SetMetadataIntVector3), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataIntVector3));
+  MetadataContainer_.def("setMetadataIntVector4"       , static_cast<void(MetadataContainer::*)(const char *, const char *, native::IntVector4)>(&MetadataContainer::SetMetadataIntVector4), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataIntVector4));
+  MetadataContainer_.def("setMetadataFloat"            , static_cast<void(MetadataContainer::*)(const char *, const char *, float)>(&MetadataContainer::SetMetadataFloat), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataFloat));
+  MetadataContainer_.def("setMetadataFloatVector2"     , static_cast<void(MetadataContainer::*)(const char *, const char *, native::FloatVector2)>(&MetadataContainer::SetMetadataFloatVector2), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataFloatVector2));
+  MetadataContainer_.def("setMetadataFloatVector3"     , static_cast<void(MetadataContainer::*)(const char *, const char *, native::FloatVector3)>(&MetadataContainer::SetMetadataFloatVector3), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataFloatVector3));
+  MetadataContainer_.def("setMetadataFloatVector4"     , static_cast<void(MetadataContainer::*)(const char *, const char *, native::FloatVector4)>(&MetadataContainer::SetMetadataFloatVector4), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataFloatVector4));
+  MetadataContainer_.def("setMetadataDouble"           , static_cast<void(MetadataContainer::*)(const char *, const char *, double)>(&MetadataContainer::SetMetadataDouble), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataDouble));
+  MetadataContainer_.def("setMetadataDoubleVector2"    , static_cast<void(MetadataContainer::*)(const char *, const char *, native::DoubleVector2)>(&MetadataContainer::SetMetadataDoubleVector2), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataDoubleVector2));
+  MetadataContainer_.def("setMetadataDoubleVector3"    , static_cast<void(MetadataContainer::*)(const char *, const char *, native::DoubleVector3)>(&MetadataContainer::SetMetadataDoubleVector3), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataDoubleVector3));
+  MetadataContainer_.def("setMetadataDoubleVector4"    , static_cast<void(MetadataContainer::*)(const char *, const char *, native::DoubleVector4)>(&MetadataContainer::SetMetadataDoubleVector4), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataDoubleVector4));
+  MetadataContainer_.def("copyMetadata"                , static_cast<void(MetadataContainer::*)(const char *, const native::MetadataReadAccess *)>(&MetadataContainer::CopyMetadata), OPENVDS_DOCSTRING(MetadataContainer_CopyMetadata));
+  MetadataContainer_.def("clearMetadata"               , static_cast<void(MetadataContainer::*)(const char *, const char *)>(&MetadataContainer::ClearMetadata), OPENVDS_DOCSTRING(MetadataContainer_ClearMetadata));
+  MetadataContainer_.def("clearMetadata"               , static_cast<void(MetadataContainer::*)(const char *)>(&MetadataContainer::ClearMetadata), OPENVDS_DOCSTRING(MetadataContainer_ClearMetadata_2));
 // AUTOGENERATE FAIL :   MetadataContainer_.def("getMetadataBLOB"             , static_cast<void(MetadataContainer::*)(const char *, const char *, const void **, size_t *) const>(&MetadataContainer::GetMetadataBLOB), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB));
-  MetadataContainer_.def_readwrite("intData"                     , &MetadataContainer::intData    , OPENVDS_DOCSTRING(MetadataContainer_intData));
-  MetadataContainer_.def_readwrite("intVector2Data"              , &MetadataContainer::intVector2Data, OPENVDS_DOCSTRING(MetadataContainer_intVector2Data));
-  MetadataContainer_.def_readwrite("intVector3Data"              , &MetadataContainer::intVector3Data, OPENVDS_DOCSTRING(MetadataContainer_intVector3Data));
-  MetadataContainer_.def_readwrite("intVector4Data"              , &MetadataContainer::intVector4Data, OPENVDS_DOCSTRING(MetadataContainer_intVector4Data));
-  MetadataContainer_.def_readwrite("floatData"                   , &MetadataContainer::floatData  , OPENVDS_DOCSTRING(MetadataContainer_floatData));
-  MetadataContainer_.def_readwrite("floatVector2Data"            , &MetadataContainer::floatVector2Data, OPENVDS_DOCSTRING(MetadataContainer_floatVector2Data));
-  MetadataContainer_.def_readwrite("floatVector3Data"            , &MetadataContainer::floatVector3Data, OPENVDS_DOCSTRING(MetadataContainer_floatVector3Data));
-  MetadataContainer_.def_readwrite("floatVector4Data"            , &MetadataContainer::floatVector4Data, OPENVDS_DOCSTRING(MetadataContainer_floatVector4Data));
-  MetadataContainer_.def_readwrite("doubleData"                  , &MetadataContainer::doubleData , OPENVDS_DOCSTRING(MetadataContainer_doubleData));
-  MetadataContainer_.def_readwrite("doubleVector2Data"           , &MetadataContainer::doubleVector2Data, OPENVDS_DOCSTRING(MetadataContainer_doubleVector2Data));
-  MetadataContainer_.def_readwrite("doubleVector3Data"           , &MetadataContainer::doubleVector3Data, OPENVDS_DOCSTRING(MetadataContainer_doubleVector3Data));
-  MetadataContainer_.def_readwrite("doubleVector4Data"           , &MetadataContainer::doubleVector4Data, OPENVDS_DOCSTRING(MetadataContainer_doubleVector4Data));
-  MetadataContainer_.def_readwrite("stringData"                  , &MetadataContainer::stringData , OPENVDS_DOCSTRING(MetadataContainer_stringData));
-  MetadataContainer_.def_readwrite("blobData"                    , &MetadataContainer::blobData   , OPENVDS_DOCSTRING(MetadataContainer_blobData));
-  MetadataContainer_.def_readwrite("keys"                        , &MetadataContainer::keys       , OPENVDS_DOCSTRING(MetadataContainer_keys));
+  MetadataContainer_.def("begin"                       , static_cast<native::MetadataReadAccess::const_iterator(MetadataContainer::*)() const>(&MetadataContainer::begin), OPENVDS_DOCSTRING(MetadataContainer_begin));
+  MetadataContainer_.def("end"                         , static_cast<native::MetadataReadAccess::const_iterator(MetadataContainer::*)() const>(&MetadataContainer::end), OPENVDS_DOCSTRING(MetadataContainer_end));
 
 //AUTOGEN-END
 }

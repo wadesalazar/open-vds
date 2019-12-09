@@ -29,11 +29,11 @@ static const char *__doc_OpenVDS_AWSOpenOptions_AWSOpenOptions = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_AWSOpenOptions_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_AWSOpenOptions_Bucket = R"doc()doc";
+static const char *__doc_OpenVDS_AWSOpenOptions_bucket = R"doc()doc";
 
-static const char *__doc_OpenVDS_AWSOpenOptions_Key = R"doc()doc";
+static const char *__doc_OpenVDS_AWSOpenOptions_key = R"doc()doc";
 
-static const char *__doc_OpenVDS_AWSOpenOptions_Region = R"doc()doc";
+static const char *__doc_OpenVDS_AWSOpenOptions_region = R"doc()doc";
 
 static const char *__doc_OpenVDS_Close =
 R"doc(!
@@ -41,7 +41,7 @@ R"doc(!
 Close a VDS and free up all associated resources
 
 Parameter ``handle``:
-    The handle to close)doc";
+    The handle of the VDS)doc";
 
 static const char *__doc_OpenVDS_CompressionInfo = R"doc()doc";
 
@@ -186,6 +186,10 @@ static const char *__doc_OpenVDS_CreateVolumeDataAccessor_20 = R"doc()doc";
 
 static const char *__doc_OpenVDS_CreateVolumeDataAccessor_21 = R"doc()doc";
 
+static const char *__doc_OpenVDS_DataBlockDimensionality = R"doc()doc";
+
+static const char *__doc_OpenVDS_DataBlockDimensionality_DataBlockDimensionality_Max = R"doc()doc";
+
 static const char *__doc_OpenVDS_Dimensionality = R"doc()doc";
 
 static const char *__doc_OpenVDS_Dimensionality_Dimensionality_1 = R"doc()doc";
@@ -276,15 +280,49 @@ static const char *__doc_OpenVDS_DimensionsND_Dimensions_45 = R"doc()doc";
 
 static const char *__doc_OpenVDS_Error = R"doc()doc";
 
-static const char *__doc_OpenVDS_Error_Code = R"doc()doc";
+static const char *__doc_OpenVDS_Error_code = R"doc()doc";
 
-static const char *__doc_OpenVDS_Error_String = R"doc()doc";
+static const char *__doc_OpenVDS_Error_string = R"doc()doc";
 
-static const char *__doc_OpenVDS_GetDataAccessManager = R"doc()doc";
+static const char *__doc_OpenVDS_GetAccessManager =
+R"doc(!
 
-static const char *__doc_OpenVDS_GetLayout = R"doc()doc";
+Get the VolumeDataAccessManager for a VDS
+
+Parameter ``handle``:
+    The handle of the VDS)doc";
+
+static const char *__doc_OpenVDS_GetDataBlockDimensionality = R"doc()doc";
+
+static const char *__doc_OpenVDS_GetDataBlockDimensionality_Dimensionality = R"doc()doc";
+
+static const char *__doc_OpenVDS_GetLayout =
+R"doc(!
+
+Get the VolumeDataLayout for a VDS
+
+Parameter ``handle``:
+    The handle of the VDS)doc";
+
+static const char *__doc_OpenVDS_IJKGridDefinition = R"doc()doc";
+
+static const char *__doc_OpenVDS_IJKGridDefinition_IJKGridDefinition = R"doc()doc";
+
+static const char *__doc_OpenVDS_IJKGridDefinition_IJKGridDefinition_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IJKGridDefinition_iUnitStep = R"doc()doc";
+
+static const char *__doc_OpenVDS_IJKGridDefinition_jUnitStep = R"doc()doc";
+
+static const char *__doc_OpenVDS_IJKGridDefinition_kUnitStep = R"doc()doc";
+
+static const char *__doc_OpenVDS_IJKGridDefinition_origin = R"doc()doc";
 
 static const char *__doc_OpenVDS_IOManager = R"doc()doc";
+
+static const char *__doc_OpenVDS_InMemoryOpenOptions = R"doc()doc";
+
+static const char *__doc_OpenVDS_InMemoryOpenOptions_InMemoryOpenOptions = R"doc()doc";
 
 static const char *__doc_OpenVDS_IndexRegion = R"doc()doc";
 
@@ -318,7 +356,17 @@ static const char *__doc_OpenVDS_InterpolationMethod_Nearest = R"doc(< Snap to t
 
 static const char *__doc_OpenVDS_InterpolationMethod_Triangular = R"doc(< Triangular interpolation used to interpolate heightmap data)doc";
 
+static const char *__doc_OpenVDS_M4 = R"doc()doc";
+
+static const char *__doc_OpenVDS_M4_data = R"doc()doc";
+
 static const char *__doc_OpenVDS_MetadataContainer = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_ClearMetadata = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_ClearMetadata_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_CopyMetadata = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataContainer_GetMetadataBLOB = R"doc()doc";
 
@@ -348,6 +396,8 @@ static const char *__doc_OpenVDS_MetadataContainer_GetMetadataIntVector4 = R"doc
 
 static const char *__doc_OpenVDS_MetadataContainer_GetMetadataString = R"doc()doc";
 
+static const char *__doc_OpenVDS_MetadataContainer_GetOrCreateMetadataKey = R"doc()doc";
+
 static const char *__doc_OpenVDS_MetadataContainer_IsMetadataBLOBAvailable = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataContainer_IsMetadataDoubleAvailable = R"doc()doc";
@@ -376,35 +426,73 @@ static const char *__doc_OpenVDS_MetadataContainer_IsMetadataIntVector4Available
 
 static const char *__doc_OpenVDS_MetadataContainer_IsMetadataStringAvailable = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_blobData = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_RemoveMetadataForKey = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_doubleData = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataBLOB = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_doubleVector2Data = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataDouble = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_doubleVector3Data = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataDoubleVector2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_doubleVector4Data = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataDoubleVector3 = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_floatData = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataDoubleVector4 = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_floatVector2Data = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataFloat = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_floatVector3Data = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataFloatVector2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_floatVector4Data = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataFloatVector3 = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_intData = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataFloatVector4 = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_intVector2Data = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataInt = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_intVector3Data = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataIntVector2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_intVector4Data = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataIntVector3 = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_keys = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataIntVector4 = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_stringData = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataContainer_SetMetadataString = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_begin = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_end = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_blobData = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_categories = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_doubleData = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_doubleVector2Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_doubleVector3Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_doubleVector4Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_floatData = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_floatVector2Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_floatVector3Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_floatVector4Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_intData = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_intVector2Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_intVector3Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_intVector4Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_keys = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_names = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataContainer_m_stringData = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataKey = R"doc()doc";
 
@@ -473,6 +561,10 @@ static const char *__doc_OpenVDS_MetadataReadAccess_IsMetadataIntVector3Availabl
 static const char *__doc_OpenVDS_MetadataReadAccess_IsMetadataIntVector4Available = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataReadAccess_IsMetadataStringAvailable = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataReadAccess_begin = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataReadAccess_end = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataType = R"doc()doc";
 
@@ -594,6 +686,8 @@ static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Azure = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_File = R"doc()doc";
 
+static const char *__doc_OpenVDS_OpenOptions_ConnectionType_InMemory = R"doc()doc";
+
 static const char *__doc_OpenVDS_OpenOptions_OpenOptions = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_connectionType = R"doc()doc";
@@ -660,41 +754,81 @@ static const char *__doc_OpenVDS_VDS = R"doc()doc";
 
 static const char *__doc_OpenVDS_VDS_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_Vector2 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase = R"doc()doc";
 
-static const char *__doc_OpenVDS_Vector2_Vector2 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_SetGridDefinition =
+R"doc(Sets the IJK grid definition and IJK dimension map for use in world
+coordinate conversions @see VoxelIndexToWorldCoordinates @see
+WorldCoordinatesToVoxelIndex @see WorldCoordinatesToVoxelIndexFloat
+@see LocalIndexToWorldCoordinates @see WorldCoordinatesToLocalIndex
+@param vdsIjkGridDefinition the IJK grid definition and IJK dimension
+map)doc";
 
-static const char *__doc_OpenVDS_Vector2_Vector2_2 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_VDSCoordinateTransformerBase =
+R"doc(////////////////////////// Constructors /////////////////////////////
 
-static const char *__doc_OpenVDS_Vector2_element_count = R"doc()doc";
+Constructor @param cIJKGridAndDImensionMap the IJK grid definition and
+IJK dimension map)doc";
 
-static const char *__doc_OpenVDS_Vector2_operator_array = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_VDSCoordinateTransformerBase_2 = R"doc(Constructor)doc";
 
-static const char *__doc_OpenVDS_Vector2_operator_array_2 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_VoxelIndexToWorldCoordinates =
+R"doc(Converts a voxel index to world coordinates using the indexer's IJK
+grid definition and IJK dimension map @param iVoxelIndex the voxel
+index to convert @return the world coordinates)doc";
 
-static const char *__doc_OpenVDS_Vector3 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_VoxelIndexToWorldCoordinates_2 =
+R"doc(Converts a float voxel index to world coordinates using the indexer's
+IJK grid definition and IJK dimension map @param rVoxelIndex the float
+voxel index to convert @return the world coordinates)doc";
 
-static const char *__doc_OpenVDS_Vector3_Vector3 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_WorldCoordinatesToVoxelIndex =
+R"doc(Converts world coordinates to a voxel index, rounding to the nearest
+integer @param rWorldCoords the world coordinates to convert @param
+anVoxelMin @return the voxel index)doc";
 
-static const char *__doc_OpenVDS_Vector3_Vector3_2 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_WorldCoordinatesToVoxelIndexFloat =
+R"doc(Converts world coordinates to a float voxel index without rounding
+@param rWorldCoords the world coordinates to convert @param anVoxelMin
+@return the float voxel index)doc";
 
-static const char *__doc_OpenVDS_Vector3_element_count = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_ijkDimensionMap = R"doc(< Map to determine which dimension map to I, J, and K)doc";
 
-static const char *__doc_OpenVDS_Vector3_operator_array = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_ijkToWorldTransform = R"doc(< Coordinate transfrom matrix)doc";
 
-static const char *__doc_OpenVDS_Vector3_operator_array_2 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_ijkToWorldTranslation = R"doc(< Coordinate translation vector)doc";
 
-static const char *__doc_OpenVDS_Vector4 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_worldToIJKTransform = R"doc(< Coordinate transform matrix)doc";
 
-static const char *__doc_OpenVDS_Vector4_Vector4 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_worldToIJKTranslation = R"doc(< Coordinate translation vector)doc";
 
-static const char *__doc_OpenVDS_Vector4_Vector4_2 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSIJKGridDefinition = R"doc()doc";
 
-static const char *__doc_OpenVDS_Vector4_element_count = R"doc()doc";
+static const char *__doc_OpenVDS_VDSIJKGridDefinition_VDSIJKGridDefinition = R"doc()doc";
 
-static const char *__doc_OpenVDS_Vector4_operator_array = R"doc()doc";
+static const char *__doc_OpenVDS_VDSIJKGridDefinition_VDSIJKGridDefinition_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_Vector4_operator_array_2 = R"doc()doc";
+static const char *__doc_OpenVDS_VDSIJKGridDefinition_dimensionMap = R"doc()doc";
+
+static const char *__doc_OpenVDS_Vector = R"doc()doc";
+
+static const char *__doc_OpenVDS_VectorWrapper = R"doc()doc";
+
+static const char *__doc_OpenVDS_VectorWrapper_VectorWrapper = R"doc()doc";
+
+static const char *__doc_OpenVDS_VectorWrapper_data = R"doc()doc";
+
+static const char *__doc_OpenVDS_VectorWrapper_size = R"doc()doc";
+
+static const char *__doc_OpenVDS_Vector_Vector = R"doc()doc";
+
+static const char *__doc_OpenVDS_Vector_Vector_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_Vector_data = R"doc()doc";
+
+static const char *__doc_OpenVDS_Vector_operator_array = R"doc()doc";
+
+static const char *__doc_OpenVDS_Vector_operator_array_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager = R"doc()doc";
 
@@ -1791,6 +1925,8 @@ information for a VDS A layout is associated with a VDS object and
 contains information about axis and channels in the VDS. A
 VolumeDataLayout can be invalidated when the VDS is invalidated.)doc";
 
+static const char *__doc_OpenVDS_VolumeDataLayout_4 = R"doc()doc";
+
 static const char *__doc_OpenVDS_VolumeDataLayoutDescriptor = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataLayoutDescriptor_2 = R"doc()doc";
@@ -1951,6 +2087,8 @@ is the entire length of dimension 0)doc";
 
 static const char *__doc_OpenVDS_VolumeDataPage = R"doc()doc";
 
+static const char *__doc_OpenVDS_VolumeDataPage_2 = R"doc()doc";
+
 static const char *__doc_OpenVDS_VolumeDataPageAccessor = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataPageAccessor_2 = R"doc()doc";
@@ -2030,6 +2168,320 @@ static const char *__doc_OpenVDS_VolumeDataRegions_Region = R"doc()doc";
 static const char *__doc_OpenVDS_VolumeDataRegions_RegionCount = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataRegions_RegionFromIndex = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_BitMaskFromBitDataIndex =
+R"doc(Gets the bit mask for a bit data index\n Used with the BitDataIndex
+functions to read and write 1Bit data\n\n Common usage:\n bool bit =
+buffer[iBitDataIndex >> 3] & BitMaskFromBitDataIndex(iBitDataIndex) !=
+0; @param iBitDataIndex the local index to compute the mask from
+@return the bit mask for the local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_BitMaskFromLocalChunkIndex =
+R"doc(Gets the bit mask for a local chunk index\n Used with the BitDataIndex
+functions to read and write 1Bit data\n\n Common usage:\n bool bit =
+buffer[LocalChunkIndexToBitDataIndex(iLocalChunkIndex) / 8] &
+BitMaskFromLocalChunkIndex(iLocalChunkIndex) != 0; @see
+LocalChunkIndexToBitDataIndex @param iLocalChunkIndex the local index
+to compute the mask from @return the bit mask for the local chunk
+index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_BitMaskFromLocalIndex =
+R"doc(Gets the bit mask for a local index\n Used with the BitDataIndex
+functions to read and write 1Bit data\n\n Common usage:\n bool bit =
+buffer[LocalIndexToBitDataIndex(iLocalIndex) / 8] &
+BitMaskFromLocalIndex(iLocalIndex) != 0; @see LocalIndexToBitDataIndex
+@param iLocalIndex the local index to compute the mask from @return
+the bit mask for the local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_BitMaskFromVoxelIndex =
+R"doc(Gets the bit mask for a voxel index\n Used with the BitDataIndex
+functions to read and write 1Bit data\n\n Common usage:\n bool bit =
+buffer[VoxelIndexToBitDataIndex(iVoxelIndex) / 8] &
+BitMaskFromVoxelIndex(iVoxelIndex) != 0; @see VoxelIndexToBitDataIndex
+@param iVoxelIndex the voxel index to compute the mask from @return
+the bit mask for the voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_BitValueFromBitDataIndex =
+R"doc(Convenience function for reading the bit value from a 1Bit DataBlock
+buffer at a local index @see BitMaskFromBitDataIndex @param data the
+1Bit buffer to read @param iBitDataIndex the bit index to read @return
+the binary value read)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_BitValueFromLocalChunkIndex =
+R"doc(Convenience function for reading the bit value from a 1Bit DataBlock
+buffer at a local chunk index @see LocalChunkIndexToBitDataIndex @see
+BitMaskFromLocalChunkIndex @param data the 1Bit buffer to read @param
+iLocalChunkIndex the local chunk index to read @return the binary
+value read)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_BitValueFromLocalIndex =
+R"doc(Convenience function for reading the bit value from a 1Bit DataBlock
+buffer at a local index @see LocalIndexToBitDataIndex @see
+BitMaskFromLocalIndex @param data the 1Bit buffer to read @param
+iLocalIndex the local index to read @return the binary value read)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_BitValueFromVoxelIndex =
+R"doc(Convenience function for reading the bit value from a 1Bit DataBlock
+buffer at a voxel index @see VoxelIndexToBitDataIndex @see
+BitMaskFromVoxelIndex @param data the 1Bit buffer to read @param
+iVoxelIndex the voxel index to read @return the binary value read)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_CoordinateToLocalIndex =
+R"doc(Converts coordinates to a local index, rounding to the nearest integer
+@param rCoordinate the coordinates to convert @return the local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_CoordinateToLocalIndexFloat =
+R"doc(Converts coordinates to a float local index without rounding @param
+rCoordinate the coordinates to convert @return the float local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_CoordinateToVolumeSamplerLocalIndex =
+R"doc(Converts coordinates to a volume sampler local index. The volume
+sampler works like OpenGL textures so the first sample starts at 0.5.
+
+@param rCoordinate the coordinates to convert @return the float volume
+sampler local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_CoordinateToVoxelIndex =
+R"doc(Converts a coordinate for a specific volume dimension to a voxel
+index, rounding to the nearest integer @param rCoordinate the
+coordinate to convert @param iDimension the volume dimension @return
+the voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_CoordinateToVoxelIndexFloat =
+R"doc(Converts a coordinate for a specific volume dimension to a float voxel
+index without rounding @param rCoordinate the coordinate to convert
+@param iDimension the volume dimension @return the float voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_CreateTempBufferIndexer =
+R"doc(Creates an indexer for a temp buffer from voxel minimum and
+maximums.\n @param anVoxelMin voxel minimum for this indexer @param
+anVoxelMax voxel maximum for this indexer @param iLOD the LOD for this
+indexer @return the created indexer)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_CreateTempBufferIndexer_2 =
+R"doc(Create a temp buffer indexer with the same area and configuration as
+another indexer. @param indexer the indexer to copy configuration and
+area from @return the created indexer)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_CreateTempBufferIndexer_3 =
+R"doc(Create a temp buffer indexer with the same configuration as another
+indexer, but a new voxel min and max @param indexer the indexer to
+copy configuration from @param anNewVoxelMin the voxel minimum for the
+created indexer @param anNewVoxleMax the voxel maximum for the created
+indexer @return the created indexer)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_GetCoordinateStep =
+R"doc(Gets the coordinate step for the given volume dimension at LOD 0
+@param iDimension the volume dimension @return the coordinate step at
+LOD 0)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_GetDataBlockNumSamples =
+R"doc(Gets the number of samples for a dimension in the DataBlock @param
+iDimension the DataBlock dimension @return the number of samples in
+the dimension)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_GetLocalChunkNumSamples =
+R"doc(Get the number of samples for a dimension in the volume @param
+iDimension the volume dimension @return the number of samples in the
+dimension)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalChunkIndexInProcessArea =
+R"doc(Checks if a local chunk index is within the chunk this indexer was
+created with @param iLocalChunkIndex the local chunk index to check
+@return true if the index is within this chunk, false otherwise)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalChunkIndexToBitDataIndex =
+R"doc(Converts a local chunk index to a bit data index\n Used with the
+BitMask functions to read and write 1Bit data @see
+BitMaskFromLocalChunkIndex @param iLocalChunkIndex the local chunk
+index to convert @return the buffer offset (in number of bits) for the
+local chunk index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalChunkIndexToDataIndex =
+R"doc(Converts a local chunk index to a data index @param iLocalChunkIndex
+the local chunk index to convert @return the buffer offset for the
+local chunk index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalChunkIndexToLocalIndex =
+R"doc(Converts a local chunk index to a local index @param iLocalChunkIndex
+the local chunk index to convert @return the local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalChunkIndexToVoxelIndex =
+R"doc(Converts a local chunk index to a voxel index @param iLocalChunkIndex
+the local chunk index to convert @return the local voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalIndexInProcessArea =
+R"doc(Checks if a local index is within the DataBlock this indexer was
+created with @param iLocalIndex the local index to check @return true
+if the index is within this chunk, false otherwise)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalIndexToBitDataIndex =
+R"doc(Converts a local index to a bit data index\n Used with the BitMask
+functions to read and write 1Bit data @see BitMaskFromLocalIndex
+@param iLocalIndex the local index to convert @return the buffer
+offset (in number of bits) for the local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalIndexToCoordinate =
+R"doc(Converts a local index to coordinates @param iLocalIndex the local
+index to convert @return the coordinates)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalIndexToDataIndex =
+R"doc(Converts a local index to a data index @param iLocalIndex the local
+index to convert @return the buffer offset for the local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalIndexToLocalChunkIndex =
+R"doc(Converts a local index to a local chunk index @param iLocalIndex the
+local index to convert @return the local chunk index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalIndexToRelativeAxisPosition =
+R"doc(Converts a local index to a relative position (between 0 and 1) along
+the volume axes @param iLocalIndex the local index to convert @return
+the relative position along volume axes)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalIndexToVoxelIndex =
+R"doc(Converts a local index to a voxel index @param iLocalIndex the local
+index to convert @return the voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalIndexToVoxelIndexFloat =
+R"doc(Converts a float local index to a float voxel index @param iLocalIndex
+the float local index to convert @return the float voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_LocalIndexToWorldCoordinates =
+R"doc(Converts a local index to world coordinates using the indexer's IJK
+grid definition and IJK dimension map @param iLocalIndex the local
+index to convert @return the world coordinates)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_RelativeAxisPositionToLocalIndex =
+R"doc(Converts a relative position along the volume axes to a local index
+@param rPosition the relative postion to convert @return the local
+index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_RelativeAxisPositionToVoxelIndex =
+R"doc(Converts a relative volume axis position to a voxel index, rounding to
+the nears integer @param rPosition the axis position @iDimension the
+volume dimension @return the voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VolumeIndexerBase = R"doc(////////////////////////// Constructors /////////////////////////////)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexFloatToCoordinate =
+R"doc(Converts a float voxel index for a specific volume dimension to a
+coordinate value @param rVoxelIndex the voxel index to convert @param
+iDimension the volume dimension @return the coordinate)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexInProcessArea =
+R"doc(Checks if a voxel index is within the chunk this indexer was created
+with @param iVoxelIndex the voxel index to check @return true if the
+index is within this chunk, false otherwise)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToBitDataIndex =
+R"doc(Converts a voxel index to a bit data index\n Used with the BitMask
+functions to read and write 1Bit data @see BitMaskFromVoxelIndex
+@param iVoxelIndex the voxel index to convert @return the buffer
+offset (in number of bits) for the voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToCoordinate =
+R"doc(Converts a voxel index for a specific volume dimension to a coordinate
+value @param iVoxelIndex the voxel index to convert @param iDimension
+the volume dimension @return the coordinate)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToDataIndex =
+R"doc(Converts a voxel index to a data index @param iVoxelIndex the voxel
+index to convert @return the buffer offset for the voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToLocalChunkIndex =
+R"doc(Converts a voxel index to a local chunk index @param iVoxelIndex the
+voxel index to convert @return the local chunk index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToLocalIndex =
+R"doc(Converts a voxel index to a local index @param iVoxelIndex the voxel
+index to convert @return the local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToLocalIndexFloat =
+R"doc(Converts a float voxel index to a float local index @param iVoxelIndex
+the float voxel index to convert @return the float local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToRelativeAxisPosition =
+R"doc(Converts a voxel index for a specific dimension to a relative position
+(between 0 and 1) along a volume axis @param iVoxelIndex the voxel
+index to convert @param iDimension the volume dimension @return the
+relative position along the iDimension axis)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToVolumeSamplerLocalIndex =
+R"doc(Converts a float voxel index to a volume sampler local index. The
+volume sampler works like OpenGL textures so the first sample starts
+at 0.5.
+
+@param iVoxelIndex the float voxel index to convert @return the float
+volume sampler local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToWorldCoordinates =
+R"doc(Converts a voxel index to world coordinates using the indexer's IJK
+grid definition and IJK dimension map @param iVoxelIndex the voxel
+index to convert @return the world coordinates)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToWorldCoordinates_2 =
+R"doc(Converts a float voxel index to world coordinates using the indexer's
+IJK grid definition and IJK dimension map @param rVoxelIndex the float
+voxel index to convert @return the world coordinates)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_WorldCoordinatesToLocalIndex =
+R"doc(Converts world coordinates to a local index, rounding to the nearest
+integer @param rWorldCoords the world coordinates to convert @return
+the local index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_WorldCoordinatesToVoxelIndex =
+R"doc(Converts world coordinates to a voxel index, rounding to the nearest
+integer @param rWorldCoords the world coordinates to convert @return
+the voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerBase_WorldCoordinatesToVoxelIndexFloat =
+R"doc(Converts world coordinates to a float voxel index without rounding
+@param rWorldCoords the world coordinates to convert @return the float
+voxel index)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_VolumeIndexerData = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_axisNumSamples =
+R"doc(< Total number of samples in volume dimensions for whole volume (not
+just this chunk))doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_bitPitch = R"doc(< Pitch for bits in volume dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_coordinateMax = R"doc(< Maximum coordinates in volume dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_coordinateMin = R"doc(< Minimum coordinates in volume dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_dataBlockAllocatedSize = R"doc(< Allocated size of buffer in DataBlock dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_dataBlockBitPitch = R"doc(< Pitch for bits in DataBlock dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_dataBlockPitch = R"doc(< Pitch for buffer in DataBlock dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_dataBlockSamples = R"doc(< Number of sample in DataBlock dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_dimensionMap = R"doc(< Map from DataBlock dimensions to volume dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_isDimensionLODDecimated = R"doc(< Indicates if a volume dimension is decimated with the LOD or not)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_localChunkAllocatedSize = R"doc(< Allocated size of buffer in volume dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_localChunkSamples = R"doc(< Number of samples in volume dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_lod = R"doc(< Level of Detail for data being indexed)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_pitch = R"doc(< Pitch for buffer in volume dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_valueRangeMax = R"doc(< The value range maximum for the volume)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_valueRangeMin = R"doc(< The value range minimum for the volume)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_voxelMax = R"doc(< Maximum voxel range in volume dimensions)doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_voxelMin = R"doc(< Minimum voxel range in volume dimensions)doc";
 
 static const char *__doc_OpenVDS_VolumeSampler = R"doc()doc";
 
@@ -2113,6 +2565,8 @@ static const char *__doc_OpenVDS_VolumeSampler_m_sizeX = R"doc()doc";
 static const char *__doc_OpenVDS_VolumeSampler_m_sizeY = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeSampler_m_sizeZ = R"doc()doc";
+
+static const char *__doc_OpenVDS_fastInvert = R"doc()doc";
 
 static const char *__doc_OpenVDS_operator_bor = R"doc()doc";
 
