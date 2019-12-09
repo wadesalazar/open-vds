@@ -104,6 +104,19 @@ struct PyArrayAdapter<T, LEN, false>
   }
 };
 
+struct BLOB
+{
+  uint8_t*  m_Data;
+  size_t    m_Size;
+
+  BLOB() : m_Data(nullptr), m_Size(0)
+  {
+  }
+
+  BLOB(uint8_t* data, size_t size) : m_Data(data), m_Size(size)
+  {
+  }
+};
 
 class PyGlobal
 {

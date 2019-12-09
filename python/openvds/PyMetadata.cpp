@@ -142,5 +142,25 @@ PyMetadata::initModule(py::module& m)
   MetadataContainer_.def("end"                         , static_cast<native::MetadataReadAccess::const_iterator(MetadataContainer::*)() const>(&MetadataContainer::end), OPENVDS_DOCSTRING(MetadataContainer_end));
 
 //AUTOGEN-END
+
+  py::class_<BLOB> BLOB_(m, "BLOB");
+  BLOB_.def_buffer([](BLOB& blob)
+    {
+      return py::buffer_info(
+        blob.m_Data,
+        sizeof(uint8_t),
+        py::format_descriptor<uint8_t>::format(),
+        1,
+        { blob.m_Size },
+        { sizeof(uint8_t) }
+      );
+    });
+  MetadataContainer_.def("getMetadataBLOB", [](MetadataContainer* self, const char* category, const char* name) 
+    {
+      BLOB blob;
+      self->GetMetadataBLOB(category, name, (void const**)&blob.m_Data, &blob.m_Size);
+      return blob;
+    }
+  );
 }
 
