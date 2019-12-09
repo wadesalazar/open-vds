@@ -131,5 +131,21 @@ PyVolumeDataAccess::initModule(py::module& m)
   VolumeDataPageAccessor_.def("commit"                      , static_cast<void(VolumeDataPageAccessor::*)()>(&VolumeDataPageAccessor::Commit), OPENVDS_DOCSTRING(VolumeDataPageAccessor_Commit));
 
 //AUTOGEN-END
+
+  VolumeDataAccessManager_.def("getCurrentUploadError"       , [](VolumeDataAccessManager* self)
+    {
+      const char
+        *pObjectID = nullptr,
+        *pErrorString = nullptr;
+
+      int32_t
+        errorCode = 0;
+
+      self->GetCurrentUploadError(&pObjectID, &errorCode, &pErrorString);
+      return std::make_tuple(std::string(pObjectID), errorCode, std::string(pErrorString));
+    }, 
+    OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentUploadError)
+  );
+  
 }
 
