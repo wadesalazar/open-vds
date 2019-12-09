@@ -160,7 +160,8 @@ PyMetadata::initModule(py::module& m)
       BLOB blob;
       self->GetMetadataBLOB(category, name, (void const**)&blob.m_Data, &blob.m_Size);
       return blob;
-    }
+    },
+    OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB)
   );
 }
 
