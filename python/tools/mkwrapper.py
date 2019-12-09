@@ -211,14 +211,13 @@ class UnsupportedFunctionSignatureError(ValueError):
 def try_generate_trampoline_function(node, all_, arglist):
     args = arglist[1:-1].split(',')
     newargs = []
-    codelines = []
     iarg = 0
     callargs = []
     call_prefix = ''
     if node.kind == CursorKind.CXX_METHOD:
-        instance_arg = "{}* pInstance".format(getnativename(getparent(node, all_), all_))
+        instance_arg = "{}* self".format(getnativename(getparent(node, all_), all_))
         newargs.append(instance_arg)
-        call_prefix = 'pInstance->'
+        call_prefix = 'self->'
     for arg in args:
         arg = arg.strip()
         argname = "arg{}".format(iarg)
@@ -227,14 +226,22 @@ def try_generate_trampoline_function(node, all_, arglist):
             if m:
                 typ = m.groups()[0].replace('const', '').strip()
                 cnt = int(m.groups()[2])
-                const = 'const ' if 'const' in m.groups()[0] else ''
-                newarg = "{}std::array<{},{}>{}".format(
+                ref = m.groups()[1]
+                if ref == '*':
+                    raise UnsupportedFunctionSignatureError()
+                is_mutable = 'const' not in m.groups()[0]
+                const = '' if is_mutable else 'const '
+                newarg = "{}py::array_t<{}>{}".format(
                     const,
                     typ,
-                    cnt,
-                    m.groups()[1]
+                    ref
                 )
-                callarg = "({}){}".format(arg, argname)
+                callarg = "({})*PyArrayAdapter<{}, {}, {}>::getArrayBufferChecked({})".format(
+                    arg,
+                    typ, 
+                    cnt,
+                    "true" if is_mutable else "false",
+                    argname)
                 callargs.append(callarg)
                 newargs.append("{} {}".format(newarg, argname))
                 pass
