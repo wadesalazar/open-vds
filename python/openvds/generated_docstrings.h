@@ -36,9 +36,7 @@ static const char *__doc_OpenVDS_AWSOpenOptions_key = R"doc()doc";
 static const char *__doc_OpenVDS_AWSOpenOptions_region = R"doc()doc";
 
 static const char *__doc_OpenVDS_Close =
-R"doc(!
-
-Close a VDS and free up all associated resources
+R"doc(Close a VDS and free up all associated resources
 
 Parameter ``handle``:
     The handle of the VDS)doc";
@@ -100,9 +98,7 @@ static const char *__doc_OpenVDS_ConvertValue_4 = R"doc()doc";
 static const char *__doc_OpenVDS_ConvertValue_5 = R"doc()doc";
 
 static const char *__doc_OpenVDS_Create =
-R"doc(!
-
-Create a new VDS
+R"doc(Create a new VDS
 
 Parameter ``options``:
     The options for the connection
@@ -116,9 +112,7 @@ Returns:
     the VolumeDataAccessManager)doc";
 
 static const char *__doc_OpenVDS_Create_2 =
-R"doc(!
-
-Create a new VDS
+R"doc(Create a new VDS
 
 Parameter ``ioManager``:
     The IOManager for the connection, it will be deleted automatically
@@ -285,9 +279,7 @@ static const char *__doc_OpenVDS_Error_code = R"doc()doc";
 static const char *__doc_OpenVDS_Error_string = R"doc()doc";
 
 static const char *__doc_OpenVDS_GetAccessManager =
-R"doc(!
-
-Get the VolumeDataAccessManager for a VDS
+R"doc(Get the VolumeDataAccessManager for a VDS
 
 Parameter ``handle``:
     The handle of the VDS)doc";
@@ -297,9 +289,7 @@ static const char *__doc_OpenVDS_GetDataBlockDimensionality = R"doc()doc";
 static const char *__doc_OpenVDS_GetDataBlockDimensionality_Dimensionality = R"doc()doc";
 
 static const char *__doc_OpenVDS_GetLayout =
-R"doc(!
-
-Get the VolumeDataLayout for a VDS
+R"doc(Get the VolumeDataLayout for a VDS
 
 Parameter ``handle``:
     The handle of the VDS)doc";
@@ -644,9 +634,7 @@ static const char *__doc_OpenVDS_MetadataWriteAccess_SetMetadataString = R"doc()
 static const char *__doc_OpenVDS_MetadataWriteAccess_SetMetadataString_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_Open =
-R"doc(!
-
-Open an existing VDS
+R"doc(Open an existing VDS
 
 Parameter ``options``:
     The options for the connection
@@ -660,9 +648,7 @@ Returns:
     the VolumeDataAccessManager)doc";
 
 static const char *__doc_OpenVDS_Open_2 =
-R"doc(!
-
-Open an existing VDS
+R"doc(Open an existing VDS
 
 Parameter ``ioManager``:
     The IOManager for the connection, it will be deleted automatically
@@ -845,9 +831,7 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_AccessMode_AccessMode_R
 static const char *__doc_OpenVDS_VolumeDataAccessManager_AccessMode_AccessMode_ReadWrite = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_Cancel =
-R"doc(!
-
-Try to cancel the request. You still have to call
+R"doc(Try to cancel the request. You still have to call
 WaitForCompletion/IsCanceled to make sure the buffer is not being
 written to and to take the job out of the system. It is possible that
 the request has completed concurrently with the call to Cancel in
@@ -919,9 +903,7 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateInterpolatingVolu
 static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataAccessor = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataPageAccessor =
-R"doc(!
-
-Create a volume data page accessor object for the VDS associated with
+R"doc(Create a volume data page accessor object for the VDS associated with
 the given VolumeDataLayout object.
 
 Parameter ``pVolumeDataLayout``:
@@ -953,9 +935,7 @@ Returns:
 static const char *__doc_OpenVDS_VolumeDataAccessManager_DestroyVolumeDataAccessor = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_DestroyVolumeDataPageAccessor =
-R"doc(!
-
-Destroy a volume data page accessor object.
+R"doc(Destroy a volume data page accessor object.
 
 Parameter ``pVolumeDataPageAccessor``:
     The VolumeDataPageAccessor object to destroy.)doc";
@@ -965,9 +945,7 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_FlushUploadQueue = R"do
 static const char *__doc_OpenVDS_VolumeDataAccessManager_ForceClearAllUploadErrors = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCompletionFactor =
-R"doc(!
-
-Get the completion factor (between 0 and 1) of the request.
+R"doc(Get the completion factor (between 0 and 1) of the request.
 
 Parameter ``iRequestID``:
     The RequestID to get the completion factor of.
@@ -979,18 +957,37 @@ Returns:
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentUploadError = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeDataLayout =
-R"doc(!
-
-Get the VolumeDataLayout object for a VDS.
+R"doc(Get the VolumeDataLayout object for a VDS.
 
 Returns:
     The VolumeDataLayout object associated with the VDS or NULL if
     there is no valid VolumeDataLayout.)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_IsCanceled =
-R"doc(!
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeSubsetBufferSize =
+R"doc(Compute the buffer size for a volume subset request.
 
-Check if a request was canceled (e.g. the VDS was invalidated before
+Parameter ``pVolumeDataLayout``:
+    The VolumeDataLayout object associated with the input VDS.
+
+Parameter ``MinVoxelCoordinates``:
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+Parameter ``MaxVoxelCoordinates``:
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+Parameter ``eFormat``:
+    Voxel format the final buffer should be in.
+
+Parameter ``lod``:
+    The lod level the requested data is read from.
+
+Returns:
+    The buffer size needed)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_IsCanceled =
+R"doc(Check if a request was canceled (e.g. the VDS was invalidated before
 the request was processed). If the request was canceled, the buffer
 does not contain valid data.
 
@@ -1003,9 +1000,7 @@ Returns:
     system.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_IsCompleted =
-R"doc(!
-
-Check if a request completed successfully. If the request completed,
+R"doc(Check if a request completed successfully. If the request completed,
 the buffer now contains valid data.
 
 Parameter ``iRequestID``:
@@ -1017,9 +1012,7 @@ Returns:
     system.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_PrefetchVolumeChunk =
-R"doc(!
-
-Force production of a specific volume data chunk
+R"doc(Force production of a specific volume data chunk
 
 Parameter ``pVolumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
@@ -1041,9 +1034,7 @@ Returns:
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestProjectedVolumeSubset =
-R"doc(!
-
-Request a subset projected from an arbitrary 3D plane through the
+R"doc(Request a subset projected from an arbitrary 3D plane through the
 subset onto one of the sides of the subset.
 
 Parameter ``pVolumeDataLayout``:
@@ -1092,9 +1083,7 @@ Returns:
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestProjectedVolumeSubset_2 =
-R"doc(!
-
-Request a subset projected from an arbitrary 3D plane through the
+R"doc(Request a subset projected from an arbitrary 3D plane through the
 subset onto one of the sides of the subset.
 
 Parameter ``pVolumeDataLayout``:
@@ -1146,9 +1135,7 @@ Returns:
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSamples =
-R"doc(!
-
-Request sampling of the input VDS at the specified coordinates.
+R"doc(Request sampling of the input VDS at the specified coordinates.
 
 Parameter ``pVolumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
@@ -1182,9 +1169,7 @@ Returns:
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSamples_2 =
-R"doc(!
-
-Request sampling of the input VDS at the specified coordinates.
+R"doc(Request sampling of the input VDS at the specified coordinates.
 
 Parameter ``pVolumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
@@ -1221,9 +1206,7 @@ Returns:
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSubset =
-R"doc(!
-
-Request a subset of the input VDS.
+R"doc(Request a subset of the input VDS.
 
 Parameter ``pBuffer``:
     Pointer to a preallocated buffer holding at least as many elements
@@ -1258,9 +1241,7 @@ Returns:
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSubset_2 =
-R"doc(!
-
-Request a subset of the input VDS.
+R"doc(Request a subset of the input VDS.
 
 Parameter ``pBuffer``:
     Pointer to a preallocated buffer holding at least as many elements
@@ -1298,9 +1279,7 @@ Returns:
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeTraces =
-R"doc(!
-
-Request traces from the input VDS.
+R"doc(Request traces from the input VDS.
 
 Parameter ``pVolumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
@@ -1337,9 +1316,7 @@ Returns:
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeTraces_2 =
-R"doc(!
-
-Request traces from the input VDS.
+R"doc(Request traces from the input VDS.
 
 Parameter ``pVolumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
@@ -1383,9 +1360,7 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_UploadErrorCount = R"do
 static const char *__doc_OpenVDS_VolumeDataAccessManager_VolumeDataAccessManager = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_WaitForCompletion =
-R"doc(!
-
-Wait for a request to complete successfully. If the request completed,
+R"doc(Wait for a request to complete successfully. If the request completed,
 the buffer now contains valid data.
 
 Parameter ``iRequestID``:
@@ -1424,15 +1399,11 @@ static const char *__doc_OpenVDS_VolumeDataAccessor_VolumeDataAccessor = R"doc()
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_2 =
-R"doc(!
-
-Describes the number of samples, name, unit and coordinates
+R"doc(Describes the number of samples, name, unit and coordinates
 (annotation) of an axis (dimension) of the volume)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_CoordinateToSampleIndex =
-R"doc(!
-
-Convert a coordinate to a sample index (rounding to the closest index)
+R"doc(Convert a coordinate to a sample index (rounding to the closest index)
 
 Parameter ``coordinate``:
     The coordinate to get the sample index of
@@ -1441,57 +1412,43 @@ Returns:
     The sample index of the coordinate)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateMax =
-R"doc(!
-
-Get the coordinate of the last sample of this axis
+R"doc(Get the coordinate of the last sample of this axis
 
 Returns:
     The coordinate of the last sample of this axis)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateMin =
-R"doc(!
-
-Get the coordinate of the first sample of this axis
+R"doc(Get the coordinate of the first sample of this axis
 
 Returns:
     The coordinate of the first sample of this axis)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateStep =
-R"doc(!
-
-Get the coordiante step size per sample
+R"doc(Get the coordiante step size per sample
 
 Returns:
     The coordiante step size per sample)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetName =
-R"doc(!
-
-Get the name of this axis
+R"doc(Get the name of this axis
 
 Returns:
     The name of this axis)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetNumSamples =
-R"doc(!
-
-Get the number of samples along this axis
+R"doc(Get the number of samples along this axis
 
 Returns:
     The number of samples along this axis)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetUnit =
-R"doc(!
-
-Get the unit of the coordinates of this axis
+R"doc(Get the unit of the coordinates of this axis
 
 Returns:
     The unit of the coordinates of this axis)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_SampleIndexToCoordinate =
-R"doc(!
-
-Convert a sample index on this axis to a coordinate
+R"doc(Convert a sample index on this axis to a coordinate
 
 Parameter ``sampleIndex``:
     The sample index get the coordinate of
@@ -1499,15 +1456,10 @@ Parameter ``sampleIndex``:
 Returns:
     The coordinate of the sample index)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_VolumeDataAxisDescriptor =
-R"doc(!
-
-Default constructor)doc";
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_VolumeDataAxisDescriptor = R"doc(Default constructor)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_VolumeDataAxisDescriptor_2 =
-R"doc(!
-
-Constructor
+R"doc(Constructor
 
 Parameter ``numSamples``:
     The number of samples along this axis

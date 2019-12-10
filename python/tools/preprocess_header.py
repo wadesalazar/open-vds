@@ -24,7 +24,7 @@ def process_comments(lines):
                 result.append(line)
         else:
             if is_inside_doc_comment:
-                result.append('/*!\n')
+                result.append('/**\n')
                 s = comment
                 s = re.sub(r'<summary>(.*?)</summary>', r'\1', s, flags=re.DOTALL)
                 s = re.sub(r'<param name="(.*?)">(.*?)</param>', r'\\param \1 \2', s, flags=re.DOTALL)
