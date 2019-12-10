@@ -61,6 +61,7 @@ private:
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+#include <pybind11/attr.h>
 
 namespace py = pybind11;
 namespace native = OpenVDS;
@@ -85,6 +86,13 @@ struct PyArrayAdapter<T, LEN, true>
       return arr.mutable_unchecked<1>().mutable_data(0);
     }
   }
+
+  static T (&getArrayChecked(py::array_t<T> & arr))[LEN]
+  {
+    T* tmp = getArrayBufferChecked(arr);
+    return *reinterpret_cast<T (*)[LEN]>(tmp);
+  }
+
 };
 
 template<typename T, int LEN>
@@ -102,6 +110,13 @@ struct PyArrayAdapter<T, LEN, false>
       return arr.unchecked<1>().data(0);
     }
   }
+
+  static const T (&getArrayChecked(py::array_t<T> const& arr))[LEN]
+  {
+    const T* tmp = getArrayBufferChecked(arr);
+    return *reinterpret_cast<const T (*)[LEN]>(tmp);
+  }
+
 };
 
 struct BLOB
