@@ -1,1 +1,2 @@
 add_subdirectory(SliceDump)
+add_subdirectory(GettingStarted)

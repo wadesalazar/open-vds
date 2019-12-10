@@ -7,10 +7,10 @@ Welcome to OpenVDS's documentation!
 ===================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+  :maxdepth: 2
+  :caption: Contents:
 
-
+  getting-started
 
 Indices and tables
 ==================
@@ -20,7 +20,7 @@ Indices and tables
 * :ref:`search`
 
 API Reference
-====
+=============
  
 .. doxygenclass:: OpenVDS::VolumeDataAccessManager
    :members:
