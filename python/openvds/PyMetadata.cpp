@@ -143,7 +143,7 @@ PyMetadata::initModule(py::module& m)
 
 //AUTOGEN-END
 
-  py::class_<BLOB> BLOB_(m, "BLOB");
+  py::class_<BLOB> BLOB_(m, "BLOB", py::buffer_protocol());
   BLOB_.def_buffer([](BLOB& blob)
     {
       return py::buffer_info(
