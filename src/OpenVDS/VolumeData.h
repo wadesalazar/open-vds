@@ -124,6 +124,27 @@ enum Dimensionality
   Dimensionality_Max = Dimensionality_6
 };
 
+/// <summary>
+/// Get the number of voxels at a particular LOD from a voxel range (ranges are exclusive).
+/// </summary>
+/// <param name="voxelMin">
+/// The minimum voxel index of the range.
+/// </param>
+/// <param name="voxelMax">
+/// The maximum voxel index of the range (ranges are exclusive, so the range does not include voxelMax).
+/// </param>
+/// <param name="includePartialUpperVoxel">
+/// This controls the rounding. Usually you want the size of the range to be all voxels in the range, but when we are copying from multiple adjacent ranges we only want to round up for the last one.
+/// </param>
+/// <returns>
+/// The number of voxels at the given LOD, at LOD 0 the result is voxelMax - voxelMin.
+/// </returns>
+
+inline int GetLODSize(int voxelMin, int voxelMax, int lod, bool includePartialUpperVoxel = true)
+{
+  return ((voxelMax - includePartialUpperVoxel) >> lod) + includePartialUpperVoxel - (voxelMin >> lod);
+}
+
 } /* namespace OpenVDS */
 
 #endif //VOLUMEDATA_H_INCLUDED
