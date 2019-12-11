@@ -503,23 +503,23 @@ static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDime
   int32_t nCopyDimensions = 0;
 
   // Reduce dimensions where the source and target size is 1 (and the offset is 0)
-  for (int32_t iDimension = 0; iDimension < DataStoreDimensionality_Max; iDimension++)
+  for (int32_t dimension = 0; dimension < DataStoreDimensionality_Max; dimension++)
   {
-    if(tmpSourceSize[iDimension] == 1 && tmpTargetSize[iDimension] == 1)
+    if(tmpSourceSize[dimension] == 1 && tmpTargetSize[dimension] == 1)
     {
-      assert(tmpSourceOffset[iDimension] == 0);
-      assert(tmpTargetOffset[iDimension] == 0);
-      assert(tmpOverlapSize [iDimension] == 1);
+      assert(tmpSourceOffset[dimension] == 0);
+      assert(tmpTargetOffset[dimension] == 0);
+      assert(tmpOverlapSize [dimension] == 1);
       continue;
     }
 
-    sourceOffset[nCopyDimensions] = tmpSourceOffset[iDimension];
-    targetOffset[nCopyDimensions] = tmpTargetOffset[iDimension];
+    sourceOffset[nCopyDimensions] = tmpSourceOffset[dimension];
+    targetOffset[nCopyDimensions] = tmpTargetOffset[dimension];
 
-    sourceSize[nCopyDimensions] = tmpSourceSize[iDimension];
-    targetSize[nCopyDimensions] = tmpTargetSize[iDimension];
+    sourceSize[nCopyDimensions] = tmpSourceSize[dimension];
+    targetSize[nCopyDimensions] = tmpTargetSize[dimension];
 
-    overlapSize[nCopyDimensions] = tmpOverlapSize[iDimension];
+    overlapSize[nCopyDimensions] = tmpOverlapSize[dimension];
 
     nCopyDimensions++;
   }
@@ -547,28 +547,28 @@ static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDime
     targetSize [0] *= targetSize [1];
     overlapSize[0] *= overlapSize[1];
 
-    for (int iDim = 1; iDim < nCopyDimensions - 1; iDim++)
+    for (int dimension = 1; dimension < nCopyDimensions - 1; dimension++)
     {
-      sourceOffset[iDim] = sourceOffset[iDim+1];
-      targetOffset[iDim] = targetOffset[iDim+1];
+      sourceOffset[dimension] = sourceOffset[dimension+1];
+      targetOffset[dimension] = targetOffset[dimension+1];
 
-      sourceSize [iDim] = sourceSize [iDim+1];
-      targetSize [iDim] = targetSize [iDim+1];
-      overlapSize[iDim] = overlapSize[iDim+1];
+      sourceSize [dimension] = sourceSize [dimension+1];
+      targetSize [dimension] = targetSize [dimension+1];
+      overlapSize[dimension] = overlapSize[dimension+1];
     }
 
     nCopyDimensions -= 1;
   }
 
   // Reset remaining dimensions
-  for(int32_t iDimension = nCopyDimensions; iDimension < DataStoreDimensionality_Max; iDimension++)
+  for(int32_t dimension = nCopyDimensions; dimension < DataStoreDimensionality_Max; dimension++)
   {
-    sourceOffset[iDimension] = 0;
-    targetOffset[iDimension] = 0;
+    sourceOffset[dimension] = 0;
+    targetOffset[dimension] = 0;
 
-    sourceSize [iDimension] = 1;
-    targetSize [iDimension] = 1;
-    overlapSize[iDimension] = 1;
+    sourceSize [dimension] = 1;
+    targetSize [dimension] = 1;
+    overlapSize[dimension] = 1;
   }
 
   return nCopyDimensions;
@@ -640,14 +640,14 @@ static void BlockCopy(void       *target, const int32_t (&targetOffset)[DataStor
 
   if (is1Bit)
   {
-    for (int iDim3 = 0; iDim3 < overlapSize[3]; iDim3++)
+    for (int dimension3 = 0; dimension3 < overlapSize[3]; dimension3++)
     {
-      for (int iDim2 = 0; iDim2 < overlapSize[2]; iDim2++)
+      for (int dimension2 = 0; dimension2 < overlapSize[2]; dimension2++)
       {
-        for (int iDim1 = 0; iDim1 < overlapSize[1]; iDim1++)
+        for (int dimension1 = 0; dimension1 < overlapSize[1]; dimension1++)
         {
-          int64_t sourceLocal = (((int64_t)iDim3 * sourceSize[2] + iDim2) * sourceSize[1] + iDim1) * (int64_t)sourceSize[0] * elementSize;
-          int64_t targetLocal = (((int64_t)iDim3 * targetSize[2] + iDim2) * targetSize[1] + iDim1) * (int64_t)targetSize[0] * elementSize;
+          int64_t sourceLocal = (((int64_t)dimension3 * sourceSize[2] + dimension2) * sourceSize[1] + dimension1) * (int64_t)sourceSize[0] * elementSize;
+          int64_t targetLocal = (((int64_t)dimension3 * targetSize[2] + dimension2) * targetSize[1] + dimension1) * (int64_t)targetSize[0] * elementSize;
 
           CopyBits(target, targetLocalBaseSize + targetLocal, source, sourceLocalBaseSize + sourceLocal, overlapSize[0]);
         }
@@ -660,14 +660,14 @@ static void BlockCopy(void       *target, const int32_t (&targetOffset)[DataStor
 
     uint8_t *targetLocalBase = reinterpret_cast<uint8_t *>(target) + targetLocalBaseSize;
 
-    for (int iDim3 = 0; iDim3 < overlapSize[3]; iDim3++)
+    for (int dimension3 = 0; dimension3 < overlapSize[3]; dimension3++)
     {
-      for (int iDim2 = 0; iDim2 < overlapSize[2]; iDim2++)
+      for (int dimension2 = 0; dimension2 < overlapSize[2]; dimension2++)
       {
-        for (int iDim1 = 0; iDim1 < overlapSize[1]; iDim1++)
+        for (int dimension1 = 0; dimension1 < overlapSize[1]; dimension1++)
         {
-          int64_t iSourceLocal = (((int64_t)iDim3 * sourceSize[2] + iDim2) * sourceSize[1] + iDim1) * (int64_t)sourceSize[0] * elementSize;
-          int64_t iTargetLocal = (((int64_t)iDim3 * targetSize[2] + iDim2) * targetSize[1] + iDim1) * (int64_t)targetSize[0] * elementSize;
+          int64_t iSourceLocal = (((int64_t)dimension3 * sourceSize[2] + dimension2) * sourceSize[1] + dimension1) * (int64_t)sourceSize[0] * elementSize;
+          int64_t iTargetLocal = (((int64_t)dimension3 * targetSize[2] + dimension2) * targetSize[1] + dimension1) * (int64_t)targetSize[0] * elementSize;
 
           CopyBytes(targetLocalBase + iTargetLocal, sourceLocalBase + iSourceLocal, overlapSize[0] * elementSize);
         }
@@ -686,7 +686,7 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
   page->GetMinMax(sourceMin, sourceMax);
   page->GetMinMaxExcludingMargin(sourceMinExcludingMargin, sourceMaxExcludingMargin);
 
-  int32_t iLOD = chunk.Layer->GetLOD();
+  int32_t lod = chunk.Layer->GetLOD();
 
   VolumeDataLayoutImpl *volumeDataLayout = chunk.Layer->GetLayout();
 
@@ -695,17 +695,17 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
 
   int32_t sizeThisLod[Dimensionality_Max];
 
-  for (int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
+  for (int32_t dimension = 0; dimension < Dimensionality_Max; dimension++)
   {
-    overlapMin[iDimension] = std::max(sourceMinExcludingMargin[iDimension], destMin[iDimension]);
-    overlapMax[iDimension] = std::min(sourceMaxExcludingMargin[iDimension], destMax[iDimension]);
-    if (chunk.Layer->GetLayout()->GetFullResolutionDimension())
+    overlapMin[dimension] = std::max(sourceMinExcludingMargin[dimension], destMin[dimension]);
+    overlapMax[dimension] = std::min(sourceMaxExcludingMargin[dimension], destMax[dimension]);
+    if (volumeDataLayout->IsDimensionLODDecimated(dimension))
     {
-      sizeThisLod[iDimension] = destMax[iDimension] - destMin[iDimension];
+      sizeThisLod[dimension] = GetLODSize(destMin[dimension], destMax[dimension], lod);
     }
     else
     {
-      sizeThisLod[iDimension] = (destMax[iDimension] - destMin[iDimension] + (1 << iLOD) - 1) >> iLOD;
+      sizeThisLod[dimension] = destMax[dimension] - destMin[dimension];
     }
   }
 
@@ -720,35 +720,35 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
   int32_t globalTargetOffset[Dimensionality_Max];
   int32_t globalOverlapSize[Dimensionality_Max];
 
-  for (int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
+  for (int32_t dimension = 0; dimension < Dimensionality_Max; dimension++)
   {
-    globalSourceSize[iDimension] = 1;
+    globalSourceSize[dimension] = 1;
     for (int iCopyDimension = 0; iCopyDimension < DataStoreDimensionality_Max; iCopyDimension++)
     {
-      if (iDimension == DimensionGroupUtil::GetDimension(sourceDimensionGroup, iCopyDimension))
+      if (dimension == DimensionGroupUtil::GetDimension(sourceDimensionGroup, iCopyDimension))
       {
         
-        globalSourceSize[iDimension] = page->GetDataBlock().AllocatedSize[iCopyDimension];
+        globalSourceSize[dimension] = page->GetDataBlock().AllocatedSize[iCopyDimension];
         if (is1Bit && iCopyDimension == 0)
         {
-          globalSourceSize[iDimension] *= 8;
+          globalSourceSize[dimension] *= 8;
         }
         break;
       }
     }
-    globalTargetSize[iDimension] = sizeThisLod[iDimension];
+    globalTargetSize[dimension] = sizeThisLod[dimension];
 
-    if (volumeDataLayout->IsDimensionLODDecimated(iDimension))
+    if (volumeDataLayout->IsDimensionLODDecimated(dimension))
     {
-      globalSourceOffset[iDimension] = (overlapMin[iDimension] - sourceMin[iDimension]) >> iLOD;
-      globalTargetOffset[iDimension] = (overlapMin[iDimension] - destMin[iDimension]) >> iLOD;
-      globalOverlapSize[iDimension] = (overlapMax[iDimension] - overlapMin[iDimension] + (1 << iLOD) - 1) >> iLOD;
+      globalSourceOffset[dimension] = (overlapMin[dimension] - sourceMin[dimension]) >> lod;
+      globalTargetOffset[dimension] = (overlapMin[dimension] - destMin[dimension]) >> lod;
+      globalOverlapSize[dimension] = GetLODSize(overlapMin[dimension], overlapMax[dimension], lod, overlapMax[dimension] == destMax[dimension]);
     }
     else
     {
-      globalSourceOffset[iDimension] = (overlapMin[iDimension] - sourceMin[iDimension]);
-      globalTargetOffset[iDimension] = (overlapMin[iDimension] - destMin[iDimension]);
-      globalOverlapSize[iDimension] = (overlapMax[iDimension] - overlapMin[iDimension]);
+      globalSourceOffset[dimension] = (overlapMin[dimension] - sourceMin[dimension]);
+      globalTargetOffset[dimension] = (overlapMin[dimension] - destMin[dimension]);
+      globalOverlapSize[dimension] = (overlapMax[dimension] - overlapMin[dimension]);
     }
   }
 
@@ -785,10 +785,10 @@ static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_pro
   memcpy(boxRequested.max, maxRequested, sizeof(boxRequested.max));
 
   // Initialized unused dimensions
-  for (int32_t iDimension = volumeDataLayer->GetLayout()->GetDimensionality(); iDimension < Dimensionality_Max; iDimension++)
+  for (int32_t dimension = volumeDataLayer->GetLayout()->GetDimensionality(); dimension < Dimensionality_Max; dimension++)
   {
-    boxRequested.min[iDimension] = 0;
-    boxRequested.max[iDimension] = 1;
+    boxRequested.min[dimension] = 0;
+    boxRequested.max[dimension] = 1;
   }
 
   std::vector<VolumeDataChunk> chunksInRegion;
@@ -897,41 +897,41 @@ struct IndexValues
     lod = dataChunk.Layer->GetLOD();
     dataChunk.Layer->GetChunkMinMax(dataChunk.Index, voxelMin, voxelMax, true);
 
-    for (int iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
+    for (int dimension = 0; dimension < Dimensionality_Max; dimension++)
     {
-      pitch[iDimension] = 0;
-      bitPitch[iDimension] = 0;
+      pitch[dimension] = 0;
+      bitPitch[dimension] = 0;
 
-      axisNumSamples[iDimension] = dataLayout->GetDimensionNumSamples(iDimension);
-      coordinateMin[iDimension] = (iDimension < dataLayout->GetDimensionality()) ? dataLayout->GetDimensionMin(iDimension) : 0;
-      coordinateMax[iDimension] = (iDimension < dataLayout->GetDimensionality()) ? dataLayout->GetDimensionMax(iDimension) : 0;
+      axisNumSamples[dimension] = dataLayout->GetDimensionNumSamples(dimension);
+      coordinateMin[dimension] = (dimension < dataLayout->GetDimensionality()) ? dataLayout->GetDimensionMin(dimension) : 0;
+      coordinateMax[dimension] = (dimension < dataLayout->GetDimensionality()) ? dataLayout->GetDimensionMax(dimension) : 0;
 
-      localChunkSamples[iDimension] = 1;
-      isDimensionLODDecimated[iDimension] = false;
+      localChunkSamples[dimension] = 1;
+      isDimensionLODDecimated[dimension] = false;
 
-      localChunkAllocatedSize[iDimension] = 1;
+      localChunkAllocatedSize[dimension] = 1;
     }
 
-    for (int iDimension = 0; iDimension < DataStoreDimensionality_Max; iDimension++)
+    for (int dimension = 0; dimension < DataStoreDimensionality_Max; dimension++)
     {
-      dataBlockPitch[iDimension] = dataBlock.Pitch[iDimension];
-      dataBlockAllocatedSize[iDimension] = dataBlock.AllocatedSize[iDimension];
-      dataBlockSamples[iDimension] = dataBlock.Size[iDimension];
+      dataBlockPitch[dimension] = dataBlock.Pitch[dimension];
+      dataBlockAllocatedSize[dimension] = dataBlock.AllocatedSize[dimension];
+      dataBlockSamples[dimension] = dataBlock.Size[dimension];
 
       for (int iDataBlockDim = 0; iDataBlockDim < DataStoreDimensionality_Max; iDataBlockDim++)
       {
         dataBlockBitPitch[iDataBlockDim] = dataBlockPitch[iDataBlockDim] * (iDataBlockDim == 0 ? 1 : 8);
 
-        int iDimension = DimensionGroupUtil::GetDimension(dataChunk.Layer->GetChunkDimensionGroup(), iDataBlockDim);
-        dimensionMap[iDataBlockDim] = iDimension;
-        if (iDimension >= 0 && iDimension < Dimensionality_Max)
+        int dimension = DimensionGroupUtil::GetDimension(dataChunk.Layer->GetChunkDimensionGroup(), iDataBlockDim);
+        dimensionMap[iDataBlockDim] = dimension;
+        if (dimension >= 0 && dimension < Dimensionality_Max)
         {
-          pitch[iDimension] = dataBlockPitch[iDataBlockDim];
-          bitPitch[iDimension] = dataBlockBitPitch[iDataBlockDim];
-          localChunkAllocatedSize[iDimension] = dataBlockAllocatedSize[iDataBlockDim];
+          pitch[dimension] = dataBlockPitch[iDataBlockDim];
+          bitPitch[dimension] = dataBlockBitPitch[iDataBlockDim];
+          localChunkAllocatedSize[dimension] = dataBlockAllocatedSize[iDataBlockDim];
 
-          isDimensionLODDecimated[iDimension] = (dataBlockSamples[iDataBlockDim] < voxelMax[iDimension] - voxelMin[iDimension]);
-          localChunkSamples[iDimension] = dataBlockSamples[iDataBlockDim];
+          isDimensionLODDecimated[dimension] = (dataBlockSamples[iDataBlockDim] < voxelMax[dimension] - voxelMin[dimension]);
+          localChunkSamples[dimension] = dataBlockSamples[iDataBlockDim];
         }
       }
     }
@@ -1022,24 +1022,24 @@ void ProjectValuesKernelCPU(T *pxOutput, const T *pxInput, const ProjectVars &pr
     int nMin = std::max(projectVars.requestedMin[projectVars.projectedDimensions[i]], indexValues.voxelMin[projectVars.projectedDimensions[i]]);
     int nMax = std::min(projectVars.requestedMax[projectVars.projectedDimensions[i]], indexValues.voxelMax[projectVars.projectedDimensions[i]]);
 
-    numSamples[i] = (nMax - nMin + (1 << projectVars.lod) - 1) >> projectVars.lod;
-    offsetPair[i] = (nMin - projectVars.requestedMin[projectVars.projectedDimensions[i]] + (1 << projectVars.lod) - 1) >> projectVars.lod;
+    numSamples[i] = GetLODSize(nMin, nMax, projectVars.lod, nMax == projectVars.requestedMax[projectVars.projectedDimensions[i]]);
+    offsetPair[i] = (nMin - projectVars.requestedMin[projectVars.projectedDimensions[i]]) >> projectVars.lod;
   }
 
   float voxelCenterOffset = (1 << projectVars.lod) / 2.0f;
 
   // we can keep this to two dimensions because we know the input chunk is 3D
 //#pragma omp parallel for
-  for (int iDim1 = 0; iDim1 < numSamples[1]; iDim1++)
-  for (int iDim0 = 0; iDim0 < numSamples[0]; iDim0++)
+  for (int dimension1 = 0; dimension1 < numSamples[1]; dimension1++)
+  for (int dimension0 = 0; dimension0 < numSamples[0]; dimension0++)
   {
     // this looks really strange, but since we know that the chunk dimension group for the input is always the projected and projection dimensions, this works
     int32_t localChunkIndex[Dimensionality_Max];
     for (int i = 0; i < 6; i++)
       localChunkIndex[i] = (indexValues.voxelMin[i] - projectVars.requestedMin[i]) >> projectVars.lod;
     
-    localChunkIndex[projectVars.projectedDimensions[0]] = iDim0 + offsetPair[0];
-    localChunkIndex[projectVars.projectedDimensions[1]] = iDim1 + offsetPair[1];
+    localChunkIndex[projectVars.projectedDimensions[0]] = dimension0 + offsetPair[0];
+    localChunkIndex[projectVars.projectedDimensions[1]] = dimension1 + offsetPair[1];
     localChunkIndex[projectVars.projectionDimension] = 0;
 
     int32_t voxelIndex[Dimensionality_Max];
@@ -1105,7 +1105,7 @@ static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
     return false;
   }
 
-  int32_t iLOD = volumeDataLayer->GetLOD();
+  int32_t lod = volumeDataLayer->GetLOD();
 
   int32_t projectionDimension = -1;
   int32_t projectedDimensions[2] = { -1, -1 };
@@ -1124,24 +1124,24 @@ static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
     return false;
   }
 
-  for (int iDimIndex = 0; iDimIndex < DimensionGroupUtil::GetDimensionality(volumeDataLayer->GetChunkDimensionGroup()); iDimIndex++)
+  for (int dimensionIndex = 0; dimensionIndex < DimensionGroupUtil::GetDimensionality(volumeDataLayer->GetChunkDimensionGroup()); dimensionIndex++)
   {
-    int32_t iDim = DimensionGroupUtil::GetDimension(volumeDataLayer->GetChunkDimensionGroup(), iDimIndex);
+    int32_t dimension = DimensionGroupUtil::GetDimension(volumeDataLayer->GetChunkDimensionGroup(), dimensionIndex);
 
-    if (!DimensionGroupUtil::IsDimensionInGroup(projectedDimensionsEnum, iDim))
+    if (!DimensionGroupUtil::IsDimensionInGroup(projectedDimensionsEnum, dimension))
     {
-      projectionDimension = iDim;
+      projectionDimension = dimension;
     }
   }
 
   assert(projectionDimension != -1);
   
-  for (int32_t iDimIndex = 0, projectionDimensionality = DimensionGroupUtil::GetDimensionality(projectedDimensionsEnum); iDimIndex < projectionDimensionality; iDimIndex++)
+  for (int32_t dimensionIndex = 0, projectionDimensionality = DimensionGroupUtil::GetDimensionality(projectedDimensionsEnum); dimensionIndex < projectionDimensionality; dimensionIndex++)
   {
-    int32_t iDim = DimensionGroupUtil::GetDimension(projectedDimensionsEnum, iDimIndex);
-    projectedDimensions[iDimIndex] = iDim;
+    int32_t dimension = DimensionGroupUtil::GetDimension(projectedDimensionsEnum, dimensionIndex);
+    projectedDimensions[dimensionIndex] = dimension;
 
-    if (!DimensionGroupUtil::IsDimensionInGroup(volumeDataLayer->GetChunkDimensionGroup(), iDim))
+    if (!DimensionGroupUtil::IsDimensionInGroup(volumeDataLayer->GetChunkDimensionGroup(), dimension))
     {
       error.string = "The requested dimension group must contain the dimensions of the projected dimension group.";
       error.code = -1;
@@ -1150,28 +1150,28 @@ static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
   }
 
   int32_t sizeThisLod[Dimensionality_Max];
-  for (int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
+  for (int32_t dimension = 0; dimension < Dimensionality_Max; dimension++)
   {
-    if (chunk.Layer->GetLayout()->GetFullResolutionDimension())
+    if (chunk.Layer->GetLayout()->IsDimensionLODDecimated(dimension))
     {
-      sizeThisLod[iDimension] = destMax[iDimension] - destMin[iDimension];
+      sizeThisLod[dimension] = GetLODSize(destMin[dimension], destMax[dimension], lod);
     }
     else
     {
-      sizeThisLod[iDimension] = (destMax[iDimension] - destMin[iDimension] + (1 << iLOD) - 1) >> iLOD;
+      sizeThisLod[dimension] = destMax[dimension] - destMin[dimension];
     }
   }
 
   ProjectVars projectVars;
-  for (int iDim = 0; iDim < Dimensionality_Max; iDim++)
+  for (int dimension = 0; dimension < Dimensionality_Max; dimension++)
   {
-    projectVars.requestedMin[iDim] = destMin[iDim];
-    projectVars.requestedMax[iDim] = destMax[iDim];
-    projectVars.requestedSizeThisLOD[iDim] = sizeThisLod[iDim];
-    projectVars.requestedPitch[iDim] = iDim == 0 ? 1 : projectVars.requestedPitch[iDim - 1] * projectVars.requestedSizeThisLOD[iDim - 1];
+    projectVars.requestedMin[dimension] = destMin[dimension];
+    projectVars.requestedMax[dimension] = destMax[dimension];
+    projectVars.requestedSizeThisLOD[dimension] = sizeThisLod[dimension];
+    projectVars.requestedPitch[dimension] = dimension == 0 ? 1 : projectVars.requestedPitch[dimension - 1] * projectVars.requestedSizeThisLOD[dimension - 1];
   }
 
-  projectVars.lod = iLOD;
+  projectVars.lod = lod;
   projectVars.voxelPlane = FloatVector4(voxelPlane.X, voxelPlane.Y, voxelPlane.Z, voxelPlane.T);
   projectVars.projectionDimension = projectionDimension;
   projectVars.projectedDimensions[0] = projectedDimensions[0];
@@ -1186,17 +1186,17 @@ static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
   return true;
 }
 
-static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t (&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionGroup projectedDimensions, int32_t iLOD, VolumeDataChannelDescriptor::Format eFormat, InterpolationMethod interpolationMethod, bool isReplaceNoValue, float replacementNoValue)
+static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t (&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionGroup projectedDimensions, int32_t lod, VolumeDataChannelDescriptor::Format eFormat, InterpolationMethod interpolationMethod, bool isReplaceNoValue, float replacementNoValue)
 {
   Box boxRequested;
   memcpy(boxRequested.min, minRequested, sizeof(boxRequested.min));
   memcpy(boxRequested.max, maxRequested, sizeof(boxRequested.max));
 
   // Initialized unused dimensions
-  for (int32_t iDimension = volumeDataLayer->GetLayout()->GetDimensionality(); iDimension < Dimensionality_Max; iDimension++)
+  for (int32_t dimension = volumeDataLayer->GetLayout()->GetDimensionality(); dimension < Dimensionality_Max; dimension++)
   {
-    boxRequested.min[iDimension] = 0;
-    boxRequested.min[iDimension] = 1;
+    boxRequested.min[dimension] = 0;
+    boxRequested.min[dimension] = 1;
   }
 
   std::vector<VolumeDataChunk> chunksInRegion;
@@ -1218,31 +1218,37 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
     abort();
   }
 
-  for (int iDimIndex = 0; iDimIndex < layerDimensionGroup; iDimIndex++)
+  for (int dimensionIndex = 0; dimensionIndex < layerDimensionGroup; dimensionIndex++)
   {
-    int32_t iDim = DimensionGroupUtil::GetDimension(volumeDataLayer->GetChunkDimensionGroup(), iDimIndex);
+    int32_t dimension = DimensionGroupUtil::GetDimension(volumeDataLayer->GetChunkDimensionGroup(), dimensionIndex);
 
-    if (!DimensionGroupUtil::IsDimensionInGroup(projectedDimensions, iDim))
+    if (!DimensionGroupUtil::IsDimensionInGroup(projectedDimensions, dimension))
     {
-      projectionDimension = iDim;
-      projectionDimensionPosition = iDimIndex;
+      projectionDimension = dimension;
+      projectionDimensionPosition = dimensionIndex;
 
       // min/max in the projection dimension is not used
-      boxRequested.min[iDim] = 0;
-      boxRequested.max[iDim] = 1;
+      boxRequested.min[dimension] = 0;
+      boxRequested.max[dimension] = 1;
     }
   }
 
   assert(projectionDimension != -1);
 
-  for (int iDimIndex = 0; iDimIndex < DimensionGroupUtil::GetDimensionality(projectedDimensions); iDimIndex++)
+  for (int dimensionIndex = 0; dimensionIndex < DimensionGroupUtil::GetDimensionality(projectedDimensions); dimensionIndex++)
   {
-    int32_t iDim = DimensionGroupUtil::GetDimension(projectedDimensions, iDimIndex);
-    projectedDimensionsPair[iDimIndex] = iDim;
+    int32_t dimension = DimensionGroupUtil::GetDimension(projectedDimensions, dimensionIndex);
+    projectedDimensionsPair[dimensionIndex] = dimension;
 
-    if (!DimensionGroupUtil::IsDimensionInGroup(volumeDataLayer->GetChunkDimensionGroup(), iDim))
+    if (!DimensionGroupUtil::IsDimensionInGroup(volumeDataLayer->GetChunkDimensionGroup(), dimension))
     {
       fmt::print(stderr,"The requested dimension group must contain the dimensions of the projected dimension group.");
+      abort();
+    }
+
+    if (!volumeDataLayer->IsDimensionLODDecimated(dimension) && lod > 0)
+    {
+      fmt::print(stderr, "Cannot project subsets with a full-resolution dimension at LOD > 0.");
       abort();
     }
   }
@@ -1286,12 +1292,12 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
 
     chunksInProjectedRegion[iChunk].Layer->GetChunkMinMax(chunksInProjectedRegion[iChunk].Index, min, max, true);
 
-    for (int iDimIndex = 0; iDimIndex < 2; iDimIndex++)
+    for (int dimensionIndex = 0; dimensionIndex < 2; dimensionIndex++)
     {
-      int32_t iDim = projectedDimensionsPair[iDimIndex];
+      int32_t dimension = projectedDimensionsPair[dimensionIndex];
 
-      if (min[iDim] < minRequested[iDim]) min[iDim] = minRequested[iDim];
-      if (max[iDim] > maxRequested[iDim]) max[iDim] = maxRequested[iDim];
+      if (min[dimension] < minRequested[dimension]) min[dimension] = minRequested[dimension];
+      if (max[dimension] > maxRequested[dimension]) max[dimension] = maxRequested[dimension];
     }
 
     int32_t corners[4];
@@ -1382,7 +1388,7 @@ static void SampleVolume(VolumeDataPageImpl *page, const VolumeDataLayer *volume
 
   float lodScale = 1.0f / (1 << lod);
 
-  int32_t iFullResolutionDimension = volumeDataLayer->GetLayout()->GetFullResolutionDimension();
+  int32_t fullResolutionDimension = volumeDataLayer->GetLayout()->GetFullResolutionDimension();
 
   VolumeSampler<T, INTERPMETHOD, isUseNoValue> volumeSampler(dataBlock.Size, dataBlock.Pitch, volumeDataLayer->GetValueRange().Min, volumeDataLayer->GetValueRange().Max,
     volumeDataLayer->GetIntegerScale(), volumeDataLayer->GetIntegerOffset(), noValue, noValue);
@@ -1395,13 +1401,13 @@ static void SampleVolume(VolumeDataPageImpl *page, const VolumeDataLayer *volume
 
     if (volumeDataSamplePos.chunkIndex != chunkIndex) break;
 
-    FloatVector3 pos((volumeDataSamplePos.pos.Data[chunkDimension0] - min[chunkDimension0]) * (chunkDimension0 == iFullResolutionDimension ? 1 : lodScale),
-                     (volumeDataSamplePos.pos.Data[chunkDimension1] - min[chunkDimension1]) * (chunkDimension1 == iFullResolutionDimension ? 1 : lodScale),
+    FloatVector3 pos((volumeDataSamplePos.pos.Data[chunkDimension0] - min[chunkDimension0]) * (chunkDimension0 == fullResolutionDimension ? 1 : lodScale),
+                     (volumeDataSamplePos.pos.Data[chunkDimension1] - min[chunkDimension1]) * (chunkDimension1 == fullResolutionDimension ? 1 : lodScale),
                       0);
 
     if (chunkDimension2 >= 0)
     {
-      pos[2] = (volumeDataSamplePos.pos.Data[chunkDimension2] - min[chunkDimension2]) * (chunkDimension2 == iFullResolutionDimension ? 1 : lodScale);
+      pos[2] = (volumeDataSamplePos.pos.Data[chunkDimension2] - min[chunkDimension2]) * (chunkDimension2 == fullResolutionDimension ? 1 : lodScale);
     }
 
 
@@ -1615,10 +1621,10 @@ void TraceVolume(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, const s
 
   const T* pBuffer = (const T*) page->GetRawBufferInternal();
 
-  int32_t overlapCount = (maxExcludingMargin[traceDimension] - minExcludingMargin[traceDimension] + (1 << lod) - 1) >> lod;
-
-  int32_t offsetSource = (minExcludingMargin[traceDimension] - min[traceDimension]) >> lod;
-  int32_t offsetTarget = (minExcludingMargin[traceDimension]) >> lod;
+  int32_t traceDimensionLOD = (traceDimension != fullResolutionDimension) ? lod : 0;
+  int32_t overlapCount = GetLODSize(minExcludingMargin[traceDimension], maxExcludingMargin[traceDimension], traceDimensionLOD, maxExcludingMargin[traceDimension] == traceSize);
+  int32_t offsetSource = (minExcludingMargin[traceDimension] - min[traceDimension]) >> traceDimensionLOD;
+  int32_t offsetTarget = (minExcludingMargin[traceDimension]) >> traceDimensionLOD;
 
   int32_t traceCount = int32_t(volumeDataSamplePositions.size());
 
