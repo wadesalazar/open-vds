@@ -450,37 +450,6 @@ VolumeDataReadAccessor<FloatVector4, double>* VolumeDataAccessManagerImpl::Creat
    return VolumeDataAccess_CreateInterpolatingVolumeDataAccessor<FloatVector4, double>(volumeDataPageAccessor, replacementNoValue, interpolationMethod);
 }
 
-static int64_t GetVoxelCount(const int32_t(&min)[Dimensionality_Max], const int32_t (&max)[Dimensionality_Max], int32_t lod, int32_t dimensionality)
-{
-  int64_t  voxel = 1;
-
-  for (int32_t iCount = 0; iCount < dimensionality; iCount++)
-  {
-    int32_t iMin = min[iCount];
-    int32_t iMax = max[iCount];
-
-    int64_t nSize = int64_t(iMax) - iMin;
-
-    assert(nSize == 1 || (nSize % (int64_t(1) << int64_t(lod)) == 0));
-
-    nSize >>= lod;
-
-    if (nSize <= 0)
-    {          
-      if (min[iCount] >= max[iCount])
-      {
-        return 0;
-      }
-    }
-    else
-    {
-      voxel *= nSize;
-    }
-  }
-
-  return voxel;
-}
-
 static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDimensionality_Max],
                                            int32_t (&sourceOffset)[DataStoreDimensionality_Max],
                                            int32_t (&targetSize  )[DataStoreDimensionality_Max],
@@ -820,15 +789,6 @@ static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_pro
   {
     boxRequested.min[iDimension] = 0;
     boxRequested.max[iDimension] = 1;
-  }
-
-  int64_t voxelCount = GetVoxelCount(boxRequested.min, boxRequested.max, lod, volumeDataLayer->GetLayout()->GetDimensionality());
-  int64_t requestByteSize = voxelCount * GetElementSize(format, VolumeDataChannelDescriptor::Components_1);
-
-  if (requestByteSize > VDS_MAX_REQUEST_VOLUME_SUBSET_BYTESIZE)
-  {
-    fprintf(stderr, "Requested volume subset is larger than 2GB %" PRId64 "\n", requestByteSize);
-    abort();
   }
 
   std::vector<VolumeDataChunk> chunksInRegion;
@@ -1863,6 +1823,43 @@ static int64_t StaticRequestVolumeTraces(VolumeDataRequestProcessor &request_pro
     {
       return RequestVolumeTracesProcessPage(page, dataChunk,  *volumeDataSamplePositions, interpolationMethod, traceDimension, replacementNoValue, buffer, error);
     });
+}
+
+int64_t VolumeDataAccessManagerImpl::GetVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, int lod = 0)
+{
+  const int dimensionality = volumeDataLayout->GetDimensionality();
+
+  for (int32_t dimension = 0; dimension < dimensionality; dimension++)
+  {
+    if(minVoxelCoordinates[dimension] < 0 || minVoxelCoordinates[dimension] >= maxVoxelCoordinates[dimension])
+    {
+      fmt::print(stderr, "Illegal volume subset, dimension {} min = {}, max = {}", dimension, minVoxelCoordinates[dimension], maxVoxelCoordinates[dimension]);
+      abort();
+    }
+  }
+
+  int64_t voxelCount = 1;
+
+  for (int dimension = 0; dimension < dimensionality; dimension++)
+  {
+    if (static_cast<const VolumeDataLayoutImpl *>(volumeDataLayout)->IsDimensionLODDecimated(dimension))
+    {
+      voxelCount *= GetLODSize(minVoxelCoordinates[dimension], maxVoxelCoordinates[dimension], lod);
+    }
+    else
+    {
+      voxelCount *= maxVoxelCoordinates[dimension] - minVoxelCoordinates[dimension];
+    }
+  }
+
+  if(format == VolumeDataChannelDescriptor::Format_1Bit)
+  {
+    return (voxelCount + 7) / 8;
+  }
+  else
+  {
+    return voxelCount * GetVoxelFormatByteSize(format);
+  }
 }
 
 int64_t VolumeDataAccessManagerImpl::RequestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format)

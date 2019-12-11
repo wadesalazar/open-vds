@@ -164,6 +164,29 @@ public:
   virtual VolumeDataReadAccessor<FloatVector4, double> *Create4DInterpolatingVolumeDataAccessorR64(VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue, InterpolationMethod interpolationMethod) = 0;
 
   /// <summary>
+  /// Compute the buffer size for a volume subset request.
+  /// </summary>
+  /// <param name="pVolumeDataLayout">
+  /// The VolumeDataLayout object associated with the input VDS.
+  /// </param>
+  /// <param name="MinVoxelCoordinates">
+  /// The minimum voxel coordinates to request in each dimension (inclusive).
+  /// </param>
+  /// <param name="MaxVoxelCoordinates">
+  /// The maximum voxel coordinates to request in each dimension (exclusive).
+  /// </param>
+  /// <param name="eFormat">
+  /// Voxel format the final buffer should be in.
+  /// </param>
+  /// <param name="lod">
+  /// The lod level the requested data is read from.
+  /// </param>
+  /// <returns>
+  /// The buffer size needed
+  /// </returns>
+  virtual int64_t GetVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, int lod = 0) = 0;
+
+  /// <summary>
   /// Request a subset of the input VDS.
   /// </summary>
   /// <param name="pBuffer">
