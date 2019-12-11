@@ -172,7 +172,7 @@ public:
   /// <returns>
   /// The buffer size needed
   /// </returns>
-  virtual int64_t GetVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, int lod = 0) = 0;
+  virtual int64_t GetVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, int lod = 0) { return 0; };
 
   /// <summary>
   /// Request a subset of the input VDS.
