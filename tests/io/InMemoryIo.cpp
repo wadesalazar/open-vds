@@ -69,7 +69,7 @@ TEST(IOTests, InMemory)
     ASSERT_LE(f, maxValue);
     histogram[int((f - minValue) / bucketSize)]++;
   }
-  int32_t limit = data.size() / 100;
+  size_t limit = data.size() / 100;
   for (auto &h : histogram)
   {
     ASSERT_LT(h, limit);
