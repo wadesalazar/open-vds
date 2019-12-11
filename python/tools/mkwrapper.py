@@ -236,8 +236,7 @@ def try_generate_trampoline_function(node, all_, arglist):
                     typ,
                     ref
                 )
-                callarg = "({})*PyArrayAdapter<{}, {}, {}>::getArrayBufferChecked({})".format(
-                    arg,
+                callarg = "PyArrayAdapter<{}, {}, {}>::getArrayChecked({})".format(
                     typ, 
                     cnt,
                     "true" if is_mutable else "false",
