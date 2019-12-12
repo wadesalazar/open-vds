@@ -139,7 +139,7 @@ static Error ProcessPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessor
   return error;
 }
 
-int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& chunks, std::function<bool(VolumeDataPageImpl * page, const VolumeDataChunk &volumeDataChunk, Error & error)> processor)
+int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& chunks, std::function<bool(VolumeDataPageImpl * page, const VolumeDataChunk &volumeDataChunk, Error & error)> processor, bool singleThread)
 {
   auto layer = chunks.front().Layer;
   DimensionsND dimensions = DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(layer->GetPrimaryChannelLayer().GetChunkDimensionGroup());
@@ -181,9 +181,37 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
     jobPage.page = static_cast<VolumeDataPageImpl *>(pageAccessor->PrepareReadPage(c.Index, &jobPage.needToReadPage));
     assert(jobPage.page && "Need to add error handling here when the page cannot be read");
     jobPage.chunk = c;
-    size_t index = job->pages.size() - 1;
+    if (!singleThread)
+    {
+      size_t index = job->pages.size() - 1;
+      auto job_ptr = job.get();
+      job->future.push_back(m_threadPool.Enqueue([job_ptr, index, pageAccessor, processor] { return ProcessPageInJob(job_ptr, index, pageAccessor, processor); }));
+    }
+  }
+  if (singleThread)
+  {
     auto job_ptr = job.get();
-    job->future.push_back(m_threadPool.Enqueue([job_ptr, index, pageAccessor, processor] { return ProcessPageInJob(job_ptr, index, pageAccessor, processor); }));
+    job->future.push_back(m_threadPool.Enqueue([job_ptr, pageAccessor, processor]
+    {
+      Error error;
+      int pages_size = int(job_ptr->pages.size());
+      for (int i = 0; i < pages_size; i++)
+      {
+        if (error.code == 0)
+        {
+          error = ProcessPageInJob(job_ptr, size_t(i), pageAccessor, processor);
+          if (error.code)
+          {
+            job_ptr->cancelled = true;
+          }
+        }
+        else
+        {
+          ProcessPageInJob(job_ptr, size_t(i), pageAccessor, processor);
+        }
+      }
+      return error;
+    }));
   }
   return job->jobId;
 }

@@ -524,7 +524,6 @@ static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDime
     nCopyDimensions++;
   }
 
-  // Resulting number of copy dimensions must not exceed HueDataBlock_c::DIMENSIONALITY_MAX
   assert(nCopyDimensions <= DataStoreDimensionality_Max && "Invalid Copy Parameters #4");
 
   // Further combine inner dimensions if possible, to minimize number of copy invocations
@@ -587,7 +586,7 @@ static force_inline void CopyBytesT(T* __restrict target, const T* __restrict so
 {
   if (size >= MIN_MEMCPY)
   {
-    memcpy (target, source, size);
+    memcpy (target, source, size_t(size));
   }
   else
   {
@@ -600,18 +599,18 @@ static force_inline void CopyBytesT(T* __restrict target, const T* __restrict so
     if (nTail)
     {
       assert(nTail <= 7 && "Invalid Sample Size Remainder\n");
-      uint8_t *sourceTail = (uint8_t *) (source + nBigElements);
+      const uint8_t *sourceTail = (const uint8_t *) (source + nBigElements);
       uint8_t *targetTail = (uint8_t *) (target + nBigElements);
 
       int32_t iTail = 0;
       switch (nTail)
       {
-      case 7: targetTail [iTail] = sourceTail [iTail]; iTail++;
-      case 6: targetTail [iTail] = sourceTail [iTail]; iTail++;
-      case 5: targetTail [iTail] = sourceTail [iTail]; iTail++;
-      case 4: targetTail [iTail] = sourceTail [iTail]; iTail++;
-      case 3: targetTail [iTail] = sourceTail [iTail]; iTail++;
-      case 2: targetTail [iTail] = sourceTail [iTail]; iTail++;
+      case 7: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
+      case 6: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
+      case 5: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
+      case 4: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
+      case 3: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
+      case 2: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
       case 1: targetTail [iTail] = sourceTail [iTail];
       }
     }
@@ -868,7 +867,7 @@ static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_pro
     abort();
   }
 
-  return request_processor.AddJob(chunksInRegion, [boxRequested, buffer, format](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) {return RequestSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, format, buffer, error);});
+  return request_processor.AddJob(chunksInRegion, [boxRequested, buffer, format](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) {return RequestSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, format, buffer, error);}, format == VolumeDataChannelDescriptor::Format_1Bit);
 }
 
 static VolumeDataLayer *GetLayer(VolumeDataLayout const *layout, DimensionsND dimensionsND, int lod, int channel)
@@ -1416,8 +1415,7 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
     fmt::print(stderr, "Requested volume subset does not contain any data");
     abort();
   }
-
-  return request_processor.AddJob(chunksInRegion, [boxRequested, buffer, projectedDimensions, voxelPlaneSwapped, interpolationMethod, isReplaceNoValue, replacementNoValue](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) { return RequestProjectedVolumeSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, projectedDimensions, voxelPlaneSwapped, interpolationMethod, isReplaceNoValue, replacementNoValue, buffer, error);});
+  return request_processor.AddJob(chunksInRegion, [boxRequested, buffer, projectedDimensions, voxelPlaneSwapped, interpolationMethod, isReplaceNoValue, replacementNoValue](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) { return RequestProjectedVolumeSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, projectedDimensions, voxelPlaneSwapped, interpolationMethod, isReplaceNoValue, replacementNoValue, buffer, error);}, eFormat == VolumeDataChannelDescriptor::Format_1Bit);
 }
 
 struct VolumeDataSamplePos
