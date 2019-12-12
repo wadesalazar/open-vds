@@ -176,7 +176,7 @@ public:
   /// The maximum voxel coordinates to request in each dimension (exclusive).
   /// </param>
   /// <param name="format">
-  /// Voxel format the final buffer should be in.
+  /// Voxel format of the destination buffer.
   /// </param>
   /// <param name="lod">
   /// The LOD level the requested data is read from.
@@ -211,7 +211,7 @@ public:
   /// The maximum voxel coordinates to request in each dimension (exclusive).
   /// </param>
   /// <param name="format">
-  /// Voxel format the final buffer should be in.
+  /// Voxel format of the destination buffer.
   /// </param>
   /// <returns>
   /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
@@ -243,7 +243,7 @@ public:
   /// The maximum voxel coordinates to request in each dimension (exclusive).
   /// </param>
   /// <param name="format">
-  /// Voxel format the final buffer should be in.
+  /// Voxel format of the destination buffer.
   /// </param>
   /// <param name="replacementNoValue">
   /// Value used to replace region of the input VDS that has no data.
@@ -287,7 +287,7 @@ public:
   /// Interpolation method to use when sampling the buffer.
   /// </param>
   /// <param name="format">
-  /// Voxel format the final buffer should be in.
+  /// Voxel format of the destination buffer.
   /// </param>
   /// <returns>
   /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
@@ -328,7 +328,7 @@ public:
   /// Interpolation method to use when sampling the buffer.
   /// </param>
   /// <param name="format">
-  /// Voxel format the final buffer should be in.
+  /// Voxel format of the destination buffer.
   /// </param>
   /// <param name="replacementNoValue">
   /// Value used to replace region of the input VDS that has no data.
