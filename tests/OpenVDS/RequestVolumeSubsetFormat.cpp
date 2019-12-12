@@ -25,7 +25,7 @@
 
 #include "../utils/GenerateVDS.h"
 
-GTEST_TEST(OpenVDS_integration, RequestVolumeSubsetFormat)
+TEST(OpenVDS_integration, RequestVolumeSubsetFormat)
 {
   OpenVDS::Error error;
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(60,60,60), &OpenVDS::Close);

@@ -630,11 +630,23 @@ static force_inline void CopyBytes(void* target, const void* source, int32_t siz
     CopyBytesT ((int8_t*) target, (int8_t*) source, size);
 }
 
-static void BlockCopy(void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
-                      void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
-                      const int32_t (&overlapSize) [DataStoreDimensionality_Max], int32_t elementSize, int32_t copyDimensions, bool is1Bit)
+template<typename T, int targetOneBit, typename S, int sourceOneBit>
+struct BlockCopy
 {
+  static void Do(void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
+                 void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
+                 const int32_t (&overlapSize) [DataStoreDimensionality_Max], int32_t elementSize, int32_t copyDimensions)
+  {
+  }
+};
 
+template<typename T, int is1Bit>
+struct BlockCopy<T, is1Bit, T, is1Bit>
+{
+  static void Do(void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
+                 void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
+                 const int32_t (&overlapSize) [DataStoreDimensionality_Max], int32_t elementSize, int32_t copyDimensions)
+  {
   int64_t sourceLocalBaseSize = ((((int64_t)sourceOffset[3] * sourceSize[2] + sourceOffset[2]) * sourceSize[1] + sourceOffset[1]) * sourceSize[0] + sourceOffset[0]) * elementSize;
   int64_t targetLocalBaseSize = ((((int64_t)targetOffset[3] * targetSize[2] + targetOffset[2]) * targetSize[1] + targetOffset[1]) * targetSize[0] + targetOffset[0]) * elementSize;
 
@@ -674,9 +686,64 @@ static void BlockCopy(void       *target, const int32_t (&targetOffset)[DataStor
       }
     }
   }
+  }
+};
+
+template<typename T, int targetOneBit>
+static void DispatchBlockCopy2(void *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
+                              VolumeDataChannelDescriptor::Format sourceFormat,
+                              void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
+                              const int32_t (&overlapSize) [DataStoreDimensionality_Max], int32_t elementSize, int32_t copyDimensions)
+{
+  switch(sourceFormat)
+  {
+  case VolumeDataChannelDescriptor::Format_1Bit:
+    return BlockCopy<T, targetOneBit, uint8_t, true>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_U8:
+    return BlockCopy<T, targetOneBit, uint8_t, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_U16:
+    return BlockCopy<T, targetOneBit, uint16_t, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_R32:
+    return BlockCopy<T, targetOneBit, float, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_U32:
+    return BlockCopy<T, targetOneBit, uint32_t, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_R64:
+    return BlockCopy<T, targetOneBit, double, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_U64:
+    return BlockCopy<T, targetOneBit, uint64_t, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_Any:
+    return BlockCopy<T, targetOneBit, uint8_t, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  }
 }
 
-static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataChunk &chunk, const int32_t (&destMin)[Dimensionality_Max], const int32_t (&destMax)[Dimensionality_Max], void *destBuffer, Error &error)
+static void DispatchBlockCopy(VolumeDataChannelDescriptor::Format destinationFormat,
+                              void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
+                              VolumeDataChannelDescriptor::Format sourceFormat,
+                              void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
+                              const int32_t (&overlapSize) [DataStoreDimensionality_Max], int32_t elementSize, int32_t copyDimensions)
+{
+  switch(destinationFormat)
+  {
+  case VolumeDataChannelDescriptor::Format_1Bit:
+    return DispatchBlockCopy2<uint8_t, true>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_U8:
+    return DispatchBlockCopy2<uint8_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_U16:
+    return DispatchBlockCopy2<uint16_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_R32:
+    return DispatchBlockCopy2<float, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_U32:
+    return DispatchBlockCopy2<uint32_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_R64:
+    return DispatchBlockCopy2<double, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_U64:
+    return DispatchBlockCopy2<uint64_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  case VolumeDataChannelDescriptor::Format_Any:
+    return DispatchBlockCopy2<uint8_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+  }
+}
+
+static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataChunk &chunk, const int32_t (&destMin)[Dimensionality_Max], const int32_t (&destMax)[Dimensionality_Max], VolumeDataChannelDescriptor::Format destinationFormat, void *destBuffer, Error &error)
 {
   int32_t sourceMin[Dimensionality_Max];
   int32_t sourceMax[Dimensionality_Max];
@@ -711,8 +778,8 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
 
   DimensionGroup sourceDimensionGroup = chunk.Layer->GetChunkDimensionGroup();
 
-  VolumeDataChannelDescriptor::Format format = chunk.Layer->GetFormat();
-  bool is1Bit = ( format == VolumeDataChannelDescriptor::Format_1Bit);
+  VolumeDataChannelDescriptor::Format sourceFormat = chunk.Layer->GetFormat();
+  bool sourceIs1Bit = (sourceFormat == VolumeDataChannelDescriptor::Format_1Bit);
 
   int32_t globalSourceSize[Dimensionality_Max];
   int32_t globalSourceOffset[Dimensionality_Max];
@@ -727,9 +794,9 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
     {
       if (dimension == DimensionGroupUtil::GetDimension(sourceDimensionGroup, iCopyDimension))
       {
-        
+
         globalSourceSize[dimension] = page->GetDataBlock().AllocatedSize[iCopyDimension];
-        if (is1Bit && iCopyDimension == 0)
+        if (sourceIs1Bit && iCopyDimension == 0)
         {
           globalSourceSize[dimension] *= 8;
         }
@@ -758,15 +825,15 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
   int32_t targetOffset[DataStoreDimensionality_Max];
   int32_t overlapSize[DataStoreDimensionality_Max];
 
-  int32_t nCopyDimensions = CombineAndReduceDimensions(sourceSize, sourceOffset, targetSize, targetOffset, overlapSize, globalSourceSize, globalSourceOffset, globalTargetSize, globalTargetOffset, globalOverlapSize);
+  int32_t copyDimensions = CombineAndReduceDimensions(sourceSize, sourceOffset, targetSize, targetOffset, overlapSize, globalSourceSize, globalSourceOffset, globalTargetSize, globalTargetOffset, globalOverlapSize);
 
-  int32_t nBytesPerVoxel = is1Bit ? 1 : GetVoxelFormatByteSize(format);
+  int32_t sourceBytesPerVoxel = sourceIs1Bit ? 1 : GetVoxelFormatByteSize(sourceFormat);
 
   void *source = page->GetRawBufferInternal();
 
-  BlockCopy(destBuffer, targetOffset, targetSize,
-    source, sourceOffset, sourceSize,
-    overlapSize, nBytesPerVoxel, nCopyDimensions, is1Bit);
+  DispatchBlockCopy(destinationFormat, destBuffer, targetOffset, targetSize,
+    sourceFormat, source, sourceOffset, sourceSize,
+    overlapSize, sourceBytesPerVoxel, copyDimensions);
 
   return true;
 }
@@ -801,7 +868,7 @@ static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_pro
     abort();
   }
 
-  return request_processor.AddJob(chunksInRegion, [boxRequested, buffer](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) {return RequestSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, buffer, error);});
+  return request_processor.AddJob(chunksInRegion, [boxRequested, buffer, format](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) {return RequestSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, format, buffer, error);});
 }
 
 static VolumeDataLayer *GetLayer(VolumeDataLayout const *layout, DimensionsND dimensionsND, int lod, int channel)
