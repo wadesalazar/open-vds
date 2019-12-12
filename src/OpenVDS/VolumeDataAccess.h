@@ -91,16 +91,16 @@ public:
   /// <summary>
   /// Create a volume data page accessor object for the VDS associated with the given VolumeDataLayout object.
   /// </summary>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the VDS that the volume data page accessor will access.
   /// </param>
-  /// <param name="eDimensionsND">
+  /// <param name="dimensionsND">
   /// The dimensions group that the volume data page accessor will access.
   /// </param>
   /// <param name="lod">
-  /// The lod level that the volume data page accessor will access.
+  /// The LOD level that the volume data page accessor will access.
   /// </param>
-  /// <param name="iChannel">
+  /// <param name="channel">
   /// The channel index that the volume data page accessor will access.
   /// </param>
   /// <param name="nMaxPages">
@@ -166,20 +166,20 @@ public:
   /// <summary>
   /// Compute the buffer size for a volume subset request.
   /// </summary>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the input VDS.
   /// </param>
-  /// <param name="MinVoxelCoordinates">
+  /// <param name="minVoxelCoordinates">
   /// The minimum voxel coordinates to request in each dimension (inclusive).
   /// </param>
-  /// <param name="MaxVoxelCoordinates">
+  /// <param name="maxVoxelCoordinates">
   /// The maximum voxel coordinates to request in each dimension (exclusive).
   /// </param>
-  /// <param name="eFormat">
+  /// <param name="format">
   /// Voxel format the final buffer should be in.
   /// </param>
   /// <param name="lod">
-  /// The lod level the requested data is read from.
+  /// The LOD level the requested data is read from.
   /// </param>
   /// <returns>
   /// The buffer size needed
@@ -189,323 +189,323 @@ public:
   /// <summary>
   /// Request a subset of the input VDS.
   /// </summary>
-  /// <param name="pBuffer">
-  /// Pointer to a preallocated buffer holding at least as many elements of format as indicated by MinVoxelCoordinates and MaxVoxelCoordinates.
+  /// <param name="buffer">
+  /// Pointer to a preallocated buffer holding at least as many elements of format as indicated by minVoxelCoordinates and maxVoxelCoordinates.
   /// </param>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the input VDS.
   /// </param>
-  /// <param name="eDimensionsND">
+  /// <param name="dimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
   /// <param name="lod">
-  /// The lod level the requested data is read from.
+  /// The LOD level the requested data is read from.
   /// </param>
-  /// <param name="iChannel">
+  /// <param name="channel">
   /// The channel index the requested data is read from.
   /// </param>
-  /// <param name="MinVoxelCoordinates">
+  /// <param name="minVoxelCoordinates">
   /// The minimum voxel coordinates to request in each dimension (inclusive).
   /// </param>
-  /// <param name="MaxVoxelCoordinates">
+  /// <param name="maxVoxelCoordinates">
   /// The maximum voxel coordinates to request in each dimension (exclusive).
   /// </param>
-  /// <param name="eFormat">
+  /// <param name="format">
   /// Voxel format the final buffer should be in.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
   virtual int64_t RequestVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format) = 0;
 
   /// <summary>
   /// Request a subset of the input VDS.
   /// </summary>
-  /// <param name="pBuffer">
-  /// Pointer to a preallocated buffer holding at least as many elements of format as indicated by MinVoxelCoordinates and MaxVoxelCoordinates.
+  /// <param name="buffer">
+  /// Pointer to a preallocated buffer holding at least as many elements of format as indicated by minVoxelCoordinates and maxVoxelCoordinates.
   /// </param>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the input VDS.
   /// </param>
-  /// <param name="eDimensionsND">
+  /// <param name="dimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
   /// <param name="lod">
-  /// The lod level the requested data is read from.
+  /// The LOD level the requested data is read from.
   /// </param>
-  /// <param name="iChannel">
+  /// <param name="channel">
   /// The channel index the requested data is read from.
   /// </param>
-  /// <param name="MinVoxelCoordinates">
+  /// <param name="minVoxelCoordinates">
   /// The minimum voxel coordinates to request in each dimension (inclusive).
   /// </param>
-  /// <param name="MaxVoxelCoordinates">
+  /// <param name="maxVoxelCoordinates">
   /// The maximum voxel coordinates to request in each dimension (exclusive).
   /// </param>
-  /// <param name="eFormat">
+  /// <param name="format">
   /// Voxel format the final buffer should be in.
   /// </param>
-  /// <param name="rReplacementNoValue">
+  /// <param name="replacementNoValue">
   /// Value used to replace region of the input VDS that has no data.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
   virtual int64_t RequestVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lOD, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, float replacementNoValue) = 0;
 
   /// <summary>
   /// Request a subset projected from an arbitrary 3D plane through the subset onto one of the sides of the subset.
   /// </summary>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the input VDS.
   /// </param>
-  /// <param name="pBuffer">
-  /// Pointer to a preallocated buffer holding at least as many elements of format as indicated by MinVoxelCoordinates and MaxVoxelCoordinates for the projected dimensions.
+  /// <param name="buffer">
+  /// Pointer to a preallocated buffer holding at least as many elements of format as indicated by minVoxelCoordinates and maxVoxelCoordinates for the projected dimensions.
   /// </param>
-  /// <param name="eDimensionsND">
+  /// <param name="dimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
   /// <param name="lod">
-  /// The lod level the requested data is read from.
+  /// The LOD level the requested data is read from.
   /// </param>
-  /// <param name="iChannel">
+  /// <param name="channel">
   /// The channel index the requested data is read from.
   /// </param>
-  /// <param name="MinVoxelCoordinates">
+  /// <param name="minVoxelCoordinates">
   /// The minimum voxel coordinates to request in each dimension (inclusive).
   /// </param>
-  /// <param name="MaxVoxelCoordinates">
+  /// <param name="maxVoxelCoordinates">
   /// The maximum voxel coordinates to request in each dimension (exclusive).
   /// </param>
-  /// <param name="cVoxelPlane">
+  /// <param name="voxelPlane">
   /// The plane equation for the projection from the dimension source to the projected dimensions (which must be a 2D subset of the source dimensions).
   /// </param>
-  /// <param name="eProjectedDimensions">
+  /// <param name="projectedDimensions">
   /// The 2D dimension group that the plane in the source dimensiongroup is projected into. It must be a 2D subset of the source dimensions.
   /// </param>
-  /// <param name="eInterpolationMethod">
+  /// <param name="interpolationMethod">
   /// Interpolation method to use when sampling the buffer.
   /// </param>
-  /// <param name="eFormat">
+  /// <param name="format">
   /// Voxel format the final buffer should be in.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
   virtual int64_t RequestProjectedVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod) = 0;
 
   /// <summary>
   /// Request a subset projected from an arbitrary 3D plane through the subset onto one of the sides of the subset.
   /// </summary>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the input VDS.
   /// </param>
-  /// <param name="pBuffer">
-  /// Pointer to a preallocated buffer holding at least as many elements of format as indicated by MinVoxelCoordinates and MaxVoxelCoordinates for the projected dimensions.
+  /// <param name="buffer">
+  /// Pointer to a preallocated buffer holding at least as many elements of format as indicated by minVoxelCoordinates and maxVoxelCoordinates for the projected dimensions.
   /// </param>
-  /// <param name="eDimensionsND">
+  /// <param name="dimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
   /// <param name="lod">
-  /// The lod level the requested data is read from.
+  /// The LOD level the requested data is read from.
   /// </param>
-  /// <param name="iChannel">
+  /// <param name="channel">
   /// The channel index the requested data is read from.
   /// </param>
-  /// <param name="MinVoxelCoordinates">
+  /// <param name="minVoxelCoordinates">
   /// The minimum voxel coordinates to request in each dimension (inclusive).
   /// </param>
-  /// <param name="MaxVoxelCoordinates">
+  /// <param name="maxVoxelCoordinates">
   /// The maximum voxel coordinates to request in each dimension (exclusive).
   /// </param>
-  /// <param name="cVoxelPlane">
+  /// <param name="voxelPlane">
   /// The plane equation for the projection from the dimension source to the projected dimensions (which must be a 2D subset of the source dimensions).
   /// </param>
-  /// <param name="eProjectedDimensions">
+  /// <param name="projectedDimensions">
   /// The 2D dimension group that the plane in the source dimensiongroup is projected into. It must be a 2D subset of the source dimensions.
   /// </param>
-  /// <param name="eInterpolationMethod">
+  /// <param name="interpolationMethod">
   /// Interpolation method to use when sampling the buffer.
   /// </param>
-  /// <param name="eFormat">
+  /// <param name="format">
   /// Voxel format the final buffer should be in.
   /// </param>
-  /// <param name="rReplacementNoValue">
+  /// <param name="replacementNoValue">
   /// Value used to replace region of the input VDS that has no data.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
   virtual int64_t RequestProjectedVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod, float replacementNoValue) = 0;
 
   /// <summary>
   /// Request sampling of the input VDS at the specified coordinates.
   /// </summary>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the input VDS.
   /// </param>
-  /// <param name="pBuffer">
-  /// Pointer to a preallocated buffer holding at least nSampleCount elements.
+  /// <param name="buffer">
+  /// Pointer to a preallocated buffer holding at least sampleCount elements.
   /// </param>
-  /// <param name="eDimensionsND">
+  /// <param name="dimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
   /// <param name="lod">
-  /// The lod level the requested data is read from.
+  /// The LOD level the requested data is read from.
   /// </param>
-  /// <param name="iChannel">
+  /// <param name="channel">
   /// The channel index the requested data is read from.
   /// </param>
-  /// <param name="SamplePositions">
+  /// <param name="samplePositions">
   /// Pointer to array of Dimensionality_Max-elements indicating the positions to sample. May be deleted once requestVolumeSamples return, as OpenVDS makes a deep copy of the data.
   /// </param>
-  /// <param name="nSampleCount">
+  /// <param name="sampleCount">
   /// Number of samples to request.
   /// </param>
-  /// <param name="eInterpolationMethod">
+  /// <param name="interpolationMethod">
   /// Interpolation method to use when sampling the buffer.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
   virtual int64_t RequestVolumeSamples(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float (*samplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod) = 0;
 
   /// <summary>
   /// Request sampling of the input VDS at the specified coordinates.
   /// </summary>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the input VDS.
   /// </param>
-  /// <param name="pBuffer">
-  /// Pointer to a preallocated buffer holding at least nSampleCount elements.
+  /// <param name="buffer">
+  /// Pointer to a preallocated buffer holding at least sampleCount elements.
   /// </param>
-  /// <param name="eDimensionsND">
+  /// <param name="dimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
   /// <param name="lod">
-  /// The lod level the requested data is read from.
+  /// The LOD level the requested data is read from.
   /// </param>
-  /// <param name="iChannel">
+  /// <param name="channel">
   /// The channel index the requested data is read from.
   /// </param>
-  /// <param name="SamplePositions">
+  /// <param name="samplePositions">
   /// Pointer to array of Dimensionality_Max-elements indicating the positions to sample. May be deleted once requestVolumeSamples return, as OpenVDS makes a deep copy of the data.
   /// </param>
-  /// <param name="nSampleCount">
+  /// <param name="sampleCount">
   /// Number of samples to request.
   /// </param>
-  /// <param name="eInterpolationMethod">
+  /// <param name="interpolationMethod">
   /// Interpolation method to use when sampling the buffer.
   /// </param>
-  /// <param name="rReplacementNoValue">
+  /// <param name="replacementNoValue">
   /// Value used to replace region of the input VDS that has no data.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t RequestVolumeSamples(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float (*SamplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod, float replacementNoValue) = 0;
+  virtual int64_t RequestVolumeSamples(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float (*samplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod, float replacementNoValue) = 0;
 
   /// <summary>
   /// Request traces from the input VDS.
   /// </summary>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the input VDS.
   /// </param>
-  /// <param name="pBuffer">
-  /// Pointer to a preallocated buffer holding at least nTraceCount * number of samples in the iTraceDimension.
+  /// <param name="buffer">
+  /// Pointer to a preallocated buffer holding at least traceCount * number of samples in the traceDimension.
   /// </param>
-  /// <param name="eDimensionsND">
+  /// <param name="dimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
   /// <param name="lod">
-  /// The lod level the requested data is read from.
+  /// The LOD level the requested data is read from.
   /// </param>
-  /// <param name="iChannel">
+  /// <param name="channel">
   /// The channel index the requested data is read from.
   /// </param>
-  /// <param name="TracePositions">
-  /// Pointer to array of nTraceCount VolumeDataLayout::Dimensionality_Max-elements indicating the trace positions.
+  /// <param name="tracePositions">
+  /// Pointer to array of traceCount VolumeDataLayout::Dimensionality_Max-elements indicating the trace positions.
   /// </param>
-  /// <param name="nTraceCount">
+  /// <param name="traceCount">
   /// Number of traces to request.
   /// </param>
-  /// <param name="eInterpolationMethod">
+  /// <param name="interpolationMethod">
   /// Interpolation method to use when sampling the buffer.
   /// </param>
-  /// <param name="iTraceDimension">
+  /// <param name="traceDimension">
   /// The dimension to trace
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t RequestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int iTraceDimension) = 0;
+  virtual int64_t RequestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int traceDimension) = 0;
 
   /// <summary>
   /// Request traces from the input VDS.
   /// </summary>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the input VDS.
   /// </param>
-  /// <param name="pBuffer">
-  /// Pointer to a preallocated buffer holding at least nTraceCount * number of samples in the iTraceDimension.
+  /// <param name="buffer">
+  /// Pointer to a preallocated buffer holding at least traceCount * number of samples in the traceDimension.
   /// </param>
-  /// <param name="eDimensionsND">
+  /// <param name="dimensionsND">
   /// The dimensiongroup the requested data is read from.
   /// </param>
   /// <param name="lod">
-  /// The lod level the requested data is read from.
+  /// The LOD level the requested data is read from.
   /// </param>
-  /// <param name="iChannel">
+  /// <param name="channel">
   /// The channel index the requested data is read from.
   /// </param>
-  /// <param name="TracePositions">
-  /// Pointer to array of nTraceCount VolumeDataLayout::Dimensionality_Max-elements indicating the trace positions.
+  /// <param name="tracePositions">
+  /// Pointer to array of traceCount VolumeDataLayout::Dimensionality_Max-elements indicating the trace positions.
   /// </param>
-  /// <param name="nTraceCount">
+  /// <param name="traceCount">
   /// Number of traces to request.
   /// </param>
-  /// <param name="eInterpolationMethod">
+  /// <param name="interpolationMethod">
   /// Interpolation method to use when sampling the buffer.
   /// </param>
-  /// <param name="iTraceDimension">
+  /// <param name="traceDimension">
   /// The dimension to trace
   /// </param>
-  /// <param name="rReplacementNoValue">
+  /// <param name="replacementNoValue">
   /// Value used to replace region of the input VDS that has no data.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
-  virtual int64_t RequestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int nTraceCount, InterpolationMethod eInterpolationMethod, int iTraceDimension, float rReplacementNoValue) = 0;
+  virtual int64_t RequestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int traceDimension, float replacementNoValue) = 0;
 
   /// <summary>
   /// Force production of a specific volume data chunk
   /// </summary>
-  /// <param name="pVolumeDataLayout">
+  /// <param name="volumeDataLayout">
   /// The VolumeDataLayout object associated with the input VDS.
   /// </param>
-  /// <param name="eDimensionsND">
+  /// <param name="dimensionsND">
   /// The dimensiongroup the requested chunk belongs to.
   /// </param>
   /// <param name="lod">
-  /// The lod level the requested chunk belongs to.
+  /// The LOD level the requested chunk belongs to.
   /// </param>
-  /// <param name="iChannel">
+  /// <param name="channel">
   /// The channel index the requested chunk belongs to.
   /// </param>
-  /// <param name="iChunk">
+  /// <param name="chunk">
   /// The index of the chunk to prefetch.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
   virtual int64_t PrefetchVolumeChunk(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk) = 0;
 
   /// <summary>
   /// Check if a request completed successfully. If the request completed, the buffer now contains valid data.
   /// </summary>
-  /// <param name="iRequestID">
-  /// The RequestID to check for completion.
+  /// <param name="requestID">
+  /// The requestID to check for completion.
   /// </param>
   /// <returns>
   /// Either IsCompleted, IsCanceled or WaitForCompletion will return true a single time, after that the request is taken out of the system.
@@ -515,8 +515,8 @@ public:
   /// <summary>
   /// Check if a request was canceled (e.g. the VDS was invalidated before the request was processed). If the request was canceled, the buffer does not contain valid data.
   /// </summary>
-  /// <param name="iRequestID">
-  /// The RequestID to check for cancellation.
+  /// <param name="requestID">
+  /// The requestID to check for cancellation.
   /// </param>
   /// <returns>
   /// Either IsCompleted, IsCanceled or WaitForCompletion will return true a single time, after that the request is taken out of the system.
@@ -526,10 +526,10 @@ public:
   /// <summary>
   /// Wait for a request to complete successfully. If the request completed, the buffer now contains valid data.
   /// </summary>
-  /// <param name="iRequestID">
-  /// The RequestID to wait for completion of.
+  /// <param name="requestID">
+  /// The requestID to wait for completion of.
   /// </param>
-  /// <param name="nMillisecondsBeforeTimeout">
+  /// <param name="millisecondsBeforeTimeout">
   /// The number of milliseconds to wait before timing out (optional). A value of 0 indicates there is no timeout and we will wait for
   /// however long it takes. Note that the request is not automatically canceled if the wait times out, you can also use this mechanism
   /// to e.g. update a progress bar while waiting. If you want to cancel the request you have to explicitly call CancelRequest() and
@@ -545,16 +545,16 @@ public:
   /// Try to cancel the request. You still have to call WaitForCompletion/IsCanceled to make sure the buffer is not being written to and to take the job out of the system.
   /// It is possible that the request has completed concurrently with the call to Cancel in which case WaitForCompletion will return true.
   /// </summary>
-  /// <param name="iRequestID">
-  /// The RequestID to cancel.
+  /// <param name="requestID">
+  /// The requestID to cancel.
   /// </param>
   virtual void  Cancel(int64_t requestID) = 0;
 
   /// <summary>
   /// Get the completion factor (between 0 and 1) of the request.
   /// </summary>
-  /// <param name="iRequestID">
-  /// The RequestID to get the completion factor of.
+  /// <param name="requestID">
+  /// The requestID to get the completion factor of.
   /// </param>
   /// <returns>
   /// A factor (between 0 and 1) indicating how much of the request has been completed.
@@ -664,7 +664,7 @@ public:
 
   virtual int64_t GetChunkCount() const = 0;
   virtual void  GetChunkMinMax(int64_t chunk, int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const = 0;
-  virtual void  GetChunkMinMaxExcludingMargin(int64_t iChunk, int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const = 0;
+  virtual void  GetChunkMinMaxExcludingMargin(int64_t chunk, int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const = 0;
   virtual int64_t GetChunkIndex(const int (&position)[Dimensionality_Max]) const = 0;
 
   virtual int   AddReference() = 0;
