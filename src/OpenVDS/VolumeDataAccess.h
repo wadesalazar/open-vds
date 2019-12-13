@@ -449,7 +449,7 @@ public:
   /// <returns>
   /// The buffer size needed
   /// </returns>
-  virtual int64_t GetVolumeTracesBufferSize(VolumeDataLayout const *volumeDataLayout, int traceCount, int traceDimension, int lod) = 0;
+  virtual int64_t GetVolumeTracesBufferSize(VolumeDataLayout const *volumeDataLayout, int traceCount, int traceDimension, int lod = 0) = 0;
 
   /// <summary>
   /// Request traces from the input VDS.
