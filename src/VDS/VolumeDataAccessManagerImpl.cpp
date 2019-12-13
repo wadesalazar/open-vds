@@ -593,9 +593,9 @@ void VolumeDataAccessManagerImpl::FlushUploadQueue()
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     if(m_pendingUploadRequests.empty()) break;
-    Request &request = *m_pendingUploadRequests.begin()->second.request;
+    std::shared_ptr<Request> request = m_pendingUploadRequests.begin()->second.request;
     lock.unlock();
-    request.WaitForFinish();
+    request->WaitForFinish();
   }
 
   for(auto it = m_vds.layerMetadataContainer.managers.begin(); it != m_vds.layerMetadataContainer.managers.end(); ++it)
