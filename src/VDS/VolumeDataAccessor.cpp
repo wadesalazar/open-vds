@@ -1882,6 +1882,43 @@ int64_t VolumeDataAccessManagerImpl::RequestProjectedVolumeSubset(void* buffer, 
   return StaticRequestProjectedVolumeSubset(m_requestProcessor, buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, DimensionGroupUtil::GetDimensionGroupFromDimensionsND(projectedDimensions), lod, format, interpolationMethod, false, 0.0f);
 }
 
+int64_t VolumeDataAccessManagerImpl::GetProjectedVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, int lod = 0)
+{
+  const int dimensionality = volumeDataLayout->GetDimensionality();
+
+  const DimensionGroup projectedDimensionGroup = DimensionGroupUtil::GetDimensionGroupFromDimensionsND(projectedDimensions);
+
+  for (int32_t dimension = 0; dimension < dimensionality; dimension++)
+  {
+    if(minVoxelCoordinates[dimension] < 0 || minVoxelCoordinates[dimension] >= maxVoxelCoordinates[dimension])
+    {
+      fmt::print(stderr, "Illegal volume subset, dimension {} min = {}, max = {}", dimension, minVoxelCoordinates[dimension], maxVoxelCoordinates[dimension]);
+      abort();
+    }
+  }
+
+  if (DimensionGroupUtil::GetDimensionality(projectedDimensionGroup) != 2)
+  {
+    fmt::print(stderr, "The projected dimension group must contain 2 dimensions.");
+    abort();
+  }
+
+  const int projectedDimension0 = DimensionGroupUtil::GetDimension(projectedDimensionGroup, 0),
+            projectedDimension1 = DimensionGroupUtil::GetDimension(projectedDimensionGroup, 1);
+
+  int64_t voxelCount = GetLODSize(minVoxelCoordinates[projectedDimension0], maxVoxelCoordinates[projectedDimension0], lod) *
+                       GetLODSize(minVoxelCoordinates[projectedDimension1], maxVoxelCoordinates[projectedDimension1], lod);
+
+  if(format == VolumeDataChannelDescriptor::Format_1Bit)
+  {
+    return (voxelCount + 7) / 8;
+  }
+  else
+  {
+    return voxelCount * GetVoxelFormatByteSize(format);
+  }
+}
+
 int64_t VolumeDataAccessManagerImpl::RequestProjectedVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const& voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod, float replacementNoValue)
 {
   return StaticRequestProjectedVolumeSubset(m_requestProcessor, buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, DimensionGroupUtil::GetDimensionGroupFromDimensionsND(projectedDimensions), lod, format, interpolationMethod, true, replacementNoValue);
@@ -1895,6 +1932,18 @@ int64_t VolumeDataAccessManagerImpl::RequestVolumeSamples(float* buffer, VolumeD
 {
   return StaticRequestVolumeSamples(m_requestProcessor, buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), samplePositions, sampleCount, interpolationMethod, true, replacementNoValue);
 }
+
+int64_t VolumeDataAccessManagerImpl::GetVolumeTracesBufferSize(VolumeDataLayout const *volumeDataLayout, int traceCount, int traceDimension, int lod)
+{
+  const VolumeDataChannelDescriptor::Format format = VolumeDataChannelDescriptor::Format_R32;
+
+  int effectiveLOD = static_cast<const VolumeDataLayoutImpl *>(volumeDataLayout)->IsDimensionLODDecimated(traceDimension) ? lod : 0;
+
+  int64_t voxelCount = (int64_t)GetLODSize(0, volumeDataLayout->GetDimensionNumSamples(traceDimension), effectiveLOD) * traceCount;
+
+  return voxelCount * GetVoxelFormatByteSize(format);
+}
+
 int64_t VolumeDataAccessManagerImpl::RequestVolumeTraces(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int traceDimension)
 {
   return StaticRequestVolumeTraces(m_requestProcessor, buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), tracePositions, traceCount, lod, interpolationMethod, traceDimension, false, 0.0f);

@@ -254,6 +254,32 @@ public:
   virtual int64_t RequestVolumeSubset(void *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lOD, int channel, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, float replacementNoValue) = 0;
 
   /// <summary>
+  /// Compute the buffer size for a projected volume subset request.
+  /// </summary>
+  /// <param name="volumeDataLayout">
+  /// The VolumeDataLayout object associated with the input VDS.
+  /// </param>
+  /// <param name="minVoxelCoordinates">
+  /// The minimum voxel coordinates to request in each dimension (inclusive).
+  /// </param>
+  /// <param name="maxVoxelCoordinates">
+  /// The maximum voxel coordinates to request in each dimension (exclusive).
+  /// </param>
+  /// <param name="projectedDimensions">
+  /// The 2D dimension group that the plane in the source dimensiongroup is projected into. It must be a 2D subset of the source dimensions.
+  /// </param>
+  /// <param name="format">
+  /// Voxel format of the destination buffer.
+  /// </param>
+  /// <param name="lod">
+  /// The LOD level the requested data is read from.
+  /// </param>
+  /// <returns>
+  /// The buffer size needed
+  /// </returns>
+  virtual int64_t GetProjectedVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, int lod = 0) = 0;
+
+  /// <summary>
   /// Request a subset projected from an arbitrary 3D plane through the subset onto one of the sides of the subset.
   /// </summary>
   /// <param name="volumeDataLayout">
@@ -404,6 +430,26 @@ public:
   /// The requestID which can be used to query the status of the request, cancel the request or wait for the request to complete
   /// </returns>
   virtual int64_t RequestVolumeSamples(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float (*samplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod, float replacementNoValue) = 0;
+
+  /// <summary>
+  /// Compute the buffer size for a volume traces request.
+  /// </summary>
+  /// <param name="volumeDataLayout">
+  /// The VolumeDataLayout object associated with the input VDS.
+  /// </param>
+  /// <param name="traceCount">
+  /// Number of traces to request.
+  /// </param>
+  /// <param name="traceDimension">
+  /// The dimension to trace
+  /// </param>
+  /// <param name="lod">
+  /// The LOD level the requested data is read from.
+  /// </param>
+  /// <returns>
+  /// The buffer size needed
+  /// </returns>
+  virtual int64_t GetVolumeTracesBufferSize(VolumeDataLayout const *volumeDataLayout, int traceCount, int traceDimension, int lod) = 0;
 
   /// <summary>
   /// Request traces from the input VDS.
