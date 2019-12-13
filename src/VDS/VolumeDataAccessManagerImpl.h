@@ -137,7 +137,7 @@ struct PendingUploadRequest
   {
   }
 
-  PendingUploadRequest(IOManager &ioManager,  const std::string &url, const std::string contentDispositionName,  std::vector<std::pair<std::string, std::string>> &metaMap, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
+  PendingUploadRequest(IOManager &ioManager,  const std::string &url, const std::string &contentDispositionName,  std::vector<std::pair<std::string, std::string>> &metaMap, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
     : url(url)
     , contentDispositionName(contentDispositionName)
     , metaMap(metaMap)
