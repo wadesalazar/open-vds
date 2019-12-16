@@ -34,7 +34,7 @@ TEST(OpenVDS_integration, RequestVolumeSubsetFormat)
   fill3DVDSWithNoice(handle.get());
 
   auto layout = OpenVDS::GetLayout(handle.get());
-  auto accessManager = OpenVDS::GetDataAccessManager(handle.get());
+  auto accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max];
   int32_t maxPos[OpenVDS::Dimensionality_Max];

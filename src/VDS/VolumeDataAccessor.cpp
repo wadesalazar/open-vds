@@ -450,6 +450,30 @@ VolumeDataReadAccessor<FloatVector4, double>* VolumeDataAccessManagerImpl::Creat
    return VolumeDataAccess_CreateInterpolatingVolumeDataAccessor<FloatVector4, double>(volumeDataPageAccessor, replacementNoValue, interpolationMethod);
 }
 
+struct ConversionParameters
+{
+    float valueRangeMin;
+    float valueRangeMax;
+    float integerScale;
+    float integerOffset;
+    float noValue;
+    float replacementNoValue;
+    bool hasReplacementNoValue;
+};
+
+static ConversionParameters makeConversionParameters(VolumeDataLayer *layer, bool hasReplacementNoValue, float replacementNoValue)
+{
+  ConversionParameters ret;
+  ret.valueRangeMin = layer->GetValueRange().Min;
+  ret.valueRangeMax = layer->GetValueRange().Max;
+  ret.integerScale = layer->GetIntegerScale();
+  ret.integerOffset = layer->GetIntegerOffset();
+  ret.noValue = layer->GetNoValue();
+  ret.replacementNoValue = replacementNoValue;
+  ret.hasReplacementNoValue = hasReplacementNoValue;
+  return ret;
+}
+
 static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDimensionality_Max],
                                            int32_t (&sourceOffset)[DataStoreDimensionality_Max],
                                            int32_t (&targetSize  )[DataStoreDimensionality_Max],
@@ -573,6 +597,82 @@ static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDime
   return nCopyDimensions;
 }
 
+template <typename T, bool isUseNoValue>
+static void CopyTo1Bit(uint8_t *target, int64_t targetBit, const QuantizingValueConverterWithNoValue<float, T, isUseNoValue> &valueConverter, const T *source, float noValue)
+{
+    uint8_t bits = 0;
+
+    int32_t mask = 1;
+
+    //for(int32_t voxel = 0; voxel < voxelsPerRowSource; voxel++)
+    {
+      float value = valueConverter.ConvertValue(*source++);
+      if (!isUseNoValue || value != noValue)
+      {
+        bits |= (value != 0.0f) ? mask : 0;
+      }
+
+      mask <<= 1;
+      if(mask == 0x100)
+      {
+        *target++ = bits;
+        bits = 0;
+        mask = 1;
+      }
+    }
+
+    if(mask != 1)
+    {
+      if(bits & (mask >> 1))
+      {
+        while(mask != 0x100)
+        {
+          bits |= mask;
+          mask <<= 1;
+        }
+      }
+      *target++ = bits;
+    }
+
+    uint8_t fillBits = (0x80 & (*target - 1)) ? 0xff : 0x00;
+
+//    for (int32_t byte = (voxelsPerRowSource + 7) / 8; byte < bytesPerRowTarget; byte++)
+//    {
+//      *target++ = fillBits;
+//    }
+}
+
+template <typename T>
+static void CopyFrom1Bit(T *target, const uint8_t *source, int32_t bits)
+{
+//  for (int32_t iRow = 0; iRow < nRows; iRow++)
+//  {
+//    U8
+//      uBits = 0;
+//
+//    B32
+//      bMask = 0x80;
+//
+//    for (I32 iVoxel = 0; iVoxel < nVoxelsPerRowTarget; iVoxel++)
+//    {
+//      bMask <<= 1;
+//
+//      if (bMask == 0x100)
+//      {
+//        uBits = *puSource++;
+//        bMask = 1;
+//      }
+//
+//      *ptTarget++ = (T)((uBits & bMask) ? 1.0f : 0.0f);
+//    }
+//
+//    I32
+//      iCurrentByte = (nVoxelsPerRowTarget + 7) / 8;
+//
+//    puSource += nBytesPerRowSource - iCurrentByte;
+//  }
+}
+
 static force_inline void CopyBits(void* target, int64_t targetBit, const void* source, int64_t sourceBit, int32_t bits)
 {
   while(bits--)
@@ -629,46 +729,81 @@ static force_inline void CopyBytes(void* target, const void* source, int32_t siz
     CopyBytesT ((int8_t*) target, (int8_t*) source, size);
 }
 
-template<typename T, int targetOneBit, typename S, int sourceOneBit>
+template<typename T, typename S, bool noValue>
+static void ConvertAndCopy(T *target, const S *source, const QuantizingValueConverterWithNoValue<T, S, noValue> &valueConverter, int32_t count)
+{
+  for (int i = 0; i < count; i++)
+  {
+    target[i] = valueConverter.ConvertValue(source[i]);
+  }
+}
+
+template<typename T, typename S, bool noValue>
+QuantizingValueConverterWithNoValue<T,S,noValue> createValueConverter(const ConversionParameters &cp)
+{
+  return QuantizingValueConverterWithNoValue<T, S, noValue>(cp.valueRangeMin, cp.valueRangeMax, cp.integerScale, cp.integerOffset, cp.noValue, cp.replacementNoValue);
+}
+
+template<typename T, bool targetOneBit, typename S, bool sourceOneBit, bool noValue>
 struct BlockCopy
 {
   static void Do(void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
                  void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
-                 const int32_t (&overlapSize) [DataStoreDimensionality_Max], int32_t elementSize, int32_t copyDimensions)
+                 const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParamters)
   {
-  }
-};
+    int64_t sourceLocalBaseSize = ((((int64_t)sourceOffset[3] * sourceSize[2] + sourceOffset[2]) * sourceSize[1] + sourceOffset[1]) * sourceSize[0] + sourceOffset[0]) * (int64_t)sizeof(S);
+    int64_t targetLocalBaseSize = ((((int64_t)targetOffset[3] * targetSize[2] + targetOffset[2]) * targetSize[1] + targetOffset[1]) * targetSize[0] + targetOffset[0]) * (int64_t)sizeof(T);
 
-template<typename T, int is1Bit>
-struct BlockCopy<T, is1Bit, T, is1Bit>
-{
-  static void Do(void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
-                 void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
-                 const int32_t (&overlapSize) [DataStoreDimensionality_Max], int32_t elementSize, int32_t copyDimensions)
-  {
-  int64_t sourceLocalBaseSize = ((((int64_t)sourceOffset[3] * sourceSize[2] + sourceOffset[2]) * sourceSize[1] + sourceOffset[1]) * sourceSize[0] + sourceOffset[0]) * elementSize;
-  int64_t targetLocalBaseSize = ((((int64_t)targetOffset[3] * targetSize[2] + targetOffset[2]) * targetSize[1] + targetOffset[1]) * targetSize[0] + targetOffset[0]) * elementSize;
+    const uint8_t *sourceLocalBase = reinterpret_cast<const uint8_t *>(source) + sourceLocalBaseSize;
+    uint8_t *targetLocalBase = reinterpret_cast<uint8_t *>(target) + targetLocalBaseSize;
 
-  if (is1Bit)
-  {
+    QuantizingValueConverterWithNoValue<T, S, noValue> valueConverter = createValueConverter<T,S,noValue>(conversionParamters);
+
     for (int dimension3 = 0; dimension3 < overlapSize[3]; dimension3++)
     {
       for (int dimension2 = 0; dimension2 < overlapSize[2]; dimension2++)
       {
         for (int dimension1 = 0; dimension1 < overlapSize[1]; dimension1++)
         {
-          int64_t sourceLocal = (((int64_t)dimension3 * sourceSize[2] + dimension2) * sourceSize[1] + dimension1) * (int64_t)sourceSize[0] * elementSize;
-          int64_t targetLocal = (((int64_t)dimension3 * targetSize[2] + dimension2) * targetSize[1] + dimension1) * (int64_t)targetSize[0] * elementSize;
-
-          CopyBits(target, targetLocalBaseSize + targetLocal, source, sourceLocalBaseSize + sourceLocal, overlapSize[0]);
+          int64_t sourceLocal = (((int64_t)dimension3 * sourceSize[2] + dimension2) * sourceSize[1] + dimension1) * (int64_t)sourceSize[0] * (int64_t)sizeof(S);
+          int64_t targetLocal = (((int64_t)dimension3 * targetSize[2] + dimension2) * targetSize[1] + dimension1) * (int64_t)targetSize[0] * (int64_t)sizeof(T);
+          if (targetOneBit)
+          {
+            if (sourceOneBit)
+            {
+              assert(false);
+              //mempcy(target, puSource, nVoxels * sizeof(U8));
+            }
+            else
+            {
+              assert(false);
+              //CopyTo1Bit(target, targetLocalBase + targetLocal, createValueConverter<T,S,noValue>(conversionParamters), static_cast<const S *>(sourceLocalBase + sourceLocal), overlapSize[0] * (int32_t)sizeof(S));
+            }
+          }
+          else if(sourceOneBit)
+          {
+            assert(false);
+            CopyFrom1Bit(target, static_cast<const uint8_t *>(source), 0);
+          } else
+          {
+            ConvertAndCopy(reinterpret_cast<T *>(targetLocalBase + targetLocal), reinterpret_cast<const S *>(sourceLocalBase + sourceLocal), valueConverter, overlapSize[0]);
+          }
         }
       }
     }
   }
-  else
-  {
-    const uint8_t *sourceLocalBase = reinterpret_cast<const uint8_t *>(source) + sourceLocalBaseSize;
+};
 
+template<typename T, bool is1Bit>
+struct BlockCopy<T, is1Bit, T, is1Bit, false>
+{
+  static void Do(void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
+                 void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
+                 const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParamters)
+  {
+    int64_t sourceLocalBaseSize = ((((int64_t)sourceOffset[3] * sourceSize[2] + sourceOffset[2]) * sourceSize[1] + sourceOffset[1]) * sourceSize[0] + sourceOffset[0]) * (int64_t)sizeof(T);
+    int64_t targetLocalBaseSize = ((((int64_t)targetOffset[3] * targetSize[2] + targetOffset[2]) * targetSize[1] + targetOffset[1]) * targetSize[0] + targetOffset[0]) * (int64_t)sizeof(T);
+    const uint8_t *sourceLocalBase = reinterpret_cast<const uint8_t *>(source) + sourceLocalBaseSize;
     uint8_t *targetLocalBase = reinterpret_cast<uint8_t *>(target) + targetLocalBaseSize;
 
     for (int dimension3 = 0; dimension3 < overlapSize[3]; dimension3++)
@@ -677,41 +812,56 @@ struct BlockCopy<T, is1Bit, T, is1Bit>
       {
         for (int dimension1 = 0; dimension1 < overlapSize[1]; dimension1++)
         {
-          int64_t iSourceLocal = (((int64_t)dimension3 * sourceSize[2] + dimension2) * sourceSize[1] + dimension1) * (int64_t)sourceSize[0] * elementSize;
-          int64_t iTargetLocal = (((int64_t)dimension3 * targetSize[2] + dimension2) * targetSize[1] + dimension1) * (int64_t)targetSize[0] * elementSize;
-
-          CopyBytes(targetLocalBase + iTargetLocal, sourceLocalBase + iSourceLocal, overlapSize[0] * elementSize);
+          int64_t sourceLocal = (((int64_t)dimension3 * sourceSize[2] + dimension2) * sourceSize[1] + dimension1) * (int64_t)sourceSize[0] * (int64_t)sizeof(T);
+          int64_t targetLocal = (((int64_t)dimension3 * targetSize[2] + dimension2) * targetSize[1] + dimension1) * (int64_t)targetSize[0] * (int64_t)sizeof(T);
+          if (is1Bit)
+          {
+            CopyBits(target, targetLocalBaseSize + targetLocal, source, sourceLocalBaseSize + sourceLocal, overlapSize[0]);
+          }
+          else
+          {
+            CopyBytes(targetLocalBase + targetLocal, sourceLocalBase + sourceLocal, overlapSize[0] * (int32_t)sizeof(T));
+          }
         }
       }
     }
   }
-  }
 };
 
-template<typename T, int targetOneBit>
+template<typename T, bool targetOneBit, typename S, bool sourceOneBit>
+static void DispatchBlockCopy3(void *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
+                              void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
+                              const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParameters)
+{
+  if (conversionParameters.hasReplacementNoValue)
+    BlockCopy<T, targetOneBit, S, sourceOneBit, true>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
+  else
+    BlockCopy<T, targetOneBit, S, sourceOneBit, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
+}
+template<typename T, bool targetOneBit>
 static void DispatchBlockCopy2(void *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
                               VolumeDataChannelDescriptor::Format sourceFormat,
                               void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
-                              const int32_t (&overlapSize) [DataStoreDimensionality_Max], int32_t elementSize, int32_t copyDimensions)
+                              const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParameters)
 {
   switch(sourceFormat)
   {
   case VolumeDataChannelDescriptor::Format_1Bit:
-    return BlockCopy<T, targetOneBit, uint8_t, true>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy3<T, targetOneBit, uint8_t, true>(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
   case VolumeDataChannelDescriptor::Format_U8:
-    return BlockCopy<T, targetOneBit, uint8_t, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy3<T, targetOneBit, uint8_t, false>(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
   case VolumeDataChannelDescriptor::Format_U16:
-    return BlockCopy<T, targetOneBit, uint16_t, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy3<T, targetOneBit, uint16_t, false>(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
   case VolumeDataChannelDescriptor::Format_R32:
-    return BlockCopy<T, targetOneBit, float, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy3<T, targetOneBit, float, false>(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
   case VolumeDataChannelDescriptor::Format_U32:
-    return BlockCopy<T, targetOneBit, uint32_t, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy3<T, targetOneBit, uint32_t, false>(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
   case VolumeDataChannelDescriptor::Format_R64:
-    return BlockCopy<T, targetOneBit, double, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy3<T, targetOneBit, double, false>(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
   case VolumeDataChannelDescriptor::Format_U64:
-    return BlockCopy<T, targetOneBit, uint64_t, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy3<T, targetOneBit, uint64_t, false>(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
   case VolumeDataChannelDescriptor::Format_Any:
-    return BlockCopy<T, targetOneBit, uint8_t, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy3<T, targetOneBit, uint8_t, false>(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
   }
 }
 
@@ -719,30 +869,30 @@ static void DispatchBlockCopy(VolumeDataChannelDescriptor::Format destinationFor
                               void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
                               VolumeDataChannelDescriptor::Format sourceFormat,
                               void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
-                              const int32_t (&overlapSize) [DataStoreDimensionality_Max], int32_t elementSize, int32_t copyDimensions)
+                              const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParamters)
 {
   switch(destinationFormat)
   {
   case VolumeDataChannelDescriptor::Format_1Bit:
-    return DispatchBlockCopy2<uint8_t, true>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy2<uint8_t, true>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, conversionParamters);
   case VolumeDataChannelDescriptor::Format_U8:
-    return DispatchBlockCopy2<uint8_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy2<uint8_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, conversionParamters);
   case VolumeDataChannelDescriptor::Format_U16:
-    return DispatchBlockCopy2<uint16_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy2<uint16_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, conversionParamters);
   case VolumeDataChannelDescriptor::Format_R32:
-    return DispatchBlockCopy2<float, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy2<float, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, conversionParamters);
   case VolumeDataChannelDescriptor::Format_U32:
-    return DispatchBlockCopy2<uint32_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy2<uint32_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, conversionParamters);
   case VolumeDataChannelDescriptor::Format_R64:
-    return DispatchBlockCopy2<double, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy2<double, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, conversionParamters);
   case VolumeDataChannelDescriptor::Format_U64:
-    return DispatchBlockCopy2<uint64_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy2<uint64_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, conversionParamters);
   case VolumeDataChannelDescriptor::Format_Any:
-    return DispatchBlockCopy2<uint8_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, elementSize, copyDimensions);
+    return DispatchBlockCopy2<uint8_t, false>(target, targetOffset, targetSize, sourceFormat, source, sourceOffset, sourceSize, overlapSize, conversionParamters);
   }
 }
 
-static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataChunk &chunk, const int32_t (&destMin)[Dimensionality_Max], const int32_t (&destMax)[Dimensionality_Max], VolumeDataChannelDescriptor::Format destinationFormat, void *destBuffer, Error &error)
+static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataChunk &chunk, const int32_t (&destMin)[Dimensionality_Max], const int32_t (&destMax)[Dimensionality_Max], VolumeDataChannelDescriptor::Format destinationFormat, const ConversionParameters &conversionParameters, void *destBuffer, Error &error)
 {
   int32_t sourceMin[Dimensionality_Max];
   int32_t sourceMax[Dimensionality_Max];
@@ -825,14 +975,13 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
   int32_t overlapSize[DataStoreDimensionality_Max];
 
   int32_t copyDimensions = CombineAndReduceDimensions(sourceSize, sourceOffset, targetSize, targetOffset, overlapSize, globalSourceSize, globalSourceOffset, globalTargetSize, globalTargetOffset, globalOverlapSize);
-
-  int32_t sourceBytesPerVoxel = sourceIs1Bit ? 1 : GetVoxelFormatByteSize(sourceFormat);
+  (void) copyDimensions;
 
   void *source = page->GetRawBufferInternal();
 
   DispatchBlockCopy(destinationFormat, destBuffer, targetOffset, targetSize,
     sourceFormat, source, sourceOffset, sourceSize,
-    overlapSize, sourceBytesPerVoxel, copyDimensions);
+    overlapSize, conversionParameters);
 
   return true;
 }
@@ -867,7 +1016,9 @@ static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_pro
     abort();
   }
 
-  return request_processor.AddJob(chunksInRegion, [boxRequested, buffer, format](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) {return RequestSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, format, buffer, error);}, format == VolumeDataChannelDescriptor::Format_1Bit);
+  ConversionParameters conversionParameters = makeConversionParameters(volumeDataLayer, isReplaceNoValue, replacementNoValue);
+
+  return request_processor.AddJob(chunksInRegion, [boxRequested, buffer, format, conversionParameters](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) {return RequestSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, format, conversionParameters, buffer, error);}, format == VolumeDataChannelDescriptor::Format_1Bit);
 }
 
 static VolumeDataLayer *GetLayer(VolumeDataLayout const *layout, DimensionsND dimensionsND, int lod, int channel)
