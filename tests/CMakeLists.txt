@@ -23,6 +23,10 @@ function(add_test_executable name)
   get_target_property(fmt_INCLUDE fmt::fmt INTERFACE_INCLUDE_DIRECTORIES)
   get_target_property(json_INCLUDE jsoncpp_lib_static INTERFACE_INCLUDE_DIRECTORIES)
   target_include_directories(${name} PRIVATE ${fmt_INCLUDE} ${json_INCLUDE})
+  target_compile_definitions(${name} PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
+  target_compile_definitions(${name} PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
+  target_compile_definitions(${name} PRIVATE -DTEST_AWS_BUCKET="${TEST_AWS_BUCKET}")
+  target_compile_definitions(${name} PRIVATE -DTEST_AWS_OBJECTID="${TEST_AWS_OBJECTID}")
 endfunction()
 
 add_test_executable(io_tests
@@ -51,10 +55,6 @@ add_test_executable(vds_integration_tests
   VDS/DeserializeVolumeDataTest.cpp
   VDS/RequestVolumeCleanupThread.cpp
   )
-target_compile_definitions(vds_integration_tests PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
-target_compile_definitions(vds_integration_tests PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
-target_compile_definitions(vds_integration_tests PRIVATE -DTEST_AWS_BUCKET="${TEST_AWS_BUCKET}")
-target_compile_definitions(vds_integration_tests PRIVATE -DTEST_AWS_OBJECTID="${TEST_AWS_OBJECTID}")
 
 add_test_executable(openvds_integration_tests
   OpenVDS/OpenVDSIntegrationTest.cpp
@@ -63,7 +63,4 @@ add_test_executable(openvds_integration_tests
   OpenVDS/RequestVolumeTraces.cpp
   OpenVDS/RequestVolumeSubsetFormat.cpp
   )
-target_compile_definitions(openvds_integration_tests PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
-target_compile_definitions(openvds_integration_tests PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
-target_compile_definitions(openvds_integration_tests PRIVATE -DTEST_AWS_BUCKET="${TEST_AWS_BUCKET}")
-target_compile_definitions(openvds_integration_tests PRIVATE -DTEST_AWS_OBJECTID="${TEST_AWS_OBJECTID}")
+
