@@ -165,7 +165,7 @@ inline uint32_t GetAllocatedByteSize(const DataBlock &block)
 
 inline int32_t GetAllocatedByteSizeForSize(const int32_t size)
 {
-  return (size + 7) & -8;
+  return size == 1 ? 1 : (size + 7) & -8;
 }
 
 template <typename T>

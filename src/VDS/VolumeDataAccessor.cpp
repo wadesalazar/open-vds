@@ -598,13 +598,14 @@ static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDime
 }
 
 template <typename T, bool isUseNoValue>
-static void CopyTo1Bit(uint8_t *target, int64_t targetBit, const QuantizingValueConverterWithNoValue<float, T, isUseNoValue> &valueConverter, const T *source, float noValue)
+static void CopyTo1Bit(uint8_t *target, int64_t targetBit, const QuantizingValueConverterWithNoValue<float, T, isUseNoValue> &valueConverter, const T *source, float noValue, int32_t count)
 {
-    uint8_t bits = 0;
+    target += targetBit / 8;
+    uint8_t bits = *target;
 
     int32_t mask = 1;
 
-    //for(int32_t voxel = 0; voxel < voxelsPerRowSource; voxel++)
+    for(int32_t voxel = 0; voxel < count; voxel++)
     {
       float value = valueConverter.ConvertValue(*source++);
       if (!isUseNoValue || value != noValue)
@@ -633,44 +634,26 @@ static void CopyTo1Bit(uint8_t *target, int64_t targetBit, const QuantizingValue
       }
       *target++ = bits;
     }
-
-    uint8_t fillBits = (0x80 & (*target - 1)) ? 0xff : 0x00;
-
-//    for (int32_t byte = (voxelsPerRowSource + 7) / 8; byte < bytesPerRowTarget; byte++)
-//    {
-//      *target++ = fillBits;
-//    }
 }
 
 template <typename T>
-static void CopyFrom1Bit(T *target, const uint8_t *source, int32_t bits)
+static void CopyFrom1Bit(T *target, const uint8_t *source, uint64_t bitIndex, int32_t count)
 {
-//  for (int32_t iRow = 0; iRow < nRows; iRow++)
-//  {
-//    U8
-//      uBits = 0;
-//
-//    B32
-//      bMask = 0x80;
-//
-//    for (I32 iVoxel = 0; iVoxel < nVoxelsPerRowTarget; iVoxel++)
-//    {
-//      bMask <<= 1;
-//
-//      if (bMask == 0x100)
-//      {
-//        uBits = *puSource++;
-//        bMask = 1;
-//      }
-//
-//      *ptTarget++ = (T)((uBits & bMask) ? 1.0f : 0.0f);
-//    }
-//
-//    I32
-//      iCurrentByte = (nVoxelsPerRowTarget + 7) / 8;
-//
-//    puSource += nBytesPerRowSource - iCurrentByte;
-//  }
+  source += bitIndex / 8;
+  uint8_t bits = *source;
+  int32_t mask = 1 << (bitIndex %  8);
+  for (int i = 0; i < count; i++)
+  {
+    *target = (bits & mask)? T(1) : T(0);
+    target++;
+    mask <<= 1;
+    if (mask == 0x100)
+    {
+      source++;
+      bits = *source;
+      mask = 1;
+    }
+  }
 }
 
 static force_inline void CopyBits(void* target, int64_t targetBit, const void* source, int64_t sourceBit, int32_t bits)
@@ -758,6 +741,7 @@ struct BlockCopy
     uint8_t *targetLocalBase = reinterpret_cast<uint8_t *>(target) + targetLocalBaseSize;
 
     QuantizingValueConverterWithNoValue<T, S, noValue> valueConverter = createValueConverter<T,S,noValue>(conversionParamters);
+    QuantizingValueConverterWithNoValue<float, S, noValue> floatValueConverter = createValueConverter<float,S,noValue>(conversionParamters);
 
     for (int dimension3 = 0; dimension3 < overlapSize[3]; dimension3++)
     {
@@ -771,19 +755,17 @@ struct BlockCopy
           {
             if (sourceOneBit)
             {
+              //should not reach this path
               assert(false);
-              //mempcy(target, puSource, nVoxels * sizeof(U8));
             }
             else
             {
-              assert(false);
-              //CopyTo1Bit(target, targetLocalBase + targetLocal, createValueConverter<T,S,noValue>(conversionParamters), static_cast<const S *>(sourceLocalBase + sourceLocal), overlapSize[0] * (int32_t)sizeof(S));
+              CopyTo1Bit(static_cast<uint8_t *>(target), targetLocalBaseSize + targetLocal, floatValueConverter, reinterpret_cast<const S *>(sourceLocalBase + sourceLocal), conversionParamters.noValue, overlapSize[0]);
             }
           }
           else if(sourceOneBit)
           {
-            assert(false);
-            CopyFrom1Bit(target, static_cast<const uint8_t *>(source), 0);
+            CopyFrom1Bit(reinterpret_cast<T *>(targetLocalBase + targetLocal), static_cast<const uint8_t *>(source), sourceLocalBaseSize + sourceLocal, overlapSize[0]);
           } else
           {
             ConvertAndCopy(reinterpret_cast<T *>(targetLocalBase + targetLocal), reinterpret_cast<const S *>(sourceLocalBase + sourceLocal), valueConverter, overlapSize[0]);
@@ -833,7 +815,7 @@ static void DispatchBlockCopy3(void *target, const int32_t (&targetOffset)[DataS
                               void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
                               const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParameters)
 {
-  if (conversionParameters.hasReplacementNoValue)
+  if (conversionParameters.hasReplacementNoValue && !(targetOneBit && sourceOneBit))
     BlockCopy<T, targetOneBit, S, sourceOneBit, true>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
   else
     BlockCopy<T, targetOneBit, S, sourceOneBit, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
@@ -1201,7 +1183,7 @@ void ProjectValuesKernel(T *output, const T *input, const ProjectVars &projectVa
 
   voxelCenterInIndex[projectVars.projectionDimension] = zValue;
 
-  int32_t voxelInIndexInt[Dimensionality_Max]; 
+  int32_t voxelInIndexInt[Dimensionality_Max];
   voxelInIndexInt[0] = voxelOutIndex[0];
   voxelInIndexInt[1] = voxelOutIndex[1];
   voxelInIndexInt[2] = voxelOutIndex[2];
