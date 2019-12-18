@@ -139,7 +139,6 @@ enum Dimensionality
 /// <returns>
 /// The number of voxels at the given LOD, at LOD 0 the result is voxelMax - voxelMin.
 /// </returns>
-
 inline int GetLODSize(int voxelMin, int voxelMax, int lod, bool includePartialUpperVoxel = true)
 {
   return ((voxelMax - includePartialUpperVoxel) >> lod) + includePartialUpperVoxel - (voxelMin >> lod);
@@ -158,7 +157,6 @@ inline int GetLODSize(int voxelMin, int voxelMax, int lod, bool includePartialUp
 /// <returns>
 /// Element at position "element" is returned.
 /// </returns>
-///
 template <typename T>
 inline T ReadElement(const T *buffer, size_t element) { return buffer[element]; }
 template <>
@@ -177,11 +175,21 @@ inline bool ReadElement<bool>(const bool *buffer, size_t element) { return (rein
 /// <param name="value">
 /// Value to write
 /// </param>
-///
 template <typename T>
 inline void WriteElement(T *buffer, size_t element, T value) { buffer[element] = value; }
 template <>
 inline void WriteElement(bool *buffer, size_t element, bool value) { if(value) { reinterpret_cast<unsigned char *>(buffer)[element / 8] |= (1 << (element % 8)); } else { reinterpret_cast<unsigned char *>(buffer)[element / 8] &= ~(1 << (element % 8)); } }
+
+/// <summary>
+/// Template function to get the scalar for the pitch value (which is in bytes for 1-bit data) used to scale the pitch to get the number of elements
+/// </summary>
+/// <returns>
+/// The scale factor for the pitch for the given type
+/// </returns>
+template <typename T>
+inline int PitchScale() { return 1; }
+template <>
+inline int PitchScale<bool>() { return 8; }
 
 } /* namespace OpenVDS */
 

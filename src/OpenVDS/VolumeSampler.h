@@ -27,11 +27,6 @@
 
 namespace OpenVDS
 {
-template <typename T>
-inline int PitchScale() { return 1; }
-template <>
-inline int PitchScale<bool>() { return 8; }
-
 template <typename T> struct InterpolatedRealType { typedef float type; };
 template <> struct InterpolatedRealType<double>   { typedef double type; };
 template <> struct InterpolatedRealType<uint64_t> { typedef double type; };
