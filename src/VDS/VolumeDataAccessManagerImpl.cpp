@@ -310,7 +310,7 @@ void VolumeDataAccessManagerImpl::Cancel(int64_t requestID)
 }
 float VolumeDataAccessManagerImpl::GetCompletionFactor(int64_t requestID)
 {
-  return 0.0f;
+  return m_requestProcessor.GetCompletionFactor(requestID);
 }
 
 static MetadataManager *GetMetadataMangerForLayer(LayerMetadataContainer const &container, const std::string &layer)

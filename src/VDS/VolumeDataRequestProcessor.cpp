@@ -283,6 +283,15 @@ void VolumeDataRequestProcessor::Cancel(int64_t jobID)
   job_it->get()->cancelled = true;
 }
 
+float VolumeDataRequestProcessor::GetCompletionFactor(int64_t jobID)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](std::unique_ptr<Job> &job) { return job->jobId == jobID; });
+  if (job_it == m_jobs.end())
+    return 0.f;
+  return float(job_it->get()->completed) / float(job_it->get()->pages.size());
+}
+
 int VolumeDataRequestProcessor::CountActivePages()
 {
   std::unique_lock<std::mutex> lock(m_mutex);

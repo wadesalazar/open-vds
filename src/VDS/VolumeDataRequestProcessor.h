@@ -86,6 +86,7 @@ public:
   bool  IsCanceled(int64_t requestID);
   bool  WaitForCompletion(int64_t requestID, int millisecondsBeforeTimeout = 0);
   void  Cancel(int64_t requestID);
+  float GetCompletionFactor(int64_t requestID);
 
   int CountActivePages();
 private:
