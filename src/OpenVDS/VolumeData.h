@@ -145,6 +145,44 @@ inline int GetLODSize(int voxelMin, int voxelMax, int lod, bool includePartialUp
   return ((voxelMax - includePartialUpperVoxel) >> lod) + includePartialUpperVoxel - (voxelMin >> lod);
 }
 
+/// <summary>
+/// Read element from buffer. This function has a template specialisation for bool
+/// making it suitable to read single bits from a buffer with packed bits.
+/// </summary>
+/// <param name="buffer">
+/// Buffer to read from
+/// </param>
+/// <param name="element">
+/// The element index to read from buffer
+/// </param>
+/// <returns>
+/// Element at position "element" is returned.
+/// </returns>
+///
+template <typename T>
+inline T ReadElement(const T *buffer, size_t element) { return buffer[element]; }
+template <>
+inline bool ReadElement<bool>(const bool *buffer, size_t element) { return (reinterpret_cast<const unsigned char *>(buffer)[element / 8] & (1 << (element % 8))) != 0; }
+
+/// <summary>
+/// Write element into buffer. This function has a template specialisation for bool
+/// making it suitable to write single bits into a buffer with packed bits.
+/// </summary>
+/// <param name="buffer">
+/// Buffer to write to
+/// </param>
+/// <param name="element">
+/// The element index in the buffer to write to
+/// </param>
+/// <param name="value">
+/// Value to write
+/// </param>
+///
+template <typename T>
+inline void WriteElement(T *buffer, size_t element, T value) { buffer[element] = value; }
+template <>
+inline void WriteElement(bool *buffer, size_t element, bool value) { if(value) { reinterpret_cast<unsigned char *>(buffer)[element / 8] |= (1 << (element % 8)); } else { reinterpret_cast<unsigned char *>(buffer)[element / 8] &= ~(1 << (element % 8)); } }
+
 } /* namespace OpenVDS */
 
 #endif //VOLUMEDATA_H_INCLUDED

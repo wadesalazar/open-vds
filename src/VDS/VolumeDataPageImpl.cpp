@@ -61,28 +61,28 @@ static void dataBlock_BlockCopyWithExplicitContiguity(T * __restrict ptTarget, c
         {
           for(int32_t iDim0 = 0; iDim0 < size[0]; iDim0++, iSourceIndex0++, iTargetIndex0++)
           {
-            DataBlock_WriteElement(ptTarget, iTargetIndex0, DataBlock_ReadElement(ptSource, iSourceIndex0));
+            WriteElement(ptTarget, iTargetIndex0, ReadElement(ptSource, iSourceIndex0));
           }
         }
         else if(isTargetDim0Contigous)
         {
           for(int32_t iDim0 = 0; iDim0 < size[0]; iDim0++, iSourceIndex0 += sourcePitch[0], iTargetIndex0++)
           {
-            DataBlock_WriteElement(ptTarget, iTargetIndex0, DataBlock_ReadElement(ptSource, iSourceIndex0));
+            WriteElement(ptTarget, iTargetIndex0, ReadElement(ptSource, iSourceIndex0));
           }
         }
         else if(isSourceDim0Contigous)
         {
           for(int32_t iDim0 = 0; iDim0 < size[0]; iDim0++, iSourceIndex0++, iTargetIndex0 += targetPitch[0])
           {
-            DataBlock_WriteElement(ptTarget, iTargetIndex0, DataBlock_ReadElement(ptSource, iSourceIndex0));
+            WriteElement(ptTarget, iTargetIndex0, ReadElement(ptSource, iSourceIndex0));
           }
         }
         else
         {
           for(int32_t iDim0 = 0; iDim0 < size[0]; iDim0++, iSourceIndex0 += sourcePitch[0], iTargetIndex0 += targetPitch[0])
           {
-            DataBlock_WriteElement(ptTarget, iTargetIndex0, DataBlock_ReadElement(ptSource, iSourceIndex0));
+            WriteElement(ptTarget, iTargetIndex0, ReadElement(ptSource, iSourceIndex0));
           }
         }
       }

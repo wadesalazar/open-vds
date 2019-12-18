@@ -28,11 +28,6 @@
 namespace OpenVDS
 {
 template <typename T>
-inline T ReadElement(const T *ptBuffer, size_t iElement) { return ptBuffer[iElement]; }
-template <>
-inline bool ReadElement<bool>(const bool *ptBuffer, size_t iElement) { return (reinterpret_cast<const unsigned char *>(ptBuffer)[iElement / 8] & (1 << (iElement % 8))) != 0; }
-
-template <typename T>
 inline int PitchScale() { return 1; }
 template <>
 inline int PitchScale<bool>() { return 8; }

@@ -168,15 +168,6 @@ inline int32_t GetAllocatedByteSizeForSize(const int32_t size)
   return size == 1 ? 1 : (size + 7) & -8;
 }
 
-template <typename T>
-inline T DataBlock_ReadElement(const T *ptBuffer, size_t iElement) { return ptBuffer[iElement]; }
-template <>
-inline bool DataBlock_ReadElement(const bool *ptBuffer, size_t iElement) { return (reinterpret_cast<const unsigned char *>(ptBuffer)[iElement / 8] & (1 << (iElement % 8))) != 0; }
-
-template <typename T>
-inline void DataBlock_WriteElement(T *ptBuffer, size_t iElement, T tValue) { ptBuffer[iElement] = tValue; }
-template <>
-inline void DataBlock_WriteElement(bool *ptBuffer, size_t iElement, bool tValue) { if(tValue) { reinterpret_cast<unsigned char *>(ptBuffer)[iElement / 8] |= (1 << (iElement % 8)); } else { reinterpret_cast<unsigned char *>(ptBuffer)[iElement / 8] &= ~(1 << (iElement % 8)); } }
 }
 
 #endif //DATABLOCK_H

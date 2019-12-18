@@ -660,7 +660,7 @@ static force_inline void CopyBits(void* target, int64_t targetBit, const void* s
 {
   while(bits--)
   {
-    DataBlock_WriteElement(reinterpret_cast<bool *>(target), targetBit++, DataBlock_ReadElement(reinterpret_cast<const bool *>(source), sourceBit++));
+    WriteElement(reinterpret_cast<bool *>(target), targetBit++, ReadElement(reinterpret_cast<const bool *>(source), sourceBit++));
   }
 }
 
@@ -1164,8 +1164,8 @@ static void VoxelIndexToLocalIndexFloat(const IndexValues &indexValues, const fl
     }
 }
 
-template <typename T, InterpolationMethod INTERPMETHOD, bool isUseNoValue>
-void ProjectValuesKernel(T *output, const T *input, const ProjectVars &projectVars, const IndexValues &inputIndexer, const int32_t (&voxelOutIndex)[Dimensionality_Max], VolumeSampler<T, INTERPMETHOD, isUseNoValue> &sampler, QuantizingValueConverterWithNoValue<T, typename InterpolatedRealType<T>::type, isUseNoValue> &converter, float voxelCenterOffset)
+template <typename T, typename S, InterpolationMethod INTERPMETHOD, bool isUseNoValue>
+void ProjectValuesKernelInner(T *output, const S *input, const ProjectVars &projectVars, const IndexValues &inputIndexer, const int32_t (&voxelOutIndex)[Dimensionality_Max], VolumeSampler<S, INTERPMETHOD, isUseNoValue> &sampler, QuantizingValueConverterWithNoValue<T, typename InterpolatedRealType<S>::type, isUseNoValue> &converter, float voxelCenterOffset)
 {
   float zValue = (projectVars.voxelPlane.X * (voxelOutIndex[projectVars.projectedDimensions[0]] + voxelCenterOffset) + projectVars.voxelPlane.Y * (voxelOutIndex[projectVars.projectedDimensions[1]] + voxelCenterOffset) + projectVars.voxelPlane.T) / (-projectVars.voxelPlane.Z);
 
@@ -1199,19 +1199,18 @@ void ProjectValuesKernel(T *output, const T *input, const ProjectVars &projectVa
     VoxelIndexToLocalIndexFloat(inputIndexer, voxelCenterInIndex, localInIndex);
     FloatVector3 localInIndex3D(localInIndex[0], localInIndex[1], localInIndex[2]);
 
-    typedef typename InterpolatedRealType<T>::type TREAL;
+    typedef typename InterpolatedRealType<S>::type TREAL;
     TREAL value = sampler.Sample3D(input, localInIndex3D);
 
-    //TODO - 1Bit
-    output[projectVars.DataIndex(voxelOutIndex)] = converter.ConvertValue(value);
+    WriteElement(output, projectVars.DataIndex(voxelOutIndex), converter.ConvertValue(value));
   }
 }
 
-template <typename T, InterpolationMethod INTERPMETHOD, bool isUseNoValue>
-void ProjectValuesKernelCPU(T *pxOutput, const T *pxInput, const ProjectVars &projectVars, const IndexValues &indexValues, float scale, float offset, float noValue)
+template <typename T, typename S, InterpolationMethod INTERPMETHOD, bool isUseNoValue>
+void ProjectValuesKernel(T *pxOutput, const S *pxInput, const ProjectVars &projectVars, const IndexValues &indexValues, float scale, float offset, float noValue)
 {
-  VolumeSampler<T, INTERPMETHOD, isUseNoValue> sampler(indexValues.dataBlockSamples, indexValues.dataBlockPitch, indexValues.valueRangeMin, indexValues.valueRangeMax, scale, offset, noValue, noValue);
-  QuantizingValueConverterWithNoValue<T, typename InterpolatedRealType<T>::type, isUseNoValue> converter(indexValues.valueRangeMin, indexValues.valueRangeMax, scale, offset, noValue, noValue, false);
+  VolumeSampler<S, INTERPMETHOD, isUseNoValue> sampler(indexValues.dataBlockSamples, indexValues.dataBlockPitch, indexValues.valueRangeMin, indexValues.valueRangeMax, scale, offset, noValue, noValue);
+  QuantizingValueConverterWithNoValue<T, typename InterpolatedRealType<S>::type, isUseNoValue> converter(indexValues.valueRangeMin, indexValues.valueRangeMax, scale, offset, noValue, noValue, false);
 
   int32_t numSamples[2];
   int32_t offsetPair[2];
@@ -1243,55 +1242,67 @@ void ProjectValuesKernelCPU(T *pxOutput, const T *pxInput, const ProjectVars &pr
 
     int32_t voxelIndex[Dimensionality_Max];
     projectVars.VoxelIndex(localChunkIndex, voxelIndex);
-    ProjectValuesKernel<T, INTERPMETHOD, isUseNoValue>(pxOutput, pxInput, projectVars, indexValues, voxelIndex, sampler, converter, voxelCenterOffset);
+    ProjectValuesKernelInner<T, S, INTERPMETHOD, isUseNoValue>(pxOutput, pxInput, projectVars, indexValues, voxelIndex, sampler, converter, voxelCenterOffset);
   }
 }
 
-template <typename T, bool isUseNoValue>
-static void ProjectValuesInitCPU(T *output, const T *input, const ProjectVars &projectVars, const IndexValues &indexValues, float scale, float offset, float noValue, InterpolationMethod interpolationMethod)
+template <typename T, typename S, bool isUseNoValue>
+static void DispatchProjectValues3(void *output, const void *input, const ProjectVars &projectVars, const IndexValues &indexValues, InterpolationMethod interpolationMethod, float scale, float offset, float noValue)
 {
   switch(interpolationMethod)
   {
-  case InterpolationMethod::Nearest: ProjectValuesKernelCPU<T, InterpolationMethod::Nearest, isUseNoValue>(output, input, projectVars, indexValues, scale, offset, noValue); break;
-  case InterpolationMethod::Linear:  ProjectValuesKernelCPU<T, InterpolationMethod::Linear,  isUseNoValue>(output, input, projectVars, indexValues, scale, offset, noValue); break;
-  case InterpolationMethod::Cubic:   ProjectValuesKernelCPU<T, InterpolationMethod::Cubic,   isUseNoValue>(output, input, projectVars, indexValues, scale, offset, noValue); break;
-  case InterpolationMethod::Angular: ProjectValuesKernelCPU<T, InterpolationMethod::Angular, isUseNoValue>(output, input, projectVars, indexValues, scale, offset, noValue); break;
-  case InterpolationMethod::Triangular: ProjectValuesKernelCPU<T, InterpolationMethod::Triangular, isUseNoValue>(output, input, projectVars, indexValues, scale, offset, noValue); break;
-  //case InterpolationMethod::TriangularExcludingValuerangeMinAndLess: ProjectValuesKernelCPU<T, InterpolationMethod::TriangularExcludingValuerangeMinAndLess, isUseNoValue>(output, input, projectVars, scale, offset, noValue); break;
+  case InterpolationMethod::Nearest: ProjectValuesKernel<T, S, InterpolationMethod::Nearest, isUseNoValue>(static_cast<T *>(output), static_cast<const S *>(input), projectVars, indexValues, scale, offset, noValue); break;
+  case InterpolationMethod::Linear:  ProjectValuesKernel<T, S, InterpolationMethod::Linear,  isUseNoValue>(static_cast<T *>(output), static_cast<const S *>(input), projectVars, indexValues, scale, offset, noValue); break;
+  case InterpolationMethod::Cubic:   ProjectValuesKernel<T, S, InterpolationMethod::Cubic,   isUseNoValue>(static_cast<T *>(output), static_cast<const S *>(input), projectVars, indexValues, scale, offset, noValue); break;
+  case InterpolationMethod::Angular: ProjectValuesKernel<T, S, InterpolationMethod::Angular, isUseNoValue>(static_cast<T *>(output), static_cast<const S *>(input), projectVars, indexValues, scale, offset, noValue); break;
+  case InterpolationMethod::Triangular: ProjectValuesKernel<T, S, InterpolationMethod::Triangular, isUseNoValue>(static_cast<T *>(output), static_cast<const S *>(input), projectVars, indexValues, scale, offset, noValue); break;
+  //case InterpolationMethod::TriangularExcludingValuerangeMinAndLess: ProjectValuesKernelCPU<T, InterpolationMethod::TriangularExcludingValuerangeMinAndLess, isUseNoValue>(static_cast<T *>(output), static_cast<const S *>(input), projectVars, scale, offset, noValue); break;
   }
 }
 
-static void ProjectValuesCPU(void *output, const void *input, const ProjectVars &projectVars, const IndexValues &indexValues, VolumeDataChannelDescriptor::Format format, InterpolationMethod eInterpolationMethod, float scale, float offset, bool isUseNoValue, float noValue)
+template<typename T, bool isUseNoValue>
+static void DispatchProjectValues2(void *output, const void *input, VolumeDataChannelDescriptor::Format sourceFormat, const ProjectVars &projectVars, const IndexValues &indexValues, InterpolationMethod interpolationMethod, float scale, float offset, float noValue)
+{
+  switch(sourceFormat)
+  {
+  case VolumeDataChannelDescriptor::Format_1Bit: DispatchProjectValues3<T, bool, isUseNoValue>(output, input, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_U8: DispatchProjectValues3<T, uint8_t, isUseNoValue>(output, input, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_U16: DispatchProjectValues3<T, uint16_t, isUseNoValue>(output, input, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_R32: DispatchProjectValues3<T, float, isUseNoValue>(output, input, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_U32: DispatchProjectValues3<T, uint32_t, isUseNoValue>(output, input, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_R64: DispatchProjectValues3<T, double, isUseNoValue>(output, input, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_U64: DispatchProjectValues3<T, uint32_t, isUseNoValue>(output, input, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_Any: return;
+  }
+}
+
+template<bool isUseNoValue>
+static void DispatchProjectValues1(void *output, VolumeDataChannelDescriptor::Format targetFormat, const void *input, VolumeDataChannelDescriptor::Format sourceFormat, const ProjectVars &projectVars, const IndexValues &indexValues, InterpolationMethod interpolationMethod, float scale, float offset, float noValue)
+{
+  switch(targetFormat)
+  {
+  case VolumeDataChannelDescriptor::Format_1Bit: DispatchProjectValues2<bool, isUseNoValue>(output, input, sourceFormat, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_U8: DispatchProjectValues2<uint8_t, isUseNoValue>(output, input, sourceFormat, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_U16: DispatchProjectValues2<uint16_t, isUseNoValue>(output, input, sourceFormat, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_R32: DispatchProjectValues2<float, isUseNoValue>(output, input, sourceFormat, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_U32: DispatchProjectValues2<uint32_t, isUseNoValue>(output, input, sourceFormat, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_R64: DispatchProjectValues2<double, isUseNoValue>(output, input, sourceFormat, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_U64: DispatchProjectValues2<uint32_t, isUseNoValue>(output, input, sourceFormat, projectVars, indexValues, interpolationMethod, scale, offset, isUseNoValue); break;
+  case VolumeDataChannelDescriptor::Format_Any: break;
+  }
+}
+
+static void DispatchProjectValues(void *output, VolumeDataChannelDescriptor::Format targetFormat, const void *input, VolumeDataChannelDescriptor::Format sourceFormat, const ProjectVars &projectVars, const IndexValues &indexValues, InterpolationMethod interpolationMethod, float scale, float offset, bool isUseNoValue, float noValue)
 {
   if (isUseNoValue)
-  {
-    switch(format)
-    {
-    case VolumeDataChannelDescriptor::Format_U8:  ProjectValuesInitCPU<unsigned char, true>((unsigned char*)output, (const unsigned char*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    case VolumeDataChannelDescriptor::Format_U16: ProjectValuesInitCPU<unsigned short, true>((unsigned short*)output, (const unsigned short*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    case VolumeDataChannelDescriptor::Format_R32: ProjectValuesInitCPU<float, true>((float*)output, (const float*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    case VolumeDataChannelDescriptor::Format_U32: ProjectValuesInitCPU<unsigned int, true>((unsigned int*)output, (const unsigned int*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    case VolumeDataChannelDescriptor::Format_R64: ProjectValuesInitCPU<double, true>((double*)output, (const double*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    case VolumeDataChannelDescriptor::Format_U64: ProjectValuesInitCPU<uint64_t, true>((uint64_t *)output, (const uint64_t *)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    }
-  }
+    DispatchProjectValues1<true>(output, targetFormat, input, sourceFormat, projectVars, indexValues, interpolationMethod, scale, offset, noValue);
   else
-  {
-    switch(format)
-    {
-    case VolumeDataChannelDescriptor::Format_U8:  ProjectValuesInitCPU<unsigned char, false>((unsigned char*)output, (const unsigned char*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    case VolumeDataChannelDescriptor::Format_U16: ProjectValuesInitCPU<unsigned short, false>((unsigned short*)output, (const unsigned short*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    case VolumeDataChannelDescriptor::Format_R32: ProjectValuesInitCPU<float, false>((float*)output, (const float*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    case VolumeDataChannelDescriptor::Format_U32: ProjectValuesInitCPU<unsigned int, false>((unsigned int*)output, (const unsigned int*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    case VolumeDataChannelDescriptor::Format_R64: ProjectValuesInitCPU<double, false>((double*)output, (const double*)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    case VolumeDataChannelDescriptor::Format_U64: ProjectValuesInitCPU<uint64_t, false>((uint64_t *)output, (const uint64_t *)input, projectVars, indexValues, scale, offset, noValue, eInterpolationMethod); break;
-    }
-  }
+    DispatchProjectValues1<false>(output, targetFormat, input, sourceFormat, projectVars, indexValues, interpolationMethod, scale, offset, noValue);
 }
 
-static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataChunk &chunk, const int32_t (&destMin)[Dimensionality_Max], const int32_t (&destMax)[Dimensionality_Max], DimensionGroup projectedDimensionsEnum, FloatVector4 voxelPlane, InterpolationMethod interpolationMethod, bool useNoValue, float noValue, void *destBuffer, Error &error)
+static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataChunk &chunk, const int32_t (&destMin)[Dimensionality_Max], const int32_t (&destMax)[Dimensionality_Max], DimensionGroup projectedDimensionsEnum, FloatVector4 voxelPlane, VolumeDataChannelDescriptor::Format targetFormat,  InterpolationMethod interpolationMethod, bool useNoValue, float noValue, void *targetBuffer, Error &error)
 {
-  VolumeDataChannelDescriptor::Format voxelFormat = chunk.Layer->GetFormat();
+  VolumeDataChannelDescriptor::Format sourceFormat = chunk.Layer->GetFormat();
 
   VolumeDataLayer const *volumeDataLayer = chunk.Layer;
 
@@ -1381,11 +1392,11 @@ static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
   IndexValues indexValues;
   indexValues.Initialize(chunk, page->GetDataBlock());
 
-  ProjectValuesCPU(destBuffer, sourceBuffer, projectVars, indexValues, voxelFormat, interpolationMethod, volumeDataLayer->GetIntegerScale(), volumeDataLayer->GetIntegerOffset(), useNoValue, noValue);
+  DispatchProjectValues(targetBuffer, targetFormat, sourceBuffer, sourceFormat, projectVars, indexValues, interpolationMethod, volumeDataLayer->GetIntegerScale(), volumeDataLayer->GetIntegerOffset(), useNoValue, noValue);
   return true;
 }
 
-static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t (&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionGroup projectedDimensions, int32_t lod, VolumeDataChannelDescriptor::Format eFormat, InterpolationMethod interpolationMethod, bool isReplaceNoValue, float replacementNoValue)
+static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t (&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionGroup projectedDimensions, int32_t lod, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod, bool isReplaceNoValue, float replacementNoValue)
 {
   Box boxRequested;
   memcpy(boxRequested.min, minRequested, sizeof(boxRequested.min));
@@ -1548,7 +1559,7 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
     fmt::print(stderr, "Requested volume subset does not contain any data");
     abort();
   }
-  return request_processor.AddJob(chunksInRegion, [boxRequested, buffer, projectedDimensions, voxelPlaneSwapped, interpolationMethod, isReplaceNoValue, replacementNoValue](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) { return RequestProjectedVolumeSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, projectedDimensions, voxelPlaneSwapped, interpolationMethod, isReplaceNoValue, replacementNoValue, buffer, error);}, eFormat == VolumeDataChannelDescriptor::Format_1Bit);
+  return request_processor.AddJob(chunksInRegion, [boxRequested, buffer, projectedDimensions, voxelPlaneSwapped, format, interpolationMethod, isReplaceNoValue, replacementNoValue](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) { return RequestProjectedVolumeSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, projectedDimensions, voxelPlaneSwapped, format, interpolationMethod, isReplaceNoValue, replacementNoValue, buffer, error);}, format == VolumeDataChannelDescriptor::Format_1Bit);
 }
 
 struct VolumeDataSamplePos
