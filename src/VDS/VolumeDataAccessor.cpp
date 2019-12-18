@@ -598,7 +598,7 @@ static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDime
 }
 
 template <typename T, bool isUseNoValue>
-static void CopyTo1Bit(uint8_t *target, int64_t targetBit, const QuantizingValueConverterWithNoValue<float, T, isUseNoValue> &valueConverter, const T *source, float noValue, int32_t count)
+static void CopyTo1Bit(uint8_t * __restrict target, int64_t targetBit, const QuantizingValueConverterWithNoValue<float, T, isUseNoValue> &valueConverter, const T * __restrict source, float noValue, int32_t count)
 {
     target += targetBit / 8;
     uint8_t bits = *target;
@@ -637,7 +637,7 @@ static void CopyTo1Bit(uint8_t *target, int64_t targetBit, const QuantizingValue
 }
 
 template <typename T>
-static void CopyFrom1Bit(T *target, const uint8_t *source, uint64_t bitIndex, int32_t count)
+static void CopyFrom1Bit(T * __restrict target, const uint8_t * __restrict source, uint64_t bitIndex, int32_t count)
 {
   source += bitIndex / 8;
   uint8_t bits = *source;
@@ -713,7 +713,7 @@ static force_inline void CopyBytes(void* target, const void* source, int32_t siz
 }
 
 template<typename T, typename S, bool noValue>
-static void ConvertAndCopy(T *target, const S *source, const QuantizingValueConverterWithNoValue<T, S, noValue> &valueConverter, int32_t count)
+static void ConvertAndCopy(T * __restrict target, const S * __restrict source, const QuantizingValueConverterWithNoValue<T, S, noValue> &valueConverter, int32_t count)
 {
   for (int i = 0; i < count; i++)
   {
