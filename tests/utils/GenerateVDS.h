@@ -7,7 +7,7 @@
 #include <OpenVDS/VolumeDataLayout.h>
 #include <OpenVDS/VolumeDataAccess.h>
 
-#include <VDS/SimplexNoiceKernel.h>
+#include <VDS/SimplexNoiseKernel.h>
 
 #include <random>
 
@@ -22,9 +22,9 @@ static OpenVDS::VDS *generateSimpleInMemory3DVDS(int32_t samplesX = 100, int32_t
   OpenVDS::VolumeDataLayoutDescriptor layoutDescriptor(brickSize, negativeMargin, positiveMargin, brickSize2DMultiplier, lodLevels, layoutOptions);
 
   std::vector<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors;
-  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(100, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, "ms", 0.0f, 4.f));
-  axisDescriptors.emplace_back(100, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE, "", 1932.f, 2536.f);
-  axisDescriptors.emplace_back(100, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,    "", 9985.f, 10369.f);
+  axisDescriptors.emplace_back(samplesX, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, "ms", 0.0f, 4.f);
+  axisDescriptors.emplace_back(samplesY, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE, "", 1932.f, 2536.f);
+  axisDescriptors.emplace_back(samplesZ, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,    "", 9985.f, 10369.f);
 
   std::vector<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors;
   channelDescriptors.emplace_back(format, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", -0.10919982194900513, 0.1099749207496643);
@@ -35,17 +35,19 @@ static OpenVDS::VDS *generateSimpleInMemory3DVDS(int32_t samplesX = 100, int32_t
   return OpenVDS::Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error);
 }
 
-static void fill3DVDSWithNoice(OpenVDS::VDS *vds, int32_t channel = 0, const OpenVDS::FloatVector3 &frequency = OpenVDS::FloatVector3(0.6f, 2.f, 4.f))
+static void fill3DVDSWithNoise(OpenVDS::VDS *vds, int32_t channel = 0, const OpenVDS::FloatVector3 &frequency = OpenVDS::FloatVector3(0.6f, 2.f, 4.f))
 {
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(vds);
-  ASSERT_TRUE(layout);
+  //ASSERT_TRUE(layout);
   OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(vds);
-  ASSERT_TRUE(accessManager);
+  //ASSERT_TRUE(accessManager);
 
   OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, channel, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  ASSERT_TRUE(pageAccessor);
+  //ASSERT_TRUE(pageAccessor);
 
   int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
+
+  OpenVDS::VolumeDataChannelDescriptor::Format format = layout->GetChannelFormat(channel);
 
   for (int i = 0; i < chunkCount; i++)
   {
@@ -54,7 +56,7 @@ static void fill3DVDSWithNoice(OpenVDS::VDS *vds, int32_t channel = 0, const Ope
 
     int pitch[OpenVDS::Dimensionality_Max];
     void *buffer = page->GetWritableBuffer(pitch);
-    OpenVDS::CalculateNoise3D(buffer, OpenVDS::VolumeDataChannelDescriptor::Format_R32, &outputIndexer, frequency, 0.021f, 0.f, true, 345);
+    OpenVDS::CalculateNoise3D(buffer, format, &outputIndexer, frequency, 0.021f, 0.f, true, 345);
     page->Release();
   }
   pageAccessor->Commit();
@@ -64,15 +66,15 @@ static void fill3DVDSWithNoice(OpenVDS::VDS *vds, int32_t channel = 0, const Ope
 
 }
 
-static void fill3DVDSWithBitNoice(OpenVDS::VDS *vds, int32_t channel = 0)
+static void fill3DVDSWithBitNoise(OpenVDS::VDS *vds, int32_t channel = 0)
 {
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(vds);
-  ASSERT_TRUE(layout);
+  //ASSERT_TRUE(layout);
   OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(vds);
-  ASSERT_TRUE(accessManager);
+  //ASSERT_TRUE(accessManager);
 
   OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, channel, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  ASSERT_TRUE(pageAccessor);
+  //ASSERT_TRUE(pageAccessor);
 
   int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
 

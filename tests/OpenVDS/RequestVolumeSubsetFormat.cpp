@@ -44,12 +44,12 @@ void setupIntegrationTestHandle(std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS:
     //ASSERT_TRUE(handle);
 }
 
-void setupNoiceTestHandle(std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> &handle)
+void setupNoiseTestHandle(std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> &handle)
 {
   OpenVDS::Error error;
   handle.reset(generateSimpleInMemory3DVDS(60,60,60));
 
-  fill3DVDSWithNoice(handle.get());
+  fill3DVDSWithNoise(handle.get());
 }
 
 struct RequestSharedData
@@ -57,7 +57,7 @@ struct RequestSharedData
   RequestSharedData()
     : handle(nullptr, &OpenVDS::Close)
   {
-    setupNoiceTestHandle(handle);
+    setupNoiseTestHandle(handle);
     layout = OpenVDS::GetLayout(handle.get());
     accessManager = OpenVDS::GetAccessManager(handle.get());
 
@@ -153,7 +153,7 @@ TEST_F(RequestVolumeSubsetFormat, test1Bit)
 TEST(ReqeustVolumeSubsetFormat, source1Bit)
 {
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_1Bit), OpenVDS::Close);
-  fill3DVDSWithBitNoice(handle.get());
+  fill3DVDSWithBitNoise(handle.get());
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
 

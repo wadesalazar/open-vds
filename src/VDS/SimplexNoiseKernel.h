@@ -171,8 +171,7 @@ void Noise2DKernel(T* output, VolumeIndexer2D const &outputIndexer2D, FloatVecto
   }
 }
 
-void
-CalculateNoise2D(void* output, VolumeDataChannelDescriptor::Format eFormat, VolumeIndexer2D *pOutputIndexer, FloatVector2 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
+static void CalculateNoise2D(void* output, VolumeDataChannelDescriptor::Format eFormat, VolumeIndexer2D *pOutputIndexer, FloatVector2 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
 {
   if (useNoValue)
   {
@@ -240,7 +239,7 @@ void Noise3DKernel(T* output, VolumeIndexer3D const &outputIndexer3D, FloatVecto
   }
 }
 
-void CalculateNoise3D(void* output, VolumeDataChannelDescriptor::Format eFormat, VolumeIndexer3D *pOutputIndexer, FloatVector3 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
+static void CalculateNoise3D(void* output, VolumeDataChannelDescriptor::Format eFormat, VolumeIndexer3D *pOutputIndexer, FloatVector3 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
 {
   if (useNoValue)
   {
@@ -308,7 +307,7 @@ void Noise4DKernel(T* output, VolumeIndexer4D const &outputIndexer4D, FloatVecto
   }
 }
 
-void CalculateNoise4D(void* output, VolumeDataChannelDescriptor::Format eFormat, VolumeIndexer4D *pOutputIndexer, FloatVector4 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
+static void CalculateNoise4D(void* output, VolumeDataChannelDescriptor::Format eFormat, VolumeIndexer4D *pOutputIndexer, FloatVector4 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
 {
   if (useNoValue)
   {

@@ -33,6 +33,7 @@ add_test_executable(io_tests
   io/filetest.cpp
   io/azureio.cpp
   io/InMemoryIo.cpp
+  io/CreateSyntheticVDS.cpp
   )
 
 add_test_executable(jsoncpp_tests

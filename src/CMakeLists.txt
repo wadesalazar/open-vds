@@ -71,7 +71,7 @@ set (PRIVATE_HEADER_FILES
   VDS/Rle.h
   VDS/VolumeDataRequestProcessor.h
   VDS/ThreadPool.h
-  VDS/SimplexNoiceKernel.h
+  VDS/SimplexNoiseKernel.h
   )
 
 set (EXPORTED_HEADER_FILES

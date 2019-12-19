@@ -36,7 +36,7 @@ TEST(IOTests, InMemory)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(60,60,60), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  fill3DVDSWithNoice(handle.get());
+  fill3DVDSWithNoise(handle.get());
 
   auto layout = OpenVDS::GetLayout(handle.get());
   auto accessManager = OpenVDS::GetAccessManager(handle.get());
