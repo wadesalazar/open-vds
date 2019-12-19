@@ -27,27 +27,40 @@
 #include <array>
 #include <limits>
 
-inline bool ends_with(std::string const &value, std::string const &ending)
+#include "GenerateVDS.h"
+
+static bool ends_with(std::string const &value, std::string const &ending)
 {
     if (ending.size() > value.size()) return false;
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-bool in_axis_mapping_rage(char a)
+static bool in_axis_mapping_range(char a, int32_t (&axis)[3], int index)
 {
-  return a >= '0' && a <='2';
+  if (a < '0' && a > '2')
+    return false;
+  int value = a - '0';
+  for (int i = 0; i < index; i++)
+  {
+    if (axis[i] == value)
+      return false;
+  }
+  axis[index] = value;
+  return true;
 }
-bool parse_axis_mapping(const std::string arg, int32_t (&axis)[3])
+
+static bool parse_axis_mapping(const std::string arg, int32_t (&axis)[3])
 {
-  if (!in_axis_mapping_rage(arg[0]))
+  memset(axis, std::numeric_limits<int>::max(), sizeof(axis));
+  if (arg.size() < 5)
     return false;
-  axis[0] = arg[0] - '0';
-  if (!in_axis_mapping_rage(arg[2]))
+  int i = 0;
+  if (!in_axis_mapping_range(arg[0], axis, i++))
     return false;
-  axis[1] = arg[2] - '0';
-  if (!in_axis_mapping_rage(arg[4]))
+  if (!in_axis_mapping_range(arg[2], axis, i++))
     return false;
-  axis[2] = arg[4] - '0';
+  if (!in_axis_mapping_range(arg[4], axis, i++))
+    return false;
   return true;
 }
 
@@ -62,14 +75,16 @@ int main(int argc, char **argv)
   std::string object;
   std::string axis = "0,1,2";
   int axis_position = std::numeric_limits<int>::min();
-  int32_t output_width = 2000;
-  int32_t output_height = 2000;
+  int32_t output_width = 500;
+  int32_t output_height = 500;
+  bool generate_noise = false;
 
   options.add_option("", "", "bucket",   "Bucket to downlaod from.", cxxopts::value(bucket), "<string>");
   options.add_option("", "", "region",   "Region of bucket to download from.", cxxopts::value(region), "<string>");
   options.add_option("", "", "object",   "ObjectId of the VDS", cxxopts::value(object), "<string>");
   options.add_option("", "", "axis",     "Axis mapping. Comma seperated list. First digite is the axis for the slice. "
                                          "Second is the x axis and third is the y axis", cxxopts::value(axis), "<axis id>");
+  options.add_option("", "", "noise",    "Generate a noise VDS in memory, and grab a slice from this. The vds is 60^2 voxels big (default off)", cxxopts::value(generate_noise), "<enable>");
   options.add_option("", "", "position", "Position on axis for slice", cxxopts::value(axis_position), "<position in axis>");
   options.add_option("", "", "o_width",  "Output image width (default 200)", cxxopts::value(output_width), "<output width>");
   options.add_option("", "", "o_height", "Output image height (default 200)", cxxopts::value(output_height), "<output height>");
@@ -87,16 +102,18 @@ int main(int argc, char **argv)
   }
 
   std::string missing_argument;
-  if (bucket.empty())
-    missing_argument = "bucket";
-  else if (region.empty())
-    missing_argument = "region";
-  else if (object.empty())
-    missing_argument = "object";
-  else if (axis_position == std::numeric_limits<int>::min())
-    missing_argument = "axis";
-  else if (file_name.empty())
+  if (file_name.empty())
     missing_argument = "output filename";
+  else if (!generate_noise)
+  {
+    if (bucket.empty())
+      missing_argument = "bucket";
+    else if (region.empty())
+      missing_argument = "region";
+    else if (object.empty())
+      missing_argument = "object";
+  }
+
   if (missing_argument.size())
   {
     fmt::print(stderr, "Missing required argument: {}\n", missing_argument);
@@ -113,13 +130,25 @@ int main(int argc, char **argv)
   }
   fmt::print(stdout, "Using axis mapping [{}, {}, {}]\n", axis_mapper[0], axis_mapper[1], axis_mapper[2]);
 
-  OpenVDS::AWSOpenOptions connectionOptions;
-  connectionOptions.key = object;
-  connectionOptions.bucket = bucket;
-  connectionOptions.region = region;
-
   OpenVDS::Error error;
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(connectionOptions, error), &OpenVDS::Close);
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(nullptr, OpenVDS::Close);
+
+  if (generate_noise)
+  {
+    handle.reset(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_R32));
+    if (handle)
+      fill3DVDSWithNoise(handle.get());
+  }
+  else
+  {
+    OpenVDS::AWSOpenOptions connectionOptions;
+    connectionOptions.key = object;
+    connectionOptions.bucket = bucket;
+    connectionOptions.region = region;
+
+    handle.reset(OpenVDS::Open(connectionOptions, error));
+  }
+
   if (!handle)
   {
     fmt::print(stderr, "Failed to open VDS: {}\n", error.string.c_str());
