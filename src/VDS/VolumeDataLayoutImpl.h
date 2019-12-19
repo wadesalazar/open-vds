@@ -118,7 +118,7 @@ public:
   int32_t ChangePendingWriteRequestCount(int32_t nDifference);
   void CompletePendingWriteChunkRequests(int32_t nMaxPendingWriteChunkRequests) const;
 
-  VolumeDataLayoutDescriptor GetLayoutDescriptor() const;
+  VolumeDataLayoutDescriptor GetLayoutDescriptor() const override;
 
   int32_t GetChannelCount() const override { return int32_t(m_volumeDataChannelDescriptor.size()); }
   bool IsChannelAvailable(const char *channelName) const override;

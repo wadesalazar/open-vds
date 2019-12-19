@@ -20,6 +20,7 @@
 
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/VolumeDataAxisDescriptor.h>
+#include <OpenVDS/VolumeDataLayoutDescriptor.h>
 #include <OpenVDS/Metadata.h>
 
 namespace OpenVDS
@@ -44,6 +45,9 @@ public:
   virtual bool  IsChannelAvailable(const char *channelName) const = 0; ///< Returns true of the VDS contains
 
   virtual int   GetChannelIndex(const char *channelName) const = 0; ///< Returns the index of a the channel with the given name
+
+  virtual VolumeDataLayoutDescriptor
+                GetLayoutDescriptor() const = 0; ///< Returns the descriptor for the layout
 
   virtual VolumeDataChannelDescriptor
                 GetChannelDescriptor(int channel) const = 0; ///< Returns the descriptor for the given channel index
