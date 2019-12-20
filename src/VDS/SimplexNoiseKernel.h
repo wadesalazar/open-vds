@@ -134,9 +134,36 @@ float SimplexNoise(float *position, unsigned int randomSeed)
   return 0.5f + noise * 5.0f / amplitudeSum;
 }
 
-template <typename T, bool useNoValue>
-void Noise2DKernel(T* output, VolumeIndexer2D const &outputIndexer2D, FloatVector2 const &frequency, float threshold, float noValue, unsigned int random)
+template<bool useNoValue, template<typename, bool> typename T, typename ... Args>
+static void GenericDispatcher_1(VolumeDataChannelDescriptor::Format format, Args ... args)
 {
+  switch(format)
+  {
+  case VolumeDataChannelDescriptor::Format_1Bit:T<bool, useNoValue>::Do(args...); break;
+  case VolumeDataChannelDescriptor::Format_U8:  T<uint8_t, useNoValue>::Do(args...); break;
+  case VolumeDataChannelDescriptor::Format_U16: T<uint16_t, useNoValue>::Do(args...); break;
+  case VolumeDataChannelDescriptor::Format_R32: T<float, useNoValue>::Do(args...); break;
+  case VolumeDataChannelDescriptor::Format_U32: T<uint32_t, useNoValue>::Do(args...); break;
+  case VolumeDataChannelDescriptor::Format_R64: T<double, useNoValue>::Do(args...); break;
+  case VolumeDataChannelDescriptor::Format_U64: T<uint64_t, useNoValue>::Do(args...); break;
+  }
+}
+
+template<template<typename, bool> typename T, typename ... Args>
+static void GenericDispatcher(bool useNoValue, VolumeDataChannelDescriptor::Format format, Args ... args)
+{
+  if (useNoValue)
+    GenericDispatcher_1<true, T, Args...>(format, args...);
+  else
+    GenericDispatcher_1<false, T, Args...>(format, args...);
+};
+
+template <typename T, bool useNoValue>
+struct Noise2DKernel
+{
+static void Do(void * outputVoid, VolumeIndexer2D const &outputIndexer2D, FloatVector2 const &frequency, float threshold, float noValue, unsigned int random)
+{
+  T *output = static_cast<T *>(outputVoid);
   IntVector<2> numSamples;
   IntVector<2> localOutIndex;
 
@@ -170,38 +197,19 @@ void Noise2DKernel(T* output, VolumeIndexer2D const &outputIndexer2D, FloatVecto
     output[outputIndexer2D.LocalIndexToDataIndex(localOutIndex)] = converter.ConvertValue(value < threshold ? noValue : (value * valueRangeScale + outputIndexer2D.valueRangeMin));
   }
 }
+};
 
-static void CalculateNoise2D(void* output, VolumeDataChannelDescriptor::Format eFormat, VolumeIndexer2D *pOutputIndexer, FloatVector2 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
+static void CalculateNoise2D(void* output, VolumeDataChannelDescriptor::Format format, VolumeIndexer2D *outputIndexer, FloatVector2 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
 {
-  if (useNoValue)
-  {
-    switch(eFormat)
-    {
-    case VolumeDataChannelDescriptor::Format_U8:  Noise2DKernel<uint8_t, true>((uint8_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U16: Noise2DKernel<uint16_t, true>((uint16_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R32: Noise2DKernel<float, true>((float *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U32: Noise2DKernel<uint32_t, true>((uint32_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R64: Noise2DKernel<double, true>((double *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U64: Noise2DKernel<uint64_t, true>((uint64_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    }
-  }
-  else
-  {
-    switch(eFormat)
-    {
-    case VolumeDataChannelDescriptor::Format_U8:  Noise2DKernel<uint8_t, false>((uint8_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U16: Noise2DKernel<uint16_t, false>((uint16_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R32: Noise2DKernel<float, false>((float *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U32: Noise2DKernel<uint32_t, false>((uint32_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R64: Noise2DKernel<double, false>((double *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U64: Noise2DKernel<uint64_t, false>((uint64_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    }
-  }
+  GenericDispatcher<Noise2DKernel>(useNoValue, format, output, *outputIndexer, frequency, threshold, noValue, random);
 }
 
 template <typename T, bool useNoValue>
-void Noise3DKernel(T* output, VolumeIndexer3D const &outputIndexer3D, FloatVector3 const &frequency, float threshold, float noValue, unsigned int random)
+struct Noise3DKernel
 {
+static void Do(void* outputVoid, VolumeIndexer3D const &outputIndexer3D, FloatVector3 const &frequency, float threshold, float noValue, unsigned int random)
+{
+  T *output = static_cast<T*>(outputVoid);
   IntVector<3> numSamples;
   IntVector<3> localOutIndex;
 
@@ -238,38 +246,19 @@ void Noise3DKernel(T* output, VolumeIndexer3D const &outputIndexer3D, FloatVecto
     output[outputIndexer3D.LocalIndexToDataIndex(localOutIndex)] = converter.ConvertValue(value < threshold ? noValue : (value * valueRangeScale + outputIndexer3D.valueRangeMin));
   }
 }
+};
 
-static void CalculateNoise3D(void* output, VolumeDataChannelDescriptor::Format eFormat, VolumeIndexer3D *pOutputIndexer, FloatVector3 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
+static void CalculateNoise3D(void* output, VolumeDataChannelDescriptor::Format format, VolumeIndexer3D *outputIndexer, FloatVector3 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
 {
-  if (useNoValue)
-  {
-    switch(eFormat)
-    {
-    case VolumeDataChannelDescriptor::Format_U8:  Noise3DKernel<uint8_t, true>((uint8_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U16: Noise3DKernel<uint16_t, true>((uint16_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R32: Noise3DKernel<float, true>((float *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U32: Noise3DKernel<uint32_t, true>((uint32_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R64: Noise3DKernel<double, true>((double *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U64: Noise3DKernel<uint64_t, true>((uint64_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    }
-  }
-  else
-  {
-    switch(eFormat)
-    {
-    case VolumeDataChannelDescriptor::Format_U8:  Noise3DKernel<uint8_t, false>((uint8_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U16: Noise3DKernel<uint16_t, false>((uint16_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R32: Noise3DKernel<float, false>((float *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U32: Noise3DKernel<uint32_t, false>((uint32_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R64: Noise3DKernel<double, false>((double *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U64: Noise3DKernel<uint64_t, false>((uint64_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    }
-  }
+  GenericDispatcher<Noise3DKernel>(useNoValue, format, output, *outputIndexer, frequency, threshold, noValue, random);
 }
 
 template <typename T, bool useNoValue>
-void Noise4DKernel(T* output, VolumeIndexer4D const &outputIndexer4D, FloatVector4 const &frequency, float threshold, float noValue, unsigned int random)
+struct Noise4DKernel
 {
+static void Do(void* outputVoid, VolumeIndexer4D const &outputIndexer4D, FloatVector4 const &frequency, float threshold, float noValue, unsigned int random)
+{
+  T *output = static_cast<T *>(outputVoid);
   IntVector<4> numSamples;
 
   for (int i=0; i<4; i++)
@@ -306,32 +295,10 @@ void Noise4DKernel(T* output, VolumeIndexer4D const &outputIndexer4D, FloatVecto
     output[outputIndexer4D.LocalIndexToDataIndex(localOutIndex)] = converter.ConvertValue(value < threshold ? noValue : (value * valueRangeScale + outputIndexer4D.valueRangeMin));
   }
 }
+};
 
-static void CalculateNoise4D(void* output, VolumeDataChannelDescriptor::Format eFormat, VolumeIndexer4D *pOutputIndexer, FloatVector4 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
+static void CalculateNoise4D(void* output, VolumeDataChannelDescriptor::Format format, VolumeIndexer4D *outputIndexer, FloatVector4 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
 {
-  if (useNoValue)
-  {
-    switch(eFormat)
-    {
-    case VolumeDataChannelDescriptor::Format_U8:  Noise4DKernel<uint8_t, true>((uint8_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U16: Noise4DKernel<uint16_t, true>((uint16_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R32: Noise4DKernel<float, true>((float *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U32: Noise4DKernel<uint32_t, true>((uint32_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R64: Noise4DKernel<double, true>((double *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U64: Noise4DKernel<uint64_t, true>((uint64_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    }
-  }
-  else
-  {
-    switch(eFormat)
-    {
-    case VolumeDataChannelDescriptor::Format_U8:  Noise4DKernel<uint8_t, false>((uint8_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U16: Noise4DKernel<uint16_t, false>((uint16_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R32: Noise4DKernel<float, false>((float *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U32: Noise4DKernel<uint32_t, false>((uint32_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_R64: Noise4DKernel<double, false>((double *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    case VolumeDataChannelDescriptor::Format_U64: Noise4DKernel<uint64_t, false>((uint64_t *)output, *pOutputIndexer, frequency, threshold, noValue, random); break;
-    }
-  }
+  GenericDispatcher<Noise4DKernel>(useNoValue, format, output, *outputIndexer, frequency, threshold, noValue, random);
 }
 }

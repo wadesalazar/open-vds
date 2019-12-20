@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 
   if (generate_noise)
   {
-    handle.reset(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_R32));
+    handle.reset(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_U8));
     if (handle)
       fill3DVDSWithNoise(handle.get());
   }
