@@ -6,8 +6,7 @@
 #include <OpenVDS/GlobalMetadataCommon.h>
 #include <OpenVDS/VolumeDataLayout.h>
 #include <OpenVDS/VolumeDataAccess.h>
-
-#include <VDS/SimplexNoiseKernel.h>
+#include <OpenVDS/SimplexNoiseKernel.h>
 
 #include <random>
 
