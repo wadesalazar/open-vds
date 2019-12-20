@@ -71,7 +71,6 @@ set (PRIVATE_HEADER_FILES
   VDS/Rle.h
   VDS/VolumeDataRequestProcessor.h
   VDS/ThreadPool.h
-  VDS/SimplexNoiseKernel.h
   )
 
 set (EXPORTED_HEADER_FILES
@@ -92,6 +91,7 @@ set (EXPORTED_HEADER_FILES
   OpenVDS/VolumeSampler.h
   OpenVDS/CoordinateTransformer.h
   OpenVDS/VolumeIndexer.h
+  OpenVDS/SimplexNoiseKernel.h
   )
 
 add_library(openvds_objects OBJECT
