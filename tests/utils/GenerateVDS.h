@@ -10,6 +10,40 @@
 
 #include <random>
 
+template<typename T>
+void getRangeForFormat1(float &min, float &max)
+{
+  min = std::numeric_limits<T>::min();
+  max = std::numeric_limits<T>::max();
+}
+
+template<>
+void getRangeForFormat1<float>(float &min, float &max)
+{
+  min = -1.f;
+  max = 1.f;
+}
+template<>
+void getRangeForFormat1<double>(float &min, float &max)
+{
+  min = -1.f;
+  max = 1.f;
+}
+void getRangeForFormat(OpenVDS::VolumeDataChannelDescriptor::Format format, float &min, float &max)
+{
+  switch (format)
+  {
+  case OpenVDS::VolumeDataChannelDescriptor::Format_U8: getRangeForFormat1<uint8_t>(min, max); break;
+  case OpenVDS::VolumeDataChannelDescriptor::Format_U16: getRangeForFormat1<uint16_t>(min, max); break;
+  case OpenVDS::VolumeDataChannelDescriptor::Format_R32: getRangeForFormat1<float>(min, max); break;
+  case OpenVDS::VolumeDataChannelDescriptor::Format_U32: getRangeForFormat1<uint32_t>(min, max); break;
+  case OpenVDS::VolumeDataChannelDescriptor::Format_R64: getRangeForFormat1<double>(min, max); break;
+  case OpenVDS::VolumeDataChannelDescriptor::Format_U64: getRangeForFormat1<uint64_t>(min, max); break;
+  case OpenVDS::VolumeDataChannelDescriptor::Format_1Bit:
+  case OpenVDS::VolumeDataChannelDescriptor::Format_Any: break;
+  }
+}
+
 static OpenVDS::VDS *generateSimpleInMemory3DVDS(int32_t samplesX = 100, int32_t samplesY = 100, int32_t samplesZ = 100, OpenVDS::VolumeDataChannelDescriptor::Format format = OpenVDS::VolumeDataChannelDescriptor::Format_R32)
 {
   auto brickSize = OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32;
@@ -26,7 +60,9 @@ static OpenVDS::VDS *generateSimpleInMemory3DVDS(int32_t samplesX = 100, int32_t
   axisDescriptors.emplace_back(samplesZ, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,    "", 9985.f, 10369.f);
 
   std::vector<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors;
-  channelDescriptors.emplace_back(format, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", -0.10919982194900513, 0.1099749207496643);
+  float rangeMin, rangeMax;
+  getRangeForFormat(format, rangeMin, rangeMax);
+  channelDescriptors.emplace_back(format, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", rangeMin, rangeMax);
 
   OpenVDS::InMemoryOpenOptions options;
   OpenVDS::MetadataContainer metadataContainer;
