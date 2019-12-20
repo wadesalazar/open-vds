@@ -11,25 +11,26 @@
 #include <random>
 
 template<typename T>
-void getRangeForFormat1(float &min, float &max)
+static void getRangeForFormat1(float &min, float &max)
 {
   min = std::numeric_limits<T>::min();
   max = std::numeric_limits<T>::max();
 }
 
 template<>
-void getRangeForFormat1<float>(float &min, float &max)
+static void getRangeForFormat1<float>(float &min, float &max)
 {
   min = -1.f;
   max = 1.f;
 }
 template<>
-void getRangeForFormat1<double>(float &min, float &max)
+static void getRangeForFormat1<double>(float &min, float &max)
 {
   min = -1.f;
   max = 1.f;
 }
-void getRangeForFormat(OpenVDS::VolumeDataChannelDescriptor::Format format, float &min, float &max)
+
+static void getRangeForFormat(OpenVDS::VolumeDataChannelDescriptor::Format format, float &min, float &max)
 {
   switch (format)
   {
