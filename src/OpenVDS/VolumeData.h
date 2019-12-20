@@ -19,6 +19,7 @@
 #define VOLUMEDATA_H
 
 #include <cstdint>
+#include <cstddef>
 
 namespace OpenVDS
 {

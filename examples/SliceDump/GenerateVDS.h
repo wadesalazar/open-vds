@@ -11,20 +11,20 @@
 #include <random>
 
 template<typename T>
-static void getRangeForFormat1(float &min, float &max)
+inline void getRangeForFormat1(float &min, float &max)
 {
   min = std::numeric_limits<T>::min();
   max = std::numeric_limits<T>::max();
 }
 
 template<>
-static void getRangeForFormat1<float>(float &min, float &max)
+inline void getRangeForFormat1<float>(float &min, float &max)
 {
   min = -1.f;
   max = 1.f;
 }
 template<>
-static void getRangeForFormat1<double>(float &min, float &max)
+inline void getRangeForFormat1<double>(float &min, float &max)
 {
   min = -1.f;
   max = 1.f;
