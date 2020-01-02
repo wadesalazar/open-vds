@@ -5,7 +5,8 @@ add_executable(SEGYScan
     SEGY.cpp
     SEGYFileInfo.h
     SEGYFileInfo.cpp
-    SEGYScan.cpp)
+    SEGYScan.cpp
+    )
 
 add_executable(SEGYUpload
     SEGY.h
@@ -13,6 +14,14 @@ add_executable(SEGYUpload
     SEGYFileInfo.h
   	SEGYFileInfo.cpp
     SEGYUpload.cpp
+    )
+
+add_executable(SEGYImport
+    SEGY.h
+    SEGY.cpp
+    SEGYFileInfo.h
+  	SEGYFileInfo.cpp
+    SEGYImport.cpp
     )
 
 add_executable(SEGYExport
@@ -32,6 +41,12 @@ target_link_libraries(SEGYUpload PUBLIC Threads::Threads openvds jsoncpp_lib_sta
 set_target_properties(SEGYUpload PROPERTIES FOLDER tools)
 
 copyDllForTarget(SEGYUpload)
+
+target_include_directories(SEGYImport PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_link_libraries(SEGYImport PUBLIC Threads::Threads openvds jsoncpp_lib_static fmt::fmt)
+set_target_properties(SEGYImport PROPERTIES FOLDER tools)
+
+copyDllForTarget(SEGYImport)
 
 target_include_directories(SEGYExport PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(SEGYExport PUBLIC Threads::Threads openvds jsoncpp_lib_static fmt::fmt)
