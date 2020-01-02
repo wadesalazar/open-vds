@@ -10,38 +10,26 @@
 
 #include <random>
 
-template<typename T>
-inline void getRangeForFormat1(float &min, float &max)
-{
-  min = std::numeric_limits<T>::min();
-  max = std::numeric_limits<T>::max();
-}
-
-template<>
-inline void getRangeForFormat1<float>(float &min, float &max)
-{
-  min = -1.f;
-  max = 1.f;
-}
-template<>
-inline void getRangeForFormat1<double>(float &min, float &max)
-{
-  min = -1.f;
-  max = 1.f;
-}
-
-static void getRangeForFormat(OpenVDS::VolumeDataChannelDescriptor::Format format, float &min, float &max)
+static void getScaleOffsetForFormat(float min, float max, bool novalue, OpenVDS::VolumeDataChannelDescriptor::Format format, float &scale, float &offset)
 {
   switch (format)
   {
-  case OpenVDS::VolumeDataChannelDescriptor::Format_U8: getRangeForFormat1<uint8_t>(min, max); break;
-  case OpenVDS::VolumeDataChannelDescriptor::Format_U16: getRangeForFormat1<uint16_t>(min, max); break;
-  case OpenVDS::VolumeDataChannelDescriptor::Format_R32: getRangeForFormat1<float>(min, max); break;
-  case OpenVDS::VolumeDataChannelDescriptor::Format_U32: getRangeForFormat1<uint32_t>(min, max); break;
-  case OpenVDS::VolumeDataChannelDescriptor::Format_R64: getRangeForFormat1<double>(min, max); break;
-  case OpenVDS::VolumeDataChannelDescriptor::Format_U64: getRangeForFormat1<uint64_t>(min, max); break;
+  case OpenVDS::VolumeDataChannelDescriptor::Format_U8:
+    scale = 1.f / (255.f - novalue) * (max - min);
+    offset = min;
+    break;
+  case OpenVDS::VolumeDataChannelDescriptor::Format_U16:
+    scale = 1.f/(65535.f - novalue) * (max - min);
+    offset = min;
+    break;
+  case OpenVDS::VolumeDataChannelDescriptor::Format_R32:
+  case OpenVDS::VolumeDataChannelDescriptor::Format_U32:
+  case OpenVDS::VolumeDataChannelDescriptor::Format_R64:
+  case OpenVDS::VolumeDataChannelDescriptor::Format_U64:
   case OpenVDS::VolumeDataChannelDescriptor::Format_1Bit:
-  case OpenVDS::VolumeDataChannelDescriptor::Format_Any: break;
+  case OpenVDS::VolumeDataChannelDescriptor::Format_Any:
+    scale = 1.0f;
+    offset = 0.0f;
   }
 }
 
@@ -61,9 +49,12 @@ static OpenVDS::VDS *generateSimpleInMemory3DVDS(int32_t samplesX = 100, int32_t
   axisDescriptors.emplace_back(samplesZ, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,    "", 9985.f, 10369.f);
 
   std::vector<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors;
-  float rangeMin, rangeMax;
-  getRangeForFormat(format, rangeMin, rangeMax);
-  channelDescriptors.emplace_back(format, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", rangeMin, rangeMax);
+  float rangeMin = -0.1234f;
+  float rangeMax = 0.1234f;
+  float intScale;
+  float intOffset;
+  getScaleOffsetForFormat(rangeMin, rangeMax, true, format, intScale, intOffset);
+  channelDescriptors.emplace_back(format, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", rangeMin, rangeMax, OpenVDS::VolumeDataMapping::Direct, 1, OpenVDS::VolumeDataChannelDescriptor::Default, 0.f, intScale, intOffset);
 
   OpenVDS::InMemoryOpenOptions options;
   OpenVDS::MetadataContainer metadataContainer;

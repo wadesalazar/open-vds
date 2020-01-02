@@ -84,7 +84,7 @@ int main(int argc, char **argv)
   options.add_option("", "", "object",   "ObjectId of the VDS", cxxopts::value(object), "<string>");
   options.add_option("", "", "axis",     "Axis mapping. Comma seperated list. First digite is the axis for the slice. "
                                          "Second is the x axis and third is the y axis", cxxopts::value(axis), "<axis id>");
-  options.add_option("", "", "noise",    "Generate a noise VDS in memory, and grab a slice from this. The vds is 60^2 voxels big (default off)", cxxopts::value(generate_noise), "<enable>");
+  options.add_option("", "", "noise",    "Generate a noise VDS in memory, and grab a slice from this (default off).", cxxopts::value(generate_noise), "<enable>");
   options.add_option("", "", "position", "Position on axis for slice", cxxopts::value(axis_position), "<position in axis>");
   options.add_option("", "", "o_width",  "Output image width (default 200)", cxxopts::value(output_width), "<output width>");
   options.add_option("", "", "o_height", "Output image height (default 200)", cxxopts::value(output_height), "<output height>");

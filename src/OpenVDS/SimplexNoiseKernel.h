@@ -221,7 +221,7 @@ static void Do(void* outputVoid, VolumeIndexer3D const &outputIndexer3D, FloatVe
   float
     valueRangeScale = outputIndexer3D.valueRangeMax - outputIndexer3D.valueRangeMin;
 
-  QuantizingValueConverterWithNoValue<T, float, useNoValue> converter(outputIndexer3D.valueRangeMin, outputIndexer3D.valueRangeMax, 1.0f, 0.0f, noValue, noValue);
+  QuantizingValueConverterWithNoValue<T, float, useNoValue> converter(outputIndexer3D.valueRangeMin, outputIndexer3D.valueRangeMax, valueRangeScale, outputIndexer3D.valueRangeMin, noValue, noValue);
 
   #pragma omp parallel for if(numSamples[2] > 1) firstprivate(converter)
   for (int iDim2 = 0; iDim2 < numSamples[2]; iDim2++)
@@ -243,7 +243,7 @@ static void Do(void* outputVoid, VolumeIndexer3D const &outputIndexer3D, FloatVe
     float
       value = SimplexNoise<3, NOISE_OCTAVES>(pos, random);
 
-    output[outputIndexer3D.LocalIndexToDataIndex(localOutIndex)] = converter.ConvertValue(value < threshold ? noValue : (value * valueRangeScale + outputIndexer3D.valueRangeMin));
+    output[outputIndexer3D.LocalIndexToDataIndex(localOutIndex)] = converter.ConvertValue(value < threshold ? noValue : value * valueRangeScale + outputIndexer3D.valueRangeMin);
   }
 }
 };
