@@ -182,7 +182,34 @@ PyVolumeDataAccess::initModule(py::module& m)
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSubset));
 
 // AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestProjectedVolumeSubset", static_cast<int64_t(VolumeDataAccessManager::*)(void *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const int (&)[6], const int (&)[6], const native::FloatVector4 &, native::DimensionsND, VolumeDataChannelDescriptor::Format, native::InterpolationMethod)>(&VolumeDataAccessManager::RequestProjectedVolumeSubset), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset));
+  VolumeDataAccessManager_.def("requestProjectedVolumeSubset"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<int>& arg1, py::array_t<int>& arg2, const native::FloatVector4 &voxelPlane, native::DimensionsND projectedDimensions,  VolumeDataChannelDescriptor::Format fmt, native::InterpolationMethod interpolationMethod)
+    {
+      auto& minVoxelCoordinates = PyArrayAdapter<int, Dimensionality_Max, false>::getArrayChecked(arg1);
+      auto& maxVoxelCoordinates = PyArrayAdapter<int, Dimensionality_Max, false>::getArrayChecked(arg2);
+      int64_t bufferSize = self->GetProjectedVolumeSubsetBufferSize(layout, minVoxelCoordinates, maxVoxelCoordinates, projectedDimensions, fmt, lod);
+      py::buffer_info info = buf.request(true);
+      if (info.size * info.itemsize < bufferSize)
+      {
+        throw std::runtime_error("Insufficient buffer");
+      }
+      return self->RequestProjectedVolumeSubset(info.ptr, layout, dimensions, lod, channel, minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, projectedDimensions, fmt, interpolationMethod);
+    }
+  , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset));
 // AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestProjectedVolumeSubset", static_cast<int64_t(VolumeDataAccessManager::*)(void *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const int (&)[6], const int (&)[6], const native::FloatVector4 &, native::DimensionsND, VolumeDataChannelDescriptor::Format, native::InterpolationMethod, float)>(&VolumeDataAccessManager::RequestProjectedVolumeSubset), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset_2));
+  VolumeDataAccessManager_.def("requestProjectedVolumeSubset"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<int>& arg1, py::array_t<int>& arg2, const native::FloatVector4 &voxelPlane, native::DimensionsND projectedDimensions,  VolumeDataChannelDescriptor::Format fmt, native::InterpolationMethod interpolationMethod, float replacementNoValue)
+    {
+      auto& minVoxelCoordinates = PyArrayAdapter<int, Dimensionality_Max, false>::getArrayChecked(arg1);
+      auto& maxVoxelCoordinates = PyArrayAdapter<int, Dimensionality_Max, false>::getArrayChecked(arg2);
+      int64_t bufferSize = self->GetProjectedVolumeSubsetBufferSize(layout, minVoxelCoordinates, maxVoxelCoordinates, projectedDimensions, fmt, lod);
+      py::buffer_info info = buf.request(true);
+      if (info.size * info.itemsize < bufferSize)
+      {
+        throw std::runtime_error("Insufficient buffer");
+      }
+      return self->RequestProjectedVolumeSubset(info.ptr, layout, dimensions, lod, channel, minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, projectedDimensions, fmt, interpolationMethod, replacementNoValue);
+    }
+  , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset_2));
+
 // AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeSamples"        , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod)>(&VolumeDataAccessManager::RequestVolumeSamples), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples));
 // AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeSamples"        , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, float)>(&VolumeDataAccessManager::RequestVolumeSamples), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples_2));
 // AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeTraces"         , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, int)>(&VolumeDataAccessManager::RequestVolumeTraces), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces));
