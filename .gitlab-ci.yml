@@ -17,6 +17,7 @@ devel-container:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $SHA_IMAGE_TAG -f build-environment.Dockerfile .
     - docker push $SHA_IMAGE_TAG
+  only: [merge_requests]
 
 # --------------------------------------------------------------------------------
 
@@ -33,6 +34,7 @@ compile:
     - cd build
     - cmake $CMAKE_OPTIONS ..
     - make -j8
+  only: [merge_requests]
 
 # --------------------------------------------------------------------------------
 
@@ -43,3 +45,4 @@ unit-tests:
   script:
     - cd build
     - make test
+  only: [merge_requests]
