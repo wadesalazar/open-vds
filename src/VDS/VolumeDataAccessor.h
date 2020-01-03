@@ -24,7 +24,6 @@
 #include "VolumeDataPageAccessorImpl.h"
 #include <OpenVDS/VolumeSampler.h>
 
-
 namespace OpenVDS
 {
 template <typename INDEX> INDEX NdPosToVector(const int (&pos)[Dimensionality_Max]){ assert(false); } ;
@@ -227,7 +226,7 @@ public:
   void          Commit();
   void          Cancel();
 
-  //virtual VolumeDataAccessor *clone(VolumeDataPageAccessor &volumeDataPageAccessor) = 0;
+  virtual VolumeDataAccessor *Clone(VolumeDataPageAccessor &volumeDataPageAccessor) = 0;
 
 public:
   VolumeDataPageAccessor *GetVolumeDataPageAccessor() { return m_volumeDataPageAccessor; }
@@ -355,7 +354,8 @@ public:
 
   VolumeDataLayout const *GetLayout() override { return VolumeDataAccessorBase::GetLayout(); }
 
-  VolumeDataAccessor *clone(VolumeDataPageAccessor &volumeDataPageAccessor) { volumeDataPageAccessor.AddReference(); return new ConvertingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
+  VolumeDataAccessor *Clone(VolumeDataPageAccessor &volumeDataPageAccessor) override { volumeDataPageAccessor.AddReference(); return new ConvertingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
+  VolumeDataAccessorBase *GetBase() override { return this; }
 };
 
 template<typename INDEX, typename T1, typename T2, bool isUseNoValue, InterpolationMethod interpolationMethod>
@@ -519,7 +519,8 @@ public:
 
   VolumeDataLayout const *GetLayout() override { return VolumeDataAccessorBase::GetLayout(); }
 
-  VolumeDataAccessor *Clone(VolumeDataPageAccessor &volumeDataPageAccessor) { volumeDataPageAccessor.AddReference(); return InterpolatingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
+  VolumeDataAccessor *Clone(VolumeDataPageAccessor &volumeDataPageAccessor) override { volumeDataPageAccessor.AddReference(); return new InterpolatingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
+  VolumeDataAccessorBase *GetBase() override { return this; }
 };
 
 

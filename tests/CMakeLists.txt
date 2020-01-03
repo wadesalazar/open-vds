@@ -63,5 +63,6 @@ add_test_executable(openvds_integration_tests
   OpenVDS/RequestVolumeSamples.cpp
   OpenVDS/RequestVolumeTraces.cpp
   OpenVDS/RequestVolumeSubsetFormat.cpp
+  OpenVDS/DataAccessorClone.cpp
   )
 

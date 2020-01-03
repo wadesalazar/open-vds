@@ -279,19 +279,6 @@ void  VolumeDataAccessManagerImpl::DestroyVolumeDataPageAccessor(VolumeDataPageA
   delete  pageAccessorImpl;
 }
 
-void VolumeDataAccessManagerImpl::DestroyVolumeDataAccessor(VolumeDataAccessor* accessor)
-{
-  //TODO
-  assert(false);
-  //VolumeDataAccessorBase *imple = static_cast<VolumeDataAccessorBase *>(accessor);
-}
-
-VolumeDataAccessor* VolumeDataAccessManagerImpl::CloneVolumeDataAccessor(VolumeDataAccessor const& accessor)
-{
-  assert(false);
-  return nullptr;
-}
-
 bool VolumeDataAccessManagerImpl::IsCompleted(int64_t requestID)
 {
   return m_requestProcessor.IsCompleted(requestID);

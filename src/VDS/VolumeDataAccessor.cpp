@@ -182,6 +182,20 @@ void VolumeDataAccessorBase::ReadPageAtPosition(IntVector4 index, bool enableWri
   m_writable = enableWriting;
 }
 
+void VolumeDataAccessManagerImpl::DestroyVolumeDataAccessor(VolumeDataAccessor* accessor)
+{
+  delete accessor->GetBase();
+}
+
+VolumeDataAccessor* VolumeDataAccessManagerImpl::CloneVolumeDataAccessor(VolumeDataAccessor const& accessor)
+{
+  VolumeDataAccessorBase *volumeDataAccessorBase = const_cast<VolumeDataAccessor *>(&accessor)->GetBase();
+
+  assert(volumeDataAccessorBase && "Cast from IVolumeDataAccessor to VolumeDataAccessorBase failed.");
+
+  return volumeDataAccessorBase->Clone(*volumeDataAccessorBase->GetVolumeDataPageAccessor());
+}
+
 template <typename INDEX, typename T, bool isUseNoValue>
 VolumeDataReadWriteAccessor<INDEX, T> *VolumeDataAccess_CreateVolumeDataAccessorNoValue(VolumeDataLayout const *volumeDataLayout, int32_t channel, VolumeDataPageAccessorImpl *volumeDataPageAccessor, float replacementNoValue)
 {

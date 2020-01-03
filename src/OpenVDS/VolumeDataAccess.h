@@ -42,32 +42,20 @@ struct IndexRegion
 };
 
 class VolumeDataAccessManager;
-
+class VolumeDataAccessorBase;
 class VolumeDataAccessor
 {
 protected:
                 VolumeDataAccessor() {}
   virtual      ~VolumeDataAccessor() {}
 public:
-//  class Manager
-//  {
-//  protected:
-//                  Manager() {}
-//    virtual      ~Manager() {}
-//  public:
-//    virtual void  destroyVolumeDataAccessor(VolumeDataAccessor *accessor) = 0;
-//
-//    virtual VolumeDataAccessor *cloneVolumeDataAccessor(VolumeDataAccessor const &accessor) = 0;
-//  };
-
   virtual VolumeDataAccessManager &GetManager() = 0;
-
   virtual VolumeDataLayout const *GetLayout() = 0;
-
+  virtual VolumeDataAccessorBase *GetBase() = 0;
   struct IndexOutOfRangeException {};
 };
 
-class VolumeDataAccessManager // : public VolumeDataAccessor::Manager
+class VolumeDataAccessManager
 {
 protected:
                 VolumeDataAccessManager() {}

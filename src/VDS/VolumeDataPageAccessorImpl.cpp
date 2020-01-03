@@ -40,7 +40,7 @@ VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerIm
   , m_pagesRead(0)
   , m_pagesWritten(0)
   , m_maxPages(maxPages)
-  , m_references(0)
+  , m_references(1)
   , m_isReadWrite(isReadWrite)
   , m_isCommitInProgress(false)
   , m_lastUsed(std::chrono::steady_clock::now())
