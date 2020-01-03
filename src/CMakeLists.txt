@@ -17,6 +17,7 @@ set(SOURCE_FILES
   VDS/VolumeDataAccessManagerImpl.cpp
   VDS/VolumeDataPageImpl.cpp
   VDS/VolumeDataAccessor.cpp
+  VDS/VolumeDataAccessorRequest.cpp
   VDS/DimensionGroup.cpp
   VDS/ParseVDSJson.cpp
   VDS/MetadataManager.cpp
