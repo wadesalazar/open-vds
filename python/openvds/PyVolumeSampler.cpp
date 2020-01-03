@@ -24,8 +24,6 @@ PyVolumeSampler::initModule(py::module& m)
 {
 #if 0
 //AUTOGEN-BEGIN
-  m.def("readElement"                 , static_cast<bool(*)(const bool *, size_t)>(&ReadElement), OPENVDS_DOCSTRING(ReadElement));
-  m.def("pitchScale"                  , static_cast<int(*)()>(&PitchScale), OPENVDS_DOCSTRING(PitchScale));
 //AUTOGEN-END
 #endif
 }

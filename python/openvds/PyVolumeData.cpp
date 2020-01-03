@@ -47,6 +47,10 @@ PyVolumeData::initModule(py::module& m)
   py::enum_<Dimensionality> 
     Dimensionality_(m,"Dimensionality", OPENVDS_DOCSTRING(Dimensionality));
 
+  m.def("getLODSize"                  , static_cast<int(*)(int, int, int, bool)>(&GetLODSize), OPENVDS_DOCSTRING(GetLODSize));
+  //m.def("readElement"                 , static_cast<bool(*)(const bool *, size_t)>(&ReadElement), OPENVDS_DOCSTRING(ReadElement));
+  //m.def("writeElement"                , static_cast<void(*)(bool *, size_t, bool)>(&WriteElement), OPENVDS_DOCSTRING(WriteElement));
+  //m.def("pitchScale"                  , static_cast<int(*)()>(&PitchScale), OPENVDS_DOCSTRING(PitchScale));
 //AUTOGEN-END
 }
 

@@ -35,6 +35,12 @@ static const char *__doc_OpenVDS_AWSOpenOptions_key = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_region = R"doc()doc";
 
+static const char *__doc_OpenVDS_CalculateNoise2D = R"doc()doc";
+
+static const char *__doc_OpenVDS_CalculateNoise3D = R"doc()doc";
+
+static const char *__doc_OpenVDS_CalculateNoise4D = R"doc()doc";
+
 static const char *__doc_OpenVDS_Close =
 R"doc(Close a VDS and free up all associated resources
 
@@ -278,6 +284,10 @@ static const char *__doc_OpenVDS_Error_code = R"doc()doc";
 
 static const char *__doc_OpenVDS_Error_string = R"doc()doc";
 
+static const char *__doc_OpenVDS_GenericDispatcher = R"doc()doc";
+
+static const char *__doc_OpenVDS_GenericDispatcher_1 = R"doc()doc";
+
 static const char *__doc_OpenVDS_GetAccessManager =
 R"doc(Get the VolumeDataAccessManager for a VDS
 
@@ -287,6 +297,27 @@ Parameter ``handle``:
 static const char *__doc_OpenVDS_GetDataBlockDimensionality = R"doc()doc";
 
 static const char *__doc_OpenVDS_GetDataBlockDimensionality_Dimensionality = R"doc()doc";
+
+static const char *__doc_OpenVDS_GetLODSize =
+R"doc(Get the number of voxels at a particular LOD from a voxel range
+(ranges are exclusive).
+
+Parameter ``voxelMin``:
+    The minimum voxel index of the range.
+
+Parameter ``voxelMax``:
+    The maximum voxel index of the range (ranges are exclusive, so the
+    range does not include voxelMax).
+
+Parameter ``includePartialUpperVoxel``:
+    This controls the rounding. Usually you want the size of the range
+    to be all voxels in the range, but when we are copying from
+    multiple adjacent ranges we only want to round up for the last
+    one.
+
+Returns:
+    The number of voxels at the given LOD, at LOD 0 the result is
+    voxelMax - voxelMin.)doc";
 
 static const char *__doc_OpenVDS_GetLayout =
 R"doc(Get the VolumeDataLayout for a VDS
@@ -633,6 +664,18 @@ static const char *__doc_OpenVDS_MetadataWriteAccess_SetMetadataString = R"doc()
 
 static const char *__doc_OpenVDS_MetadataWriteAccess_SetMetadataString_2 = R"doc()doc";
 
+static const char *__doc_OpenVDS_Noise2DKernel = R"doc()doc";
+
+static const char *__doc_OpenVDS_Noise2DKernel_Do = R"doc()doc";
+
+static const char *__doc_OpenVDS_Noise3DKernel = R"doc()doc";
+
+static const char *__doc_OpenVDS_Noise3DKernel_Do = R"doc()doc";
+
+static const char *__doc_OpenVDS_Noise4DKernel = R"doc()doc";
+
+static const char *__doc_OpenVDS_Noise4DKernel_Do = R"doc()doc";
+
 static const char *__doc_OpenVDS_Open =
 R"doc(Open an existing VDS
 
@@ -678,7 +721,13 @@ static const char *__doc_OpenVDS_OpenOptions_OpenOptions = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_connectionType = R"doc()doc";
 
-static const char *__doc_OpenVDS_PitchScale = R"doc()doc";
+static const char *__doc_OpenVDS_PitchScale =
+R"doc(Template function to get the scalar for the pitch value (which is in
+bytes for 1-bit data) used to scale the pitch to get the number of
+elements
+
+Returns:
+    The scale factor for the pitch for the given type)doc";
 
 static const char *__doc_OpenVDS_PitchScale_2 = R"doc()doc";
 
@@ -726,7 +775,19 @@ static const char *__doc_OpenVDS_Range_Range = R"doc()doc";
 
 static const char *__doc_OpenVDS_Range_Range_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_ReadElement = R"doc()doc";
+static const char *__doc_OpenVDS_ReadElement =
+R"doc(Read element from buffer. This function has a template specialisation
+for bool making it suitable to read single bits from a buffer with
+packed bits.
+
+Parameter ``buffer``:
+    Buffer to read from
+
+Parameter ``element``:
+    The element index to read from buffer
+
+Returns:
+    Element at position "element" is returned.)doc";
 
 static const char *__doc_OpenVDS_ReadElement_2 = R"doc()doc";
 
@@ -735,6 +796,8 @@ static const char *__doc_OpenVDS_ResultConverter = R"doc()doc";
 static const char *__doc_OpenVDS_ResultConverter_ConvertValueT = R"doc()doc";
 
 static const char *__doc_OpenVDS_ResultConverter_ReciprocalScale = R"doc()doc";
+
+static const char *__doc_OpenVDS_SimplexNoise = R"doc()doc";
 
 static const char *__doc_OpenVDS_VDS = R"doc()doc";
 
@@ -837,8 +900,8 @@ written to and to take the job out of the system. It is possible that
 the request has completed concurrently with the call to Cancel in
 which case WaitForCompletion will return true.
 
-Parameter ``iRequestID``:
-    The RequestID to cancel.)doc";
+Parameter ``requestID``:
+    The requestID to cancel.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_ClearUploadErrors = R"doc()doc";
 
@@ -906,18 +969,18 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataPageAcc
 R"doc(Create a volume data page accessor object for the VDS associated with
 the given VolumeDataLayout object.
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the VDS that the
     volume data page accessor will access.
 
-Parameter ``eDimensionsND``:
+Parameter ``dimensionsND``:
     The dimensions group that the volume data page accessor will
     access.
 
 Parameter ``lod``:
-    The lod level that the volume data page accessor will access.
+    The LOD level that the volume data page accessor will access.
 
-Parameter ``iChannel``:
+Parameter ``channel``:
     The channel index that the volume data page accessor will access.
 
 Parameter ``nMaxPages``:
@@ -947,14 +1010,42 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_ForceClearAllUploadErro
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCompletionFactor =
 R"doc(Get the completion factor (between 0 and 1) of the request.
 
-Parameter ``iRequestID``:
-    The RequestID to get the completion factor of.
+Parameter ``requestID``:
+    The requestID to get the completion factor of.
 
 Returns:
     A factor (between 0 and 1) indicating how much of the request has
     been completed.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentUploadError = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetProjectedVolumeSubsetBufferSize =
+R"doc(Compute the buffer size for a projected volume subset request.
+
+Parameter ``volumeDataLayout``:
+    The VolumeDataLayout object associated with the input VDS.
+
+Parameter ``minVoxelCoordinates``:
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+Parameter ``maxVoxelCoordinates``:
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+Parameter ``projectedDimensions``:
+    The 2D dimension group that the plane in the source dimensiongroup
+    is projected into. It must be a 2D subset of the source
+    dimensions.
+
+Parameter ``format``:
+    Voxel format of the destination buffer.
+
+Parameter ``lod``:
+    The LOD level the requested data is read from.
+
+Returns:
+    The buffer size needed)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeDataLayout =
 R"doc(Get the VolumeDataLayout object for a VDS.
@@ -966,22 +1057,40 @@ Returns:
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeSubsetBufferSize =
 R"doc(Compute the buffer size for a volume subset request.
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
 
-Parameter ``MinVoxelCoordinates``:
+Parameter ``minVoxelCoordinates``:
     The minimum voxel coordinates to request in each dimension
     (inclusive).
 
-Parameter ``MaxVoxelCoordinates``:
+Parameter ``maxVoxelCoordinates``:
     The maximum voxel coordinates to request in each dimension
     (exclusive).
 
-Parameter ``eFormat``:
-    Voxel format the final buffer should be in.
+Parameter ``format``:
+    Voxel format of the destination buffer.
 
 Parameter ``lod``:
-    The lod level the requested data is read from.
+    The LOD level the requested data is read from.
+
+Returns:
+    The buffer size needed)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeTracesBufferSize =
+R"doc(Compute the buffer size for a volume traces request.
+
+Parameter ``volumeDataLayout``:
+    The VolumeDataLayout object associated with the input VDS.
+
+Parameter ``traceCount``:
+    Number of traces to request.
+
+Parameter ``traceDimension``:
+    The dimension to trace
+
+Parameter ``lod``:
+    The LOD level the requested data is read from.
 
 Returns:
     The buffer size needed)doc";
@@ -991,8 +1100,8 @@ R"doc(Check if a request was canceled (e.g. the VDS was invalidated before
 the request was processed). If the request was canceled, the buffer
 does not contain valid data.
 
-Parameter ``iRequestID``:
-    The RequestID to check for cancellation.
+Parameter ``requestID``:
+    The requestID to check for cancellation.
 
 Returns:
     Either IsCompleted, IsCanceled or WaitForCompletion will return
@@ -1003,8 +1112,8 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_IsCompleted =
 R"doc(Check if a request completed successfully. If the request completed,
 the buffer now contains valid data.
 
-Parameter ``iRequestID``:
-    The RequestID to check for completion.
+Parameter ``requestID``:
+    The requestID to check for completion.
 
 Returns:
     Either IsCompleted, IsCanceled or WaitForCompletion will return
@@ -1014,345 +1123,345 @@ Returns:
 static const char *__doc_OpenVDS_VolumeDataAccessManager_PrefetchVolumeChunk =
 R"doc(Force production of a specific volume data chunk
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
 
-Parameter ``eDimensionsND``:
+Parameter ``dimensionsND``:
     The dimensiongroup the requested chunk belongs to.
 
 Parameter ``lod``:
-    The lod level the requested chunk belongs to.
+    The LOD level the requested chunk belongs to.
 
-Parameter ``iChannel``:
+Parameter ``channel``:
     The channel index the requested chunk belongs to.
 
-Parameter ``iChunk``:
+Parameter ``chunk``:
     The index of the chunk to prefetch.
 
 Returns:
-    The RequestID which can be used to query the status of the
+    The requestID which can be used to query the status of the
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestProjectedVolumeSubset =
 R"doc(Request a subset projected from an arbitrary 3D plane through the
 subset onto one of the sides of the subset.
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
 
-Parameter ``pBuffer``:
+Parameter ``buffer``:
     Pointer to a preallocated buffer holding at least as many elements
-    of format as indicated by MinVoxelCoordinates and
-    MaxVoxelCoordinates for the projected dimensions.
+    of format as indicated by minVoxelCoordinates and
+    maxVoxelCoordinates for the projected dimensions.
 
-Parameter ``eDimensionsND``:
+Parameter ``dimensionsND``:
     The dimensiongroup the requested data is read from.
 
 Parameter ``lod``:
-    The lod level the requested data is read from.
+    The LOD level the requested data is read from.
 
-Parameter ``iChannel``:
+Parameter ``channel``:
     The channel index the requested data is read from.
 
-Parameter ``MinVoxelCoordinates``:
+Parameter ``minVoxelCoordinates``:
     The minimum voxel coordinates to request in each dimension
     (inclusive).
 
-Parameter ``MaxVoxelCoordinates``:
+Parameter ``maxVoxelCoordinates``:
     The maximum voxel coordinates to request in each dimension
     (exclusive).
 
-Parameter ``cVoxelPlane``:
+Parameter ``voxelPlane``:
     The plane equation for the projection from the dimension source to
     the projected dimensions (which must be a 2D subset of the source
     dimensions).
 
-Parameter ``eProjectedDimensions``:
+Parameter ``projectedDimensions``:
     The 2D dimension group that the plane in the source dimensiongroup
     is projected into. It must be a 2D subset of the source
     dimensions.
 
-Parameter ``eInterpolationMethod``:
+Parameter ``interpolationMethod``:
     Interpolation method to use when sampling the buffer.
 
-Parameter ``eFormat``:
-    Voxel format the final buffer should be in.
+Parameter ``format``:
+    Voxel format of the destination buffer.
 
 Returns:
-    The RequestID which can be used to query the status of the
+    The requestID which can be used to query the status of the
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestProjectedVolumeSubset_2 =
 R"doc(Request a subset projected from an arbitrary 3D plane through the
 subset onto one of the sides of the subset.
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
 
-Parameter ``pBuffer``:
+Parameter ``buffer``:
     Pointer to a preallocated buffer holding at least as many elements
-    of format as indicated by MinVoxelCoordinates and
-    MaxVoxelCoordinates for the projected dimensions.
+    of format as indicated by minVoxelCoordinates and
+    maxVoxelCoordinates for the projected dimensions.
 
-Parameter ``eDimensionsND``:
+Parameter ``dimensionsND``:
     The dimensiongroup the requested data is read from.
 
 Parameter ``lod``:
-    The lod level the requested data is read from.
+    The LOD level the requested data is read from.
 
-Parameter ``iChannel``:
+Parameter ``channel``:
     The channel index the requested data is read from.
 
-Parameter ``MinVoxelCoordinates``:
+Parameter ``minVoxelCoordinates``:
     The minimum voxel coordinates to request in each dimension
     (inclusive).
 
-Parameter ``MaxVoxelCoordinates``:
+Parameter ``maxVoxelCoordinates``:
     The maximum voxel coordinates to request in each dimension
     (exclusive).
 
-Parameter ``cVoxelPlane``:
+Parameter ``voxelPlane``:
     The plane equation for the projection from the dimension source to
     the projected dimensions (which must be a 2D subset of the source
     dimensions).
 
-Parameter ``eProjectedDimensions``:
+Parameter ``projectedDimensions``:
     The 2D dimension group that the plane in the source dimensiongroup
     is projected into. It must be a 2D subset of the source
     dimensions.
 
-Parameter ``eInterpolationMethod``:
+Parameter ``interpolationMethod``:
     Interpolation method to use when sampling the buffer.
 
-Parameter ``eFormat``:
-    Voxel format the final buffer should be in.
+Parameter ``format``:
+    Voxel format of the destination buffer.
 
-Parameter ``rReplacementNoValue``:
+Parameter ``replacementNoValue``:
     Value used to replace region of the input VDS that has no data.
 
 Returns:
-    The RequestID which can be used to query the status of the
+    The requestID which can be used to query the status of the
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSamples =
 R"doc(Request sampling of the input VDS at the specified coordinates.
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
 
-Parameter ``pBuffer``:
-    Pointer to a preallocated buffer holding at least nSampleCount
+Parameter ``buffer``:
+    Pointer to a preallocated buffer holding at least sampleCount
     elements.
 
-Parameter ``eDimensionsND``:
+Parameter ``dimensionsND``:
     The dimensiongroup the requested data is read from.
 
 Parameter ``lod``:
-    The lod level the requested data is read from.
+    The LOD level the requested data is read from.
 
-Parameter ``iChannel``:
+Parameter ``channel``:
     The channel index the requested data is read from.
 
-Parameter ``SamplePositions``:
+Parameter ``samplePositions``:
     Pointer to array of Dimensionality_Max-elements indicating the
     positions to sample. May be deleted once requestVolumeSamples
     return, as OpenVDS makes a deep copy of the data.
 
-Parameter ``nSampleCount``:
+Parameter ``sampleCount``:
     Number of samples to request.
 
-Parameter ``eInterpolationMethod``:
+Parameter ``interpolationMethod``:
     Interpolation method to use when sampling the buffer.
 
 Returns:
-    The RequestID which can be used to query the status of the
+    The requestID which can be used to query the status of the
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSamples_2 =
 R"doc(Request sampling of the input VDS at the specified coordinates.
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
 
-Parameter ``pBuffer``:
-    Pointer to a preallocated buffer holding at least nSampleCount
+Parameter ``buffer``:
+    Pointer to a preallocated buffer holding at least sampleCount
     elements.
 
-Parameter ``eDimensionsND``:
+Parameter ``dimensionsND``:
     The dimensiongroup the requested data is read from.
 
 Parameter ``lod``:
-    The lod level the requested data is read from.
+    The LOD level the requested data is read from.
 
-Parameter ``iChannel``:
+Parameter ``channel``:
     The channel index the requested data is read from.
 
-Parameter ``SamplePositions``:
+Parameter ``samplePositions``:
     Pointer to array of Dimensionality_Max-elements indicating the
     positions to sample. May be deleted once requestVolumeSamples
     return, as OpenVDS makes a deep copy of the data.
 
-Parameter ``nSampleCount``:
+Parameter ``sampleCount``:
     Number of samples to request.
 
-Parameter ``eInterpolationMethod``:
+Parameter ``interpolationMethod``:
     Interpolation method to use when sampling the buffer.
 
-Parameter ``rReplacementNoValue``:
+Parameter ``replacementNoValue``:
     Value used to replace region of the input VDS that has no data.
 
 Returns:
-    The RequestID which can be used to query the status of the
+    The requestID which can be used to query the status of the
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSubset =
 R"doc(Request a subset of the input VDS.
 
-Parameter ``pBuffer``:
+Parameter ``buffer``:
     Pointer to a preallocated buffer holding at least as many elements
-    of format as indicated by MinVoxelCoordinates and
-    MaxVoxelCoordinates.
+    of format as indicated by minVoxelCoordinates and
+    maxVoxelCoordinates.
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
 
-Parameter ``eDimensionsND``:
+Parameter ``dimensionsND``:
     The dimensiongroup the requested data is read from.
 
 Parameter ``lod``:
-    The lod level the requested data is read from.
+    The LOD level the requested data is read from.
 
-Parameter ``iChannel``:
+Parameter ``channel``:
     The channel index the requested data is read from.
 
-Parameter ``MinVoxelCoordinates``:
+Parameter ``minVoxelCoordinates``:
     The minimum voxel coordinates to request in each dimension
     (inclusive).
 
-Parameter ``MaxVoxelCoordinates``:
+Parameter ``maxVoxelCoordinates``:
     The maximum voxel coordinates to request in each dimension
     (exclusive).
 
-Parameter ``eFormat``:
-    Voxel format the final buffer should be in.
+Parameter ``format``:
+    Voxel format of the destination buffer.
 
 Returns:
-    The RequestID which can be used to query the status of the
+    The requestID which can be used to query the status of the
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSubset_2 =
 R"doc(Request a subset of the input VDS.
 
-Parameter ``pBuffer``:
+Parameter ``buffer``:
     Pointer to a preallocated buffer holding at least as many elements
-    of format as indicated by MinVoxelCoordinates and
-    MaxVoxelCoordinates.
+    of format as indicated by minVoxelCoordinates and
+    maxVoxelCoordinates.
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
 
-Parameter ``eDimensionsND``:
+Parameter ``dimensionsND``:
     The dimensiongroup the requested data is read from.
 
 Parameter ``lod``:
-    The lod level the requested data is read from.
+    The LOD level the requested data is read from.
 
-Parameter ``iChannel``:
+Parameter ``channel``:
     The channel index the requested data is read from.
 
-Parameter ``MinVoxelCoordinates``:
+Parameter ``minVoxelCoordinates``:
     The minimum voxel coordinates to request in each dimension
     (inclusive).
 
-Parameter ``MaxVoxelCoordinates``:
+Parameter ``maxVoxelCoordinates``:
     The maximum voxel coordinates to request in each dimension
     (exclusive).
 
-Parameter ``eFormat``:
-    Voxel format the final buffer should be in.
+Parameter ``format``:
+    Voxel format of the destination buffer.
 
-Parameter ``rReplacementNoValue``:
+Parameter ``replacementNoValue``:
     Value used to replace region of the input VDS that has no data.
 
 Returns:
-    The RequestID which can be used to query the status of the
+    The requestID which can be used to query the status of the
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeTraces =
 R"doc(Request traces from the input VDS.
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
 
-Parameter ``pBuffer``:
-    Pointer to a preallocated buffer holding at least nTraceCount *
-    number of samples in the iTraceDimension.
+Parameter ``buffer``:
+    Pointer to a preallocated buffer holding at least traceCount *
+    number of samples in the traceDimension.
 
-Parameter ``eDimensionsND``:
+Parameter ``dimensionsND``:
     The dimensiongroup the requested data is read from.
 
 Parameter ``lod``:
-    The lod level the requested data is read from.
+    The LOD level the requested data is read from.
 
-Parameter ``iChannel``:
+Parameter ``channel``:
     The channel index the requested data is read from.
 
-Parameter ``TracePositions``:
-    Pointer to array of nTraceCount
+Parameter ``tracePositions``:
+    Pointer to array of traceCount
     VolumeDataLayout::Dimensionality_Max-elements indicating the trace
     positions.
 
-Parameter ``nTraceCount``:
+Parameter ``traceCount``:
     Number of traces to request.
 
-Parameter ``eInterpolationMethod``:
+Parameter ``interpolationMethod``:
     Interpolation method to use when sampling the buffer.
 
-Parameter ``iTraceDimension``:
+Parameter ``traceDimension``:
     The dimension to trace
 
 Returns:
-    The RequestID which can be used to query the status of the
+    The requestID which can be used to query the status of the
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeTraces_2 =
 R"doc(Request traces from the input VDS.
 
-Parameter ``pVolumeDataLayout``:
+Parameter ``volumeDataLayout``:
     The VolumeDataLayout object associated with the input VDS.
 
-Parameter ``pBuffer``:
-    Pointer to a preallocated buffer holding at least nTraceCount *
-    number of samples in the iTraceDimension.
+Parameter ``buffer``:
+    Pointer to a preallocated buffer holding at least traceCount *
+    number of samples in the traceDimension.
 
-Parameter ``eDimensionsND``:
+Parameter ``dimensionsND``:
     The dimensiongroup the requested data is read from.
 
 Parameter ``lod``:
-    The lod level the requested data is read from.
+    The LOD level the requested data is read from.
 
-Parameter ``iChannel``:
+Parameter ``channel``:
     The channel index the requested data is read from.
 
-Parameter ``TracePositions``:
-    Pointer to array of nTraceCount
+Parameter ``tracePositions``:
+    Pointer to array of traceCount
     VolumeDataLayout::Dimensionality_Max-elements indicating the trace
     positions.
 
-Parameter ``nTraceCount``:
+Parameter ``traceCount``:
     Number of traces to request.
 
-Parameter ``eInterpolationMethod``:
+Parameter ``interpolationMethod``:
     Interpolation method to use when sampling the buffer.
 
-Parameter ``iTraceDimension``:
+Parameter ``traceDimension``:
     The dimension to trace
 
-Parameter ``rReplacementNoValue``:
+Parameter ``replacementNoValue``:
     Value used to replace region of the input VDS that has no data.
 
 Returns:
-    The RequestID which can be used to query the status of the
+    The requestID which can be used to query the status of the
     request, cancel the request or wait for the request to complete)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_UploadErrorCount = R"doc()doc";
@@ -1363,10 +1472,10 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_WaitForCompletion =
 R"doc(Wait for a request to complete successfully. If the request completed,
 the buffer now contains valid data.
 
-Parameter ``iRequestID``:
-    The RequestID to wait for completion of.
+Parameter ``requestID``:
+    The requestID to wait for completion of.
 
-Parameter ``nMillisecondsBeforeTimeout``:
+Parameter ``millisecondsBeforeTimeout``:
     The number of milliseconds to wait before timing out (optional). A
     value of 0 indicates there is no timeout and we will wait for
     however long it takes. Note that the request is not automatically
@@ -2015,6 +2124,8 @@ static const char *__doc_OpenVDS_VolumeDataLayout_GetDimensionUnit = R"doc()doc"
 
 static const char *__doc_OpenVDS_VolumeDataLayout_GetDimensionality = R"doc()doc";
 
+static const char *__doc_OpenVDS_VolumeDataLayout_GetLayoutDescriptor = R"doc()doc";
+
 static const char *__doc_OpenVDS_VolumeDataLayout_IsChannelAllowingLossyCompression = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataLayout_IsChannelAvailable = R"doc()doc";
@@ -2517,6 +2628,22 @@ static const char *__doc_OpenVDS_VolumeSampler_m_sizeX = R"doc()doc";
 static const char *__doc_OpenVDS_VolumeSampler_m_sizeY = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeSampler_m_sizeZ = R"doc()doc";
+
+static const char *__doc_OpenVDS_WriteElement =
+R"doc(Write element into buffer. This function has a template specialisation
+for bool making it suitable to write single bits into a buffer with
+packed bits.
+
+Parameter ``buffer``:
+    Buffer to write to
+
+Parameter ``element``:
+    The element index in the buffer to write to
+
+Parameter ``value``:
+    Value to write)doc";
+
+static const char *__doc_OpenVDS_WriteElement_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_fastInvert = R"doc()doc";
 
