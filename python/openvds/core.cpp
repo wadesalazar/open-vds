@@ -116,7 +116,14 @@ PYBIND11_MODULE(core, m) {
       py::arg().noconvert()
     )
   ;
+  m.def("testArrayArrays", [](py::array_t<int>& data, int arrayCount)
+    {
+      auto& checkedData = PyArrayAdapter<int, 3, false>::getArrayChecked(data, arrayCount);
+      return true;
+    }
+  );
 #endif
+
   PyGlobal::initModule(m);
   PyGlobalMetadataCommon::initModule(m);
   PyKnownMetadata::initModule(m);
