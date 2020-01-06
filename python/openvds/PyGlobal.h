@@ -88,7 +88,7 @@ struct PyArrayAdapter<T, LEN, true>
     }
     else
     {
-      return arr.mutable_unchecked<>().mutable_data(0);
+      return arr.mutable_unchecked().mutable_data(0);
     }
   }
 
@@ -117,7 +117,7 @@ struct PyArrayAdapter<T, LEN, false>
     }
     else
     {
-      return arr.unchecked<>().data(0);
+      return arr.unchecked().data(0);
     }
   }
 

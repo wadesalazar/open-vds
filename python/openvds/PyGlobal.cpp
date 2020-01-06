@@ -73,6 +73,6 @@ PyGlobal::initModule(py::module& m)
   m.def("close"                       , static_cast<void(*)(native::VDSHandle)>(&Close), OPENVDS_DOCSTRING(Close));
 //AUTOGEN-END
   Error_.def(py::init<>());
-  Error_.def("__repr__", [](native::Error const& self){ char tmp[256]; _itoa_s(self.code, tmp, 16); return std::string("Error(code=") + tmp + ", string='" + self.string + "')"; });
+  Error_.def("__repr__", [](native::Error const& self){ std::string tmp = std::to_string(self.code); return std::string("Error(code=") + tmp + ", string='" + self.string + "')"; });
 }
 
