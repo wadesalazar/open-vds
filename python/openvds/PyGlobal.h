@@ -75,21 +75,26 @@ template<typename T, int LEN>
 struct PyArrayAdapter<T, LEN, true>
 {
   static T*
-  getArrayBufferChecked(py::array_t<T>& arr)
+  getArrayBufferChecked(py::array_t<T>& arr, int arrayCount = 1)
   {
-    if (arr.ndim() != 1 || arr.size() != LEN)
+    py::ssize_t n = 1;
+    for (py::ssize_t i = 0; i < arr.ndim(); ++i)
+    {
+      n = n * arr.shape(i);
+    }
+    if (n != LEN * arrayCount)
     {
       throw std::invalid_argument("Array has the wrong size/dimensions.");
     }
     else
     {
-      return arr.mutable_unchecked<1>().mutable_data(0);
+      return arr.mutable_unchecked<>().mutable_data(0);
     }
   }
 
-  static T (&getArrayChecked(py::array_t<T> & arr))[LEN]
+  static T (&getArrayChecked(py::array_t<T> & arr, int arrayCount = 1))[LEN]
   {
-    T* tmp = getArrayBufferChecked(arr);
+    T* tmp = getArrayBufferChecked(arr, arrayCount);
     return *reinterpret_cast<T (*)[LEN]>(tmp);
   }
 
@@ -99,21 +104,26 @@ template<typename T, int LEN>
 struct PyArrayAdapter<T, LEN, false>
 {
   static const T*
-  getArrayBufferChecked(py::array_t<T> const& arr)
+  getArrayBufferChecked(py::array_t<T> const& arr, int arrayCount = 1)
   {
-    if (arr.ndim() != 1 || arr.size() != LEN)
+    py::ssize_t n = 1;
+    for (py::ssize_t i = 0; i < arr.ndim(); ++i)
+    {
+      n = n * arr.shape(i);
+    }
+    if (n != LEN * arrayCount)
     {
       throw std::invalid_argument("Array has the wrong size/dimensions.");
     }
     else
     {
-      return arr.unchecked<1>().data(0);
+      return arr.unchecked<>().data(0);
     }
   }
 
-  static const T (&getArrayChecked(py::array_t<T> const& arr))[LEN]
+  static const T (&getArrayChecked(py::array_t<T> const& arr, int arrayCount = 1))[LEN]
   {
-    const T* tmp = getArrayBufferChecked(arr);
+    const T* tmp = getArrayBufferChecked(arr, arrayCount);
     return *reinterpret_cast<const T (*)[LEN]>(tmp);
   }
 
@@ -132,6 +142,57 @@ struct BLOB
   {
   }
 };
+
+template<typename T>
+struct Vector2Adapter
+{
+  typedef std::tuple<T, T> Tuple;
+
+  static native::Vector<T, 2> fromTuple(Tuple const& val) { return val; }
+  static Tuple asTuple(native::Vector<T, 2> const& val)   { return val; }
+};
+
+template<typename T>
+struct Vector3Adapter
+{
+  typedef std::tuple<T, T, T> Tuple;
+
+  static native::Vector<T, 3> fromTuple(Tuple const& val) { return val; }
+  static Tuple asTuple(native::Vector<T, 3> const& val)   { return val; }
+};
+
+template<typename T>
+struct Vector4Adapter
+{
+  typedef std::tuple<T, T, T, T> Tuple;
+
+  static native::Vector<T, 4> fromTuple(Tuple const& val) { return val; }
+  static Tuple asTuple(native::Vector<T, 4> const& val)   { return val; }
+};
+
+template<typename T>
+struct Vector6Adapter
+{
+  typedef std::tuple<T, T, T, T, T, T> Tuple;
+
+  static native::Vector<T, 6> fromTuple(Tuple const& val) { return val; }
+  static Tuple asTuple(native::Vector<T, 6> const& val)   { return val; }
+};
+
+typedef Vector2Adapter<int>     IntVector2Adapter;
+typedef Vector3Adapter<int>     IntVector3Adapter;
+typedef Vector4Adapter<int>     IntVector4Adapter;
+typedef Vector6Adapter<int>     IntVector6Adapter;
+
+typedef Vector2Adapter<float>   FloatVector2Adapter;
+typedef Vector3Adapter<float>   FloatVector3Adapter;
+typedef Vector4Adapter<float>   FloatVector4Adapter;
+typedef Vector6Adapter<float>   FloatVector6Adapter;
+
+typedef Vector2Adapter<double>  DoubleVector2Adapter;
+typedef Vector3Adapter<double>  DoubleVector3Adapter;
+typedef Vector4Adapter<double>  DoubleVector4Adapter;
+typedef Vector6Adapter<double>  DoubleVector6Adapter;
 
 class PyGlobal
 {
