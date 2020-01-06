@@ -67,11 +67,11 @@ void VolumeDataRegion::GetChunksInRegion(std::vector<VolumeDataChunk>* volumeDat
 bool VolumeDataRegion::IsChunkInRegion(VolumeDataChunk const &volumeDataChunk) const
 {
   if(//volumeDataChunk.GetVDS() == _gVDS &&
-     volumeDataChunk.Layer == m_volumeDataLayer)
+     volumeDataChunk.layer == m_volumeDataLayer)
   {
     IndexArray indexArray;
 
-    m_volumeDataLayer->ChunkIndexToIndexArray(volumeDataChunk.Index, indexArray);
+    m_volumeDataLayer->ChunkIndexToIndexArray(volumeDataChunk.index, indexArray);
     for(int32_t iDimension = 0; iDimension < ArraySize(indexArray); iDimension++)
     {
       if(indexArray[iDimension] < m_chunkMin[iDimension] ||
@@ -110,11 +110,11 @@ VolumeDataRegion VolumeDataRegion::VolumeDataRegionOverlappingChunk(VolumeDataLa
   IndexArray min;
   IndexArray max;
 
-  const VolumeDataLayer *targetLayer = volumeDataChunk.Layer;
+  const VolumeDataLayer *targetLayer = volumeDataChunk.layer;
 
   assert(volumeDataLayer.GetVolumeDataChannelMapping() == targetLayer->GetVolumeDataChannelMapping() && "VolumeDataRegionOverlappingChunk() doesn't work between layers with different mappings");
 
-  targetLayer->GetChunkMinMax(volumeDataChunk.Index, min, max, false);
+  targetLayer->GetChunkMinMax(volumeDataChunk.index, min, max, false);
 
   IndexArray validMin;
   IndexArray validMax;

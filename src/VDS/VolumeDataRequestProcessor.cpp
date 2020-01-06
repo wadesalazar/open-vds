@@ -141,7 +141,7 @@ static Error ProcessPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessor
 
 int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& chunks, std::function<bool(VolumeDataPageImpl * page, const VolumeDataChunk &volumeDataChunk, Error & error)> processor, bool singleThread)
 {
-  auto layer = chunks.front().Layer;
+  auto layer = chunks.front().layer;
   DimensionsND dimensions = DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(layer->GetPrimaryChannelLayer().GetChunkDimensionGroup());
   int channel = layer->GetChannelIndex();
   int lod = layer->GetLOD();
@@ -178,7 +178,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
   {
     job->pages.emplace_back();
     JobPage &jobPage = job->pages.back();
-    jobPage.page = static_cast<VolumeDataPageImpl *>(pageAccessor->PrepareReadPage(c.Index, &jobPage.needToReadPage));
+    jobPage.page = static_cast<VolumeDataPageImpl *>(pageAccessor->PrepareReadPage(c.index, &jobPage.needToReadPage));
     assert(jobPage.page && "Need to add error handling here when the page cannot be read");
     jobPage.chunk = c;
     if (!singleThread)

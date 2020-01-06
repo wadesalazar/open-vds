@@ -322,7 +322,7 @@ static inline std::string CreateUrlForChunk(const std::string &layerName, uint64
 
 bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &chunk, bool verbose, Error &error)
 {
-  std::string layerName = GetLayerName(*chunk.Layer);
+  std::string layerName = GetLayerName(*chunk.layer);
   auto metadataManager = GetMetadataMangerForLayer(m_vds.layerMetadataContainer, layerName);
   //do fallback
   if (!metadataManager)
@@ -332,8 +332,8 @@ bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &ch
     return false;
   }
   
-  int pageIndex  = (int)(chunk.Index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
-  int entryIndex = (int)(chunk.Index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+  int pageIndex  = (int)(chunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+  int entryIndex = (int)(chunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
   bool initiateTransfer;
 
@@ -369,7 +369,7 @@ bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &ch
 
   IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
 
-  std::string url = CreateUrlForChunk(layerName, chunk.Index);
+  std::string url = CreateUrlForChunk(layerName, chunk.index);
 
   lock.lock();
   auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, adaptiveLevel);
@@ -387,7 +387,7 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
   if(pendingRequestIterator == m_pendingDownloadRequests.end())
   {
     error.code = -1;
-    error.string = "Missing request for chunk: " + std::to_string(chunk.Index);
+    error.string = "Missing request for chunk: " + std::to_string(chunk.index);
     return false;
   }
   PendingDownloadRequest& pendingRequest = pendingRequestIterator->second;
@@ -438,8 +438,8 @@ void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPa
     {
       MetadataManager *metadataManager = metadataPage->GetManager();
 
-      int32_t pageIndex = (int)(volumeDataChunk.Index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
-      int32_t entryIndex = (int)(volumeDataChunk.Index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+      int32_t pageIndex = (int)(volumeDataChunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+      int32_t entryIndex = (int)(volumeDataChunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
       assert(pageIndex == metadataPage->PageIndex());
 
@@ -453,7 +453,7 @@ void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPa
 
         IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
 
-        std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.Index);
+        std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.index);
 
         auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, adaptiveLevel);
         pendingRequest.m_activeTransfer = m_ioManager->Download(url, transferHandler, ioRange);
@@ -502,9 +502,9 @@ static int64_t CreateUploadJobId()
 int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data)
 {
   Error error;
-  std::string layerName = GetLayerName(*chunk.Layer);
-  std::string url = CreateUrlForChunk(layerName, chunk.Index);
-  std::string contentDispositionName = layerName + "_" + std::to_string(chunk.Index);
+  std::string layerName = GetLayerName(*chunk.layer);
+  std::string url = CreateUrlForChunk(layerName, chunk.index);
+  std::string contentDispositionName = layerName + "_" + std::to_string(chunk.index);
   std::shared_ptr<std::vector<uint8_t>> to_write = std::make_shared<std::vector<uint8_t>>();
   uint64_t hash;
 
@@ -522,8 +522,8 @@ int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &ch
 
   auto metadataManager = GetMetadataMangerForLayer(m_vds.layerMetadataContainer, layerName);
 
-  int pageIndex  = (int)(chunk.Index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
-  int entryIndex = (int)(chunk.Index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+  int pageIndex  = (int)(chunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+  int entryIndex = (int)(chunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
   bool initiateTransfer;
 

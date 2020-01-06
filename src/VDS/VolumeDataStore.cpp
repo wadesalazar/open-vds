@@ -58,7 +58,7 @@ bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::
 
   int32_t voxelSize[DataStoreDimensionality_Max];
 
-  volumeDataChunk.Layer->GetChunkVoxelSize(volumeDataChunk.Index, voxelSize);
+  volumeDataChunk.layer->GetChunkVoxelSize(volumeDataChunk.index, voxelSize);
 
   if(serializedData.empty())
   {
@@ -434,8 +434,8 @@ static void FillConstantValueBuffer(std::vector<uint8_t> &buffer, int32_t alloca
 bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volumeDataChunk, VolumeDataChannelDescriptor::Format format, float noValue, VolumeDataChannelDescriptor::Components components, VolumeDataHash const &constantValueVolumeDataHash, DataBlock &dataBlock, std::vector<uint8_t> &buffer, Error &error)
 {
   int32_t size[4];
-  volumeDataChunk.Layer->GetChunkVoxelSize(volumeDataChunk.Index, size);
-  int32_t dimensionality = volumeDataChunk.Layer->GetChunkDimensionality();
+  volumeDataChunk.layer->GetChunkVoxelSize(volumeDataChunk.index, size);
+  int32_t dimensionality = volumeDataChunk.layer->GetChunkDimensionality();
   if (!InitializeDataBlock(format, components, Dimensionality(dimensionality), size, dataBlock, error))
     return false;
 
@@ -445,7 +445,7 @@ bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volume
 
   int32_t allocatedElements = dataBlock.AllocatedSize[0] * dataBlock.AllocatedSize[1] * dataBlock.AllocatedSize[2] * dataBlock.AllocatedSize[3] * dataBlock.Components;
 
-  float convertedConstantValue = GetConvertedConstantValue(volumeDataChunk.Layer->GetVolumeDataChannelDescriptor(), format, noValue, constantValueVolumeDataHash);
+  float convertedConstantValue = GetConvertedConstantValue(volumeDataChunk.layer->GetVolumeDataChannelDescriptor(), format, noValue, constantValueVolumeDataHash);
 
   assert(dataBlock.Format == format);
 
@@ -494,7 +494,7 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChu
   
   VolumeDataHash volumeDataHash(volumeDataHashValue);
 
-  const VolumeDataLayer* volumeDataLayer = volumeDataChunk.Layer;
+  const VolumeDataLayer* volumeDataLayer = volumeDataChunk.layer;
 
   if (volumeDataHash.IsConstant())
   {
@@ -559,7 +559,7 @@ bool VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const Da
     if(isConstant)
     {
       destinationBuffer.resize(0);
-      auto& layer = *chunk.Layer;
+      auto& layer = *chunk.layer;
       outputHash = GetConstantValueVolumeDataHash(dataBlock, (const uint8_t *) targetBuffer, layer.GetValueRange(), layer.GetIntegerScale(), layer.GetIntegerOffset(), layer.IsUseNoValue(), layer.GetNoValue());
       return true;
     }
@@ -574,7 +574,7 @@ bool VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const Da
     if (isConstant)
     {
       destinationBuffer.resize(0);
-      auto& layer = *chunk.Layer;
+      auto& layer = *chunk.layer;
       outputHash = GetConstantValueVolumeDataHash(dataBlock, tmpdata.get(), layer.GetValueRange(), layer.GetIntegerScale(), layer.GetIntegerOffset(), layer.IsUseNoValue(), layer.GetNoValue());
       return true;
     }

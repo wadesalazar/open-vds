@@ -100,25 +100,25 @@ struct PendingDownloadRequest
 
 inline bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
 {
-  if (a.Layer->GetChunkDimensionGroup() == b.Layer->GetChunkDimensionGroup())
+  if (a.layer->GetChunkDimensionGroup() == b.layer->GetChunkDimensionGroup())
   {
-    if (a.Layer->GetLOD() == b.Layer->GetLOD())
+    if (a.layer->GetLOD() == b.layer->GetLOD())
     {
-      if (a.Layer->GetChannelIndex() == b.Layer->GetChannelIndex())
+      if (a.layer->GetChannelIndex() == b.layer->GetChannelIndex())
       {
-        return a.Index < b.Index;
+        return a.index < b.index;
       }
       else
       {
-        return a.Layer->GetChannelIndex() < b.Layer->GetChannelIndex();
+        return a.layer->GetChannelIndex() < b.layer->GetChannelIndex();
       }
     }
     else
     {
-      return a.Layer->GetLOD() < b.Layer->GetLOD();
+      return a.layer->GetLOD() < b.layer->GetLOD();
     }
   }
-  return DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(a.Layer->GetChunkDimensionGroup()) < DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(b.Layer->GetChunkDimensionGroup());
+  return DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(a.layer->GetChunkDimensionGroup()) < DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(b.layer->GetChunkDimensionGroup());
 }
 
 struct PendingUploadRequest

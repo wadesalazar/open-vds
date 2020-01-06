@@ -484,9 +484,9 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
   page->GetMinMax(sourceMin, sourceMax);
   page->GetMinMaxExcludingMargin(sourceMinExcludingMargin, sourceMaxExcludingMargin);
 
-  int32_t lod = chunk.Layer->GetLOD();
+  int32_t lod = chunk.layer->GetLOD();
 
-  VolumeDataLayoutImpl *volumeDataLayout = chunk.Layer->GetLayout();
+  VolumeDataLayoutImpl *volumeDataLayout = chunk.layer->GetLayout();
 
   int32_t overlapMin[Dimensionality_Max];
   int32_t overlapMax[Dimensionality_Max];
@@ -507,9 +507,9 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
     }
   }
 
-  DimensionGroup sourceDimensionGroup = chunk.Layer->GetChunkDimensionGroup();
+  DimensionGroup sourceDimensionGroup = chunk.layer->GetChunkDimensionGroup();
 
-  VolumeDataChannelDescriptor::Format sourceFormat = chunk.Layer->GetFormat();
+  VolumeDataChannelDescriptor::Format sourceFormat = chunk.layer->GetFormat();
   bool sourceIs1Bit = (sourceFormat == VolumeDataChannelDescriptor::Format_1Bit);
 
   int32_t globalSourceSize[Dimensionality_Max];
@@ -688,13 +688,13 @@ struct IndexValues
 
   void Initialize(const VolumeDataChunk &dataChunk, const DataBlock &dataBlock)
   {
-    const VolumeDataLayout *dataLayout = dataChunk.Layer->GetLayout();
+    const VolumeDataLayout *dataLayout = dataChunk.layer->GetLayout();
 
-    valueRangeMin = dataLayout->GetChannelDescriptor(dataChunk.Layer->GetChannelIndex()).GetValueRangeMin();
-    valueRangeMax = dataLayout->GetChannelDescriptor(dataChunk.Layer->GetChannelIndex()).GetValueRangeMax();
+    valueRangeMin = dataLayout->GetChannelDescriptor(dataChunk.layer->GetChannelIndex()).GetValueRangeMin();
+    valueRangeMax = dataLayout->GetChannelDescriptor(dataChunk.layer->GetChannelIndex()).GetValueRangeMax();
 
-    lod = dataChunk.Layer->GetLOD();
-    dataChunk.Layer->GetChunkMinMax(dataChunk.Index, voxelMin, voxelMax, true);
+    lod = dataChunk.layer->GetLOD();
+    dataChunk.layer->GetChunkMinMax(dataChunk.index, voxelMin, voxelMax, true);
 
     for (int dimension = 0; dimension < Dimensionality_Max; dimension++)
     {
@@ -721,7 +721,7 @@ struct IndexValues
       {
         dataBlockBitPitch[iDataBlockDim] = dataBlockPitch[iDataBlockDim] * (iDataBlockDim == 0 ? 1 : 8);
 
-        int dimension = DimensionGroupUtil::GetDimension(dataChunk.Layer->GetChunkDimensionGroup(), iDataBlockDim);
+        int dimension = DimensionGroupUtil::GetDimension(dataChunk.layer->GetChunkDimensionGroup(), iDataBlockDim);
         dimensionMap[iDataBlockDim] = dimension;
         if (dimension >= 0 && dimension < Dimensionality_Max)
         {
@@ -902,9 +902,9 @@ static void DispatchProjectValues(void *output, VolumeDataChannelDescriptor::For
 
 static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataChunk &chunk, const int32_t (&destMin)[Dimensionality_Max], const int32_t (&destMax)[Dimensionality_Max], DimensionGroup projectedDimensionsEnum, FloatVector4 voxelPlane, VolumeDataChannelDescriptor::Format targetFormat,  InterpolationMethod interpolationMethod, bool useNoValue, float noValue, void *targetBuffer, Error &error)
 {
-  VolumeDataChannelDescriptor::Format sourceFormat = chunk.Layer->GetFormat();
+  VolumeDataChannelDescriptor::Format sourceFormat = chunk.layer->GetFormat();
 
-  VolumeDataLayer const *volumeDataLayer = chunk.Layer;
+  VolumeDataLayer const *volumeDataLayer = chunk.layer;
 
   DataBlock const &dataBlock = page->GetDataBlock();
 
@@ -962,7 +962,7 @@ static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
   int32_t sizeThisLod[Dimensionality_Max];
   for (int32_t dimension = 0; dimension < Dimensionality_Max; dimension++)
   {
-    if (chunk.Layer->GetLayout()->IsDimensionLODDecimated(dimension))
+    if (chunk.layer->GetLayout()->IsDimensionLODDecimated(dimension))
     {
       sizeThisLod[dimension] = GetLODSize(destMin[dimension], destMax[dimension], lod);
     }
@@ -1100,7 +1100,7 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
     int32_t min[Dimensionality_Max];
     int32_t max[Dimensionality_Max];
 
-    chunksInProjectedRegion[iChunk].Layer->GetChunkMinMax(chunksInProjectedRegion[iChunk].Index, min, max, true);
+    chunksInProjectedRegion[iChunk].layer->GetChunkMinMax(chunksInProjectedRegion[iChunk].index, min, max, true);
 
     for (int dimensionIndex = 0; dimensionIndex < 2; dimensionIndex++)
     {
@@ -1144,7 +1144,7 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
     for (int iChunkInPlane = 0; iChunkInPlane < chunksIntersectingPlane.size(); iChunkInPlane++)
     {
       VolumeDataChunk &chunkInIntersectingPlane = chunksIntersectingPlane[iChunkInPlane];
-      auto chunk_it = std::find_if(chunksInRegion.begin(), chunksInRegion.end(), [&chunkInIntersectingPlane] (const VolumeDataChunk &a) { return a.Index == chunkInIntersectingPlane.Index && a.Layer == chunkInIntersectingPlane.Layer; });
+      auto chunk_it = std::find_if(chunksInRegion.begin(), chunksInRegion.end(), [&chunkInIntersectingPlane] (const VolumeDataChunk &a) { return a.index == chunkInIntersectingPlane.index && a.layer == chunkInIntersectingPlane.layer; });
       if (chunk_it == chunksInRegion.end())
       {
         chunksInRegion.push_back(chunkInIntersectingPlane);
@@ -1301,7 +1301,7 @@ static bool RequestVolumeSamplesProcessPage(VolumeDataPageImpl *page, VolumeData
 
     int64_t iSampleChunkIndex = volumeDataSamplePositions[iSamplePos].chunkIndex;
 
-    if (iSampleChunkIndex >= dataChunk.Index)
+    if (iSampleChunkIndex >= dataChunk.index)
     {
       iEndSamplePos = iSamplePos;
     }
@@ -1311,33 +1311,33 @@ static bool RequestVolumeSamplesProcessPage(VolumeDataPageImpl *page, VolumeData
     }
   }
 
-  assert(volumeDataSamplePositions[iStartSamplePos].chunkIndex == dataChunk.Index &&
-    (iStartSamplePos == 0 || volumeDataSamplePositions[size_t(iStartSamplePos) - 1].chunkIndex < dataChunk.Index));
+  assert(volumeDataSamplePositions[iStartSamplePos].chunkIndex == dataChunk.index &&
+    (iStartSamplePos == 0 || volumeDataSamplePositions[size_t(iStartSamplePos) - 1].chunkIndex < dataChunk.index));
 
   VolumeDataChannelDescriptor::Format format = page->GetDataBlock().Format;
 
   switch (format)
   {
   case VolumeDataChannelDescriptor::Format_1Bit:
-    SampleVolumeInit<bool>(page, dataChunk.Layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
+    SampleVolumeInit<bool>(page, dataChunk.layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
     break;
   case VolumeDataChannelDescriptor::Format_U8:
-    SampleVolumeInit<uint8_t>(page, dataChunk.Layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
+    SampleVolumeInit<uint8_t>(page, dataChunk.layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
     break;
   case VolumeDataChannelDescriptor::Format_U16:
-    SampleVolumeInit<uint16_t>(page, dataChunk.Layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
+    SampleVolumeInit<uint16_t>(page, dataChunk.layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
     break;
   case VolumeDataChannelDescriptor::Format_U32:
-    SampleVolumeInit<uint32_t>(page, dataChunk.Layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
+    SampleVolumeInit<uint32_t>(page, dataChunk.layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
     break;
   case VolumeDataChannelDescriptor::Format_R32:
-    SampleVolumeInit<float>(page, dataChunk.Layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
+    SampleVolumeInit<float>(page, dataChunk.layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
     break;
   case VolumeDataChannelDescriptor::Format_U64:
-    SampleVolumeInit<uint64_t>(page, dataChunk.Layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
+    SampleVolumeInit<uint64_t>(page, dataChunk.layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
     break;
   case VolumeDataChannelDescriptor::Format_R64:
-    SampleVolumeInit<double>(page, dataChunk.Layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
+    SampleVolumeInit<double>(page, dataChunk.layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
     break;
   }
 
@@ -1382,20 +1382,20 @@ int64_t StaticRequestVolumeSamples(VolumeDataRequestProcessor &request_processor
 
   return request_processor.AddJob(volumeDataChunks, [buffer, volumeDataSamplePositions, interpolationMethod, isReplaceNoValue, replacementNoValue](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error& error)
     {
-      return RequestVolumeSamplesProcessPage(page, dataChunk,  *volumeDataSamplePositions, interpolationMethod, dataChunk.Layer->IsUseNoValue(), isReplaceNoValue, isReplaceNoValue ? replacementNoValue : dataChunk.Layer->GetNoValue(), buffer, error);
+      return RequestVolumeSamplesProcessPage(page, dataChunk,  *volumeDataSamplePositions, interpolationMethod, dataChunk.layer->IsUseNoValue(), isReplaceNoValue, isReplaceNoValue ? replacementNoValue : dataChunk.layer->GetNoValue(), buffer, error);
     });
 }
 
 template <typename T, InterpolationMethod INTERPMETHOD, bool isUseNoValue>
 void TraceVolume(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, const std::vector<VolumeDataSamplePos> &volumeDataSamplePositions, int32_t traceDimension, float noValue, void *targetBuffer)
 {
-  int32_t traceSize = chunk.Layer->GetDimensionNumSamples(traceDimension);
+  int32_t traceSize = chunk.layer->GetDimensionNumSamples(traceDimension);
 
   float *traceBuffer = reinterpret_cast<float *>(targetBuffer);
 
   const DataBlock & dataBlock = page->GetDataBlock();
 
-  const VolumeDataLayer *volumeDataLayer = chunk.Layer;
+  const VolumeDataLayer *volumeDataLayer = chunk.layer;
 
   int32_t chunkDimension0 = volumeDataLayer->GetChunkDimension(0);
   int32_t chunkDimension1 = volumeDataLayer->GetChunkDimension(1);
@@ -1417,8 +1417,8 @@ void TraceVolume(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, const s
   int32_t minExcludingMargin[Dimensionality_Max];
   int32_t maxExcludingMargin[Dimensionality_Max];
 
-  volumeDataLayer->GetChunkMinMax(chunk.Index, min, max, true);
-  volumeDataLayer->GetChunkMinMax(chunk.Index, minExcludingMargin, maxExcludingMargin, false);
+  volumeDataLayer->GetChunkMinMax(chunk.index, min, max, true);
+  volumeDataLayer->GetChunkMinMax(chunk.index, minExcludingMargin, maxExcludingMargin, false);
 
   int32_t lod = volumeDataLayer->GetLOD();
 
@@ -1482,7 +1482,7 @@ void TraceVolume(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, const s
 template <typename T>
 static void TraceVolumeInit(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, const std::vector<VolumeDataSamplePos> &volumeDataSamplePositions, InterpolationMethod interpolationMethod, int32_t traceDimension, float noValue, void *targetBuffer)
 {
-  if (chunk.Layer->IsUseNoValue())
+  if (chunk.layer->IsUseNoValue())
   {
     switch (interpolationMethod)
     {
@@ -1542,7 +1542,7 @@ static void TraceVolumeInit(VolumeDataPageImpl *page, const VolumeDataChunk &chu
 
 static bool RequestVolumeTracesProcessPage (VolumeDataPageImpl *page, VolumeDataChunk &dataChunk, const std::vector<VolumeDataSamplePos> &volumeDataSamplePositions, InterpolationMethod interpolationMethod, int32_t traceDimension, float noValue, void *buffer, Error &error)
 {
-  VolumeDataChannelDescriptor::Format format = dataChunk.Layer->GetFormat();
+  VolumeDataChannelDescriptor::Format format = dataChunk.layer->GetFormat();
   switch (format)
   {
   case VolumeDataChannelDescriptor::Format_1Bit:
