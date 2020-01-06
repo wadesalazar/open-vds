@@ -75,14 +75,25 @@ template<typename T, int LEN>
 struct PyArrayAdapter<T, LEN, true>
 {
   static T*
-  getArrayBufferChecked(py::array_t<T>& arr, int arrayCount = 1)
+  getArrayBufferChecked(py::array_t<T>& arr, int* arrayCount = nullptr)
   {
-    py::ssize_t n = 1;
-    for (py::ssize_t i = 0; i < arr.ndim(); ++i)
+    py::ssize_t n = 0;
+    int count = 0;
+    if (arr.ndim() == 1)
     {
-      n = n * arr.shape(i);
+      count = 1;
+      n = arr.shape(0);
     }
-    if (n != LEN * arrayCount)
+    else if (arr.ndim() == 2)
+    {
+      count = (int)arr.shape(0);
+      n = arr.shape(1);
+    }
+    if (arrayCount)
+    {
+      *arrayCount = count;
+    }
+    if (n != LEN)
     {
       throw std::invalid_argument("Array has the wrong size/dimensions.");
     }
@@ -92,7 +103,7 @@ struct PyArrayAdapter<T, LEN, true>
     }
   }
 
-  static T (&getArrayChecked(py::array_t<T> & arr, int arrayCount = 1))[LEN]
+  static T (&getArrayChecked(py::array_t<T> & arr, int* arrayCount = nullptr))[LEN]
   {
     T* tmp = getArrayBufferChecked(arr, arrayCount);
     return *reinterpret_cast<T (*)[LEN]>(tmp);
@@ -104,14 +115,25 @@ template<typename T, int LEN>
 struct PyArrayAdapter<T, LEN, false>
 {
   static const T*
-  getArrayBufferChecked(py::array_t<T> const& arr, int arrayCount = 1)
+  getArrayBufferChecked(py::array_t<T> const& arr, int* arrayCount = nullptr)
   {
-    py::ssize_t n = 1;
-    for (py::ssize_t i = 0; i < arr.ndim(); ++i)
+    py::ssize_t n = 0;
+    int count = 0;
+    if (arr.ndim() == 1)
     {
-      n = n * arr.shape(i);
+      count = 1;
+      n = arr.shape(0);
     }
-    if (n != LEN * arrayCount)
+    else if (arr.ndim() == 2)
+    {
+      count = (int)arr.shape(0);
+      n = arr.shape(1);
+    }
+    if (arrayCount)
+    {
+      *arrayCount = count;
+    }
+    if (n != LEN)
     {
       throw std::invalid_argument("Array has the wrong size/dimensions.");
     }
@@ -121,7 +143,7 @@ struct PyArrayAdapter<T, LEN, false>
     }
   }
 
-  static const T (&getArrayChecked(py::array_t<T> const& arr, int arrayCount = 1))[LEN]
+  static const T (&getArrayChecked(py::array_t<T> const& arr, int* arrayCount = nullptr))[LEN]
   {
     const T* tmp = getArrayBufferChecked(arr, arrayCount);
     return *reinterpret_cast<const T (*)[LEN]>(tmp);

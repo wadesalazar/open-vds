@@ -116,10 +116,11 @@ PYBIND11_MODULE(core, m) {
       py::arg().noconvert()
     )
   ;
-  m.def("testArrayArrays", [](py::array_t<int>& data, int arrayCount)
+  m.def("check2Darray", [](py::array_t<int>& data)
     {
-      auto& checkedData = PyArrayAdapter<int, 3, false>::getArrayChecked(data, arrayCount);
-      return true;
+      int arrayCount = 0;
+      auto& checkedData = PyArrayAdapter<int, 3, false>::getArrayChecked(data, &arrayCount);
+      return arrayCount;
     }
   );
 #endif

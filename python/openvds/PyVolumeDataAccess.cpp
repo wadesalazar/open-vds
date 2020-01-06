@@ -211,9 +211,10 @@ PyVolumeDataAccess::initModule(py::module& m)
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset_2));
 
 // AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeSamples"        , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod)>(&VolumeDataAccessManager::RequestVolumeSamples), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples));
-  VolumeDataAccessManager_.def("requestVolumeSamples"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, int sampleCount, native::InterpolationMethod interpolationMethod)
+  VolumeDataAccessManager_.def("requestVolumeSamples"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, native::InterpolationMethod interpolationMethod)
     {
-      auto& voxelCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(sampleCoordinates, sampleCount);
+      int sampleCount = 0;
+      auto& voxelCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(sampleCoordinates, &sampleCount);
       int64_t bufferSize = sizeof(float) * sampleCount;
       py::buffer_info info = buf.request(true);
       if (info.size * info.itemsize < bufferSize)
@@ -225,9 +226,10 @@ PyVolumeDataAccess::initModule(py::module& m)
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples));
 
 // AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeSamples"        , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, float)>(&VolumeDataAccessManager::RequestVolumeSamples), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples_2));
-  VolumeDataAccessManager_.def("requestVolumeSamples"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, int sampleCount, native::InterpolationMethod interpolationMethod, float replacementNoValue)
+  VolumeDataAccessManager_.def("requestVolumeSamples"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, native::InterpolationMethod interpolationMethod, float replacementNoValue)
     {
-      auto& voxelCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(sampleCoordinates, sampleCount);
+      int sampleCount = 0;
+      auto& voxelCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(sampleCoordinates, &sampleCount);
       int64_t bufferSize = sizeof(float) * sampleCount;
       py::buffer_info info = buf.request(true);
       if (info.size * info.itemsize < bufferSize)
@@ -239,9 +241,10 @@ PyVolumeDataAccess::initModule(py::module& m)
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples_2));
 
 // AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeTraces"         , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, int)>(&VolumeDataAccessManager::RequestVolumeTraces), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces));
-  VolumeDataAccessManager_.def("requestVolumeTraces"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, int sampleCount, native::InterpolationMethod interpolationMethod, int traceDimension)
+  VolumeDataAccessManager_.def("requestVolumeTraces"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, native::InterpolationMethod interpolationMethod, int traceDimension)
     {
-      auto& traceCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(sampleCoordinates, sampleCount);
+      int sampleCount = 0;
+      auto& traceCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(sampleCoordinates, &sampleCount);
       int64_t bufferSize = sizeof(float) * sampleCount;
       py::buffer_info info = buf.request(true);
       if (info.size * info.itemsize < bufferSize)
@@ -253,9 +256,10 @@ PyVolumeDataAccess::initModule(py::module& m)
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces));
 
 // AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeTraces"         , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, int, float)>(&VolumeDataAccessManager::RequestVolumeTraces), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces_2));
-  VolumeDataAccessManager_.def("requestVolumeTraces"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, int sampleCount, native::InterpolationMethod interpolationMethod, int traceDimension, float replacementNoValue)
+  VolumeDataAccessManager_.def("requestVolumeTraces"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, native::InterpolationMethod interpolationMethod, int traceDimension, float replacementNoValue)
     {
-      auto& traceCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(sampleCoordinates, sampleCount);
+      int sampleCount = 0;
+      auto& traceCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(sampleCoordinates, &sampleCount);
       int64_t bufferSize = sizeof(float) * sampleCount;
       py::buffer_info info = buf.request(true);
       if (info.size * info.itemsize < bufferSize)
