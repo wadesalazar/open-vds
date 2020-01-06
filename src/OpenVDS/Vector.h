@@ -18,6 +18,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <tuple>
 
 namespace OpenVDS
 {
@@ -38,48 +39,52 @@ struct Vector
   inline const T &operator[] (size_t n) const  { return data[n]; }
 };
 
-template<typename T>
-struct Vector<T,2>
+template<typename TYPE>
+struct Vector<TYPE,2>
 {
-  typedef T element_type;
+  typedef TYPE element_type;
   enum { element_count = 2 };
 
   union
   {
     struct
     {
-      T X, Y;
+      TYPE X, Y;
     };
-    T data[2];
+    TYPE data[2];
   };
 
   Vector() : X(), Y() {}
-  Vector(T X, T Y) : X(X), Y(Y) {}
+  Vector(TYPE X, TYPE Y) : X(X), Y(Y) {}
+  Vector(std::tuple<TYPE, TYPE> const& t) : X(std::get<0>(t)), Y(std::get<1>(t)) {}
 
-  inline       T &operator[] (size_t n)        { return data[n]; }
-  inline const T &operator[] (size_t n) const  { return data[n]; }
+  inline       TYPE &operator[] (size_t n)        { return data[n]; }
+  inline const TYPE &operator[] (size_t n) const  { return data[n]; }
+  inline operator std::tuple<TYPE, TYPE>() const  { return std::make_tuple(data[0], data[1]); }
 };
 
-template<typename T>
-struct Vector<T,3>
+template<typename TYPE>
+struct Vector<TYPE,3>
 {
-  typedef T element_type;
+  typedef TYPE element_type;
   enum { element_count = 3 };
 
   union
   {
     struct
     {
-      T X, Y, Z;
+      TYPE X, Y, Z;
     };
-    T data[3];
+    TYPE data[3];
   };
 
   Vector() : X(), Y(), Z() {}
-  Vector(T X, T Y, T Z) : X(X), Y(Y), Z(Z) {}
+  Vector(TYPE X, TYPE Y, TYPE Z) : X(X), Y(Y), Z(Z) {}
+  Vector(std::tuple<TYPE, TYPE, TYPE> const& t) : X(std::get<0>(t)), Y(std::get<1>(t)), Z(std::get<2>(t)) {}
 
-  inline       T &operator[] (size_t n)        { return data[n]; }
-  inline const T &operator[] (size_t n) const  { return data[n]; }
+  inline       TYPE &operator[] (size_t n)              { return data[n]; }
+  inline const TYPE &operator[] (size_t n) const        { return data[n]; }
+  inline operator std::tuple<TYPE, TYPE, TYPE>() const  { return std::make_tuple(data[0], data[1], data[2]); }
 };
 
 template<typename TYPE>
@@ -99,9 +104,11 @@ struct Vector<TYPE, 4>
 
   Vector() : X(), Y(), Z(), T() {}
   Vector(TYPE X, TYPE Y, TYPE Z, TYPE T) : X(X), Y(Y), Z(Z), T(T) {}
+  Vector(std::tuple<TYPE, TYPE, TYPE, TYPE> const& t) : X(std::get<0>(t)), Y(std::get<1>(t)), Z(std::get<2>(t)), T(std::get<3>(t)) {}
 
-  inline       TYPE &operator[] (size_t n)        { return data[n]; }
-  inline const TYPE &operator[] (size_t n) const  { return data[n]; }
+  inline       TYPE &operator[] (size_t n)                    { return data[n]; }
+  inline const TYPE &operator[] (size_t n) const              { return data[n]; }
+  inline operator std::tuple<TYPE, TYPE, TYPE, TYPE>() const  { return std::make_tuple(data[0], data[1], data[2], data[3]); }
 };
 
 /*
