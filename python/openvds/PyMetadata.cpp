@@ -26,6 +26,21 @@ PyMetadata::initModule(py::module& m)
   py::enum_<MetadataType> 
     MetadataType_(m,"MetadataType", OPENVDS_DOCSTRING(MetadataType));
 
+  MetadataType_.value("Int"                         , MetadataType::Int                       , OPENVDS_DOCSTRING(MetadataType_Int));
+  MetadataType_.value("IntVector2"                  , MetadataType::IntVector2                , OPENVDS_DOCSTRING(MetadataType_IntVector2));
+  MetadataType_.value("IntVector3"                  , MetadataType::IntVector3                , OPENVDS_DOCSTRING(MetadataType_IntVector3));
+  MetadataType_.value("IntVector4"                  , MetadataType::IntVector4                , OPENVDS_DOCSTRING(MetadataType_IntVector4));
+  MetadataType_.value("Float"                       , MetadataType::Float                     , OPENVDS_DOCSTRING(MetadataType_Float));
+  MetadataType_.value("FloatVector2"                , MetadataType::FloatVector2              , OPENVDS_DOCSTRING(MetadataType_FloatVector2));
+  MetadataType_.value("FloatVector3"                , MetadataType::FloatVector3              , OPENVDS_DOCSTRING(MetadataType_FloatVector3));
+  MetadataType_.value("FloatVector4"                , MetadataType::FloatVector4              , OPENVDS_DOCSTRING(MetadataType_FloatVector4));
+  MetadataType_.value("Double"                      , MetadataType::Double                    , OPENVDS_DOCSTRING(MetadataType_Double));
+  MetadataType_.value("DoubleVector2"               , MetadataType::DoubleVector2             , OPENVDS_DOCSTRING(MetadataType_DoubleVector2));
+  MetadataType_.value("DoubleVector3"               , MetadataType::DoubleVector3             , OPENVDS_DOCSTRING(MetadataType_DoubleVector3));
+  MetadataType_.value("DoubleVector4"               , MetadataType::DoubleVector4             , OPENVDS_DOCSTRING(MetadataType_DoubleVector4));
+  MetadataType_.value("String"                      , MetadataType::String                    , OPENVDS_DOCSTRING(MetadataType_String));
+  MetadataType_.value("BLOB"                        , MetadataType::BLOB                      , OPENVDS_DOCSTRING(MetadataType_BLOB));
+
   // MetadataKey
   py::class_<MetadataKey> 
     MetadataKey_(m,"MetadataKey", OPENVDS_DOCSTRING(MetadataKey));

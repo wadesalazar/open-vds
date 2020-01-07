@@ -42,15 +42,18 @@ PREFIX_BLACKLIST = [
 ]
 
 PUBLIC_LIST = [
+  cindex.AccessSpecifier.INVALID,
   cindex.AccessSpecifier.PUBLIC
 ]
 
 PROTECTED_LIST = [
+  cindex.AccessSpecifier.INVALID,
   cindex.AccessSpecifier.PUBLIC,
   cindex.AccessSpecifier.PROTECTED
 ]
 
 PRIVATE_LIST = [
+  cindex.AccessSpecifier.INVALID,
   cindex.AccessSpecifier.PUBLIC,
   cindex.AccessSpecifier.PROTECTED,
   cindex.AccessSpecifier.PRIVATE
