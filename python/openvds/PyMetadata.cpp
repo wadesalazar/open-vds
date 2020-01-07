@@ -170,6 +170,8 @@ PyMetadata::initModule(py::module& m)
         { sizeof(uint8_t) }
       );
     });
+
+  // IMPLEMENTED :   MetadataContainer_.def("getMetadataBLOB"             , static_cast<void(MetadataContainer::*)(const char *, const char *, const void **, size_t *) const>(&MetadataContainer::GetMetadataBLOB), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB));
   MetadataContainer_.def("getMetadataBLOB", [](MetadataContainer* self, const char* category, const char* name) 
     {
       BLOB blob;

@@ -135,7 +135,7 @@ PyVolumeDataAccess::initModule(py::module& m)
 
 //AUTOGEN-END
 
-// AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("getCurrentUploadError"       , static_cast<void(VolumeDataAccessManager::*)(const char **, int32_t *, const char **)>(&VolumeDataAccessManager::GetCurrentUploadError), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentUploadError));
+// IMPLEMENTED :   VolumeDataAccessManager_.def("getCurrentUploadError"       , static_cast<void(VolumeDataAccessManager::*)(const char **, int32_t *, const char **)>(&VolumeDataAccessManager::GetCurrentUploadError), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentUploadError));
   VolumeDataAccessManager_.def("getCurrentUploadError"       , [](VolumeDataAccessManager* self)
     {
       const char
@@ -151,7 +151,7 @@ PyVolumeDataAccess::initModule(py::module& m)
     OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentUploadError)
   );
 
-// AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeSubset"         , static_cast<int64_t(VolumeDataAccessManager::*)(void *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const int (&)[6], const int (&)[6], VolumeDataChannelDescriptor::Format)>(&VolumeDataAccessManager::RequestVolumeSubset), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSubset));
+// IMPLEMENTED :   VolumeDataAccessManager_.def("requestVolumeSubset"         , static_cast<int64_t(VolumeDataAccessManager::*)(void *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const int (&)[6], const int (&)[6], VolumeDataChannelDescriptor::Format)>(&VolumeDataAccessManager::RequestVolumeSubset), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSubset));
   VolumeDataAccessManager_.def("requestVolumeSubset"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<int>& arg1, py::array_t<int>& arg2, VolumeDataChannelDescriptor::Format fmt)
     {
       auto& minVoxelCoordinates = PyArrayAdapter<int, Dimensionality_Max, false>::getArrayChecked(arg1);
@@ -166,7 +166,7 @@ PyVolumeDataAccess::initModule(py::module& m)
     }
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSubset));
 
-// AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeSubset"         , static_cast<int64_t(VolumeDataAccessManager::*)(void *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const int (&)[6], const int (&)[6], VolumeDataChannelDescriptor::Format, float)>(&VolumeDataAccessManager::RequestVolumeSubset), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSubset_2));
+// IMPLEMENTED :   VolumeDataAccessManager_.def("requestVolumeSubset"         , static_cast<int64_t(VolumeDataAccessManager::*)(void *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const int (&)[6], const int (&)[6], VolumeDataChannelDescriptor::Format, float)>(&VolumeDataAccessManager::RequestVolumeSubset), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSubset_2));
   VolumeDataAccessManager_.def("requestVolumeSubset"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<int>& arg1, py::array_t<int>& arg2, VolumeDataChannelDescriptor::Format fmt, float replacementNoValue)
     {
       auto& minVoxelCoordinates = PyArrayAdapter<int, Dimensionality_Max, false>::getArrayChecked(arg1);
@@ -181,7 +181,7 @@ PyVolumeDataAccess::initModule(py::module& m)
     }
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSubset));
 
-// AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestProjectedVolumeSubset", static_cast<int64_t(VolumeDataAccessManager::*)(void *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const int (&)[6], const int (&)[6], const native::FloatVector4 &, native::DimensionsND, VolumeDataChannelDescriptor::Format, native::InterpolationMethod)>(&VolumeDataAccessManager::RequestProjectedVolumeSubset), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset));
+// IMPLEMENTED :   VolumeDataAccessManager_.def("requestProjectedVolumeSubset", static_cast<int64_t(VolumeDataAccessManager::*)(void *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const int (&)[6], const int (&)[6], const native::FloatVector4 &, native::DimensionsND, VolumeDataChannelDescriptor::Format, native::InterpolationMethod)>(&VolumeDataAccessManager::RequestProjectedVolumeSubset), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset));
   VolumeDataAccessManager_.def("requestProjectedVolumeSubset"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<int>& arg1, py::array_t<int>& arg2, const FloatVector4Adapter::AdaptedType &voxelPlane, native::DimensionsND projectedDimensions,  VolumeDataChannelDescriptor::Format fmt, native::InterpolationMethod interpolationMethod)
     {
       auto& minVoxelCoordinates = PyArrayAdapter<int, Dimensionality_Max, false>::getArrayChecked(arg1);
@@ -195,7 +195,7 @@ PyVolumeDataAccess::initModule(py::module& m)
       return self->RequestProjectedVolumeSubset(info.ptr, layout, dimensions, lod, channel, minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, projectedDimensions, fmt, interpolationMethod);
     }
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset));
-// AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestProjectedVolumeSubset", static_cast<int64_t(VolumeDataAccessManager::*)(void *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const int (&)[6], const int (&)[6], const native::FloatVector4 &, native::DimensionsND, VolumeDataChannelDescriptor::Format, native::InterpolationMethod, float)>(&VolumeDataAccessManager::RequestProjectedVolumeSubset), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset_2));
+// IMPLEMENTED :   VolumeDataAccessManager_.def("requestProjectedVolumeSubset", static_cast<int64_t(VolumeDataAccessManager::*)(void *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const int (&)[6], const int (&)[6], const native::FloatVector4 &, native::DimensionsND, VolumeDataChannelDescriptor::Format, native::InterpolationMethod, float)>(&VolumeDataAccessManager::RequestProjectedVolumeSubset), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset_2));
   VolumeDataAccessManager_.def("requestProjectedVolumeSubset"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<int>& arg1, py::array_t<int>& arg2, const FloatVector4Adapter::AdaptedType &voxelPlane, native::DimensionsND projectedDimensions,  VolumeDataChannelDescriptor::Format fmt, native::InterpolationMethod interpolationMethod, float replacementNoValue)
     {
       auto& minVoxelCoordinates = PyArrayAdapter<int, Dimensionality_Max, false>::getArrayChecked(arg1);
@@ -210,7 +210,7 @@ PyVolumeDataAccess::initModule(py::module& m)
     }
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestProjectedVolumeSubset_2));
 
-// AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeSamples"        , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod)>(&VolumeDataAccessManager::RequestVolumeSamples), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples));
+// IMPLEMENTED :   VolumeDataAccessManager_.def("requestVolumeSamples"        , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod)>(&VolumeDataAccessManager::RequestVolumeSamples), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples));
   VolumeDataAccessManager_.def("requestVolumeSamples"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, native::InterpolationMethod interpolationMethod)
     {
       int sampleCount = 0;
@@ -225,7 +225,7 @@ PyVolumeDataAccess::initModule(py::module& m)
     }
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples));
 
-// AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeSamples"        , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, float)>(&VolumeDataAccessManager::RequestVolumeSamples), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples_2));
+// IMPLEMENTED :   VolumeDataAccessManager_.def("requestVolumeSamples"        , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, float)>(&VolumeDataAccessManager::RequestVolumeSamples), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples_2));
   VolumeDataAccessManager_.def("requestVolumeSamples"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, native::InterpolationMethod interpolationMethod, float replacementNoValue)
     {
       int sampleCount = 0;
@@ -240,7 +240,7 @@ PyVolumeDataAccess::initModule(py::module& m)
     }
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples_2));
 
-// AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeTraces"         , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, int)>(&VolumeDataAccessManager::RequestVolumeTraces), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces));
+// IMPLEMENTED :   VolumeDataAccessManager_.def("requestVolumeTraces"         , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, int)>(&VolumeDataAccessManager::RequestVolumeTraces), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces));
   VolumeDataAccessManager_.def("requestVolumeTraces"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, native::InterpolationMethod interpolationMethod, int traceDimension)
     {
       int sampleCount = 0;
@@ -255,7 +255,7 @@ PyVolumeDataAccess::initModule(py::module& m)
     }
   , OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces));
 
-// AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("requestVolumeTraces"         , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, int, float)>(&VolumeDataAccessManager::RequestVolumeTraces), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces_2));
+// IMPLEMENTED :   VolumeDataAccessManager_.def("requestVolumeTraces"         , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, int, float)>(&VolumeDataAccessManager::RequestVolumeTraces), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces_2));
   VolumeDataAccessManager_.def("requestVolumeTraces"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, native::InterpolationMethod interpolationMethod, int traceDimension, float replacementNoValue)
     {
       int sampleCount = 0;
