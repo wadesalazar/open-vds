@@ -109,9 +109,6 @@ PyVolumeData::initModule(py::module& m)
   Dimensionality_.value("Dimensionality_Max"          , Dimensionality::Dimensionality_Max      , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_Max));
 
   m.def("getLODSize"                  , static_cast<int(*)(int, int, int, bool)>(&GetLODSize), OPENVDS_DOCSTRING(GetLODSize));
-  //m.def("readElement"                 , static_cast<bool(*)(const bool *, size_t)>(&ReadElement), OPENVDS_DOCSTRING(ReadElement));
-  //m.def("writeElement"                , static_cast<void(*)(bool *, size_t, bool)>(&WriteElement), OPENVDS_DOCSTRING(WriteElement));
-  //m.def("pitchScale"                  , static_cast<int(*)()>(&PitchScale), OPENVDS_DOCSTRING(PitchScale));
 //AUTOGEN-END
 }
 

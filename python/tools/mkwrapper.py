@@ -12,6 +12,23 @@ from glob import glob
 from threading import Thread, Semaphore
 from multiprocessing import cpu_count
 
+#import cymbal
+#import ctypes
+#
+#cymbal.monkeypatch_type('get_template_argument_type',
+#                        'clang_Type_getTemplateArgumentAsType',
+#                        [cindex.Type, ctypes.c_uint],
+#                        cindex.Type)
+#
+#cymbal.monkeypatch_type('get_num_template_arguments',
+#                        'clang_Type_getNumTemplateArguments',
+#                        [cindex.Type],
+#                        ctypes.c_int)
+#
+## check if the cursor's type is a template
+#def is_template(node):
+#    return hasattr(node, 'type') and node.type.get_num_template_arguments() != -1
+
 RECURSE_LIST = [
     CursorKind.TRANSLATION_UNIT,
     CursorKind.NAMESPACE,
@@ -282,6 +299,9 @@ def try_generate_trampoline_function(node, all_, restype, arglist):
     return sig
 
 def generate_function(node, all_, output, indent, parent_prefix, context):
+    if node.get_num_template_arguments() >= 0:
+        # Don't generate wrappers for template specializations
+        return
     overload_name = resolve_overload_name(node, all_)
     restype   = fixname(node.result_type.spelling)
     arglist = fixarglist(fixname(node.displayname[node.displayname.find('('):]), node, all)
