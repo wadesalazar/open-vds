@@ -22,6 +22,7 @@
 #include <OpenVDS/Metadata.h>
 #include <OpenVDS/VolumeData.h>
 
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -58,6 +59,21 @@ struct AWSOpenOptions : OpenOptions
   AWSOpenOptions() : OpenOptions(AWS) {}
   AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), bucket(bucket), key(key), region(region) {}
 };
+
+struct AzureOpenOptions : OpenOptions
+{
+    std::string connection_string;
+    std::string container;
+    std::string blob;
+    int parallelism_factor = 4;
+    int max_execution_time = 100000;
+
+
+    AzureOpenOptions() : OpenOptions(Azure) {}
+    AzureOpenOptions(std::string const& connection_string, std::string const& container, std::string const& blob) : OpenOptions(Azure), connection_string(connection_string), container(container), blob(blob) {}
+    AzureOpenOptions(std::string const& connection_string, std::string const& container, std::string const& blob, int& parallelism_factor, int& max_execution_time) : OpenOptions(Azure), connection_string(connection_string), container(container), blob(blob), parallelism_factor(parallelism_factor), max_execution_time(max_execution_time) {}
+};
+
 
 struct InMemoryOpenOptions : OpenOptions
 {
