@@ -200,15 +200,26 @@ def generate_constructor(node, all_, output, indent, parent_prefix, context):
     )
     output.append(indent + parent_prefix + code)
 
-def can_generate_function(arglist):
+def can_generate_function(restype, arglist):
     if '[' in arglist or 'void *' in arglist or '**' in arglist:
         return False
+    if 'IntVector' in arglist or 'FloatVector' in arglist or 'DoubleVector' in arglist:
+        return False
+    if not '<' in restype:
+        if 'IntVector' in restype or 'FloatVector' in restype or 'DoubleVector' in restype:
+            return False
     return True
 
 class UnsupportedFunctionSignatureError(ValueError):
     pass
 
-def try_generate_trampoline_function(node, all_, arglist):
+def get_adapter_type(native_type):
+    if 'Vector' in native_type:
+        return re.sub(".+[:]+(.+)", r"\1Adapter", native_type)
+    else:
+        return native_type
+
+def try_generate_trampoline_function(node, all_, restype, arglist):
     args = arglist[1:-1].split(',')
     newargs = []
     iarg = 0
@@ -251,13 +262,20 @@ def try_generate_trampoline_function(node, all_, arglist):
             raise UnsupportedFunctionSignatureError(arglist)
         elif '**' in arg:
             raise UnsupportedFunctionSignatureError(arglist)
+        elif 'Vector' in arg:
+            arg = "{}::AdaptedType".format(get_adapter_type(arg))
+            callargs.append(argname)
+            newargs.append("{} {}".format(arg, argname))
         else:
             callargs.append(argname)
             newargs.append("{} {}".format(arg, argname))
         iarg += 1
-    call = "return {}{}({});".format(call_prefix, node.spelling, ", ".join(callargs))
+    call = "{}{}({})".format(call_prefix, node.spelling, ", ".join(callargs))        
+    if 'Vector' in restype:
+        restype = get_adapter_type(restype)
+        call = "({}::AdaptedType)({})".format(restype, call)
     newarglist = ", ".join(newargs)
-    sig = "[]({}) BEGIN {} END".format(newarglist, call).replace('BEGIN', '{').replace('END', '}')
+    sig = "[]({}) BEGIN return {}; END".format(newarglist, call).replace('BEGIN', '{').replace('END', '}')
     return sig
 
 def generate_function(node, all_, output, indent, parent_prefix, context):
@@ -281,11 +299,11 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
        format_docstring_decl(overload_name)
     )
     line = ''
-    if not can_generate_function(arglist):
+    if not can_generate_function(restype, arglist):
         try:
             code = """.def({0:30}, {1}, {2});""".format(
                q(getpyname(sanitize_name(node.spelling))),
-               try_generate_trampoline_function(node, all_, arglist),
+               try_generate_trampoline_function(node, all_, restype, arglist),
                format_docstring_decl(overload_name)
             )
         except UnsupportedFunctionSignatureError:

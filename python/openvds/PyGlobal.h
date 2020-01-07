@@ -168,37 +168,37 @@ struct BLOB
 template<typename T>
 struct Vector2Adapter
 {
-  typedef std::tuple<T, T> Tuple;
+  typedef std::tuple<T, T> AdaptedType;
 
-  static native::Vector<T, 2> fromTuple(Tuple const& val) { return val; }
-  static Tuple asTuple(native::Vector<T, 2> const& val)   { return val; }
+  static native::Vector<T, 2> fromTuple(AdaptedType const& val) { return val; }
+  static AdaptedType asTuple(native::Vector<T, 2> const& val)   { return val; }
 };
 
 template<typename T>
 struct Vector3Adapter
 {
-  typedef std::tuple<T, T, T> Tuple;
+  typedef std::tuple<T, T, T> AdaptedType;
 
-  static native::Vector<T, 3> fromTuple(Tuple const& val) { return val; }
-  static Tuple asTuple(native::Vector<T, 3> const& val)   { return val; }
+  static native::Vector<T, 3> fromTuple(AdaptedType const& val) { return val; }
+  static AdaptedType asTuple(native::Vector<T, 3> const& val)   { return val; }
 };
 
 template<typename T>
 struct Vector4Adapter
 {
-  typedef std::tuple<T, T, T, T> Tuple;
+  typedef std::tuple<T, T, T, T> AdaptedType;
 
-  static native::Vector<T, 4> fromTuple(Tuple const& val) { return val; }
-  static Tuple asTuple(native::Vector<T, 4> const& val)   { return val; }
+  static native::Vector<T, 4> fromTuple(AdaptedType const& val) { return val; }
+  static AdaptedType asTuple(native::Vector<T, 4> const& val)   { return val; }
 };
 
 template<typename T>
 struct Vector6Adapter
 {
-  typedef std::tuple<T, T, T, T, T, T> Tuple;
+  typedef std::tuple<T, T, T, T, T, T> AdaptedType;
 
-  static native::Vector<T, 6> fromTuple(Tuple const& val) { return val; }
-  static Tuple asTuple(native::Vector<T, 6> const& val)   { return val; }
+  static native::Vector<T, 6> fromTuple(AdaptedType const& val) { return val; }
+  static AdaptedType asTuple(native::Vector<T, 6> const& val)   { return val; }
 };
 
 typedef Vector2Adapter<int>     IntVector2Adapter;
