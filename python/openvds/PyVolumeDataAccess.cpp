@@ -23,7 +23,7 @@ template<typename INDEX_TYPE, typename T>
 static void
 RegisterVolumeDataReadAccessor(py::module& m, const char* name)
 {
-  typedef VectorAdapter<typename INDEX_TYPE::element_type, INDEX_TYPE::element_count>::AdaptedType AdaptedIndexType;
+  typedef typename VectorAdapter<typename INDEX_TYPE::element_type, INDEX_TYPE::element_count>::AdaptedType AdaptedIndexType;
   typedef VolumeDataReadAccessor<INDEX_TYPE, T> AccessorType;
 
   py::class_<AccessorType, std::unique_ptr<AccessorType, py::nodelete>> 
@@ -39,7 +39,7 @@ template<typename INDEX_TYPE, typename T>
 static void
 RegisterVolumeDataReadWriteAccessor(py::module& m, const char* name)
 {
-  typedef VectorAdapter<typename INDEX_TYPE::element_type, INDEX_TYPE::element_count>::AdaptedType AdaptedIndexType;
+  typedef typename VectorAdapter<typename INDEX_TYPE::element_type, INDEX_TYPE::element_count>::AdaptedType AdaptedIndexType;
   typedef VolumeDataReadWriteAccessor<INDEX_TYPE, T> AccessorType;
   typedef VolumeDataReadAccessor<INDEX_TYPE, T>      BaseType;
 
@@ -52,22 +52,6 @@ RegisterVolumeDataReadWriteAccessor(py::module& m, const char* name)
     });
   VolumeDataAccessor_.def("commit", &AccessorType::Commit);
   VolumeDataAccessor_.def("cancel", &AccessorType::Cancel);
-}
-
-template<typename INDEX_TYPE, typename T>
-static void
-RegisterInterpolatingVolumeDataAccessor(py::module& m, const char* name)
-{
-  typedef VectorAdapter<typename INDEX_TYPE::element_type, INDEX_TYPE::element_count>::AdaptedType AdaptedIndexType;
-  typedef VolumeDataReadAccessor<INDEX_TYPE, T> AccessorType;
-
-  py::class_<AccessorType, std::unique_ptr<AccessorType, py::nodelete>> 
-    VolumeDataAccessor_(m, name, OPENVDS_DOCSTRING(VolumeDataAccessor));
-
-  VolumeDataAccessor_.def("getValue", [](AccessorType* self, AdaptedIndexType index)
-    {
-      return self->GetValue(index);
-    });
 }
 
 void 
