@@ -19,9 +19,111 @@
 
 using namespace native;
 
+template<typename INDEX_TYPE, typename T>
+static void
+RegisterVolumeDataReadAccessor(py::module& m, const char* name)
+{
+  typedef VectorAdapter<typename INDEX_TYPE::element_type, INDEX_TYPE::element_count>::AdaptedType AdaptedIndexType;
+  typedef VolumeDataReadAccessor<INDEX_TYPE, T> AccessorType;
+
+  py::class_<AccessorType, std::unique_ptr<AccessorType, py::nodelete>> 
+    VolumeDataAccessor_(m, name, OPENVDS_DOCSTRING(VolumeDataAccessor));
+
+  VolumeDataAccessor_.def("getValue", [](AccessorType* self, AdaptedIndexType index)
+    {
+      return self->GetValue(index);
+    });
+}
+
+template<typename INDEX_TYPE, typename T>
+static void
+RegisterVolumeDataReadWriteAccessor(py::module& m, const char* name)
+{
+  typedef VectorAdapter<typename INDEX_TYPE::element_type, INDEX_TYPE::element_count>::AdaptedType AdaptedIndexType;
+  typedef VolumeDataReadWriteAccessor<INDEX_TYPE, T> AccessorType;
+  typedef VolumeDataReadAccessor<INDEX_TYPE, T>      BaseType;
+
+  py::class_<AccessorType, BaseType, std::unique_ptr<AccessorType, py::nodelete>> 
+    VolumeDataAccessor_(m, name, OPENVDS_DOCSTRING(VolumeDataAccessor));
+
+  VolumeDataAccessor_.def("setValue", [](AccessorType* self, AdaptedIndexType index, T value)
+    {
+      self->SetValue(index, value);
+    });
+  VolumeDataAccessor_.def("commit", &AccessorType::Commit);
+  VolumeDataAccessor_.def("cancel", &AccessorType::Cancel);
+}
+
+template<typename INDEX_TYPE, typename T>
+static void
+RegisterInterpolatingVolumeDataAccessor(py::module& m, const char* name)
+{
+  typedef VectorAdapter<typename INDEX_TYPE::element_type, INDEX_TYPE::element_count>::AdaptedType AdaptedIndexType;
+  typedef VolumeDataReadAccessor<INDEX_TYPE, T> AccessorType;
+
+  py::class_<AccessorType, std::unique_ptr<AccessorType, py::nodelete>> 
+    VolumeDataAccessor_(m, name, OPENVDS_DOCSTRING(VolumeDataAccessor));
+
+  VolumeDataAccessor_.def("getValue", [](AccessorType* self, AdaptedIndexType index)
+    {
+      return self->GetValue(index);
+    });
+}
+
 void 
 PyVolumeDataAccess::initModule(py::module& m)
 {
+  // Register accessor types
+  RegisterVolumeDataReadAccessor<native::IntVector2, bool>          (m, "Read2DVolumeDataAccessor1Bit");
+  RegisterVolumeDataReadAccessor<native::IntVector2, uint8_t>       (m, "Read2DVolumeDataAccessorU8");  
+  RegisterVolumeDataReadAccessor<native::IntVector2, uint16_t>      (m, "Read2DVolumeDataAccessorU16"); 
+  RegisterVolumeDataReadAccessor<native::IntVector2, uint32_t>      (m, "Read2DVolumeDataAccessorU32"); 
+  RegisterVolumeDataReadAccessor<native::IntVector2, uint64_t>      (m, "Read2DVolumeDataAccessorU64"); 
+  RegisterVolumeDataReadAccessor<native::IntVector2, float>         (m, "Read2DVolumeDataAccessorR32"); 
+  RegisterVolumeDataReadAccessor<native::IntVector2, double>        (m, "Read2DVolumeDataAccessorR64"); 
+  RegisterVolumeDataReadAccessor<native::IntVector3, bool>          (m, "Read3DVolumeDataAccessor1Bit");
+  RegisterVolumeDataReadAccessor<native::IntVector3, uint8_t>       (m, "Read3DVolumeDataAccessorU8");  
+  RegisterVolumeDataReadAccessor<native::IntVector3, uint16_t>      (m, "Read3DVolumeDataAccessorU16"); 
+  RegisterVolumeDataReadAccessor<native::IntVector3, uint32_t>      (m, "Read3DVolumeDataAccessorU32"); 
+  RegisterVolumeDataReadAccessor<native::IntVector3, uint64_t>      (m, "Read3DVolumeDataAccessorU64"); 
+  RegisterVolumeDataReadAccessor<native::IntVector3, float>         (m, "Read3DVolumeDataAccessorR32"); 
+  RegisterVolumeDataReadAccessor<native::IntVector3, double>        (m, "Read3DVolumeDataAccessorR64"); 
+  RegisterVolumeDataReadAccessor<native::IntVector4, bool>          (m, "Read4DVolumeDataAccessor1Bit");
+  RegisterVolumeDataReadAccessor<native::IntVector4, uint8_t>       (m, "Read4DVolumeDataAccessorU8");  
+  RegisterVolumeDataReadAccessor<native::IntVector4, uint16_t>      (m, "Read4DVolumeDataAccessorU16"); 
+  RegisterVolumeDataReadAccessor<native::IntVector4, uint32_t>      (m, "Read4DVolumeDataAccessorU32"); 
+  RegisterVolumeDataReadAccessor<native::IntVector4, uint64_t>      (m, "Read4DVolumeDataAccessorU64");
+  RegisterVolumeDataReadAccessor<native::IntVector4, float>         (m, "Read4DVolumeDataAccessorR32");
+  RegisterVolumeDataReadAccessor<native::IntVector4, double>        (m, "Read4DVolumeDataAccessorR64");
+  RegisterVolumeDataReadAccessor<native::FloatVector2, float>       (m, "Interpolating2DVolumeDataAccessorR32");
+  RegisterVolumeDataReadAccessor<native::FloatVector2, double>      (m, "Interpolating2DVolumeDataAccessorR64");
+  RegisterVolumeDataReadAccessor<native::FloatVector3, float>       (m, "Interpolating3DVolumeDataAccessorR32");
+  RegisterVolumeDataReadAccessor<native::FloatVector3, double>      (m, "Interpolating3DVolumeDataAccessorR64");
+  RegisterVolumeDataReadAccessor<native::FloatVector4, float>       (m, "Interpolating4DVolumeDataAccessorR32");
+  RegisterVolumeDataReadAccessor<native::FloatVector4, double>      (m, "Interpolating4DVolumeDataAccessorR64");
+
+  RegisterVolumeDataReadWriteAccessor<native::IntVector2, bool>     (m, "ReadWrite2DVolumeDataAccessor1Bit");
+  RegisterVolumeDataReadWriteAccessor<native::IntVector2, uint8_t>  (m, "ReadWrite2DVolumeDataAccessorU8");  
+  RegisterVolumeDataReadWriteAccessor<native::IntVector2, uint16_t> (m, "ReadWrite2DVolumeDataAccessorU16"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector2, uint32_t> (m, "ReadWrite2DVolumeDataAccessorU32"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector2, uint64_t> (m, "ReadWrite2DVolumeDataAccessorU64"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector2, float>    (m, "ReadWrite2DVolumeDataAccessorR32"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector2, double>   (m, "ReadWrite2DVolumeDataAccessorR64"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector3, bool>     (m, "ReadWrite3DVolumeDataAccessor1Bit");
+  RegisterVolumeDataReadWriteAccessor<native::IntVector3, uint8_t>  (m, "ReadWrite3DVolumeDataAccessorU8");  
+  RegisterVolumeDataReadWriteAccessor<native::IntVector3, uint16_t> (m, "ReadWrite3DVolumeDataAccessorU16"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector3, uint32_t> (m, "ReadWrite3DVolumeDataAccessorU32"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector3, uint64_t> (m, "ReadWrite3DVolumeDataAccessorU64"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector3, float>    (m, "ReadWrite3DVolumeDataAccessorR32"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector3, double>   (m, "ReadWrite3DVolumeDataAccessorR64"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector4, bool>     (m, "ReadWrite4DVolumeDataAccessor1Bit");
+  RegisterVolumeDataReadWriteAccessor<native::IntVector4, uint8_t>  (m, "ReadWrite4DVolumeDataAccessorU8");  
+  RegisterVolumeDataReadWriteAccessor<native::IntVector4, uint16_t> (m, "ReadWrite4DVolumeDataAccessorU16"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector4, uint32_t> (m, "ReadWrite4DVolumeDataAccessorU32"); 
+  RegisterVolumeDataReadWriteAccessor<native::IntVector4, uint64_t> (m, "ReadWrite4DVolumeDataAccessorU64");
+  RegisterVolumeDataReadWriteAccessor<native::IntVector4, float>    (m, "ReadWrite4DVolumeDataAccessorR32");
+  RegisterVolumeDataReadWriteAccessor<native::IntVector4, double>   (m, "ReadWrite4DVolumeDataAccessorR64");
+
 //AUTOGEN-BEGIN
   // VolumeDataAccessor
   py::class_<VolumeDataAccessor, std::unique_ptr<VolumeDataAccessor, py::nodelete>> 
