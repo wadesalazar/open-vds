@@ -175,7 +175,6 @@ set_target_properties(openvds
   SOVERSION 0
   VERSION 0.1.0
   PUBLIC_HEADER "${EXPORTED_HEADER_FILES}"
-  PRIVATE_HEADER "${PRIVATE_HEADER_FILES}"
   #OUTPUT_NAME ${PROJECT_NAME}
 )
 target_include_directories(openvds
@@ -210,8 +209,6 @@ install(
     FILE openvds-config.cmake
 )
 
-install(FILES ${link_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR})
-install(FILES ${link_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR})
 install(FILES ${runtime_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
 install(FILES ${runtime_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
 
