@@ -165,41 +165,60 @@ struct BLOB
   }
 };
 
-template<typename T>
-struct Vector2Adapter
+template<typename T, size_t N>
+struct VectorAdapter
 {
-  typedef std::tuple<T, T> AdaptedType;
 
-  static native::Vector<T, 2> fromTuple(AdaptedType const& val) { return val; }
-  static AdaptedType asTuple(native::Vector<T, 2> const& val)   { return val; }
 };
 
 template<typename T>
-struct Vector3Adapter
+struct VectorAdapter<T, 2>
 {
-  typedef std::tuple<T, T, T> AdaptedType;
+  typedef native::Vector<T, 2> VectorType;
+  typedef std::tuple<T, T>     AdaptedType;
 
-  static native::Vector<T, 3> fromTuple(AdaptedType const& val) { return val; }
-  static AdaptedType asTuple(native::Vector<T, 3> const& val)   { return val; }
+  static VectorType   fromTuple(AdaptedType const& val) { return val; }
+  static AdaptedType  asTuple(VectorType const& val)    { return val; }
 };
 
 template<typename T>
-struct Vector4Adapter
+struct VectorAdapter<T, 3>
 {
-  typedef std::tuple<T, T, T, T> AdaptedType;
+  typedef native::Vector<T, 3> VectorType;
+  typedef std::tuple<T, T, T>  AdaptedType;
 
-  static native::Vector<T, 4> fromTuple(AdaptedType const& val) { return val; }
-  static AdaptedType asTuple(native::Vector<T, 4> const& val)   { return val; }
+  static VectorType   fromTuple(AdaptedType const& val) { return val; }
+  static AdaptedType  asTuple(VectorType const& val)    { return val; }
 };
 
 template<typename T>
-struct Vector6Adapter
+struct VectorAdapter<T, 4>
 {
-  typedef std::tuple<T, T, T, T, T, T> AdaptedType;
+  typedef native::Vector<T, 4>    VectorType;
+  typedef std::tuple<T, T, T, T>  AdaptedType;
 
-  static native::Vector<T, 6> fromTuple(AdaptedType const& val) { return val; }
-  static AdaptedType asTuple(native::Vector<T, 6> const& val)   { return val; }
+  static VectorType   fromTuple(AdaptedType const& val) { return val; }
+  static AdaptedType  asTuple(VectorType const& val)    { return val; }
 };
+
+template<typename T>
+struct VectorAdapter<T, 6>
+{
+  typedef native::Vector<T, 6>          VectorType;
+  typedef std::tuple<T, T, T, T, T, T>  AdaptedType;
+
+  static VectorType   fromTuple(AdaptedType const& val) { return val; }
+  static AdaptedType  asTuple(VectorType const& val)    { return val; }
+};
+
+template<typename T>
+using Vector2Adapter = VectorAdapter<T, 2>;
+template<typename T>
+using Vector3Adapter = VectorAdapter<T, 3>;
+template<typename T>
+using Vector4Adapter = VectorAdapter<T, 4>;
+template<typename T>
+using Vector6Adapter = VectorAdapter<T, 6>;
 
 typedef Vector2Adapter<int>     IntVector2Adapter;
 typedef Vector3Adapter<int>     IntVector3Adapter;
