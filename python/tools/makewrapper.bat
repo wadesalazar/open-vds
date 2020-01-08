@@ -9,5 +9,8 @@ IF ERRORLEVEL 1 GOTO end
 ECHO Merging...
 python merge_generated.py
 IF ERRORLEVEL 1 GOTO end
+python makereport.py >WrapperReport.txt
+IF ERRORLEVEL 1 GOTO end
+type WrapperReport.txt
 :end
 

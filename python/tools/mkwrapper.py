@@ -554,17 +554,17 @@ def generate_all(args):
             outfile = path.split(filename)[1]
             with open("generated/" + outfile, "wb") as wr:
                 wr.writelines([(line+'\n').encode() for line in output])
-        with open("WrapperReport.txt", "wb") as reportfile:
-            reportlines = [
-                """ *** OpenVDS wrapper generator report ***"""                
-            ]
-            if _AUTOGEN_FAIL_LIST:
-                reportlines.append("Wrapper generator errors:")
-                reportlines.extend([get_node_info(node) for node in _AUTOGEN_FAIL_LIST])
-            else:
-                reportlines.append("No errors in wrapper generation.")
-            utflines = [(l + '\n').encode() for l in reportlines]
-            reportfile.writelines(utflines)
+#        with open("WrapperReport.txt", "wb") as reportfile:
+#            reportlines = [
+#                """ *** OpenVDS wrapper generator report ***"""                
+#            ]
+#            if _AUTOGEN_FAIL_LIST:
+#                reportlines.append("Wrapper generator errors:")
+#                reportlines.extend([get_node_info(node) for node in _AUTOGEN_FAIL_LIST])
+#            else:
+#                reportlines.append("No errors in wrapper generation.")
+#            utflines = [(l + '\n').encode() for l in reportlines]
+#            reportfile.writelines(utflines)
     else:
         raise NoFilenamesError
 
