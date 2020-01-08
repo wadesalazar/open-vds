@@ -27,6 +27,7 @@ function(Fetch3rdParty)
   Fetch3rdParty_Package(fmt         6.0.0      https://github.com/fmtlib/fmt/archive/6.0.0.tar.gz                                                     SHA256=f1907a58d5e86e6c382e51441d92ad9e23aea63827ba47fd647eacc0d3a16c78)
   Fetch3rdParty_Package(cpprestapi  2.10.14    https://github.com/microsoft/cpprestsdk/archive/v2.10.14.tar.gz                                         SHA256=f2628b248f714d7bbd6a536553bc3782602c68ca1b129017985dd70cc3515278)
   Fetch3rdParty_Package(azure-storage-cpp 7.0.0      https://github.com/Azure/azure-storage-cpp/archive/v7.0.0.tar.gz                                 SHA256=2129511dcf40383de5ac643abf68cad4907b5cdbfe471c75ba264a83e3078dc7)
+  Fetch3rdParty_Package(pybind11    2.4.3      https://github.com/pybind/pybind11/archive/v2.4.3.tar.gz                                               SHA256=1eed57bc6863190e35637290f97a20c81cfe4d9090ac0a24f3bbf08f265eb71d)
 
   if (BUILD_ZLIB)
     Fetch3rdParty_Package(zlib      1.2.11     http://zlib.net/zlib-1.2.11.tar.gz                                                                     SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1)

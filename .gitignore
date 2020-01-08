@@ -16,3 +16,4 @@ python/tools/tmpinclude/
 python/tools/generated
 python/tools/.vscode
 python/tools/WrapperReport.txt
+/3rdparty/pybind11-2.4.3
