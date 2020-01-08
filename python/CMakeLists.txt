@@ -1,58 +1,46 @@
-cmake_minimum_required(VERSION 3.12.0)
-project(OpenVDS-python)
+cmake_minimum_required(VERSION 3.5.0)
+project(openvds-python-extension LANGUAGES C CXX)
 
-set(python ${Python3_EXECUTABLE})
-set(setup.py ${CMAKE_CURRENT_SOURCE_DIR}/setup.py)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
+set(CMAKE_C_VISIBILITY_PRESET   "hidden")
 
-#this line doesn't work to have inline in add_custom_target so expand it in a variable
-#$<$<BOOL:${zlib_INSTALL_INT_CONFIG}>:-DCMAKE_PREFIX_PATH=${zlib_INSTALL_INT_CONFIG}>
-if (zlib_INSTALL_INT_CONFIG)
-    set(ZLIB_PREFIX_PATH "-DCMAKE_PREFIX_PATH=${zlib_INSTALL_INT_CONFIG}")
-endif()
-
-add_custom_target(
-    openvds-python ALL
-    COMMENT "Building python library with setup.py"
-    SOURCES ${setup.py}
-    VERBATIM
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-
-    COMMAND ${python} ${setup.py}
-        # build the extension inplace (really, once its built, copy it to the
-        # source tree) so that post-build, the directory can be used to run
-        # tests against
-        build_ext --inplace
-        build # setup.py build args
-            --cmake-executable ${CMAKE_COMMAND}
-            --generator ${CMAKE_GENERATOR}
-            $<$<BOOL:$<CONFIG>>:--build-type=$<CONFIG>>
-        -- # cmake to the extension
-            -Dopenvds_DIR=${OPENVDS_LIB_BINARY_DIR}
-			-Dpython3_EXE=${Python3_EXECUTABLE}
-			-Dpackage_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-			-DTEST_AWS_BUCKET=${TEST_AWS_BUCKET}
-			-DTEST_AWS_OBJECTID=${TEST_AWS_OBJECTID}
-			-DTEST_AWS_REGION=${TEST_AWS_REGION}
-            ${ZLIB_PREFIX_PATH}
-            # "install" to the python/openvds dir with rpath, so there's no need
-            # to fiddle with environment in ctest to load the core library from
-            # the build tree
-            -DENABLE_OPENMP=${ENABLE_OPENMP}
-            -DCMAKE_BUILD_TYPE=$<CONFIG>
-            -DCMAKE_GENERATOR=${CMAKE_GENERATOR}
-            -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
-            $<$<BOOL:$<CONFIG>>:-DCMAKE_BUILD_TYPE=$<CONFIG>>
-            -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
-            -DCMAKE_INSTALL_RPATH=$<TARGET_FILE_DIR:openvds>
-            -DCMAKE_INSTALL_NAME_DIR=$<TARGET_FILE_DIR:openvds>
+pybind11_add_module(core MODULE 
+    core.cpp
+    PyGlobal.cpp
+    PyGlobal.h
+    PyGlobalMetadataCommon.cpp
+    PyGlobalMetadataCommon.h
+    PyKnownMetadata.cpp
+    PyKnownMetadata.h
+    PyMetadata.cpp
+    PyMetadata.h
+    PyRange.cpp
+    PyRange.h
+    PyVector.cpp
+    PyVector.h
+    PyVolumeData.cpp
+    PyVolumeData.h
+    PyVolumeDataAccess.cpp
+    PyVolumeDataAccess.h
+    PyVolumeDataAxisDescriptor.cpp
+    PyVolumeDataAxisDescriptor.h
+    PyVolumeDataChannelDescriptor.cpp
+    PyVolumeDataChannelDescriptor.h
+    PyVolumeDataLayout.cpp
+    PyVolumeDataLayout.h
+    PyVolumeDataLayoutDescriptor.cpp
+    PyVolumeDataLayoutDescriptor.h
+    PyVolumeSampler.cpp
+    PyVolumeSampler.h
 )
 
-add_dependencies(openvds-python openvds)
-
-# run tests with setup.py test
-# this is very slow compared to invoking pytest directly, but setuptools will
-# copy the built extension into the tree as it sees fit
-add_test(NAME python.unit
-    COMMAND ${python} ${setup.py} --skip-cmake test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(core
+    PRIVATE
+        ${PYBIND11_INCLUDE_DIRS}
 )
+
+target_link_libraries(core PRIVATE openvds)
+
+install(TARGETS core LIBRARY DESTINATION python)
