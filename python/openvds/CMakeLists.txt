@@ -1,4 +1,4 @@
-pybind11_add_module(core MODULE 
+pybind11_add_module(core MODULE
     core.cpp
     PyGlobal.cpp
     PyGlobal.h
@@ -27,6 +27,15 @@ pybind11_add_module(core MODULE
     PyVolumeSampler.cpp
     PyVolumeSampler.h
 )
+
+set_target_properties(core
+  PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/..
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/..
+  VS_DEBUGGER_COMMAND "${Python3_EXECUTABLE}"
+  VS_DEBUGGER_ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/..;$ENV{PYTHONPATH}"
+  )
+
 
 SET(pythonsources
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
