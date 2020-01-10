@@ -74,5 +74,18 @@ PyGlobal::initModule(py::module& m)
 //AUTOGEN-END
   Error_.def(py::init<>());
   Error_.def("__repr__", [](native::Error const& self){ std::string tmp = std::to_string(self.code); return std::string("Error(code=") + tmp + ", string='" + self.string + "')"; });
+
+  OpenOptions_.def("__repr__", [](OpenOptions const& self)
+    {
+      std::string conn = "Unknown";
+      switch(self.connectionType)
+      {
+      case OpenOptions::ConnectionType::AWS     : conn = std::string("AWS"     ); break;
+      case OpenOptions::ConnectionType::Azure   : conn = std::string("Azure"   ); break;
+      case OpenOptions::ConnectionType::File    : conn = std::string("File"    ); break;
+      case OpenOptions::ConnectionType::InMemory: conn = std::string("InMemory"); break;
+      }
+      return std::string("OpenOptions(connectionType='" + conn + "')");
+    });
 }
 
