@@ -219,6 +219,7 @@ VolumeDataReadWriteAccessor<INDEX, T> *VolumeDataAccess_CreateVolumeDataAccessor
   case VolumeDataChannelDescriptor::Format_1Bit:
     return new ConvertingVolumeDataAccessor<INDEX, T, bool,     isUseNoValue>(*volumeDataPageAccessor, replacementNoValue);
   }
+  return nullptr;
 }
 
 template <typename INDEX, typename T>

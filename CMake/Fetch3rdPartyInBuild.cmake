@@ -25,7 +25,7 @@ function(Fetch3rdParty)
   Fetch3rdParty_Package(gtest       1.10.0     https://github.com/google/googletest/archive/release-1.10.0.tar.gz                                     SHA256=9dc9157a9a1551ec7a7e43daea9a694a0bb5fb8bec81235d8a1e6ef64c716dcb)
   Fetch3rdParty_Package(jsoncpp     1.8.4      https://github.com/open-source-parsers/jsoncpp/archive/1.8.4.tar.gz                                    MD5=fa47a3ab6b381869b6a5f20811198662)
   Fetch3rdParty_Package(fmt         6.0.0      https://github.com/fmtlib/fmt/archive/6.0.0.tar.gz                                                     SHA256=f1907a58d5e86e6c382e51441d92ad9e23aea63827ba47fd647eacc0d3a16c78)
-  Fetch3rdParty_Package(cpprestapi  2.10.14    https://github.com/microsoft/cpprestsdk/archive/v2.10.14.tar.gz                                         SHA256=f2628b248f714d7bbd6a536553bc3782602c68ca1b129017985dd70cc3515278)
+  Fetch3rdParty_Package(cpprestapi  2.10.14    https://github.com/microsoft/cpprestsdk/archive/v2.10.14.tar.gz                                        SHA256=f2628b248f714d7bbd6a536553bc3782602c68ca1b129017985dd70cc3515278)
   Fetch3rdParty_Package(azure-storage-cpp 7.0.0      https://github.com/Azure/azure-storage-cpp/archive/v7.0.0.tar.gz                                 SHA256=2129511dcf40383de5ac643abf68cad4907b5cdbfe471c75ba264a83e3078dc7)
   Fetch3rdParty_Package(pybind11    2.4.3      https://github.com/pybind/pybind11/archive/v2.4.3.tar.gz                                               SHA256=1eed57bc6863190e35637290f97a20c81cfe4d9090ac0a24f3bbf08f265eb71d)
 

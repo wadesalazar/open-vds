@@ -73,3 +73,7 @@ add_test_executable(openvds_integration_tests
   OpenVDS/DataAccessorClone.cpp
   )
 
+if (BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
+
