@@ -70,18 +70,6 @@ namespace OpenVDS
         }
     }
 
-    void DownloadObject()
-    {
-        azure::storage::cloud_storage_account storage_account = azure::storage::cloud_storage_account::parse(_XPLATSTR("DefaultEndpointsProtocol=https;AccountName=myaccountname;AccountKey=myaccountkey"));
-        azure::storage::cloud_blob_client blob_client = storage_account.create_cloud_blob_client();
-        azure::storage::cloud_blob_container container = blob_client.get_container_reference(_XPLATSTR("my-sample-container"));
-
-        concurrency::streams::container_buffer<std::vector<uint8_t>> buffer;
-        concurrency::streams::ostream output_stream(buffer);
-        azure::storage::cloud_block_blob binary_blob = container.get_block_blob_reference(_XPLATSTR("my-blob-1"));
-        //binary_blob.download_to_stream(output_stream);
-    }
-
     DownloadRequestAzure::DownloadRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
         : Request(id)
         , m_handler(handler)
