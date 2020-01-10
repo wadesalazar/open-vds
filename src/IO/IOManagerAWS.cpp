@@ -87,18 +87,6 @@ namespace OpenVDS
     std::mutex mutex;
   };
 
-  struct NotifyAll
-  {
-    NotifyAll(std::condition_variable &to_notify)
-      : to_notify(to_notify)
-    {}
-    ~NotifyAll()
-    {
-      to_notify.notify_all();
-    }
-    std::condition_variable &to_notify;
-  };
-
   static void download_callback(const Aws::S3::S3Client *client, const Aws::S3::Model::GetObjectRequest& objreq, const Aws::S3::Model::GetObjectOutcome &getObjectOutcome, std::weak_ptr<DownloadRequestAWS> weak_request)
   {
     auto objReq =  weak_request.lock();

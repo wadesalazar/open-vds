@@ -36,21 +36,13 @@
 
 namespace OpenVDS
 {
-    void DownloadObject();
-
-    class DownloadRequestAzure;
-    class UploadRequestAzure;
-    template<typename> struct AsyncContext;
-    //using AsyncDownloadContext = AsyncContext<DownloadRequestAzure>;
-    //using AsyncUploadContext = AsyncContext<UploadRequestAzure>;
-
     class DownloadRequestAzure : public Request
     {
     public:
         DownloadRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler);
         ~DownloadRequestAzure() override;
 
-        void run(azure::storage::cloud_block_blob& client, azure::storage::blob_request_options options, const IORange& range, std::weak_ptr<DownloadRequestAzure> request);
+        void run(azure::storage::cloud_blob_container& container, azure::storage::blob_request_options options, const std::string & requestName, const IORange& range, std::weak_ptr<DownloadRequestAzure> request);
 
         void WaitForFinish() override;
         bool IsDone() const override;
@@ -61,49 +53,32 @@ namespace OpenVDS
         std::atomic_bool m_cancelled;
         bool m_done;
         Error m_error;
+        azure::storage::cloud_block_blob  m_blob;
+        concurrency::streams::container_buffer<std::vector<uint8_t>> m_out_stream;
         pplx::cancellation_token_source m_cancel_token_src;
+        pplx::task<void> m_download_task;
         azure::storage::operation_context m_context;
         std::condition_variable m_waitForFinish;
         mutable std::mutex m_mutex;
     };
-
-    /*class VectorBuf : public std::basic_streambuf<char, std::char_traits<char>>
-    {
-    public:
-        VectorBuf(std::vector<uint8_t>& vec)
-        {
-            setg((char*)vec.data(), (char*)vec.data(), (char*)vec.data() + vec.size());
-        }
-    };*/
-
-    /*class IOStream : public concurrency::streams::ostream
-    {
-    public:
-        IOStream(std::shared_ptr<std::vector<uint8_t>> data)
-            : concurrency::streams::ostream(&m_buffer)
-            , m_data(data)
-            , m_buffer(*data)
-        {}
-        std::shared_ptr<std::vector<uint8_t>> m_data;
-        VectorBuf m_buffer;
-    };*/
-
     class UploadRequestAzure : public Request
     {
     public:
         UploadRequestAzure(const std::string& id, std::function<void(const Request & request, const Error & error)> completedCallback);
-        void run(azure::storage::cloud_block_blob& client, azure::storage::blob_request_options options, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::weak_ptr<UploadRequestAzure> uploadRequest);
+        void run(azure::storage::cloud_blob_container& container, azure::storage::blob_request_options options, const std::string& requestName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::weak_ptr<UploadRequestAzure> uploadRequest);
         void WaitForFinish() override;
         bool IsDone() const override;
         bool IsSuccess(Error& error) const override;
         void Cancel() override;
 
         std::function<void(const Request & request, const Error & error)> m_completedCallback;
-        //std::shared_ptr<IOStream> m_stream;
+        std::shared_ptr<std::vector<uint8_t>> m_data;
         std::atomic_bool m_cancelled;
         bool m_done;
         Error m_error;
+        azure::storage::cloud_block_blob  m_blob;
         pplx::cancellation_token_source m_cancel_token_src;
+        pplx::task<void> m_task_result;
         azure::storage::operation_context m_context;
         std::condition_variable m_waitForFinish;
         mutable std::mutex m_mutex;
@@ -118,11 +93,11 @@ namespace OpenVDS
         std::shared_ptr<Request> Download(const std::string requestName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range = IORange()) override;
         std::shared_ptr<Request> Upload(const std::string requestName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback = nullptr) override;
     private:
-        std::string m_conn_str;
-        std::string m_container;
-        std::string m_blob;
+        std::string m_connStr;
+        std::string m_containerStr;
+        azure::storage::cloud_storage_account m_storage_account;
         azure::storage::cloud_blob_client m_blobClient;
-        azure::storage::cloud_block_blob m_blobRef;
+        azure::storage::cloud_blob_container m_container;
 
         azure::storage::blob_request_options m_options;
         void initializeAzureBlob();
