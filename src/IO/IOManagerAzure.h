@@ -32,8 +32,6 @@
 
 #include <fmt/format.h>
 
-
-
 namespace OpenVDS
 {
     class DownloadRequestAzure : public Request
@@ -53,13 +51,13 @@ namespace OpenVDS
         std::atomic_bool m_cancelled;
         bool m_done;
         Error m_error;
-        azure::storage::cloud_block_blob  m_blob;
-        concurrency::streams::container_buffer<std::vector<uint8_t>> m_out_stream;
-        pplx::cancellation_token_source m_cancel_token_src;
-        pplx::task<void> m_download_task;
-        azure::storage::operation_context m_context;
         std::condition_variable m_waitForFinish;
         mutable std::mutex m_mutex;
+        azure::storage::cloud_block_blob  m_blob;
+        concurrency::streams::container_buffer<std::vector<uint8_t>> m_outStream;
+        pplx::cancellation_token_source m_cancelTokenSrc;
+        pplx::task<void> m_downloadTask;
+        azure::storage::operation_context m_context;
     };
     class UploadRequestAzure : public Request
     {
@@ -76,12 +74,12 @@ namespace OpenVDS
         std::atomic_bool m_cancelled;
         bool m_done;
         Error m_error;
-        azure::storage::cloud_block_blob  m_blob;
-        pplx::cancellation_token_source m_cancel_token_src;
-        pplx::task<void> m_task_result;
-        azure::storage::operation_context m_context;
         std::condition_variable m_waitForFinish;
         mutable std::mutex m_mutex;
+        azure::storage::cloud_block_blob  m_blob;
+        azure::storage::operation_context m_context;
+        pplx::cancellation_token_source m_cancelTokenSrc;
+        pplx::task<void> m_taskResult;
     };
 
     class IOManagerAzure : public IOManager
@@ -98,9 +96,7 @@ namespace OpenVDS
         azure::storage::cloud_storage_account m_storage_account;
         azure::storage::cloud_blob_client m_blobClient;
         azure::storage::cloud_blob_container m_container;
-
         azure::storage::blob_request_options m_options;
-        void initializeAzureBlob();
     };
 }
 
