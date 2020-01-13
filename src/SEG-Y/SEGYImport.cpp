@@ -1041,7 +1041,7 @@ main(int argc, char* argv[])
     Json::Value jsonFileInfo = SerializeSEGYFileInfo(fileInfo);
 
     Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = " ";
+    wbuilder["indentation"] = "  ";
     std::string document = Json::writeString(wbuilder, jsonFileInfo);
 
     if (fileInfoFileName.empty())
