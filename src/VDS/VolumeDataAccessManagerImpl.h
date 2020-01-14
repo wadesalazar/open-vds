@@ -121,13 +121,18 @@ inline bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
   return DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(a.layer->GetChunkDimensionGroup()) < DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(b.layer->GetChunkDimensionGroup());
 }
 
-struct PendingUploadRequest
+struct RetryInfo
 {
   std::string url;
   std::string contentDispositionName;
   std::vector<std::pair<std::string, std::string>> metaMap;
   std::shared_ptr<std::vector<uint8_t>> data;
   std::function<void(const Request & request, const Error & error)> completedCallback;
+};
+
+struct PendingUploadRequest
+{
+  RetryInfo retryInfo;
   uint32_t attempts;
   std::shared_ptr<Request> request;
 
@@ -137,20 +142,16 @@ struct PendingUploadRequest
   {
   }
 
-  PendingUploadRequest(IOManager &ioManager,  const std::string &url, const std::string &contentDispositionName,  std::vector<std::pair<std::string, std::string>> &metaMap, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
-    : url(url)
-    , contentDispositionName(contentDispositionName)
-    , metaMap(metaMap)
-    , data(data)
-    , completedCallback(completedCallback)
-    , attempts(0)
+  void StartNewUpload(IOManager &ioManager,  const std::string &url, const std::string &contentDispositionName,  std::vector<std::pair<std::string, std::string>> &metaMap, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
   {
-    StartNewUpload(ioManager);
+    retryInfo = {url, contentDispositionName, metaMap, data, completedCallback };
+    request = ioManager.UploadBinary(url, contentDispositionName, metaMap, data, completedCallback);
+    attempts++;
   }
 
-  void StartNewUpload(IOManager &ioManager)
+  void Retry(IOManager &ioManager)
   {
-    request = ioManager.UploadBinary(url, contentDispositionName, metaMap, data, completedCallback);
+    request = ioManager.UploadBinary(retryInfo.url, retryInfo.contentDispositionName, retryInfo.metaMap, retryInfo.data, retryInfo.completedCallback);
     attempts++;
   }
 };

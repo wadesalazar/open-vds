@@ -8,6 +8,8 @@
 
 #include "../utils/GenerateVDS.h"
 
+#include <chrono>
+#include <fmt/format.h>
 int handleUploadErrors(OpenVDS::VolumeDataAccessManager *accessManager)
 {
   int32_t errorCount = accessManager->UploadErrorCount();
@@ -26,22 +28,26 @@ int handleUploadErrors(OpenVDS::VolumeDataAccessManager *accessManager)
 
 TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
 {
+  auto full_start = std::chrono::high_resolution_clock::now();
   OpenVDS::Error error;
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> inMemoryVDS(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_R32), OpenVDS::Close);
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> inMemoryVDS(generateSimpleInMemory3DVDS(100,100,100, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32), OpenVDS::Close);
   fill3DVDSWithNoise(inMemoryVDS.get());
   OpenVDS::VolumeDataLayout *inMemoryLayout = OpenVDS::GetLayout(inMemoryVDS.get());
 
-  OpenVDS::AWSOpenOptions options;
+  OpenVDS::AzureOpenOptions options;
+  options.connectionString = TEST_AZURE_CONNECTION;
+  options.container = "SIMPLE_NOISE_VDS";
+  options.parallelism_factor = 8;
 
-  options.region = TEST_AWS_REGION;
-  options.bucket = TEST_AWS_BUCKET;
-  options.key = "SIMPLE_NOISE_VDS";
-
-  if(options.region.empty() || options.bucket.empty() || options.key.empty())
+  if (options.connectionString.empty())
   {
     GTEST_SKIP() << "Environment variables not set";
   }
-  ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
+
+  //OpenVDS::AWSOpenOptions options;
+  //options.region = TEST_AWS_REGION;
+  //options.bucket = TEST_AWS_BUCKET;
+  //options.key = "SIMPLE_NOISE_VDS";
 
 
   auto layoutDescriptor = inMemoryLayout->GetLayoutDescriptor();
@@ -87,6 +93,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
     }
   }
 
+  auto create_start = std::chrono::high_resolution_clock::now();
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> networkVDS(OpenVDS::Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error), &OpenVDS::Close);
   ASSERT_TRUE(networkVDS);
 
@@ -135,41 +142,46 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
     networkAccessManager->DestroyVolumeDataPageAccessor(networkPageAccessor);
   }
 
+  networkVDS.reset();
+
+  auto create_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - create_start);
+
+  auto read_start = std::chrono::high_resolution_clock::now();
   networkVDS.reset(OpenVDS::Open(options, error));
   ASSERT_TRUE(networkVDS);
 
   OpenVDS::VolumeDataLayout *networkLayout = OpenVDS::GetLayout(networkVDS.get());
   OpenVDS::VolumeDataAccessManager *networkAccessManager = OpenVDS::GetAccessManager(networkVDS.get());
-  OpenVDS::VolumeDataPageAccessor *networkPageAccessor = networkAccessManager->CreateVolumeDataPageAccessor(networkLayout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
 
+  std::vector<uint8_t> networkData;
 
-  for (int64_t i = 0; i < chunkCount; i++)
-  {
-    int32_t min[OpenVDS::Dimensionality_Max];
-    int32_t max[OpenVDS::Dimensionality_Max];
-    int32_t size[OpenVDS::Dimensionality_Max];
-    inMemoryPageAccessor->GetChunkMinMax(i, min, max);
-    for (int dim = 0; dim < OpenVDS::Dimensionality_Max; dim++)
-    {
-      size[dim] = max[dim] - min[dim];
-    }
-      int32_t inMemoryPitch[OpenVDS::Dimensionality_Max];
-      OpenVDS::VolumeDataPage *inMemoryPage = inMemoryPageAccessor->ReadPage(i);
-      const void *inMemoryBuffer = inMemoryPage->GetBuffer(inMemoryPitch);
+  int32_t x_samples = networkLayout->GetDimensionNumSamples(0);
+  int32_t y_samples = networkLayout->GetDimensionNumSamples(1);
+  int32_t z_samples = networkLayout->GetDimensionNumSamples(2);
 
-      int32_t networkPitch[OpenVDS::Dimensionality_Max];
-      OpenVDS::VolumeDataPage *networkPage = networkPageAccessor->ReadPage(i);
-      const void *networkBuffer = networkPage->GetBuffer(networkPitch);
+  int minPos[OpenVDS::Dimensionality_Max] = {};
+  int maxPos[OpenVDS::Dimensionality_Max] = {x_samples, y_samples, z_samples, 0, 0, 0};
 
-      for (int dim = 0; dim < dimensions; dim++)
-      {
-        ASSERT_TRUE(inMemoryPitch[dim] ==networkPitch[dim]);
-      }
-      ASSERT_TRUE(memcmp(inMemoryBuffer, networkBuffer, inMemoryPitch[2] * size[2] * 4) == 0);
-      inMemoryPage->Release();
-      networkPage->Release();
-  }
+  networkData.resize(networkAccessManager->GetVolumeSubsetBufferSize(networkLayout, minPos, maxPos, networkLayout->GetChannelFormat(0), 0));
 
+  int64_t networkRequest = networkAccessManager->RequestVolumeSubset(networkData.data(), networkLayout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, networkLayout->GetChannelFormat(0));
+
+  ASSERT_TRUE(networkAccessManager->WaitForCompletion(networkRequest));
+
+  networkVDS.reset();
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  auto read_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - read_start);
+  auto full_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - full_start);
+  fmt::print(stderr, "Create time {} - Read time {} - Full time {}\n", create_time.count(), read_time.count(), full_time.count());
+
+  std::vector<uint8_t> inMemoryData;
+  inMemoryData.resize(inMemoryAccessManager->GetVolumeSubsetBufferSize(inMemoryLayout, minPos, maxPos, inMemoryLayout->GetChannelFormat(0), 0));
+  int64_t inMemoryRequest = inMemoryAccessManager->RequestVolumeSubset(inMemoryData.data(), inMemoryLayout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, inMemoryLayout->GetChannelFormat(0));
+  ASSERT_TRUE(inMemoryAccessManager->WaitForCompletion(inMemoryRequest));
   inMemoryAccessManager->DestroyVolumeDataPageAccessor(inMemoryPageAccessor);
-  networkAccessManager->DestroyVolumeDataPageAccessor(networkPageAccessor);
+
+  ASSERT_EQ(inMemoryData.size(), networkData.size());
+  ASSERT_TRUE(memcmp(inMemoryData.data(), networkData.data(), networkData.size()) == 0);
+
 }

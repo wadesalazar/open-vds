@@ -546,7 +546,7 @@ int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &ch
       auto &uploadRequest = m_pendingUploadRequests[jobId];
       if (uploadRequest.attempts < 2)
       {
-        uploadRequest.StartNewUpload(*m_ioManager);
+        uploadRequest.Retry(*m_ioManager);
         return;
       }
       else
@@ -570,7 +570,7 @@ int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &ch
   meta_map.emplace_back("vdschunkmetadata", std::string(base64Hash.begin(), base64Hash.end()));
   // add new pending upload request
   std::unique_lock<std::mutex> lock(m_mutex);
-  m_pendingUploadRequests[jobId] = PendingUploadRequest(*m_ioManager, url, contentDispositionName, meta_map, to_write, completedCallback);
+  m_pendingUploadRequests[jobId].StartNewUpload(*m_ioManager, url, contentDispositionName, meta_map, to_write, completedCallback);
   return jobId;
 }
 
