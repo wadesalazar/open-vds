@@ -92,15 +92,19 @@ SEGYFileInfo::TraceByteSize() const
   return TraceHeaderSize + m_sampleCount * formatSize;
 }
 
+uint64_t
+SEGYFileInfo::StaticGetUniqueID()
+{
+  // Make a globally unique ID for the result of this scan operation
+  return OpenVDS::HashCombiner(std::chrono::system_clock::now().time_since_epoch().count()).Add(std::chrono::high_resolution_clock::now().time_since_epoch().count()).GetCombinedHash();
+}
+
 bool
 SEGYFileInfo::Scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField, HeaderField const &secondaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
 {
   char textualFileHeader[TextualFileHeaderSize];
   char binaryFileHeader[BinaryFileHeaderSize];
   char traceHeader[TraceHeaderSize];
-
-  // Make a globally unique ID for the result of this scan operation
-  m_persistentID = OpenVDS::HashCombiner(std::chrono::system_clock::now().time_since_epoch().count()).Add(std::chrono::high_resolution_clock::now().time_since_epoch().count()).GetCombinedHash();
 
   m_primaryKey = primaryKeyHeaderField;
   m_secondaryKey = secondaryKeyHeaderField;

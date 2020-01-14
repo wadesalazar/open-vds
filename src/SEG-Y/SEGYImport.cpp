@@ -17,6 +17,7 @@
 
 #include "SEGYFileInfo.h"
 #include "IO/File.h"
+#include "VDS/Hash.h"
 
 #include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/KnownMetadata.h>
@@ -900,6 +901,7 @@ main(int argc, char* argv[])
   std::string region;
   std::string prefix;
   std::string persistentID;
+  bool uniqueID;
 
   std::vector<std::string> fileNames;
 
@@ -917,6 +919,7 @@ main(int argc, char* argv[])
   options.add_option("", "", "region", "Region of bucket to upload to.", cxxopts::value<std::string>(region), "<string>");
   options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
   options.add_option("", "", "persistentID", "persistentID", cxxopts::value<std::string>(persistentID), "<ID>");
+  options.add_option("", "", "uniqueID", "uniqueID", cxxopts::value<bool>(uniqueID), "<ID>");
 
   options.add_option("", "", "input", "", cxxopts::value<std::vector<std::string>>(fileNames), "");
   options.parse_positional("input");
@@ -962,6 +965,12 @@ main(int argc, char* argv[])
       std::cerr << std::string("No bucket specified");
       return EXIT_FAILURE;
     }
+  }
+
+  if(uniqueID && !persistentID.empty())
+  {
+    std::cerr << std::string("--uniqueID does not make sense when the persistentID is specified");
+    return EXIT_FAILURE;
   }
 
   SEGY::Endianness headerEndianness = (littleEndian ? SEGY::Endianness::LittleEndian : SEGY::Endianness::BigEndian);
@@ -1030,6 +1039,19 @@ main(int argc, char* argv[])
 
   if(scan)
   {
+    if(!uniqueID)
+    {
+      OpenVDS::HashCombiner
+        hash;
+
+      for(std::string const &fileName : fileNames)
+      {
+        hash.Add(fileName);
+      }
+
+      fileInfo.m_persistentID = OpenVDS::HashCombiner(hash);
+    }
+
     bool success = fileInfo.Scan(file, primaryKeyHeaderField, secondaryKeyHeaderField, binInfoHeaderFields);
 
     if (!success)
