@@ -1,5 +1,6 @@
 import openvds.core
 import numpy as np
+from openvds.volumedatalayout import VolumeDataLayout
 
 from typing import Dict, Tuple, Sequence
 
@@ -17,25 +18,30 @@ DataBlockNumpyTypes = {
   VoxelFormat.Format_U64:     np.uint64
 }
 
-NumpyDataBlockTypes = i = { DataBlockNumpyTypes[k]: k for k in DataBlockNumpyTypes }
+NumpyDataBlockTypes = { 
+np.int8:     VoxelFormat.Format_U8,
+np.uint8:    VoxelFormat.Format_U8,
+np.int16:    VoxelFormat.Format_U16,
+np.uint16:   VoxelFormat.Format_U16,
+np.int32:    VoxelFormat.Format_U32,
+np.uint32:   VoxelFormat.Format_U32,
+np.int64:    VoxelFormat.Format_U64,
+np.uint64:   VoxelFormat.Format_U64,
+np.float32:  VoxelFormat.Format_R32,
+np.float64:  VoxelFormat.Format_R64,
+}
 
-def minmax(shape: Tuple[int], pos: Tuple[int] = None):
-    min = np.zeros((6), dtype=np.int32)
-    max = np.zeros((6), dtype=np.int32)
-    if pos is None:
-        pos = (0,) * len(shape)
-    min[:len(pos)]   = pos[:]
-    max[:len(shape)] = shape[:]
-    max += min
-    return min, max
+def _ndarray(vec: Tuple[int]):
+    arr = np.zeros((6), dtype=np.int32)
+    arr[:len(vec)] = vec[:]
+    return arr
 
 class VolumeDataRequest(object):
   """Encapsulates volume data request.
   
   Returned by VolumeDataAccess.requestVolumeSubset()
   """
-  def __init__(self, accessManager: openvds.core.VolumeDataAccessManager, layout: openvds.core.VolumeDataLayout, data_out: np.array = None, dimensionsND: DimensionsND = DimensionsND.Dimensions_012, lod: int = 0, channel: int = 0, pos: Tuple[int] = None, shape: Tuple[int] = None, format: VoxelFormat = VoxelFormat.Format_R32, replacementNoValue = None):
-    self.data_out_ptr = 0
+  def __init__(self, accessManager: openvds.core.VolumeDataAccessManager, layout: openvds.core.VolumeDataLayout, data_out: np.array = None, dimensionsND: DimensionsND = DimensionsND.Dimensions_012, lod: int = 0, channel: int = 0, min: Tuple[int] = None, max: Tuple[int] = None, format: VoxelFormat = VoxelFormat.Format_R32, replacementNoValue = None):
     array_interface = None
     if hasattr(data_out, "__cuda_array_interface__"):
       array_interface = data_out.__cuda_array_interface__
@@ -44,33 +50,32 @@ class VolumeDataRequest(object):
     elif not data_out is None:
       raise TypeError("data_out: Invalid type: Only numpy.ndarray and numba.cuda.devicearray are supported")
     if array_interface:
-      shape = array_interface["shape"]
       dtype = np.dtype(array_interface["typestr"])
       ptr, readonly = array_interface["data"]
       if readonly:
         raise ValueError("array is read-only")
       format = NumpyDataBlockTypes[dtype.type]
-      self.data_out_ptr     = ptr
-    assert shape
+    if min is None or max is None:
+        raise TypeError("The shape of the VolumeDataRequest must be specified.")
     self.dimensionsND       = dimensionsND
     self.lod                = lod
     self.channel            = channel
-    self.min, self.max      = minmax(shape, pos)
-    self.data_out           = data_out
+    self.min                = _ndarray(min)
+    self.max                = _ndarray(max)
     self.format             = format
     self.replacementNoValue = replacementNoValue
     self.buffer_format      = DataBlockNumpyTypes[format]
-    self.accessManager      = accessManager
-    self.layout             = layout
+    self._data_out           = data_out
+    self._accessManager      = accessManager
+    self._layout            = layout
     self._iscanceled        = False
     self._iscompleted       = False
-    if self.data_out is None:
-      self.data_out = np.zeros(self.accessManager.getVolumeSubsetBufferSize(self.layout, self.min, self.max, format, lod), dtype=self.buffer_format)
-      self.data_out_ptr = self.data_out.ctypes.data
+    if self._data_out is None:
+      self._data_out = np.zeros(self._accessManager.getVolumeSubsetBufferSize(self._layout, self.min, self.max, format, lod), dtype=self.buffer_format)
     if self.replacementNoValue is None:
-        self.requestID = self.accessManager.requestVolumeSubset(self.data_out, self.layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, self.format)
+        self.requestID = self._accessManager.requestVolumeSubset(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, self.format)
     else:
-        self.requestID = self.accessManager.requestVolumeSubset(self.data_out, self.layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, self.format, self.replacementNoValue)
+        self.requestID = self._accessManager.requestVolumeSubset(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, self.format, self.replacementNoValue)
         
   @property                      
   def isCompleted(self):
@@ -79,7 +84,7 @@ class VolumeDataRequest(object):
       return True
     if self._iscanceled:
       return False
-    self._iscompleted = True if accessManager.isCompleted(self.requestID) else False
+    self._iscompleted = True if self._accessManager.isCompleted(self.requestID) else False
     return self._iscompleted
     
   @property
@@ -89,7 +94,7 @@ class VolumeDataRequest(object):
       return True
     if self._iscompleted:
       return False
-    self._iscanceled = True if accessManager.isCanceled(self.requestID) else False
+    self._iscanceled = True if self._accessManager.isCanceled(self.requestID) else False
     return self._iscanceled
     
   @property
@@ -99,14 +104,14 @@ class VolumeDataRequest(object):
       raise RuntimeError("Request was canceled. Data not available")
     if not self.isCompleted:
       self.waitForCompletion()
-    return self.data_out
+    return self._data_out
     
   def cancel(self):
     """Cancel request"""
     if self.isCompleted:
       raise RuntimeError("Operation already completed")
     if not self.isCanceled:
-      accessManager.Cancel(self.requestID)
+      self._accessManager.Cancel(self.requestID)
     
   def waitForCompletion(self, timeout = 0.0):
     """Wait for request to complete, or time out after a specified amount of time.
@@ -141,20 +146,21 @@ class VolumeDataAccess(object):
   def __init__(self, handle: int):
     self.handle         = handle
     self.accessManager  = openvds.core.getAccessManager(handle)
-    self.layout         = openvds.core.getLayout(handle)
+    self.layout         = VolumeDataLayout(handle)
 
-  def requestVolumeSubset(self, data_out = None, dimensionsND: DimensionsND = DimensionsND.Dimensions_012, lod: int = 0, channel: int = 0, shape: tuple = None, pos: tuple = None, format: VoxelFormat = VoxelFormat.Format_R32, replacementNoValue: float = None):
+  def requestVolumeSubset(self, min: Tuple[int]=None, max: Tuple[int] = None, shape: Tuple[int]=None, data_out: np.ndarray = None, dimensionsND: DimensionsND = DimensionsND.Dimensions_012, lod: int = 0, channel: int = 0, format: VoxelFormat = VoxelFormat.Format_R32, replacementNoValue: float = None):
     """Request a subset of the VDS data.
-
-     The subset can be specified in the following ways:
-          1. Specify a preallocated numpy array, a cuda devicearray (numba.cuda.devicearray), or a cuda pinnedarray in the `data_out` parameter. 
-          The extent/shape of the data request is then derived from the array shape. The offset into the data volume is then taken from the
-          `pos` parameter, or if if this is not specified, assumed to be at the origin, e.g.(0,0,0).
-          2. Specify `shape` and optionally `pos`
-          3. If no shape can be determined because neither `data_out`, nor `shape` is specified, the whole volume is requested.
           
     Parameters
     ----------
+    min : tuple, optional
+        Specifies the minimum voxel coordinates of the request (inclusive)
+    max : tuple, optional
+        Specifies the maximum voxel coordinates of the request (exclusive)
+    shape : tuple, optional
+        Specifies the shape/extent of the request. 
+    min: tuple, optional
+        Specifies the minimu
     data_out : numpy.ndarray or numba.cuda.devicearray, optional
         If specified, the data requested is copied to this array. Otherwise, a suitable numpy array is allocated.
     dimensionsND : hue.DimensionsND, optional
@@ -163,11 +169,6 @@ class VolumeDataAccess(object):
         Which LOD level to request. Defaults to 0
     channel : int, optional
         Channel index. Defaults to 0.
-    shape : tuple, optional
-        Specifies the shape/extent of the request. Defaults to None.
-    pos : tuple, optional
-        Specifies the offset into the volume. Defaults to None, which is interpreted as
-        at the origin, e.g (0,0,0).
     format : VoxelFormat, optional
         Specifies the format of the delivered data: Bytes, floats, doubles. etc.
         If the `data_out` array is specified, the format is determined from the array.
@@ -179,14 +180,21 @@ class VolumeDataAccess(object):
     request : VolumeDataRequest
         An object encapsulating the request, the request state, and the requested data.
     """
+    min = min or (0,) * self.layout.dimensions
+    if shape is None and data_out is not None:
+        shape = data_out.shape
+    if max is None:
+        if shape is None:
+            raise TypeError("You must supply either 'max', 'shape' or 'data_out' parameters")
+        max = tuple([min[x]+shape[x] for x in range(len(min))])
     return VolumeDataRequest(
       self.accessManager,
-      self.layout,
+      self.layout._layout,
       data_out              = data_out,
       dimensionsND          = dimensionsND,
       lod                   = lod,
       channel               = channel,
-      shape                 = shape,
-      pos                   = pos,
+      min                   = min,
+      max                   = max,
       format                = format,
       replacementNoValue    = replacementNoValue)
