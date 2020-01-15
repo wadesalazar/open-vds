@@ -45,7 +45,7 @@
 namespace OpenVDS
 {
 
-const int MIN_MEMCPY = 256;
+const int MIN_MEMCPY = 4096;
 template <unsigned int IVAL> struct FIND_SHIFT    { enum { RET = 1 + FIND_SHIFT<IVAL/2>::RET }; };
 template <>                  struct FIND_SHIFT<1> { enum { RET = 0 }; };
 template <>                  struct FIND_SHIFT<0> { enum { RET = 0 }; };
