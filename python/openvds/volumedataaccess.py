@@ -96,7 +96,7 @@ class VolumeDataRequest(object):
             raise RuntimeError("Request was canceled. Data not available")
         if not self.isCompleted:
             self.waitForCompletion()
-        return self._data_out
+        return self._data_out.view(dtype=self.buffer_format)
         
     def cancel(self):
         """Cancel request"""
@@ -145,7 +145,7 @@ class VolumeDataSubsetRequest(VolumeDataRequest):
     ):
         super().__init__(accessManager, layout, data_out, dimensionsND, lod, channel, min, max, format, replacementNoValue)
         if self._data_out is None:
-            self._data_out = np.zeros(self._accessManager.getVolumeSubsetBufferSize(self._layout, self.min, self.max, format, lod), dtype=self.buffer_format)
+            self._data_out = np.zeros(self._accessManager.getVolumeSubsetBufferSize(self._layout, self.min, self.max, format, lod), dtype=np.int8)
         if self.replacementNoValue is None:
             self.requestID = self._accessManager.requestVolumeSubset(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, self.format)
         else:
@@ -177,7 +177,7 @@ class ProjectedVolumeDataSubsetRequest(VolumeDataRequest):
         self.projectedDimensions = projectedDimensions
         self.interpolationMethod = interpolationMethod
         if self._data_out is None:
-            self._data_out = np.zeros(self._accessManager.getProjectedVolumeSubsetBufferSize(self._layout, self.min, self.max, projectedDimensions, format, lod), dtype=self.buffer_format)
+            self._data_out = np.zeros(self._accessManager.getProjectedVolumeSubsetBufferSize(self._layout, self.min, self.max, projectedDimensions, format, lod), dtype=np.int8)
         if self.replacementNoValue is None:
             self.requestID = self._accessManager.requestProjectedVolumeSubset(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, voxelPlane, projectedDimensions, self.format, interpolationMethod)
         else:
