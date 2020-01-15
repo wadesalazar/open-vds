@@ -33,6 +33,7 @@ endfunction()
 add_test_executable(io_tests
   io/filetest.cpp
   io/InMemoryIo.cpp
+  io/AzureIo.cpp
   )
 
 add_test_executable(io_tests_roundtrip
