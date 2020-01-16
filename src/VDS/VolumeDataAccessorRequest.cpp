@@ -576,7 +576,6 @@ struct Box
 
 static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_processor, void *buffer, VolumeDataLayer *volumeDataLayer, const int32_t(&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], int32_t lod, VolumeDataChannelDescriptor::Format format, bool isReplaceNoValue, float replacementNoValue)
 {
-
   Box boxRequested;
   memcpy(boxRequested.min, minRequested, sizeof(boxRequested.min));
   memcpy(boxRequested.max, maxRequested, sizeof(boxRequested.max));
@@ -978,7 +977,7 @@ static bool RequestProjectedVolumeSubsetProcessPage(VolumeDataPageImpl* page, co
     projectVars.requestedMin[dimension] = destMin[dimension];
     projectVars.requestedMax[dimension] = destMax[dimension];
     projectVars.requestedSizeThisLOD[dimension] = sizeThisLod[dimension];
-    projectVars.requestedPitch[dimension] = dimension == 0 ? 1 : projectVars.requestedPitch[dimension - 1] * projectVars.requestedSizeThisLOD[dimension - 1];
+    projectVars.requestedPitch[dimension] = (dimension == 0) ? 1 : projectVars.requestedPitch[dimension - 1] * projectVars.requestedSizeThisLOD[dimension - 1];
   }
 
   projectVars.lod = lod;
@@ -1006,7 +1005,7 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
   for (int32_t dimension = volumeDataLayer->GetLayout()->GetDimensionality(); dimension < Dimensionality_Max; dimension++)
   {
     boxRequested.min[dimension] = 0;
-    boxRequested.min[dimension] = 1;
+    boxRequested.max[dimension] = 1;
   }
 
   std::vector<VolumeDataChunk> chunksInRegion;
