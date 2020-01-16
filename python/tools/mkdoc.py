@@ -109,16 +109,16 @@ def process_comment(comment):
     cpp_group = '([\w:]+)'
     param_group = '([\[\w:\]]+)'
 
-    s = re.sub(r'\\c\s+%s' % cpp_group, r'``\1``', s)
+    s = re.sub(r'\\c\s+%s' % cpp_group, r'\1', s)
     s = re.sub(r'\\a\s+%s' % cpp_group, r'*\1*', s)
     s = re.sub(r'\\e\s+%s' % cpp_group, r'*\1*', s)
     s = re.sub(r'\\em\s+%s' % cpp_group, r'*\1*', s)
     s = re.sub(r'\\b\s+%s' % cpp_group, r'**\1**', s)
     s = re.sub(r'\\ingroup\s+%s' % cpp_group, r'', s)
     s = re.sub(r'\\param%s?\s+%s' % (param_group, cpp_group),
-               r'\n\n$Parameter ``\2``:\n\n', s)
+               r'\n\n$xxx\2 :\n\n', s)
     s = re.sub(r'\\tparam%s?\s+%s' % (param_group, cpp_group),
-               r'\n\n$Template parameter ``\2``:\n\n', s)
+               r'\n\n$Template parameter \2 :\n\n', s)
 
     for in_, out_ in {
         'return': 'Returns',
@@ -141,11 +141,11 @@ def process_comment(comment):
     s = re.sub(r'\\ref\s*', r'', s)
 
     s = re.sub(r'\\code\s?(.*?)\s?\\endcode',
-               r"```\n\1\n```\n", s, flags=re.DOTALL)
+               r"`\n\1\n`\n", s, flags=re.DOTALL)
 
     # HTML/TeX tags
-    s = re.sub(r'<tt>(.*?)</tt>', r'``\1``', s, flags=re.DOTALL)
-    s = re.sub(r'<pre>(.*?)</pre>', r"```\n\1\n```\n", s, flags=re.DOTALL)
+    s = re.sub(r'<tt>(.*?)</tt>', r'\1', s, flags=re.DOTALL)
+    s = re.sub(r'<pre>(.*?)</pre>', r"`\n\1\n`\n", s, flags=re.DOTALL)
     s = re.sub(r'<em>(.*?)</em>', r'*\1*', s, flags=re.DOTALL)
     s = re.sub(r'<b>(.*?)</b>', r'**\1**', s, flags=re.DOTALL)
     s = re.sub(r'\\f\$(.*?)\\f\$', r'$\1$', s, flags=re.DOTALL)
@@ -153,8 +153,8 @@ def process_comment(comment):
     s = re.sub(r'</?ul>', r'', s)
     s = re.sub(r'</li>', r'\n\n', s)
 
-    s = s.replace('``true``', '``True``')
-    s = s.replace('``false``', '``False``')
+    s = s.replace('true', 'True')
+    s = s.replace('false', 'False')
 
     # Re-flow text
     wrapper = textwrap.TextWrapper()
@@ -166,12 +166,12 @@ def process_comment(comment):
 
     result = ''
     in_code_segment = False
-    for x in re.split(r'(```)', s):
-        if x == '```':
+    for x in re.split(r'(`)', s):
+        if x == '`':
             if not in_code_segment:
-                result += '```\n'
+                result += '`\n'
             else:
-                result += '\n```\n\n'
+                result += '\n`\n\n'
             in_code_segment = not in_code_segment
         elif in_code_segment:
             result += x.strip()
@@ -325,6 +325,11 @@ def write_header(comments, out_file=sys.stdout):
     name_ctr = 1
     name_prev = None
     for name, _, comment in list(sorted(comments, key=lambda x: (x[0], x[1]))):
+        comment = comment.replace("Returns:", "Returns:\n--------")
+        if "xxx" in comment:
+            pre = comment[:comment.index("xxx")]
+            post = post=comment[comment.index("xxx")+3:].replace("xxx", "")
+            comment = pre + "Parameters:\n-----------\n\n" + post
         if name == name_prev:
             name_ctr += 1
             name = name + "_%i" % name_ctr
