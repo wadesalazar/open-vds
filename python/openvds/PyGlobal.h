@@ -33,6 +33,10 @@
 
 namespace OpenVDS {
 
+class VolumeDataAccessorBase
+{
+};
+
 #ifdef OPENVDS_DEVELOPMENT_BUILD
 
 struct VDS;

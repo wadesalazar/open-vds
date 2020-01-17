@@ -6,8 +6,8 @@ from clang.cindex import CursorKind
 from collections import OrderedDict
 
 
-filename = 'tmpinclude/OpenVDS/OpenVDS.h'
-parameters = ['-x', 'c++', '-std=c++14']
+filename = 'tmpinclude/OpenVDS/VolumeDataAccess.h'
+parameters = ['-x', 'c++', '-std=c++14', '-I../../src']
 
 RECURSE_LIST = [
     CursorKind.TRANSLATION_UNIT,
@@ -15,7 +15,9 @@ RECURSE_LIST = [
     CursorKind.CLASS_DECL,
     CursorKind.STRUCT_DECL,
     CursorKind.ENUM_DECL,
-    CursorKind.CLASS_TEMPLATE
+    CursorKind.CLASS_TEMPLATE,
+    CursorKind.CXX_METHOD,
+    CursorKind.FUNCTION_DECL,
 ]
 
 PRINT_LIST = [
@@ -30,7 +32,8 @@ PRINT_LIST = [
     CursorKind.CXX_METHOD,
     CursorKind.CXX_BASE_SPECIFIER,
     CursorKind.CONSTRUCTOR,
-    CursorKind.FIELD_DECL
+    CursorKind.FIELD_DECL,
+    CursorKind.PARM_DECL,
 ]
 
 PREFIX_BLACKLIST = [
@@ -71,8 +74,9 @@ def dump(all):
 index = cindex.Index(cindex.conf.lib.clang_createIndex(False, True))
 tu = index.parse(filename, parameters)
 nodes = extract_nodes(filename, tu.cursor)
-s = [x for x in nodes if x.kind==CursorKind.STRUCT_DECL]
-s0=s[0]
-s1=s[1]
+#s = [x for x in nodes if x.kind==CursorKind.STRUCT_DECL]
+#s0=s[0]
+#s1=s[1]
+dump(nodes)
 
 

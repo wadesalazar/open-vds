@@ -64,13 +64,13 @@ PyGlobal::initModule(py::module& m)
   Error_.def_readwrite("code"                        , &Error::code                   , OPENVDS_DOCSTRING(Error_code));
   Error_.def_readwrite("string"                      , &Error::string                 , OPENVDS_DOCSTRING(Error_string));
 
-  m.def("open"                        , static_cast<native::VDSHandle(*)(const native::OpenOptions &, native::Error &)>(&Open), OPENVDS_DOCSTRING(Open));
-  m.def("open"                        , static_cast<native::VDSHandle(*)(native::IOManager *, native::Error &)>(&Open), OPENVDS_DOCSTRING(Open_2));
-  m.def("create"                      , static_cast<native::VDSHandle(*)(const native::OpenOptions &, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), OPENVDS_DOCSTRING(Create));
-  m.def("create"                      , static_cast<native::VDSHandle(*)(native::IOManager *, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), OPENVDS_DOCSTRING(Create_2));
-  m.def("getLayout"                   , static_cast<native::VolumeDataLayout *(*)(native::VDSHandle)>(&GetLayout), OPENVDS_DOCSTRING(GetLayout));
-  m.def("getAccessManager"            , static_cast<native::VolumeDataAccessManager *(*)(native::VDSHandle)>(&GetAccessManager), OPENVDS_DOCSTRING(GetAccessManager));
-  m.def("close"                       , static_cast<void(*)(native::VDSHandle)>(&Close), OPENVDS_DOCSTRING(Close));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(const native::OpenOptions &, native::Error &)>(&Open), py::arg("options"), py::arg("error"), OPENVDS_DOCSTRING(Open));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(native::IOManager *, native::Error &)>(&Open), py::arg("ioManager"), py::arg("error"), OPENVDS_DOCSTRING(Open_2));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(const native::OpenOptions &, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("options"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), py::arg("error"), OPENVDS_DOCSTRING(Create));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::IOManager *, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("ioManager"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), py::arg("error"), OPENVDS_DOCSTRING(Create_2));
+  m.def("getLayout"                   , static_cast<native::VolumeDataLayout *(*)(native::VDSHandle)>(&GetLayout), py::arg("handle"), OPENVDS_DOCSTRING(GetLayout));
+  m.def("getAccessManager"            , static_cast<native::VolumeDataAccessManager *(*)(native::VDSHandle)>(&GetAccessManager), py::arg("handle"), OPENVDS_DOCSTRING(GetAccessManager));
+  m.def("close"                       , static_cast<void(*)(native::VDSHandle)>(&Close), py::arg("handle"), OPENVDS_DOCSTRING(Close));
 //AUTOGEN-END
   Error_.def(py::init<>());
   Error_.def("__repr__", [](native::Error const& self){ std::string tmp = std::to_string(self.code); return std::string("Error(code=") + tmp + ", string='" + self.string + "')"; });

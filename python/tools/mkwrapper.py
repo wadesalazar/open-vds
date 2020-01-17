@@ -35,7 +35,9 @@ RECURSE_LIST = [
     CursorKind.CLASS_DECL,
     CursorKind.STRUCT_DECL,
     CursorKind.ENUM_DECL,
-#    CursorKind.CLASS_TEMPLATE
+#    CursorKind.CLASS_TEMPLATE,
+    CursorKind.CXX_METHOD,
+    CursorKind.FUNCTION_DECL,
 ]
 
 PRINT_LIST = [
@@ -51,7 +53,8 @@ PRINT_LIST = [
     CursorKind.CXX_BASE_SPECIFIER,
     CursorKind.CONSTRUCTOR,
     CursorKind.DESTRUCTOR,
-    CursorKind.FIELD_DECL
+    CursorKind.FIELD_DECL,
+    CursorKind.PARM_DECL,
 ]
 
 PREFIX_BLACKLIST = [
@@ -138,7 +141,9 @@ def getparent(node, all_):
     
 def getchildren(node, all_, kind=None, access_filter = PUBLIC_LIST):
     children = list(node.get_children())
-    return [x for x in all_ if x in children and (kind is None or x.kind == kind) and x.access_specifier in access_filter]
+    children = [x for x in children if (kind is None or x.kind == kind)]
+    children = [x for x in children if x.access_specifier in access_filter]
+    return children
     
 def getbases(node, all_):
     return getchildren(node, all_, CursorKind.CXX_BASE_SPECIFIER)
@@ -239,19 +244,20 @@ def get_adapter_type(native_type):
     else:
         return native_type
 
-def try_generate_trampoline_function(node, all_, restype, arglist):
+def try_generate_trampoline_function(node, all_, restype, arglist, params):
     args = arglist[1:-1].split(',')
     newargs = []
-    iarg = 0
     callargs = []
     call_prefix = ''
+    argnames = ''
     if node.kind == CursorKind.CXX_METHOD:
         instance_arg = "{}* self".format(getnativename(getparent(node, all_), all_))
         newargs.append(instance_arg)
         call_prefix = 'self->'
-    for arg in args:
+    for p in params:
+        arg, argname = p
         arg = arg.strip()
-        argname = "arg{}".format(iarg)
+        argnames += ', py::arg("{}")'.format(argname)
         if '[' in arg:
             m=re.match(r"(.+)\((.+)\)\[(.+)\]", arg)
             if m:
@@ -289,19 +295,21 @@ def try_generate_trampoline_function(node, all_, restype, arglist):
         else:
             callargs.append(argname)
             newargs.append("{} {}".format(arg, argname))
-        iarg += 1
     call = "{}{}({})".format(call_prefix, node.spelling, ", ".join(callargs))        
     if 'Vector' in restype:
         restype = get_adapter_type(restype)
         call = "({}::AdaptedType)({})".format(restype, call)
     newarglist = ", ".join(newargs)
     sig = "[]({}) BEGIN return {}; END".format(newarglist, call).replace('BEGIN', '{').replace('END', '}')
+    sig += argnames
     return sig
 
 def generate_function(node, all_, output, indent, parent_prefix, context):
     if node.get_num_template_arguments() >= 0:
         # Don't generate wrappers for template specializations
         return
+    paramnodes = getchildren(node, all_, CursorKind.PARM_DECL)
+    params = [(n.type.spelling, n.spelling) for n in paramnodes]
     overload_name = resolve_overload_name(node, all_)
     restype   = fixname(node.result_type.spelling)
     arglist = fixarglist(fixname(node.displayname[node.displayname.find('('):]), node, all)
@@ -312,21 +320,28 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
             method_prefix = getnativename(node.semantic_parent, all_) + '::'
         if node.is_const_method():
             method_suffix = " const"
-    code = """.def({0:30}, static_cast<{1}({2}*){3}{4}>(&{5}), {6});""".format(
+    argnames = ""            
+    if params:   
+        for p in params:
+            typ, name = p
+            argnames += ', py::arg("{}")'.format(name)
+
+    code = """.def({0:30}, static_cast<{1}({2}*){3}{4}>(&{5}){7}, {6});""".format(
        q(getpyname(sanitize_name(node.spelling))),
        restype,
        method_prefix,
        arglist,
        method_suffix,
        getnativename(node, all_),
-       format_docstring_decl(overload_name)
+       format_docstring_decl(overload_name),
+       argnames
     )
     line = ''
     if not can_generate_function(restype, arglist):
         try:
             code = """.def({0:30}, {1}, {2});""".format(
                q(getpyname(sanitize_name(node.spelling))),
-               try_generate_trampoline_function(node, all_, restype, arglist),
+               try_generate_trampoline_function(node, all_, restype, arglist, params),
                format_docstring_decl(overload_name)
             )
         except UnsupportedFunctionSignatureError:
@@ -554,17 +569,6 @@ def generate_all(args):
             outfile = path.split(filename)[1]
             with open("generated/" + outfile, "wb") as wr:
                 wr.writelines([(line+'\n').encode() for line in output])
-#        with open("WrapperReport.txt", "wb") as reportfile:
-#            reportlines = [
-#                """ *** OpenVDS wrapper generator report ***"""                
-#            ]
-#            if _AUTOGEN_FAIL_LIST:
-#                reportlines.append("Wrapper generator errors:")
-#                reportlines.extend([get_node_info(node) for node in _AUTOGEN_FAIL_LIST])
-#            else:
-#                reportlines.append("No errors in wrapper generation.")
-#            utflines = [(l + '\n').encode() for l in reportlines]
-#            reportfile.writelines(utflines)
     else:
         raise NoFilenamesError
 

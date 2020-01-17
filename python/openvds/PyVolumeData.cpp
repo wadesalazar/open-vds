@@ -108,7 +108,7 @@ PyVolumeData::initModule(py::module& m)
   Dimensionality_.value("Dimensionality_6"            , Dimensionality::Dimensionality_6        , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_6));
   Dimensionality_.value("Dimensionality_Max"          , Dimensionality::Dimensionality_Max      , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_Max));
 
-  m.def("getLODSize"                  , static_cast<int(*)(int, int, int, bool)>(&GetLODSize), OPENVDS_DOCSTRING(GetLODSize));
+  m.def("getLODSize"                  , static_cast<int(*)(int, int, int, bool)>(&GetLODSize), py::arg("voxelMin"), py::arg("voxelMax"), py::arg("lod"), py::arg("includePartialUpperVoxel"), OPENVDS_DOCSTRING(GetLODSize));
 //AUTOGEN-END
 }
 

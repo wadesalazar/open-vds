@@ -75,7 +75,7 @@ PyVolumeDataLayoutDescriptor::initModule(py::module& m)
   VolumeDataLayoutDescriptor_Options_.value("Options_Create2DLODs"        , VolumeDataLayoutDescriptor::Options::Options_Create2DLODs, OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_Options_Options_Create2DLODs));
   VolumeDataLayoutDescriptor_Options_.value("Options_ForceFullResolutionDimension", VolumeDataLayoutDescriptor::Options::Options_ForceFullResolutionDimension, OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_Options_Options_ForceFullResolutionDimension));
 
-  m.def("operator_bor"                , static_cast<VolumeDataLayoutDescriptor::Options(*)(VolumeDataLayoutDescriptor::Options, VolumeDataLayoutDescriptor::Options)>(&operator|), OPENVDS_DOCSTRING(operator_bor));
+  m.def("operator_bor"                , static_cast<VolumeDataLayoutDescriptor::Options(*)(VolumeDataLayoutDescriptor::Options, VolumeDataLayoutDescriptor::Options)>(&operator|), py::arg("lhs"), py::arg("rhs"), OPENVDS_DOCSTRING(operator_bor));
 //AUTOGEN-END
 }
 

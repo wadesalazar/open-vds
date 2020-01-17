@@ -35,8 +35,8 @@ PyVolumeDataAxisDescriptor::initModule(py::module& m)
   VolumeDataAxisDescriptor_.def("getCoordinateMin"            , static_cast<float(VolumeDataAxisDescriptor::*)() const>(&VolumeDataAxisDescriptor::GetCoordinateMin), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetCoordinateMin));
   VolumeDataAxisDescriptor_.def("getCoordinateMax"            , static_cast<float(VolumeDataAxisDescriptor::*)() const>(&VolumeDataAxisDescriptor::GetCoordinateMax), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetCoordinateMax));
   VolumeDataAxisDescriptor_.def("getCoordinateStep"           , static_cast<float(VolumeDataAxisDescriptor::*)() const>(&VolumeDataAxisDescriptor::GetCoordinateStep), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetCoordinateStep));
-  VolumeDataAxisDescriptor_.def("sampleIndexToCoordinate"     , static_cast<float(VolumeDataAxisDescriptor::*)(int)>(&VolumeDataAxisDescriptor::SampleIndexToCoordinate), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_SampleIndexToCoordinate));
-  VolumeDataAxisDescriptor_.def("coordinateToSampleIndex"     , static_cast<int(VolumeDataAxisDescriptor::*)(float)>(&VolumeDataAxisDescriptor::CoordinateToSampleIndex), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_CoordinateToSampleIndex));
+  VolumeDataAxisDescriptor_.def("sampleIndexToCoordinate"     , static_cast<float(VolumeDataAxisDescriptor::*)(int)>(&VolumeDataAxisDescriptor::SampleIndexToCoordinate), py::arg("sampleIndex"), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_SampleIndexToCoordinate));
+  VolumeDataAxisDescriptor_.def("coordinateToSampleIndex"     , static_cast<int(VolumeDataAxisDescriptor::*)(float)>(&VolumeDataAxisDescriptor::CoordinateToSampleIndex), py::arg("coordinate"), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_CoordinateToSampleIndex));
 
 //AUTOGEN-END
 }
