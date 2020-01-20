@@ -1,6 +1,6 @@
 import openvds.core
 import numpy as np
-from openvds.volumedatalayout import VolumeDataLayout
+from openvds.core import VolumeDataLayout
 
 from typing import Dict, Tuple, Sequence
 
@@ -63,8 +63,8 @@ class VolumeDataRequest(object):
         self.format             = format
         self.replacementNoValue = replacementNoValue
         self.buffer_format      = DataBlockNumpyTypes[format]
-        self._data_out           = data_out
-        self._accessManager      = accessManager
+        self._data_out          = data_out
+        self._accessManager     = accessManager
         self._layout            = layout
         self._iscanceled        = False
         self._iscompleted       = False
@@ -197,7 +197,7 @@ class VolumeDataAccess(object):
     def __init__(self, handle: int):
         self.handle         = handle
         self.accessManager  = openvds.core.getAccessManager(handle)
-        self.layout         = VolumeDataLayout(handle)
+        self.layout         = openvds.core.getLayout(handle)
 
     @staticmethod
     def getMinMaxFromOffsetAndShape(offset: Tuple[int], shape: Tuple[int]):
@@ -248,7 +248,7 @@ class VolumeDataAccess(object):
         """
         return VolumeDataSubsetRequest(
             self.accessManager,
-            self.layout._layout,
+            self.layout,
             min                   = min,
             max                   = max,
             data_out              = data_out,
@@ -311,7 +311,7 @@ class VolumeDataAccess(object):
         """
         return ProjectedVolumeDataSubsetRequest(
             self.accessManager,
-            self.layout._layout,
+            self.layout,
             min                   = min,
             max                   = max,
             data_out              = data_out,

@@ -40,7 +40,6 @@ set_target_properties(core
 SET(pythonsources
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     ${CMAKE_CURRENT_SOURCE_DIR}/api.py
-    ${CMAKE_CURRENT_SOURCE_DIR}/volumedatalayout.py
     ${CMAKE_CURRENT_SOURCE_DIR}/volumedataaccess.py
 )
 

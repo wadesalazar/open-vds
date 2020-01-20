@@ -57,5 +57,30 @@ PyVolumeDataLayout::initModule(py::module& m)
   VolumeDataLayout_.def("getChannelIntegerOffset"     , static_cast<float(VolumeDataLayout::*)(int) const>(&VolumeDataLayout::GetChannelIntegerOffset), py::arg("channel"), OPENVDS_DOCSTRING(VolumeDataLayout_GetChannelIntegerOffset));
 
 //AUTOGEN-END
+  VolumeDataLayout_.def_property_readonly("dimensions"           , static_cast<int(VolumeDataLayout::*)() const>(&VolumeDataLayout::GetDimensionality), OPENVDS_DOCSTRING(VolumeDataLayout_GetDimensionality));
+  VolumeDataLayout_.def_property_readonly("shape"                , [](VolumeDataLayout* self) 
+    {
+      int dimensions = self->GetDimensionality();
+      int anVoxelCount[6];
+      for (int i = 0; i < 6; ++i)
+      {
+        anVoxelCount[i] = self->GetDimensionNumSamples(i);
+      }
+      switch (dimensions)
+      {
+      case 1:
+        return py::make_tuple(anVoxelCount[0]);
+      case 2:
+        return py::make_tuple(anVoxelCount[0], anVoxelCount[1]);
+      case 3:
+        return py::make_tuple(anVoxelCount[0], anVoxelCount[1], anVoxelCount[2]);
+      case 4:
+        return py::make_tuple(anVoxelCount[0], anVoxelCount[1], anVoxelCount[2], anVoxelCount[3]);
+      case 5:
+        return py::make_tuple(anVoxelCount[0], anVoxelCount[1], anVoxelCount[2], anVoxelCount[3], anVoxelCount[4]);
+      default:
+        return py::make_tuple(anVoxelCount[0], anVoxelCount[1], anVoxelCount[2], anVoxelCount[3], anVoxelCount[4], anVoxelCount[5]);
+      }
+    });
 }
 

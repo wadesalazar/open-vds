@@ -1,7 +1,6 @@
 import openvds.core
-from openvds.core import OpenOptions, AWSOpenOptions, InMemoryOpenOptions, Error, IOManager
-from openvds.volumedataaccess import VolumeDataAccess
-from openvds.volumedatalayout import VolumeDataLayout
+from openvds.core import *
+from volumedataaccess import VolumeDataAccess
 
 def open(options: OpenOptions = None, ioManager: IOManager = None, err: Error = None) -> int: 
     """Open an existing VDS
@@ -35,3 +34,4 @@ def close(handle: int):
         The handle of the VDS
     """
     openvds.core.close(handle)
+    
