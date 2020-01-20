@@ -5,6 +5,7 @@
 #include <OpenVDS/OpenVDS.h>
 #include <VDS/VolumeDataAccessManagerImpl.h>
 #include <VDS/Base64.h>
+#include <chrono>
 
 class AzureTransfer : public OpenVDS::TransferDownloadHandler
 {
@@ -73,7 +74,7 @@ TEST(IOTests, basicAzure)
 
     OpenVDS::IOManagerAzure* m_ioManager = reinterpret_cast <OpenVDS::IOManagerAzure*> (OpenVDS::IOManager::CreateIOManager(options, azureManagerError));
 
-    const unsigned char* hash = new unsigned char[10]{ "Test text" };
+    const char hash[] = "Test text";
     std::vector<char> base64Hash;
     OpenVDS::Base64Encode((const unsigned char*)&hash, sizeof(hash), base64Hash);
     std::vector<std::pair<std::string, std::string>> meta_map;
@@ -85,7 +86,7 @@ TEST(IOTests, basicAzure)
     std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->Upload("aztest1", "NA", "Text", meta_map, to_write, completedCallback);
     while (!uploadRequest->IsDone())
     {
-        Sleep(3000);
+        std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 
     bool uploadStatus = uploadRequest->IsSuccess(azureManagerError);
@@ -97,7 +98,7 @@ TEST(IOTests, basicAzure)
     std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->Download("aztest1", transferHandler);
     while (!downloadRequest->IsDone())
     {
-        Sleep(3000);
+        std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 
     bool downloadStatus = downloadRequest->IsSuccess(azureManagerError);
