@@ -313,32 +313,32 @@ PyVolumeDataAccess::initModule(py::module& m)
   , py::arg("buffer"), py::arg("volumeDataLayout"), py::arg("dimensionsND"), py::arg("lod"), py::arg("channel"), py::arg("samplePositions"), py::arg("interpolationMethod"), py::arg("replacementNoValue"), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeSamples_2));
 
 // IMPLEMENTED :   VolumeDataAccessManager_.def("requestVolumeTraces"         , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, int)>(&VolumeDataAccessManager::RequestVolumeTraces), py::arg("buffer"), py::arg("volumeDataLayout"), py::arg("dimensionsND"), py::arg("lod"), py::arg("channel"), py::arg("tracePositions"), py::arg("traceCount"), py::arg("interpolationMethod"), py::arg("traceDimension"), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces));
-  VolumeDataAccessManager_.def("requestVolumeTraces"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, native::InterpolationMethod interpolationMethod, int traceDimension)
+  VolumeDataAccessManager_.def("requestVolumeTraces"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& tracePositions, native::InterpolationMethod interpolationMethod, int traceDimension)
     {
-      int sampleCount = 0;
-      auto& traceCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(sampleCoordinates, &sampleCount);
-      int64_t bufferSize = sizeof(float) * sampleCount;
+      int traceCount = 0;
+      auto& traceCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(tracePositions, &traceCount);
+      int64_t bufferSize = sizeof(float) * traceCount;
       py::buffer_info info = buf.request(true);
       if (info.size * info.itemsize < bufferSize)
       {
         throw std::runtime_error("Insufficient buffer");
       }
-      return self->RequestVolumeTraces((float*)info.ptr, layout, dimensions, lod, channel, &traceCoordinates, sampleCount, interpolationMethod, traceDimension);
+      return self->RequestVolumeTraces((float*)info.ptr, layout, dimensions, lod, channel, &traceCoordinates, traceCount, interpolationMethod, traceDimension);
     }
   , py::arg("buffer"), py::arg("volumeDataLayout"), py::arg("dimensionsND"), py::arg("lod"), py::arg("channel"), py::arg("tracePositions"), py::arg("interpolationMethod"), py::arg("traceDimension"), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces));
 
 // IMPLEMENTED :   VolumeDataAccessManager_.def("requestVolumeTraces"         , static_cast<int64_t(VolumeDataAccessManager::*)(float *, const native::VolumeDataLayout *, native::DimensionsND, int, int, const float (*)[6], int, native::InterpolationMethod, int, float)>(&VolumeDataAccessManager::RequestVolumeTraces), py::arg("buffer"), py::arg("volumeDataLayout"), py::arg("dimensionsND"), py::arg("lod"), py::arg("channel"), py::arg("tracePositions"), py::arg("traceCount"), py::arg("interpolationMethod"), py::arg("traceDimension"), py::arg("replacementNoValue"), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces_2));
-  VolumeDataAccessManager_.def("requestVolumeTraces"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& sampleCoordinates, native::InterpolationMethod interpolationMethod, int traceDimension, float replacementNoValue)
+  VolumeDataAccessManager_.def("requestVolumeTraces"         , [] (VolumeDataAccessManager* self, py::buffer buf, const native::VolumeDataLayout *layout, native::DimensionsND dimensions, int lod, int channel, py::array_t<float>& tracePositions, native::InterpolationMethod interpolationMethod, int traceDimension, float replacementNoValue)
     {
-      int sampleCount = 0;
-      auto& traceCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(sampleCoordinates, &sampleCount);
-      int64_t bufferSize = sizeof(float) * sampleCount;
+      int traceCount = 0;
+      auto& traceCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(tracePositions, &traceCount);
+      int64_t bufferSize = sizeof(float) * traceCount;
       py::buffer_info info = buf.request(true);
       if (info.size * info.itemsize < bufferSize)
       {
         throw std::runtime_error("Insufficient buffer");
       }
-      return self->RequestVolumeTraces((float*)info.ptr, layout, dimensions, lod, channel, &traceCoordinates, sampleCount, interpolationMethod, traceDimension, replacementNoValue);
+      return self->RequestVolumeTraces((float*)info.ptr, layout, dimensions, lod, channel, &traceCoordinates, traceCount, interpolationMethod, traceDimension, replacementNoValue);
     }
   , py::arg("buffer"), py::arg("volumeDataLayout"), py::arg("dimensionsND"), py::arg("lod"), py::arg("channel"), py::arg("tracePositions"), py::arg("interpolationMethod"), py::arg("traceDimension"), py::arg("replacementNoValue"), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces_2));
 

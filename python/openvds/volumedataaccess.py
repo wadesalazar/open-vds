@@ -2,7 +2,7 @@ import openvds.core
 import numpy as np
 from openvds.core import VolumeDataLayout
 
-from typing import Dict, Tuple, Sequence
+from typing import Dict, Tuple, Sequence, List
 
 VoxelFormat = openvds.core.VolumeDataChannelDescriptor.Format
 DimensionsND = openvds.core.DimensionsND
@@ -33,11 +33,19 @@ np.float64:  VoxelFormat.Format_R64,
 }
 
 def _ndarray(vec: Tuple[int]):
-    arr = np.zeros((6), dtype=np.int32)
+    """Convert a tuple of integers to a 6D integer vector as a numpy array"""
+    arr = np.ones((6), dtype=np.int32)
     arr[:len(vec)] = vec[:]
     return arr
 
-
+def _ndarrayarray(tuples: List[Tuple[float]]):
+    """Convert a list of float tuples to a numpy array of 6D vectors"""
+    l = len(tuples)
+    arr = np.ones((l, 6), dtype=np.float32)
+    for i in range(l):
+        arr[i][:len(tuples[i])] = tuples[i]
+    return arr
+    
 class VolumeDataRequest(object):
     def __init__(self, accessManager: openvds.core.VolumeDataAccessManager, layout: openvds.core.VolumeDataLayout, data_out: np.array = None, dimensionsND: DimensionsND = DimensionsND.Dimensions_012, lod: int = 0, channel: int = 0, min: Tuple[int] = None, max: Tuple[int] = None, format: VoxelFormat = VoxelFormat.Format_R32, replacementNoValue = None):
         array_interface = None
@@ -122,7 +130,7 @@ class VolumeDataRequest(object):
             raise RuntimeError("Operation already canceled")
         if not self.isCompleted:
             nMillisecondsBeforeTimeout = int(timeout * 1000)
-            self._iscompleted = True if accessManager.waitForCompletion(self.requestID, nMillisecondsBeforeTimeout) else False
+            self._iscompleted = True if self._accessManager.waitForCompletion(self.requestID, nMillisecondsBeforeTimeout) else False
         return self.isCompleted  
 
 class VolumeDataSubsetRequest(VolumeDataRequest):
@@ -183,6 +191,37 @@ class ProjectedVolumeDataSubsetRequest(VolumeDataRequest):
         else:
             self.requestID = self._accessManager.requestProjectedVolumeSubset(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, voxelPlane, projectedDimensions, self.format, interpolationMethod, self.replacementNoValue)
 
+class VolumeDataTracesRequest(VolumeDataRequest):
+    """Encapsulates volume data traces request.
+    
+    Returned by VolumeDataAccess.requestVolumeTraces()
+    """
+    def __init__(
+        self, 
+        accessManager: openvds.core.VolumeDataAccessManager, 
+        layout: openvds.core.VolumeDataLayout, 
+        data_out: np.array, 
+        dimensionsND: DimensionsND, 
+        lod: int,
+        channel: int,
+        tracePositions: List[Tuple[float]],
+        interpolationMethod: InterpolationMethod, 
+        traceDimension: int,
+        replacementNoValue
+    ):
+        self.tracePositions         = tracePositions
+        self.interpolationMethod    = interpolationMethod
+        self.traceCount             = len(tracePositions)
+        self.traceDimension         = traceDimension
+        min_, max_ = layout.shape
+        super().__init__(accessManager, layout, data_out, dimensionsND, lod, channel, min_, max_, VoxelFormat.Format_R32, replacementNoValue)
+        if self._data_out is None:
+            self._data_out = np.zeros(self._accessManager.getVolumeTracesBufferSize(self._layout, traceCount, traceDimension, lod), dtype=np.int8)
+        if self.replacementNoValue is None:
+            self.requestID = self._accessManager.requestVolumeTraces(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.tracePositions, self.interpolationMethod, self.traceDimension)
+        else:
+            self.requestID = self._accessManager.requestVolumeTraces(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.tracePositions, self.interpolationMethod, self.traceDimension, self.replacementNoValue)
+
 class VolumeDataAccess(object):
     """Interface class for VDS data access.
     
@@ -196,8 +235,8 @@ class VolumeDataAccess(object):
     
     def __init__(self, handle: int):
         self.handle         = handle
-        self.accessManager  = openvds.core.getAccessManager(handle)
-        self.layout         = openvds.core.getLayout(handle)
+        self._accessManager  = openvds.core.getAccessManager(handle)
+        self._layout        = openvds.core.getLayout(handle)
 
     @staticmethod
     def getMinMaxFromOffsetAndShape(offset: Tuple[int], shape: Tuple[int]):
@@ -207,6 +246,14 @@ class VolumeDataAccess(object):
         min = offset
         max = tuple([min[x]+shape[x] for x in range(len(min))])
         return min, max
+    
+    @property
+    def manager(self):
+        return self._accessManager
+        
+    @property
+    def layout(self):
+        return self._layout
         
     def requestVolumeSubset(
         self, 
@@ -247,8 +294,8 @@ class VolumeDataAccess(object):
             An object encapsulating the request, the request state, and the requested data.
         """
         return VolumeDataSubsetRequest(
-            self.accessManager,
-            self.layout,
+            self._accessManager,
+            self._layout,
             min                   = min,
             max                   = max,
             data_out              = data_out,
@@ -310,8 +357,8 @@ class VolumeDataAccess(object):
             An object encapsulating the request, the request state, and the requested data.
         """
         return ProjectedVolumeDataSubsetRequest(
-            self.accessManager,
-            self.layout,
+            self._accessManager,
+            self._layout,
             min                   = min,
             max                   = max,
             data_out              = data_out,
@@ -324,4 +371,63 @@ class VolumeDataAccess(object):
             format                = format,
             replacementNoValue    = replacementNoValue)
         
+    def requestVolumeTraces(
+        self, 
+        tracePositions: List[Tuple[float]],
+        traceDimension: int,
+        data_out: np.ndarray = None, 
+        dimensionsND: DimensionsND = DimensionsND.Dimensions_012, 
+        lod: int = 0, 
+        channel: int = 0, 
+        interpolationMethod: InterpolationMethod = InterpolationMethod.Cubic, 
+        replacementNoValue: float = None
+        ):
+        """Request traces from the input VDS.
+        
+        Parameters:
+        -----------
+        
+        tracePositions :
+            A list of trace positions.
+        
+        traceDimension :
+            The dimension to trace
+        
+        data_out : optional
+            A preallocated numpy array of float32 holding at least len(tracePositions) *
+            number of samples in the traceDimension.
+        
+        dimensionsND : optional, defaults to Dimensions_012
+            The dimensiongroup the requested data is read from.
+        
+        lod : optional, defaults to 0
+            The LOD level the requested data is read from.
+           
+        channel : optional, defaults to 0
+            The channel index the requested data is read from.
+        
+        interpolationMethod : optional, defaults to Cubic
+            Interpolation method to use when sampling the buffer.
+        
+        replacementNoValue : optional
+            Value used to replace region of the input VDS that has no data.
+        
+        Returns:
+        --------
+            The requestID which can be used to query the status of the
+            request, cancel the request or wait for the request to complete
+        """
+        return VolumeDataTracesRequest(
+            self,
+            self._accessManager,
+            self._layout,
+            tracePositions      = tracePositions,
+            traceDimension      = traceDimension,
+            data_out            = data_out,
+            dimensionsND        = dimensionsND,
+            lod                 = lod,
+            channel             = channel,
+            interpolationMethod = interpolationMethod,
+            replacementNoValue  = replacementNoValue)
+
     
