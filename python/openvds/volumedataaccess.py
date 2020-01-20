@@ -191,6 +191,35 @@ class ProjectedVolumeDataSubsetRequest(VolumeDataRequest):
         else:
             self.requestID = self._accessManager.requestProjectedVolumeSubset(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, voxelPlane, projectedDimensions, self.format, interpolationMethod, self.replacementNoValue)
 
+class VolumeDataSamplesRequest(VolumeDataRequest):
+    """Encapsulates volume data samples request.
+    
+    Returned by VolumeDataAccess.requestVolumeSamples()
+    """
+    def __init__(
+        self, 
+        accessManager: openvds.core.VolumeDataAccessManager, 
+        layout: openvds.core.VolumeDataLayout, 
+        data_out: np.array, 
+        dimensionsND: DimensionsND, 
+        lod: int,
+        channel: int,
+        samplePositions: List[Tuple[float]],
+        interpolationMethod: InterpolationMethod, 
+        replacementNoValue
+    ):
+        self.samplePositions        = samplePositions
+        self.interpolationMethod    = interpolationMethod
+        self.sampleCount            = len(samplePositions)
+        min_, max_ = layout.shape
+        super().__init__(accessManager, layout, data_out, dimensionsND, lod, channel, min_, max_, VoxelFormat.Format_R32, replacementNoValue)
+        if self._data_out is None:
+            self._data_out = np.zeros((self.sampleCount), dtype=np.float32)
+        if self.replacementNoValue is None:
+            self.requestID = self._accessManager.requestVolumeSamples(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.samplePositions, self.interpolationMethod)
+        else:
+            self.requestID = self._accessManager.requestVolumeSamples(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.samplePositions, self.interpolationMethod, self.replacementNoValue)
+
 class VolumeDataTracesRequest(VolumeDataRequest):
     """Encapsulates volume data traces request.
     
@@ -265,7 +294,7 @@ class VolumeDataAccess(object):
         channel: int = 0, 
         format: VoxelFormat = VoxelFormat.Format_R32, 
         replacementNoValue: float = None
-        ):
+    ):
         """Request a subset of the VDS data.
             
         Parameters
@@ -318,7 +347,7 @@ class VolumeDataAccess(object):
         interpolationMethod: InterpolationMethod = InterpolationMethod.Cubic, 
         format: VoxelFormat = VoxelFormat.Format_R32, 
         replacementNoValue: float = None
-        ):
+    ):
         """Request a subset projected from an arbitrary 3D plane through the
         subset onto one of the sides of the subset.
 
@@ -371,6 +400,60 @@ class VolumeDataAccess(object):
             format                = format,
             replacementNoValue    = replacementNoValue)
         
+    def requestVolumeSamples(
+        self, 
+        samplePositions: List[Tuple[float]],
+        data_out: np.ndarray = None, 
+        dimensionsND: DimensionsND = DimensionsND.Dimensions_012, 
+        lod: int = 0, 
+        channel: int = 0, 
+        interpolationMethod: InterpolationMethod = InterpolationMethod.Cubic, 
+        replacementNoValue: float = None
+    ):
+        """Request samples from the input VDS.
+        
+        Parameters:
+        -----------
+        
+        samplePositions :
+            A list of sample positions.
+        
+        data_out : optional
+            A preallocated numpy array of float32 holding at least the number of 
+            samples requested.
+        
+        dimensionsND : optional, defaults to Dimensions_012
+            The dimensiongroup the requested data is read from.
+        
+        lod : optional, defaults to 0
+            The LOD level the requested data is read from.
+           
+        channel : optional, defaults to 0
+            The channel index the requested data is read from.
+        
+        interpolationMethod : optional, defaults to Cubic
+            Interpolation method to use when sampling the buffer.
+        
+        replacementNoValue : optional
+            Value used to replace region of the input VDS that has no data.
+        
+        Returns:
+        --------
+        request : VolumeDataSamplesRequest
+            An object encapsulating the request, the request state, and the requested data.
+        """
+        return VolumeDataSamplesRequest(
+            self,
+            self._accessManager,
+            self._layout,
+            samplePositions     = samplePositions,
+            data_out            = data_out,
+            dimensionsND        = dimensionsND,
+            lod                 = lod,
+            channel             = channel,
+            interpolationMethod = interpolationMethod,
+            replacementNoValue  = replacementNoValue)
+    
     def requestVolumeTraces(
         self, 
         tracePositions: List[Tuple[float]],
@@ -381,7 +464,7 @@ class VolumeDataAccess(object):
         channel: int = 0, 
         interpolationMethod: InterpolationMethod = InterpolationMethod.Cubic, 
         replacementNoValue: float = None
-        ):
+    ):
         """Request traces from the input VDS.
         
         Parameters:
