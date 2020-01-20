@@ -13,9 +13,12 @@ set_target_properties(gtest_main PROPERTIES
 
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/src)
 
+get_property(include_3rdparty      GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES)
+
 function(add_test_executable name)
   add_executable(${name} ${ARGN})
-  target_link_libraries(${name} openvds_objects gtest gtest_main)
+  target_link_libraries(${name} PRIVATE openvds_objects gtest gtest_main)
+  target_include_directories(${name} SYSTEM PRIVATE ${include_3rdparty})
   target_compile_definitions(${name} PRIVATE openvds_EXPORTS)
   copyDllForTarget(${name})
   gtest_discover_tests(${name})
