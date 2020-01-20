@@ -60,7 +60,7 @@ TEST(IOTests, basicAzure)
     OpenVDS::AzureOpenOptions options;
 
     // TODO: move to env vars
-    options.connectionString = "DefaultEndpointsProtocol=https;AccountName=[ACCOUNT_NAME];AccountKey=[ACCOUNT_KEY];EndpointSuffix=core.windows.net";
+    options.connectionString = TEST_AZURE_CONNECTION;
     options.container = "testcontainer";
     options.connectionType = OpenVDS::OpenOptions::ConnectionType::Azure;
 
