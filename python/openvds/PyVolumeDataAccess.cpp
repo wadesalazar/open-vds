@@ -317,7 +317,7 @@ PyVolumeDataAccess::initModule(py::module& m)
     {
       int traceCount = 0;
       auto& traceCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(tracePositions, &traceCount);
-      int64_t bufferSize = sizeof(float) * traceCount;
+      int64_t bufferSize = self->GetVolumeTracesBufferSize(layout, traceCount, traceDimension, lod);
       py::buffer_info info = buf.request(true);
       if (info.size * info.itemsize < bufferSize)
       {
@@ -332,7 +332,7 @@ PyVolumeDataAccess::initModule(py::module& m)
     {
       int traceCount = 0;
       auto& traceCoordinates = PyArrayAdapter<float, Dimensionality_Max, false>::getArrayChecked(tracePositions, &traceCount);
-      int64_t bufferSize = sizeof(float) * traceCount;
+      int64_t bufferSize = self->GetVolumeTracesBufferSize(layout, traceCount, traceDimension, lod);
       py::buffer_info info = buf.request(true);
       if (info.size * info.itemsize < bufferSize)
       {
