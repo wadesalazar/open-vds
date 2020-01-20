@@ -16,5 +16,5 @@ function(add_python_test scope test_file)
   )
 endfunction()
 
-add_python_test("general" "basictest.py")
-add_python_test("general" "fixedarraytest.py")
+add_python_test("python" "basictest.py")
+add_python_test("python" "fixedarraytest.py")
