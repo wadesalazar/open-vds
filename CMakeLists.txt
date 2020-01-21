@@ -12,7 +12,8 @@ set (TEST_AWS_BUCKET "" CACHE STRING "Test AWS bucket")
 set (TEST_AWS_OBJECTID "" CACHE STRING "Test AWS object ID")
 set (TEST_AZURE_CONNECTION "" CACHE STRING "Test Azure connection string")
 
-set(OPENVDS_LIBDIR_SUFFIX "" CACHE STRING "Suffix to add to lib directories on linux")
+set (OPENVDS_LIBDIR_SUFFIX "" CACHE STRING "Suffix to add to lib directories on linux")
+set (OPENVDS_PYTHON_VERSION "" CACHE STRING "Excact Python 3 version to discover")
 option(FORCE_NO_LIBDIR_SUFFIX "Force there to be no suffix on lib directories linux")
 
 get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
@@ -23,7 +24,12 @@ else()
 endif()
 
 set(BUILD_PYTHON_DEFAULT ON)
-find_package(Python3 COMPONENTS Interpreter Development)
+if (OPENVDS_PYTHON_VERSION)
+    find_package(Python3 ${OPENVDS_PYTHON_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
+else()
+    find_package(Python3 COMPONENTS Interpreter Development)
+endif()
+
 if (Python3_FOUND)
     message(${Python3_EXECUTABLE})
     set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
