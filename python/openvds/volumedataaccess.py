@@ -251,7 +251,7 @@ class VolumeDataTracesRequest(VolumeDataRequest):
         else:
             self.requestID = self._accessManager.requestVolumeTraces(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.tracePositions, self.interpolationMethod, self.traceDimension, self.replacementNoValue)
 
-class VolumeDataAccess(object):
+class VolumeDataAccessManager(object):
     """Interface class for VDS data access.
     
     This class has functions for making asynchronous data requests on a VDS object using numpy arrays or cuda devicearrays.

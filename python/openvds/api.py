@@ -1,6 +1,6 @@
 import openvds.core
 from openvds.core import *
-from .volumedataaccess import VolumeDataAccess
+from .volumedataaccess import VolumeDataAccessManager
 
 def open(options: OpenOptions = None, ioManager: IOManager = None, err: Error = None) -> int: 
     """Open an existing VDS
