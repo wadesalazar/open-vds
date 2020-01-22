@@ -214,7 +214,7 @@
 
 /// \def KNOWNMETADATA_TRACEPOSITIONS
 /// <ul>
-/// <li>Data type   : HueMetadata_c::BLOB
+/// <li>Data type   : BLOB
 /// <li>Name        : "TracePositions"
 /// <li>Description : An array of DoubleVector2 defining the position for each trace, where (0, 0) is treated as an undefined position.
 /// </ul>
@@ -222,7 +222,7 @@
 
 /// \def KNOWNMETADATA_TRACEVERTICALOFFSETS
 /// <ul>
-/// <li>Data type   : HueMetadata_c::BLOB
+/// <li>Data type   : BLOB
 /// <li>Name        : "TraceVerticalOffsets"
 /// <li>Description : An array of doubles defining the offset for each trace from the vertical start position in the Time/Depth/Sample dimension of the VDS
 /// </ul>
@@ -230,7 +230,7 @@
 
 /// \def KNOWNMETADATA_ENERGYSOURCEPOINTNUMBERS
 /// <ul>
-/// <li>Data type   : HueMetadata_c::BLOB
+/// <li>Data type   : BLOB
 /// <li>Name        : "EnergySourcePointNumbers"
 /// <li>Description : An array of scalar int32 values defining the energy source point number for each trace.
 /// </ul>
@@ -238,7 +238,7 @@
 
 /// \def KNOWNMETADATA_ENSEMBLENUMBERS
 /// <ul>
-/// <li>Data type   : HueMetadata_c::BLOB
+/// <li>Data type   : BLOB
 /// <li>Name        : "EnsembleNumbers"
 /// <li>Description : An array of scalar int32 values defining the ensemble number for each trace.
 /// </ul>
@@ -253,10 +253,70 @@
 
 /// \def KNOWNMETADATA_WRITTENREGION
 /// <ul>
-/// <li>Data type   : HueMetadata_c::BLOB
+/// <li>Data type   : BLOB
 /// <li>Name        : "WrittenRegion"
 /// <li>Description : An array of scalar int32 values defining the 6D min and max (NDBox) of the written region
 /// </ul>
 #define KNOWNMETADATA_WRITTENREGION "WrittenRegion"
+
+// Import information metadata //////////////////////////////////////////////
+/*!
+\def KNOWNMETADATA_CATEGORY_IMPORTINFORMATION
+
+ImportInformation:
+
+This category of VDS metadata contains information about the initial import to VDS. That is,
+information about the original file (file name, last modification time etc.) and when/how it
+was imported. The intended use is e.g. to give a default file name for an export operation or
+to inform the user about whether the VDS was imported from some particular file.
+
+*/
+
+#define KNOWNMETADATA_CATEGORY_IMPORTINFORMATION "ImportInformation"
+
+/// \def KNOWNMETADATA_IMPORTINFORMATION_DISPLAYNAME
+/// <ul>
+/// <li>Data type   : String
+/// <li>Name        : "DisplayName"
+/// <li>Description : An informative name that can be displayed to a user but is not necessarily a valid file name.
+/// </ul>
+
+#define KNOWNMETADATA_IMPORTINFORMATION_DISPLAYNAME "DisplayName"
+
+/// \def KNOWNMETADATA_IMPORTINFORMATION_INPUTFILENAME
+/// <ul>
+/// <li>Data type   : String
+/// <li>Name        : "InputFileName"
+/// <li>Description : The original input file name. In cases where the input is not a simple file this should still be a valid file name that can be used as the default for a subsequent export operation.
+/// </ul>
+
+#define KNOWNMETADATA_IMPORTINFORMATION_INPUTFILENAME "InputFileName"
+
+/// \def KNOWNMETADATA_IMPORTINFORMATION_INPUTFILESIZE
+/// <ul>
+/// <li>Data type   : Double
+/// <li>Name        : "InputFileSize"
+/// <li>Description : The total size (in bytes) of the input file(s), which is an integer stored as a double because there is no 64-bit integer metadata type.
+/// </ul>
+
+#define KNOWNMETADATA_IMPORTINFORMATION_INPUTFILESIZE "InputFileSize"
+
+/// \def KNOWNMETADATA_IMPORTINFORMATION_INPUTTIMESTAMP
+/// <ul>
+/// <li>Data type   : String
+/// <li>Name        : "InputTimeStamp"
+/// <li>Description : The last modified time of the input in ISO8601 format.
+/// </ul>
+
+#define KNOWNMETADATA_IMPORTINFORMATION_INPUTTIMESTAMP "InputTimeStamp"
+
+/// \def KNOWNMETADATA_IMPORTINFORMATION_IMPORTTIMESTAMP
+/// <ul>
+/// <li>Data type   : String
+/// <li>Name        : "ImportTimeStamp"
+/// <li>Description : The time in ISO8601 format when the data was imported to VDS.
+/// </ul>
+
+#define KNOWNMETADATA_IMPORTINFORMATION_IMPORTTIMESTAMP "ImportTimeStamp"
 
 #endif // !KNOWNMETADATA_H
