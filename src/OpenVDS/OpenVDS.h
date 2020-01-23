@@ -165,6 +165,9 @@ OPENVDS_EXPORT VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor
 /// <param name="handle">
 /// The handle of the VDS
 /// </param>
+/// <returns>
+/// The VolumeDataLayout of the VDS
+/// </returns>
 OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle handle);
 
 /// <summary>
@@ -173,6 +176,9 @@ OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle handle);
 /// <param name="handle">
 /// The handle of the VDS
 /// </param>
+/// <returns>
+/// The VolumeDataAccessManager of the VDS
+/// </returns>
 OPENVDS_EXPORT VolumeDataAccessManager *GetAccessManager(VDSHandle handle);
 
 /// <summary>
