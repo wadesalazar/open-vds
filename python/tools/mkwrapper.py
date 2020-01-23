@@ -216,11 +216,27 @@ def generate_field(node, all_, output, indent, parent_prefix, context):
     )
     output.append(indent + parent_prefix + code)
 
+def get_args(node, all_):
+    paramnodes = getchildren(node, all_, CursorKind.PARM_DECL)
+    params = [(n.type.spelling, n.spelling) for n in paramnodes]
+    return params
+
+def get_argnames(node, all_):
+    params = get_args(node, all_)
+    argnames = ""            
+    if params:   
+        for p in params:
+            typ, name = p
+            argnames += ', py::arg("{}")'.format(name)
+    return argnames
+
 def generate_constructor(node, all_, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all_)
     arglist = fixarglist(node.displayname[node.displayname.find('(') + 1:-1], node, all_)
-    code = """.def(py::init<{0:30}>(), {1});""".format(
+    argnames = get_argnames(node, all_)
+    code = """.def(py::init<{0:30}>(){1}, {2});""".format(
        arglist,
+       argnames,
        format_docstring_decl(overload_name)
     )
     output.append(indent + parent_prefix + code)
@@ -308,8 +324,8 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
     if node.get_num_template_arguments() >= 0:
         # Don't generate wrappers for template specializations
         return
-    paramnodes = getchildren(node, all_, CursorKind.PARM_DECL)
-    params = [(n.type.spelling, n.spelling) for n in paramnodes]
+    params = get_args(node, all_)
+    argnames = get_argnames(node, all_)
     overload_name = resolve_overload_name(node, all_)
     restype   = fixname(node.result_type.spelling)
     arglist = fixarglist(fixname(node.displayname[node.displayname.find('('):]), node, all)
@@ -320,12 +336,6 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
             method_prefix = getnativename(node.semantic_parent, all_) + '::'
         if node.is_const_method():
             method_suffix = " const"
-    argnames = ""            
-    if params:   
-        for p in params:
-            typ, name = p
-            argnames += ', py::arg("{}")'.format(name)
-
     code = """.def({0:30}, static_cast<{1}({2}*){3}{4}>(&{5}){7}, {6});""".format(
        q(getpyname(sanitize_name(node.spelling))),
        restype,

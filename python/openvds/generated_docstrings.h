@@ -35,6 +35,22 @@ static const char *__doc_OpenVDS_AWSOpenOptions_key = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_region = R"doc()doc";
 
+static const char *__doc_OpenVDS_AzureOpenOptions = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_AzureOpenOptions = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_AzureOpenOptions_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_AzureOpenOptions_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_connectionString = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_container = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_max_execution_time = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_parallelism_factor = R"doc()doc";
+
 static const char *__doc_OpenVDS_CalculateNoise2D = R"doc()doc";
 
 static const char *__doc_OpenVDS_CalculateNoise3D = R"doc()doc";
@@ -306,7 +322,11 @@ Parameters:
 -----------
 
 handle :
-    The handle of the VDS)doc";
+    The handle of the VDS
+
+Returns:
+--------
+    The VolumeDataAccessManager of the VDS)doc";
 
 static const char *__doc_OpenVDS_GetDataBlockDimensionality = R"doc()doc";
 
@@ -344,7 +364,11 @@ Parameters:
 -----------
 
 handle :
-    The handle of the VDS)doc";
+    The handle of the VDS
+
+Returns:
+--------
+    The VolumeDataLayout of the VDS)doc";
 
 static const char *__doc_OpenVDS_IJKGridDefinition = R"doc()doc";
 

@@ -28,7 +28,7 @@ PyVolumeDataAxisDescriptor::initModule(py::module& m)
     VolumeDataAxisDescriptor_(m,"VolumeDataAxisDescriptor", OPENVDS_DOCSTRING(VolumeDataAxisDescriptor));
 
   VolumeDataAxisDescriptor_.def(py::init<                              >(), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_VolumeDataAxisDescriptor));
-  VolumeDataAxisDescriptor_.def(py::init<int, const char *, const char *, float, float>(), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_VolumeDataAxisDescriptor_2));
+  VolumeDataAxisDescriptor_.def(py::init<int, const char *, const char *, float, float>(), py::arg("numSamples"), py::arg("name"), py::arg("unit"), py::arg("coordinateMin"), py::arg("coordinateMax"), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_VolumeDataAxisDescriptor_2));
   VolumeDataAxisDescriptor_.def("getNumSamples"               , static_cast<int(VolumeDataAxisDescriptor::*)() const>(&VolumeDataAxisDescriptor::GetNumSamples), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetNumSamples));
   VolumeDataAxisDescriptor_.def("getName"                     , static_cast<const char *(VolumeDataAxisDescriptor::*)() const>(&VolumeDataAxisDescriptor::GetName), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetName));
   VolumeDataAxisDescriptor_.def("getUnit"                     , static_cast<const char *(VolumeDataAxisDescriptor::*)() const>(&VolumeDataAxisDescriptor::GetUnit), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetUnit));

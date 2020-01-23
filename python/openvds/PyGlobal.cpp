@@ -46,10 +46,22 @@ PyGlobal::initModule(py::module& m)
     AWSOpenOptions_(m,"AWSOpenOptions", OPENVDS_DOCSTRING(AWSOpenOptions));
 
   AWSOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions));
-  AWSOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &>(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions_2));
+  AWSOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &>(), py::arg("bucket"), py::arg("key"), py::arg("region"), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions_2));
   AWSOpenOptions_.def_readwrite("bucket"                      , &AWSOpenOptions::bucket        , OPENVDS_DOCSTRING(AWSOpenOptions_bucket));
   AWSOpenOptions_.def_readwrite("key"                         , &AWSOpenOptions::key           , OPENVDS_DOCSTRING(AWSOpenOptions_key));
   AWSOpenOptions_.def_readwrite("region"                      , &AWSOpenOptions::region        , OPENVDS_DOCSTRING(AWSOpenOptions_region));
+
+  // AzureOpenOptions
+  py::class_<AzureOpenOptions, OpenOptions> 
+    AzureOpenOptions_(m,"AzureOpenOptions", OPENVDS_DOCSTRING(AzureOpenOptions));
+
+  AzureOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptions));
+  AzureOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &>(), py::arg("connectionString"), py::arg("container"), py::arg("blob"), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptions_2));
+  AzureOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &, int &, int &>(), py::arg("connectionString"), py::arg("container"), py::arg("blob"), py::arg("parallelism_factor"), py::arg("max_execution_time"), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptions_3));
+  AzureOpenOptions_.def_readwrite("connectionString"            , &AzureOpenOptions::connectionString, OPENVDS_DOCSTRING(AzureOpenOptions_connectionString));
+  AzureOpenOptions_.def_readwrite("container"                   , &AzureOpenOptions::container   , OPENVDS_DOCSTRING(AzureOpenOptions_container));
+  AzureOpenOptions_.def_readwrite("parallelism_factor"          , &AzureOpenOptions::parallelism_factor, OPENVDS_DOCSTRING(AzureOpenOptions_parallelism_factor));
+  AzureOpenOptions_.def_readwrite("max_execution_time"          , &AzureOpenOptions::max_execution_time, OPENVDS_DOCSTRING(AzureOpenOptions_max_execution_time));
 
   // InMemoryOpenOptions
   py::class_<InMemoryOpenOptions, OpenOptions> 
