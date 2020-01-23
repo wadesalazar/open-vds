@@ -29,9 +29,19 @@ def open(options: OpenOptions = None, ioManager: IOManager = None, err: Error = 
 
 def close(handle: int):
     """Close a VDS and free up all associated resources
-
+    
     Parameter `handle`:
         The handle of the VDS
     """
     openvds.core.close(handle)
+
+def getAccessManager(handle: int):
+    """Get the VolumeDataAccessManager for a VDS
     
+    Parameter `handle`:
+        The handle of the VDS
+    
+    Returns:
+        The VolumeDataAccessManager of the VDS
+    """
+    return VolumeDataAccessManager(handle)
