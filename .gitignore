@@ -14,5 +14,5 @@ python/tools/.vscode
 python/tools/WrapperReport.txt
 /.pytest_cache
 /_skbuild
-/aws_sdk*.log
+/**/aws_sdk*.log
 /python/openvds.egg-info

@@ -1,0 +1,4 @@
+numpy
+openvds
+Flask
+Pillow
