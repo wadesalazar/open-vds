@@ -1,6 +1,8 @@
 import openvds.core
 import numpy as np
-from openvds.core import VolumeDataLayout
+from openvds.core import VolumeDataLayout, VolumeDataPageAccessor
+
+from .volumedataaccessors import VolmeDataAccessorManager
 
 from typing import Dict, Tuple, Sequence, List
 
@@ -513,4 +515,37 @@ class VolumeDataAccessManager(object):
             interpolationMethod = interpolationMethod,
             replacementNoValue  = replacementNoValue)
 
+    def _createVolumeDataAccessor(self, factoryName: str, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=None):
+        if pageAccessor is None:
+            defaultDimensions = { 2: DimensionsND.Dimensions_01, 3: DimensionsND.Dimensions_012, 4: DimensionsND.Dimensions_012 }
+            pageAccessor = self.manager.createVolumeDataPageAccessor(self.layout, defaultDimensions[self.layout.dimensions], 0, 0, 8, self.manager.AccessMode.AccessMode_ReadOnly)
+        return VolmeDataAccessorManager(factoryName.strip(), self.manager, pageAccessor, replacementNoValue, interpolationMethod)
+        
+    def create2DVolumeDataAccessor1Bit            (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessor1Bit", pageAccessor, replacementNoValue)
+    def create2DVolumeDataAccessorU8              (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorU8  ", pageAccessor, replacementNoValue)
+    def create2DVolumeDataAccessorU16             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorU16 ", pageAccessor, replacementNoValue)
+    def create2DVolumeDataAccessorU32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorU32 ", pageAccessor, replacementNoValue)
+    def create2DVolumeDataAccessorU64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorU64 ", pageAccessor, replacementNoValue)
+    def create2DVolumeDataAccessorR32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorR32 ", pageAccessor, replacementNoValue)
+    def create2DVolumeDataAccessorR64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorR64 ", pageAccessor, replacementNoValue)
+    def create3DVolumeDataAccessor1Bit            (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessor1Bit", pageAccessor, replacementNoValue)
+    def create3DVolumeDataAccessorU8              (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorU8  ", pageAccessor, replacementNoValue)
+    def create3DVolumeDataAccessorU16             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorU16 ", pageAccessor, replacementNoValue)
+    def create3DVolumeDataAccessorU32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorU32 ", pageAccessor, replacementNoValue)
+    def create3DVolumeDataAccessorU64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorU64 ", pageAccessor, replacementNoValue)
+    def create3DVolumeDataAccessorR32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorR32 ", pageAccessor, replacementNoValue)
+    def create3DVolumeDataAccessorR64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorR64 ", pageAccessor, replacementNoValue)
+    def create4DVolumeDataAccessor1Bit            (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessor1Bit", pageAccessor, replacementNoValue)
+    def create4DVolumeDataAccessorU8              (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorU8  ", pageAccessor, replacementNoValue)
+    def create4DVolumeDataAccessorU16             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorU16 ", pageAccessor, replacementNoValue)
+    def create4DVolumeDataAccessorU32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorU32 ", pageAccessor, replacementNoValue)
+    def create4DVolumeDataAccessorU64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorU64 ", pageAccessor, replacementNoValue)
+    def create4DVolumeDataAccessorR32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorR32 ", pageAccessor, replacementNoValue)
+    def create4DVolumeDataAccessorR64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorR64 ", pageAccessor, replacementNoValue)
+    def create2DInterpolatingVolumeDataAccessorR32(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create2DInterpolatingVolumeDataAccessorR32", pageAccessor, replacementNoValue, interpolationMode)
+    def create2DInterpolatingVolumeDataAccessorR64(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create2DInterpolatingVolumeDataAccessorR64", pageAccessor, replacementNoValue, interpolationMode)
+    def create3DInterpolatingVolumeDataAccessorR32(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create3DInterpolatingVolumeDataAccessorR32", pageAccessor, replacementNoValue, interpolationMode)
+    def create3DInterpolatingVolumeDataAccessorR64(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create3DInterpolatingVolumeDataAccessorR64", pageAccessor, replacementNoValue, interpolationMode)
+    def create4DInterpolatingVolumeDataAccessorR32(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create4DInterpolatingVolumeDataAccessorR32", pageAccessor, replacementNoValue, interpolationMode)
+    def create4DInterpolatingVolumeDataAccessorR64(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create4DInterpolatingVolumeDataAccessorR64", pageAccessor, replacementNoValue, interpolationMode)
     

@@ -41,6 +41,7 @@ SET(pythonsources
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     ${CMAKE_CURRENT_SOURCE_DIR}/api.py
     ${CMAKE_CURRENT_SOURCE_DIR}/volumedataaccess.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/volumedataaccessors.py
 )
 
 add_custom_command(TARGET core
