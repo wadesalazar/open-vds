@@ -38,12 +38,18 @@ main(int argc, char *argv[])
 
   std::string bucket;
   std::string region;
+  std::string connectionString;
+  std::string container;
+  int azureParallelismFactor = 0;
   std::string prefix;
   std::string persistentID;
   std::string fileName;
 
-  options.add_option("", "", "bucket", "Bucket to export from.", cxxopts::value<std::string>(bucket), "<string>");
-  options.add_option("", "", "region", "Region of bucket to export from.", cxxopts::value<std::string>(region), "<string>");
+  options.add_option("", "", "bucket", "AWS S3 bucket to export from.", cxxopts::value<std::string>(bucket), "<string>");
+  options.add_option("", "", "region", "AWS region of bucket to export from.", cxxopts::value<std::string>(region), "<string>");
+  options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
+  options.add_option("", "", "container", "Azure Blob Storage container to export from .", cxxopts::value<std::string>(container), "<string>");
+  options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
   options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
   options.add_option("", "", "persistentID", "persistentID", cxxopts::value<std::string>(persistentID), "<ID>");
 
@@ -73,19 +79,49 @@ main(int argc, char *argv[])
   }
 
   // Open the VDS
-  OpenVDS::Error
-    openError;
-
   std::string
     key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
 
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vds(OpenVDS::Open(OpenVDS::AWSOpenOptions(bucket, key, region), openError), &OpenVDS::Close);
+  std::unique_ptr<OpenVDS::OpenOptions> openOptions;
+
+  if(!bucket.empty())
+  {
+    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region));
+  }
+  else if(!container.empty())
+  {
+    openOptions.reset(new OpenVDS::AzureOpenOptions(connectionString, container, key));
+  }
+
+  if(azureParallelismFactor)
+  {
+    if(openOptions->connectionType == OpenVDS::OpenOptions::Azure)
+    {
+      auto &azureOpenOptions = *static_cast<OpenVDS::AzureOpenOptions *>(openOptions.get());
+
+      azureOpenOptions.parallelism_factor = azureParallelismFactor;
+    }
+    else
+    {
+      std::cerr << "Cannot specify parallelism-factor with other backends than Azure";
+      return EXIT_FAILURE;
+    }
+  }
+
+  OpenVDS::Error
+    openError;
+
+  OpenVDS::VDSHandle
+    handle = OpenVDS::Open(*openOptions.get(), openError);
 
   if(openError.code != 0)
   {
     fmt::print(stderr, "Could not open VDS: {}", openError.string);
     return EXIT_FAILURE;
   }
+
+  // auto-close vds handle when it goes out of scope
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vdsGuard(handle, &OpenVDS::Close);
 
   OpenVDS::File
     file;
@@ -101,7 +137,7 @@ main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  auto accessManager = OpenVDS::GetAccessManager(vds.get());
+  auto accessManager = OpenVDS::GetAccessManager(handle);
   auto volumeDataLayout = accessManager->GetVolumeDataLayout();
 
   if(!volumeDataLayout->IsChannelAvailable("Trace"))
