@@ -353,7 +353,15 @@ bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &ch
   // Check if the page is not valid and we need to add the request later when the metadata page transfer completes
   if (!metadataPage->IsValid())
   {
-    m_pendingDownloadRequests[chunk] = PendingDownloadRequest(metadataPage);
+    if (m_pendingDownloadRequests.find(chunk) == m_pendingDownloadRequests.end())
+    {
+      m_pendingDownloadRequests[chunk] = PendingDownloadRequest(metadataPage);
+    }
+    else
+    {
+      m_pendingDownloadRequests[chunk].m_ref++;
+      m_pendingDownloadRequests[chunk].m_canMove = false;
+    }
     return true;
   }
 
@@ -372,8 +380,16 @@ bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &ch
   std::string url = CreateUrlForChunk(layerName, chunk.index);
 
   lock.lock();
-  auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, adaptiveLevel);
-  m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->Download(url, transferHandler, ioRange), transferHandler);
+  if (m_pendingDownloadRequests.find(chunk) == m_pendingDownloadRequests.end())
+  {
+    auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, adaptiveLevel);
+    m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->Download(url, transferHandler, ioRange), transferHandler);
+  }
+  else
+  {
+    m_pendingDownloadRequests[chunk].m_ref++;
+    m_pendingDownloadRequests[chunk].m_canMove = false;
+  }
 
   return true;
 }
@@ -400,7 +416,11 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
   auto activeTransfer = pendingRequest.m_activeTransfer;
   auto transferHandler = pendingRequest.m_transferHandle;
 
-  m_pendingDownloadRequests.erase(pendingRequestIterator);
+  bool moveData = pendingRequest.m_canMove;
+  if (--pendingRequest.m_ref == 0)
+  {
+    m_pendingDownloadRequests.erase(pendingRequestIterator);
+  }
 
   lock.unlock();
 
@@ -413,12 +433,18 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
 
   if (transferHandler->m_data.size())
   {
-    serializedData = std::move(transferHandler->m_data);
+    if (moveData)
+      serializedData = std::move(transferHandler->m_data);
+    else
+      serializedData = transferHandler->m_data;
   }
 
   if (transferHandler->m_metadata.size())
   {
-    metadata = std::move(transferHandler->m_metadata);
+    if (moveData)
+      metadata = std::move(transferHandler->m_metadata);
+    else
+      metadata = transferHandler->m_metadata;
   }
 
   compressionInfo = CompressionInfo(transferHandler->m_compressionMethod, transferHandler->m_adaptiveLevel);

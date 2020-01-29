@@ -72,7 +72,9 @@ add_test_executable(openvds_integration_tests
   OpenVDS/RequestVolumeSubsetFormat.cpp
   OpenVDS/DataAccessorClone.cpp
   )
-
+add_test_executable(openvds_mixed_request
+  OpenVDS/RequestVolumeSubsetAndPageAccessor.cpp
+  )
 if (BUILD_PYTHON)
   add_subdirectory(python)
 endif()
