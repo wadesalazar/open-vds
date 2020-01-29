@@ -1037,7 +1037,8 @@ main(int argc, char* argv[])
   SEGYFileInfo
     fileInfo(headerEndianness);
 
-  if(scan)
+  // Scan the file if '--scan' was passed or we're uploading but no fileInfo file was specified
+  if(scan || fileInfoFileName.empty())
   {
     if(!uniqueID)
     {
@@ -1060,41 +1061,45 @@ main(int argc, char* argv[])
       return EXIT_FAILURE;
     }
 
-    Json::Value jsonFileInfo = SerializeSEGYFileInfo(fileInfo);
-
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = "  ";
-    std::string document = Json::writeString(wbuilder, jsonFileInfo);
-
-    if (fileInfoFileName.empty())
+    // If we are in scan mode we serialize the result of the file scan either to a fileInfo file (if specified) or to stdout and exit
+    if(scan)
     {
-      std::cout << document;
-    }
-    else
-    {
-      OpenVDS::File
-        fileInfoFile;
+      Json::Value jsonFileInfo = SerializeSEGYFileInfo(fileInfo);
 
-      OpenVDS::IOError
-        error;
+      Json::StreamWriterBuilder wbuilder;
+      wbuilder["indentation"] = "  ";
+      std::string document = Json::writeString(wbuilder, jsonFileInfo);
 
-      fileInfoFile.Open(fileInfoFileName.c_str(), true, false, true, error);
-
-      if (error.code != 0)
+      if (fileInfoFileName.empty())
       {
-        std::cerr << std::string("Could not create file: ") << fileInfoFileName;
-        return EXIT_FAILURE;
+        std::cout << document;
       }
-
-      fileInfoFile.Write(document.data(), 0, (int32_t)document.size(), error);
-
-      if (error.code != 0)
+      else
       {
-        std::cerr << std::string("Could not write to file: ") << fileInfoFileName;
-        return EXIT_FAILURE;
+        OpenVDS::File
+          fileInfoFile;
+
+        OpenVDS::IOError
+          error;
+
+        fileInfoFile.Open(fileInfoFileName.c_str(), true, false, true, error);
+
+        if (error.code != 0)
+        {
+          std::cerr << std::string("Could not create file: ") << fileInfoFileName;
+          return EXIT_FAILURE;
+        }
+
+        fileInfoFile.Write(document.data(), 0, (int32_t)document.size(), error);
+
+        if (error.code != 0)
+        {
+          std::cerr << std::string("Could not write to file: ") << fileInfoFileName;
+          return EXIT_FAILURE;
+        }
       }
+      return EXIT_SUCCESS;
     }
-    return EXIT_SUCCESS;
   }
   else if (!fileInfoFileName.empty())
   {
