@@ -958,11 +958,6 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  //OpenVDS::AzureOpenOptions options;
-  //options.connectionString = TEST_AZURE_CONNECTION;
-  //options.container = "SIMPLE_NOISE_VDS";
-  //options.parallelism_factor = 8;
-
   if (!scan)
   {
     if(container.empty() && bucket.empty())
