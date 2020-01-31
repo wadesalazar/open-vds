@@ -30,6 +30,8 @@
 #include <chrono>
 #include <algorithm>
 
+#include <fmt/printf.h>
+
 namespace OpenVDS
 {
 
@@ -203,10 +205,8 @@ VolumeDataPage* VolumeDataPageAccessorImpl::CreatePage(int64_t chunk)
   return page;
 }
 
-VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk, bool *needToCallReadPreparePage)
+VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk)
 {
-  assert(needToCallReadPreparePage);
-  *needToCallReadPreparePage = true;
   std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
 
   if(!m_layer)
@@ -230,19 +230,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk, bool 
       }
       (*page_it)->Pin();
 
-      while((*page_it)->IsEmpty())
-      {
-        m_pageReadCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
-
-        if(!m_layer)
-        {
-          (*page_it)->UnPin();
-          return nullptr;
-        }
-      }
-
       m_pagesFound++;
-      *needToCallReadPreparePage = false;
       return *page_it;
     }
   }
@@ -278,53 +266,70 @@ VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk, bool 
 
 bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
 {
-  VolumeDataPageImpl *pageImpl = static_cast<VolumeDataPageImpl *>(page);
-  
-  Error error;
-  VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(pageImpl->GetChunkIndex());
-  std::vector<uint8_t> serialized_data;
-  std::vector<uint8_t> metadata;
-  CompressionInfo compressionInfo;
-
-
   std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex, std::defer_lock);
-  if (!m_accessManager->ReadChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, error))
+
+  VolumeDataPageImpl *pageImpl = static_cast<VolumeDataPageImpl *>(page);
+  if (!pageImpl->RequestPrepared())
+    return true;
+  if (pageImpl->EnterSettingData())
   {
+    Error error;
+    VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(pageImpl->GetChunkIndex());
+    std::vector<uint8_t> serialized_data;
+    std::vector<uint8_t> metadata;
+    CompressionInfo compressionInfo;
+
+
+    if (!m_accessManager->ReadChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, error))
+    {
+      pageListMutexLock.lock();
+      pageImpl->SetError(error);
+      pageImpl->SetRequestPrepared(false);
+      pageImpl->LeaveSettingData();
+      m_pageReadCondition.notify_all();
+      fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
+      return false;
+    }
+
+    std::vector<uint8_t> page_data;
+    DataBlock dataBlock;
+    if (!VolumeDataStore::DeserializeVolumeData(volumeDataChunk, serialized_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->GetFormat(), dataBlock, page_data, error))
+    {
+      pageListMutexLock.lock();
+      pageImpl->SetError(error);
+      pageImpl->SetRequestPrepared(false);
+      pageImpl->LeaveSettingData();
+      m_pageReadCondition.notify_all();
+      fprintf(stderr, "Failed when deserializing chunk: %s\n", error.string.c_str());
+      return false;
+    }
+
+    int pitch[Dimensionality_Max] = {};
+
+    for (int chunkDimension = 0; chunkDimension < m_layer->GetChunkDimensionality(); chunkDimension++)
+    {
+      int dimension = DimensionGroupUtil::GetDimension(m_layer->GetChunkDimensionGroup(), chunkDimension);
+
+      assert(dimension >= 0 && dimension < Dimensionality_Max);
+      pitch[dimension] = dataBlock.Pitch[chunkDimension];
+    }
+
     pageListMutexLock.lock();
-    pageImpl->UnPin();
-    fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
-    return false;
+    pageImpl->SetBufferData(dataBlock, pitch, std::move(page_data));
+    m_pagesRead++;
+    pageImpl->SetRequestPrepared(false);
+    pageImpl->LeaveSettingData();
+    m_pageReadCondition.notify_all();
   }
-
-  std::vector<uint8_t> page_data;
-  DataBlock dataBlock;
-  if (!VolumeDataStore::DeserializeVolumeData(volumeDataChunk, serialized_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->GetFormat(), dataBlock, page_data, error))
+  else
   {
+    pageImpl->LeaveSettingData();
     pageListMutexLock.lock();
-    pageImpl->UnPin();
-    fprintf(stderr, "Failed when deserializing chunk: %s\n", error.string.c_str());
-    return false;
+    m_pageReadCondition.wait(pageListMutexLock, [pageImpl]{return pageImpl->GetError().code == 0 && !pageImpl->SettingData();});
   }
-
-  int pitch[Dimensionality_Max] = {};
-
-  for(int chunkDimension = 0; chunkDimension < m_layer->GetChunkDimensionality(); chunkDimension++)
-  {
-    int dimension = DimensionGroupUtil::GetDimension(m_layer->GetChunkDimensionGroup(), chunkDimension);
-
-    assert(dimension >= 0 && dimension < Dimensionality_Max);
-    pitch[dimension] = dataBlock.Pitch[chunkDimension];
-  }
-
-  pageListMutexLock.lock();
-  pageImpl->SetBufferData(dataBlock, pitch, std::move(page_data));
-  m_pagesRead++;
-
-  m_pageReadCondition.notify_all();
 
   if(!m_layer)
   {
-    pageImpl->UnPin();
     page = nullptr;
   }
 
@@ -334,11 +339,10 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
 
 VolumeDataPage* VolumeDataPageAccessorImpl::ReadPage(int64_t chunk)
 {
-  bool needToRead;
-  VolumeDataPage *page = PrepareReadPage(chunk, &needToRead);
+  VolumeDataPage *page = PrepareReadPage(chunk);
   if (!page)
     return nullptr;
-  if (needToRead && !ReadPreparedPaged(page))
+  if (!ReadPreparedPaged(page))
       return nullptr;
   return page;
 }

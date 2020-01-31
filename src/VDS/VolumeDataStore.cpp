@@ -25,6 +25,7 @@
 #include "DataBlock.h"
 #include <OpenVDS/ValueConversion.h>
 
+#include <fmt/format.h>
 
 #include <stdlib.h>
 #include <assert.h>
@@ -487,6 +488,8 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChu
   }
   else if (metadata.size() != sizeof(uint64_t) || !Verify(volumeDataChunk, serializedData, compressionMethod, true))
   {
+    error.code = 30;
+    error.string = fmt::format("Invalid header for chunk file. Chunk index: {}.", volumeDataChunk.index);
     return false;
   }
 

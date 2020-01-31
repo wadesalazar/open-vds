@@ -95,11 +95,17 @@ static int64_t GenJobId()
 
 struct MarkJobAsDoneOnExit
 {
-  MarkJobAsDoneOnExit(Job *job)
+  MarkJobAsDoneOnExit(Job *job, int index)
     : job(job)
+    , index(index)
   {}
   ~MarkJobAsDoneOnExit()
   {
+
+    {
+      JobPage& jobPage = job->pages[index];
+      jobPage.page->UnPin();
+    }
     int completed = job->completed.fetch_add(1);
     if (completed == int(job->pages.size()) - 1)
     {
@@ -110,21 +116,19 @@ struct MarkJobAsDoneOnExit
     }
   }
   Job *job;
+  int index;
 };
 
 static Error ProcessPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessorImpl *pageAccessor, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, Error &error)> processor)
 {
-  MarkJobAsDoneOnExit jobDone(job);
+  MarkJobAsDoneOnExit jobDone(job, pageIndex);
   Error error;
   JobPage& jobPage = job->pages[pageIndex];
-  if (jobPage.needToReadPage)
+  if (!pageAccessor->ReadPreparedPaged(jobPage.page))
   {
-    if (!pageAccessor->ReadPreparedPaged(jobPage.page))
-    {
-      error.code = -1;
-      error.string = fmt::format("Failed to read page {}.", jobPage.page->GetChunkIndex());
-      return error;
-    }
+    error.code = -1;
+    error.string = fmt::format("Failed to read page {}.", jobPage.page->GetChunkIndex());
+    return error;
   }
   if (job->cancelled)
   {
@@ -132,9 +136,12 @@ static Error ProcessPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessor
     error.string = fmt::format("Request: {} has been cancelled.", job->jobId);
     return error;
   }
-
+  if (jobPage.page->GetError().code)
+  {
+    job->cancelled = true;
+    return jobPage.page->GetError();
+  }
   processor(jobPage.page, jobPage.chunk, error);
-  jobPage.page->UnPin();
 
   return error;
 }
@@ -178,7 +185,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
   {
     job->pages.emplace_back();
     JobPage &jobPage = job->pages.back();
-    jobPage.page = static_cast<VolumeDataPageImpl *>(pageAccessor->PrepareReadPage(c.index, &jobPage.needToReadPage));
+    jobPage.page = static_cast<VolumeDataPageImpl *>(pageAccessor->PrepareReadPage(c.index));
     assert(jobPage.page && "Need to add error handling here when the page cannot be read");
     jobPage.chunk = c;
     if (!singleThread)

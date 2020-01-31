@@ -50,7 +50,6 @@ struct JobPage
 {
   VolumeDataPageImpl *page;
   VolumeDataChunk chunk;
-  bool needToReadPage;
 };
 
 struct Job

@@ -24,6 +24,7 @@
 
 #include <mutex>
 #include <vector>
+#include <atomic>
 
 namespace OpenVDS
 {
@@ -42,9 +43,16 @@ private:
 
   int32_t m_pins;
 
+  int32_t m_settingData;
+
   bool    m_isReadWrite;
   bool    m_isDirty;
   bool    m_requestPrepared;
+
+  mutable std::mutex
+          m_mutex;
+
+  Error   m_error;
 
   int32_t m_writtenMin[Dimensionality_Max];
   int32_t m_writtenMax[Dimensionality_Max];
@@ -77,7 +85,14 @@ public:
   bool          IsCopyMarginNeeded(VolumeDataPageImpl *targetPage);
   void          CopyMargin(VolumeDataPageImpl *targetPage);
 
-  void          SetRequestPrepared(bool prepared) { m_requestPrepared = prepared; }
+  void          SetRequestPrepared(bool prepared) { std::unique_lock<std::mutex> lock(m_mutex); m_requestPrepared = prepared; }
+  bool          RequestPrepared() const { std::unique_lock<std::mutex> lock(m_mutex); return m_requestPrepared; }
+
+  bool          EnterSettingData() { std::unique_lock<std::mutex> lock(m_mutex); m_settingData++; return m_settingData == 1; }
+  void          LeaveSettingData() { std::unique_lock<std::mutex> lock(m_mutex); m_settingData--; }
+  bool          SettingData() const { std::unique_lock<std::mutex> lock(m_mutex); return m_settingData > 0; }
+  const Error & GetError() const { return m_error; }
+  void          SetError(const Error &error) { m_error = error; }
 
   // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)
   void  GetMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const override;

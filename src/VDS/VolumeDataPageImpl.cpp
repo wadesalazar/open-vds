@@ -95,8 +95,10 @@ VolumeDataPageImpl::VolumeDataPageImpl(VolumeDataPageAccessorImpl* volumeDataPag
   , m_chunk(chunk)
   , m_blob()
   , m_pins(1)
+  , m_settingData(0)
   , m_isReadWrite(false)
   , m_isDirty(false)
+  , m_requestPrepared(true)
   , m_chunksCopiedTo(0)
 {
   for (int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
