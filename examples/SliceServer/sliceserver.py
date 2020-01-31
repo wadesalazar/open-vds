@@ -15,15 +15,22 @@ VDSs = {}
 parser = argparse.ArgumentParser(description="Starts a service that creates png images of the slices of a VDS.")
 parser.add_argument("--bucket", help="The AWS bucket of the VDSs to start serving")
 parser.add_argument("--region", help="The AWS region of the VDSs to start serving")
-parser.add_argument("--key",    help="The AWS key of the VDSs to start serving")
+parser.add_argument("--connection-string", help="The Azure Blob Storage connection string.");
+parser.add_argument("--container", help="Azure Blob Storage container of the VDSs to start serving");
+parser.add_argument("--parallelism-factor", help="Azure parallelism factor.", type=int);
+parser.add_argument("--key", help="The key of the VDSs to start serving")
 parser.add_argument("--allow-remote", action='store_true', help="Allow remote connections to server.") 
 args = parser.parse_args()
+persistentID = args.key if args.key else ""
 
-opt = openvds.AWSOpenOptions(bucket=args.bucket, region=args.region, key=args.key)
-opt.bucket = args.bucket
-opt.region = args.region
-opt.key = args.key
-VDSs[opt.key] = openvds.open(opt)
+if args.bucket:
+    opt = openvds.AWSOpenOptions(bucket=args.bucket, region=args.region if args.region else "", key=args.key if args.key else "")
+elif args.container:
+    opt = openvds.AzureOpenOptions(container=args.container, connectionString=args.connection_string if args.connection_string else "", blob=args.key if args.key else "")
+    if args.parallelism_factor is not None:
+        opt.parallelismFactor = args.parallelism_factor
+
+VDSs[persistentID] = openvds.open(opt)
 
 app = Flask(__name__)
 
