@@ -63,15 +63,16 @@ struct AWSOpenOptions : OpenOptions
 
 struct AzureOpenOptions : OpenOptions
 {
-    std::string connectionString;
-    std::string container;
-    int parallelism_factor = 4;
-    int max_execution_time = 100000;
+  std::string connectionString;
+  std::string container;
+  std::string blob;
 
+  int parallelism_factor = 4;
+  int max_execution_time = 100000;
 
-    AzureOpenOptions() : OpenOptions(Azure) {}
-    AzureOpenOptions(std::string const& connectionString, std::string const& container, std::string const& blob) : OpenOptions(Azure), connectionString(connectionString), container(container) {}
-    AzureOpenOptions(std::string const& connectionString, std::string const& container, std::string const& blob, int& parallelism_factor, int& max_execution_time) : OpenOptions(Azure), connectionString(connectionString), container(container), parallelism_factor(parallelism_factor), max_execution_time(max_execution_time) {}
+  AzureOpenOptions() : OpenOptions(Azure) {}
+  AzureOpenOptions(std::string const& connectionString, std::string const& container, std::string const& blob) : OpenOptions(Azure), connectionString(connectionString), container(container), blob(blob) {}
+  AzureOpenOptions(std::string const& connectionString, std::string const& container, std::string const& blob, int& parallelism_factor, int& max_execution_time) : OpenOptions(Azure), connectionString(connectionString), container(container), blob(blob), parallelism_factor(parallelism_factor), max_execution_time(max_execution_time) {}
 };
 
 
