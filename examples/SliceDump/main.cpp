@@ -72,6 +72,9 @@ int main(int argc, char **argv)
   std::string file_name;
   std::string bucket;
   std::string region;
+  std::string connectionString;
+  std::string container;
+  int azureParallelismFactor = 0;
   std::string object;
   std::string axis = "0,1,2";
   int axis_position = std::numeric_limits<int>::min();
@@ -79,8 +82,11 @@ int main(int argc, char **argv)
   int32_t output_height = 500;
   bool generate_noise = false;
 
-  options.add_option("", "", "bucket",   "Bucket to downlaod from.", cxxopts::value(bucket), "<string>");
-  options.add_option("", "", "region",   "Region of bucket to download from.", cxxopts::value(region), "<string>");
+  options.add_option("", "", "bucket",   "AWS S3 bucket to download from.", cxxopts::value(bucket), "<string>");
+  options.add_option("", "", "region", "AWS region of bucket to download from.", cxxopts::value<std::string>(region), "<string>");
+  options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
+  options.add_option("", "", "container", "Azure Blob Storage container to download from .", cxxopts::value<std::string>(container), "<string>");
+  options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
   options.add_option("", "", "object",   "ObjectId of the VDS", cxxopts::value(object), "<string>");
   options.add_option("", "", "axis",     "Axis mapping. Comma seperated list. First digite is the axis for the slice. "
                                          "Second is the x axis and third is the y axis", cxxopts::value(axis), "<axis id>");
@@ -101,23 +107,20 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  std::string missing_argument;
-  if (file_name.empty())
-    missing_argument = "output filename";
-  else if (!generate_noise)
+  if (bucket.empty() && container.empty() && !generate_noise)
   {
-    if (bucket.empty())
-      missing_argument = "bucket";
-    else if (region.empty())
-      missing_argument = "region";
-    else if (object.empty())
-      missing_argument = "object";
+    fmt::print(stderr, "Either an Azure Blob Storage container name or an AWS S3 bucket name must be specified");
+    return EXIT_FAILURE;
   }
 
-  if (missing_argument.size())
+  if(azureParallelismFactor && container.empty())
   {
-    fmt::print(stderr, "Missing required argument: {}\n", missing_argument);
-    fmt::print(stderr, "{}\n", options.help());
+    fmt::print(stderr, "Cannot specify parallelism-factor with other backends than Azure");
+  }
+
+  if (file_name.empty())
+  {
+    fmt::print(stderr, "No output filename specified");
     return EXIT_FAILURE;
   }
 
@@ -131,22 +134,36 @@ int main(int argc, char **argv)
   fmt::print(stdout, "Using axis mapping [{}, {}, {}]\n", axis_mapper[0], axis_mapper[1], axis_mapper[2]);
 
   OpenVDS::Error error;
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(nullptr, OpenVDS::Close);
+  OpenVDS::VDSHandle handle;
 
   if (generate_noise)
   {
-    handle.reset(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_U8));
+    handle = generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
     if (handle)
-      fill3DVDSWithNoise(handle.get());
+      fill3DVDSWithNoise(handle);
   }
-  else
+  else if(!bucket.empty())
   {
-    OpenVDS::AWSOpenOptions connectionOptions;
-    connectionOptions.key = object;
-    connectionOptions.bucket = bucket;
-    connectionOptions.region = region;
+    OpenVDS::AWSOpenOptions openOptions;
+    openOptions.key = object;
+    openOptions.bucket = bucket;
+    openOptions.region = region;
 
-    handle.reset(OpenVDS::Open(connectionOptions, error));
+    handle = OpenVDS::Open(openOptions, error);
+  }
+  else if(!container.empty())
+  {
+    OpenVDS::AzureOpenOptions openOptions;
+    openOptions.blob = object;
+    openOptions.container = container;
+    openOptions.connectionString = connectionString;
+
+    if(azureParallelismFactor)
+    {
+      openOptions.parallelism_factor = azureParallelismFactor;
+    }
+
+    handle = OpenVDS::Open(openOptions, error);
   }
 
   if (!handle)
@@ -154,6 +171,9 @@ int main(int argc, char **argv)
     fmt::print(stderr, "Failed to open VDS: {}\n", error.string.c_str());
     return error.code;
   }
+
+  // auto-close vds handle when it goes out of scope
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vdsGuard(handle, &OpenVDS::Close);
 
   if (!ends_with(file_name, ".bmp"))
     file_name = file_name + ".bmp";
@@ -165,8 +185,8 @@ int main(int argc, char **argv)
     return -4;
   }
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle);
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle);
 
   int sampleCount[3];
   sampleCount[0] = layout->GetDimensionNumSamples(axis_mapper[0]);
@@ -186,12 +206,12 @@ int main(int argc, char **argv)
 
   for (int y = 0; y < output_height; y++)
   {
-    float y_pos = y * y_sample_shift;
+    float y_pos = y * y_sample_shift + 0.5f;
     for (int x = 0; x < output_width; x++)
     {
-      float x_pos = x * x_sample_shift;
+      float x_pos = x * x_sample_shift + 0.5f;
       auto &pos = samples[size_t(y) * size_t(output_width) + size_t(x)];
-      pos[size_t(axis_mapper[0])] = axis_position;
+      pos[size_t(axis_mapper[0])] = axis_position + 0.5f;
       pos[size_t(axis_mapper[1])] = x_pos;
       pos[size_t(axis_mapper[2])] = y_pos;
     }
@@ -200,7 +220,7 @@ int main(int argc, char **argv)
   std::vector<float> data;
   data.resize(size_t(output_width) * size_t(output_height));
 
-  int64_t request = accessManager->RequestVolumeSamples(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, reinterpret_cast<const float (*)[OpenVDS::Dimensionality_Max]>(samples.data()), samples.size(), OpenVDS::InterpolationMethod::Linear);
+  int64_t request = accessManager->RequestVolumeSamples(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, reinterpret_cast<const float (*)[OpenVDS::Dimensionality_Max]>(samples.data()), (int)samples.size(), OpenVDS::InterpolationMethod::Linear);
   bool finished = accessManager->WaitForCompletion(request);
   if (!finished)
   {
