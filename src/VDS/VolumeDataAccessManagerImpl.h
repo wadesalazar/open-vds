@@ -232,6 +232,7 @@ public:
 
   bool PrepareReadChunkData(const VolumeDataChunk& chunk, bool verbose, Error& error);
   bool ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
+  bool CancelReadChunk(const VolumeDataChunk& chunk, Error& error);
   void PageTransferCompleted(MetadataPage* metadataPage);
   bool WriteMetadataPage(MetadataPage* metadataPage, const std::vector<uint8_t> &data);
 

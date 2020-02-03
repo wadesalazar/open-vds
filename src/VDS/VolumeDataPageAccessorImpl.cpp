@@ -292,7 +292,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
       pageImpl->SetRequestPrepared(false);
       pageImpl->LeaveSettingData();
       m_pageReadCondition.notify_all();
-      fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
+      //fprintf(stderr, "Failed when waiting for chunk: %s\n", error.string.c_str());
       return false;
     }
 
@@ -305,7 +305,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
       pageImpl->SetRequestPrepared(false);
       pageImpl->LeaveSettingData();
       m_pageReadCondition.notify_all();
-      fprintf(stderr, "Failed when deserializing chunk: %s\n", error.string.c_str());
+      //fprintf(stderr, "Failed when deserializing chunk: %s\n", error.string.c_str());
       return false;
     }
 
@@ -342,13 +342,43 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
   return m_layer;
 }
 
+void VolumeDataPageAccessorImpl::CancelPreparedReadPage(VolumeDataPage* page)
+{
+  std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
+
+  VolumeDataPageImpl *pageImpl = static_cast<VolumeDataPageImpl *>(page);
+
+  pageImpl->UnPin();
+  if (pageImpl->IsPinned())
+    return;
+
+  auto page_it = std::find(m_pages.begin(), m_pages.end(), page);
+  if (page_it != m_pages.end())
+    m_pages.erase(page_it);
+  pageListMutexLock.unlock();
+
+  if (pageImpl->RequestPrepared())
+  {
+    VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(pageImpl->GetChunkIndex());
+    Error error;
+    m_accessManager->CancelReadChunk(volumeDataChunk, error);
+    if (error.code)
+    {
+      fmt::print(stderr, "Failed when canceling chunk: {}. Error {}\n", volumeDataChunk.index, error.string);
+    }
+  }
+}
+
 VolumeDataPage* VolumeDataPageAccessorImpl::ReadPage(int64_t chunk)
 {
   VolumeDataPage *page = PrepareReadPage(chunk);
   if (!page)
     return nullptr;
   if (!ReadPreparedPaged(page))
-      return nullptr;
+  {
+    page->Release();
+    return nullptr;
+  }
   return page;
 }
 

@@ -201,8 +201,15 @@ main(int argc, char *argv[])
   int64_t
     offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize;
 
+  int percentage = -1;
   for(int line = 0; line < lineCount; line++)
   {
+    int new_percentage = int(line / double(lineCount) * 100);
+    if (percentage != new_percentage)
+    {
+      percentage = new_percentage;
+      fmt::print(stdout, "\33[2K\r {:3}% Done. ", percentage);
+    }
     int min[OpenVDS::Dimensionality_Max] = {},
         max[OpenVDS::Dimensionality_Max] = {};
 
@@ -223,9 +230,24 @@ main(int argc, char *argv[])
     int64_t segyTraceHaderRequestID = accessManager->RequestVolumeSubset(segyTraceHeader.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, segyTraceHeaderChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
 
     // Need to queue the writing on another thread to get max. performance
-    accessManager->WaitForCompletion(dataRequestID);
-    accessManager->WaitForCompletion(traceFlagRequestID);
-    accessManager->WaitForCompletion(segyTraceHaderRequestID);
+    if (!accessManager->WaitForCompletion(dataRequestID))
+    {
+      assert(accessManager->IsCanceled(dataRequestID));
+      fmt::print(stderr, "\nError in data request\n");
+      exit(1);
+    }
+    if (!accessManager->WaitForCompletion(traceFlagRequestID))
+    {
+      assert(accessManager->IsCanceled(traceFlagRequestID));
+      fmt::print(stderr, "\nError in traceFlag request\n");
+      exit(1);
+    }
+    if (!accessManager->WaitForCompletion(segyTraceHaderRequestID))
+    {
+      assert(accessManager->IsCanceled(segyTraceHaderRequestID));
+      fmt::print(stderr, "\nError in segyTraceHeader request\n");
+      exit(1);
+    }
 
     std::unique_ptr<char[]> writeBuffer(new char[traceCount * (traceDataSize + SEGY::TraceHeaderSize)]);
     int activeTraceCount = 0;
@@ -267,6 +289,7 @@ main(int argc, char *argv[])
     }
     offset += activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize);
   }
+  fmt::print(stdout, "\33[2K\r 100% Done. ", percentage);
 
   return EXIT_SUCCESS;
 }

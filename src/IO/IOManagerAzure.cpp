@@ -172,7 +172,7 @@ bool DownloadRequestAzure::IsSuccess(Error& error) const
 
 void DownloadRequestAzure::Cancel()
 {
-  m_cancelTokenSrc.cancel();
+  //m_cancelTokenSrc.cancel();
   m_cancelled = true;
 }
 

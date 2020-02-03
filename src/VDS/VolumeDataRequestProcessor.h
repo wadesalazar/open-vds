@@ -48,6 +48,10 @@ struct PageAccessorKey
 
 struct JobPage
 {
+  JobPage(VolumeDataPageImpl *page, const VolumeDataChunk &chunk)
+    : page(page)
+    , chunk(chunk)
+  {}
   VolumeDataPageImpl *page;
   VolumeDataChunk chunk;
 };

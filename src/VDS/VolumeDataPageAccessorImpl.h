@@ -81,6 +81,7 @@ public:
 
   VolumeDataPage* PrepareReadPage(int64_t chunk);
   bool ReadPreparedPaged(VolumeDataPage *page);
+  void CancelPreparedReadPage(VolumeDataPage *page);
 
   int   GetMaxPages() override;
   void  SetMaxPages(int maxPages) override;
