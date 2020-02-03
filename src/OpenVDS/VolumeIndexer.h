@@ -724,7 +724,7 @@ struct VolumeIndexerBase : public VolumeIndexerData
   ///
   /// Converts a relative volume axis position to a voxel index, rounding to the nears integer
   /// @param rPosition the axis position
-  /// @iDimension the volume dimension
+  /// @param iDimension the volume dimension
   /// @return the voxel index
   ///
   int RelativeAxisPositionToVoxelIndex(float rPosition, int iDimension) const
@@ -733,8 +733,9 @@ struct VolumeIndexerBase : public VolumeIndexerData
   }
 
   ///
-  /// Converts a voxel index to world coordinates using the indexer's IJK grid definition and IJK dimension map
+  /// Converts a voxel index to world coordinates using the coordinate transformer's IJK grid definition and IJK dimension map
   /// @param iVoxelIndex the voxel index to convert
+  /// @param cVDSCoordinateTransformer the coordinate transformer to use
   /// @return the world coordinates
   ///
   FloatVector<3> VoxelIndexToWorldCoordinates(const IntVector<N> &iVoxelIndex, const VDSCoordinateTransformerBase<N> &cVDSCoordinateTransformer) const
@@ -743,8 +744,9 @@ struct VolumeIndexerBase : public VolumeIndexerData
   }
 
   ///
-  /// Converts a float voxel index to world coordinates using the indexer's IJK grid definition and IJK dimension map
+  /// Converts a float voxel index to world coordinates using the coordinate transformer's IJK grid definition and IJK dimension map
   /// @param rVoxelIndex the float voxel index to convert
+  /// @param cVDSCoordinateTransformer the coordinate transformer to use
   /// @return the world coordinates
   ///
   FloatVector<3> VoxelIndexToWorldCoordinates(const FloatVector<N> &rVoxelIndex, const VDSCoordinateTransformerBase<N> &cVDSCoordinateTransformer) const
@@ -755,6 +757,7 @@ struct VolumeIndexerBase : public VolumeIndexerData
   ///
   /// Converts world coordinates to a voxel index, rounding to the nearest integer
   /// @param rWorldCoords the world coordinates to convert
+  /// @param cVDSCoordinateTransformer the coordinate transformer to use
   /// @return the voxel index
   ///
   IntVector<N> WorldCoordinatesToVoxelIndex(const FloatVector<3> &rWorldCoords, const VDSCoordinateTransformerBase<N> &cVDSCoordinateTransformer) const
@@ -765,6 +768,7 @@ struct VolumeIndexerBase : public VolumeIndexerData
   ///
   /// Converts world coordinates to a float voxel index without rounding
   /// @param rWorldCoords the world coordinates to convert
+  /// @param cVDSCoordinateTransformer the coordinate transformer to use
   /// @return the float voxel index
   ///
   FloatVector<N> WorldCoordinatesToVoxelIndexFloat(const FloatVector<3> &rWorldCoords, const VDSCoordinateTransformerBase<N> &cVDSCoordinateTransformer) const
@@ -773,8 +777,9 @@ struct VolumeIndexerBase : public VolumeIndexerData
   }
 
   ///
-  /// Converts a local index to world coordinates using the indexer's IJK grid definition and IJK dimension map
+  /// Converts a local index to world coordinates using the coordinate transformer's IJK grid definition and IJK dimension map
   /// @param iLocalIndex the local index to convert
+  /// @param cVDSCoordinateTransformer the coordinate transformer to use
   /// @return the world coordinates
   ///
   FloatVector<3> LocalIndexToWorldCoordinates(const IntVector<N> &iLocalIndex, const VDSCoordinateTransformerBase<N> &cVDSCoordinateTransformer) const
@@ -789,6 +794,7 @@ struct VolumeIndexerBase : public VolumeIndexerData
   ///
   /// Converts world coordinates to a local index, rounding to the nearest integer
   /// @param rWorldCoords the world coordinates to convert
+  /// @param cVDSCoordinateTransformer the coordinate transformer to use
   /// @return the local index
   ///
   IntVector<N> WorldCoordinatesToLocalIndex(const FloatVector<3> &rWorldCoords, const VDSCoordinateTransformerBase<N> &cVDSCoordinateTransformer) const
