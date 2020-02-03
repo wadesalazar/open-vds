@@ -54,12 +54,14 @@ struct JobPage
 
 struct Job
 {
-  Job(int64_t jobId, std::condition_variable &doneNotify, VolumeDataPageAccessorImpl &pageAccessor, std::mutex &completed_mutex)
+  Job(int64_t jobId, std::condition_variable &doneNotify, VolumeDataPageAccessorImpl &pageAccessor, int pagesCount, std::mutex &completed_mutex)
     : jobId(jobId)
     , doneNotify(doneNotify)
     , pageAccessor(pageAccessor)
-    , completed(0)
+    , pagesProcessed(0)
+    , done(false)
     , cancelled(false)
+    , pagesCount(pagesCount)
     , completed_mutex(completed_mutex)
   {}
 
@@ -68,8 +70,10 @@ struct Job
   VolumeDataPageAccessorImpl &pageAccessor;
   std::vector<JobPage> pages;
   std::vector<std::future<Error>> future;
-  std::atomic_int completed;
+  std::atomic_int pagesProcessed;
+  std::atomic_bool done;
   std::atomic_bool cancelled;
+  const int pagesCount;
   std::mutex &completed_mutex;
   Error completedError;
 };

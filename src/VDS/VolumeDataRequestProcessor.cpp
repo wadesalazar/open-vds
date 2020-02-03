@@ -101,17 +101,16 @@ struct MarkJobAsDoneOnExit
   {}
   ~MarkJobAsDoneOnExit()
   {
-
     {
       JobPage& jobPage = job->pages[index];
       jobPage.page->UnPin();
     }
-    int completed = job->completed.fetch_add(1);
-    if (completed == int(job->pages.size()) - 1)
+    if (++job->pagesProcessed == job->pagesCount)
     {
-      std::unique_lock<std::mutex>(job->completed_mutex);
+      std::unique_lock<std::mutex> lock(job->completed_mutex);
       job->pageAccessor.SetLastUsed(std::chrono::steady_clock::now());
       job->pageAccessor.RemoveReference();
+      job->done = true;
       job->doneNotify.notify_all();
     }
   }
@@ -177,7 +176,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
 
   pageAccessor->AddReference();
 
-  m_jobs.emplace_back(new Job(GenJobId(), m_jobNotification, *pageAccessor, m_mutex));
+  m_jobs.emplace_back(new Job(GenJobId(), m_jobNotification, *pageAccessor, chunks.size(), m_mutex));
   auto &job = m_jobs.back();
 
   job->pages.reserve(chunks.size());
@@ -230,7 +229,8 @@ bool  VolumeDataRequestProcessor::IsCompleted(int64_t jobID)
   if (job_it == m_jobs.end())
     return false;
 
-  if (job_it->get()->completed == job_it->get()->pages.size() && !job_it->get()->cancelled)
+  auto job = job_it->get();
+  if (job->done && !job->cancelled)
   {
     m_jobs.erase(job_it);
     return true;
@@ -244,8 +244,9 @@ bool VolumeDataRequestProcessor::IsCanceled(int64_t jobID)
   auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](const std::unique_ptr<Job> &job) { return job->jobId == jobID; });
   if (job_it == m_jobs.end())
     return false;
-  
-  if (job_it->get()->completed == job_it->get()->pages.size() && job_it->get()->cancelled)
+
+  auto job = job_it->get();
+  if (job->done && job->cancelled)
   {
     m_jobs.erase(job_it);
     return true;
@@ -261,19 +262,25 @@ bool VolumeDataRequestProcessor::WaitForCompletion(int64_t jobID, int millisecon
     return false;
 
   Job *job = job_it->get();
-  if (job->completed < job->pages.size())
+  if (!job->done)
   {
     if (millisecondsBeforeTimeout > 0)
     {
       std::chrono::milliseconds toWait(millisecondsBeforeTimeout);
-      job_it->get()->doneNotify.wait_for(lock, toWait, [job]{ return job->completed == job->pages.size();});
-    } else
+      job->doneNotify.wait_for(lock, toWait, [job]
+        {
+          return job->done.load();
+        });
+    }
+    else
     {
-      job_it->get()->doneNotify.wait(lock, [job]{ return job->completed == job->pages.size();});
+      job->doneNotify.wait(lock, [job]
+        {
+          return job->done.load();
+        });
     }
   }
-
-  if (job->completed == job->pages.size() && !job->cancelled)
+  if (job->done && !job->cancelled)
   {
     m_jobs.erase(job_it);
     return true;
@@ -296,7 +303,7 @@ float VolumeDataRequestProcessor::GetCompletionFactor(int64_t jobID)
   auto job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [jobID](std::unique_ptr<Job> &job) { return job->jobId == jobID; });
   if (job_it == m_jobs.end())
     return 0.f;
-  return float(job_it->get()->completed) / float(job_it->get()->pages.size());
+  return float(job_it->get()->pagesProcessed) / float(job_it->get()->pagesCount);
 }
 
 int VolumeDataRequestProcessor::CountActivePages()

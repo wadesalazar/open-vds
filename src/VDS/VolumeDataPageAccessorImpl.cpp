@@ -273,6 +273,11 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
     return true;
   if (pageImpl->EnterSettingData())
   {
+    if (!pageImpl->RequestPrepared())
+    {
+      pageImpl->LeaveSettingData();
+      return true;
+    }
     Error error;
     VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(pageImpl->GetChunkIndex());
     std::vector<uint8_t> serialized_data;
