@@ -24,7 +24,7 @@ PyVolumeDataAxisDescriptor::initModule(py::module& m)
 {
 //AUTOGEN-BEGIN
   // VolumeDataAxisDescriptor
-  py::class_<VolumeDataAxisDescriptor> 
+  py::class_<VolumeDataAxisDescriptor, std::unique_ptr<VolumeDataAxisDescriptor>> 
     VolumeDataAxisDescriptor_(m,"VolumeDataAxisDescriptor", OPENVDS_DOCSTRING(VolumeDataAxisDescriptor));
 
   VolumeDataAxisDescriptor_.def(py::init<                              >(), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_VolumeDataAxisDescriptor));

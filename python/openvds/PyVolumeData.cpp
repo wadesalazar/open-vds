@@ -89,7 +89,7 @@ PyVolumeData::initModule(py::module& m)
   CompressionMethod_.value("WaveletNormalizeBlockLossless", CompressionMethod::WaveletNormalizeBlockLossless, OPENVDS_DOCSTRING(CompressionMethod_WaveletNormalizeBlockLossless));
 
   // CompressionInfo
-  py::class_<CompressionInfo> 
+  py::class_<CompressionInfo, std::unique_ptr<CompressionInfo>> 
     CompressionInfo_(m,"CompressionInfo", OPENVDS_DOCSTRING(CompressionInfo));
 
   CompressionInfo_.def(py::init<                              >(), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo));

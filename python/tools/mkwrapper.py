@@ -376,6 +376,8 @@ def generate_class(node, all_, output, indent, parent_prefix, context):
         dtor = getdestructor(node, all_)
         if dtor and not dtor.access_specifier == cindex.AccessSpecifier.PUBLIC:
             deletor = ", std::unique_ptr<{}, py::nodelete>".format(getnativename(node, all_))
+        else:
+            deletor = ", std::unique_ptr<{}>".format(getnativename(node, all_))
         code = [ 
             '',
             indent + """// {}""".format(

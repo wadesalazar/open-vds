@@ -24,7 +24,7 @@ PyVolumeDataChannelDescriptor::initModule(py::module& m)
 {
 //AUTOGEN-BEGIN
   // VolumeDataChannelDescriptor
-  py::class_<VolumeDataChannelDescriptor> 
+  py::class_<VolumeDataChannelDescriptor, std::unique_ptr<VolumeDataChannelDescriptor>> 
     VolumeDataChannelDescriptor_(m,"VolumeDataChannelDescriptor", OPENVDS_DOCSTRING(VolumeDataChannelDescriptor));
 
   VolumeDataChannelDescriptor_.def(py::init<                              >(), OPENVDS_DOCSTRING(VolumeDataChannelDescriptor_VolumeDataChannelDescriptor));

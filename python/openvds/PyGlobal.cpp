@@ -23,12 +23,15 @@ void
 PyGlobal::initModule(py::module& m)
 {
   // These are opaque pointers, so they must not be destructed from pybind11 code
-  py::class_<VDS, std::unique_ptr<VDS, py::nodelete>>(m, "VDS");
+  py::class_<VDS, std::unique_ptr<VDS, py::nodelete>>
+    VDS_(m, "VDS");
+  VDS_.def("__int__", [](VDS* self) { return (int64_t)self; });
+  
   py::class_<IOManager, std::unique_ptr<IOManager, py::nodelete>>(m, "IOManager");
 
 //AUTOGEN-BEGIN
   // OpenOptions
-  py::class_<OpenOptions> 
+  py::class_<OpenOptions, std::unique_ptr<OpenOptions>> 
     OpenOptions_(m,"OpenOptions", OPENVDS_DOCSTRING(OpenOptions));
 
   OpenOptions_.def_readwrite("connectionType"              , &OpenOptions::connectionType   , OPENVDS_DOCSTRING(OpenOptions_connectionType));
@@ -42,7 +45,7 @@ PyGlobal::initModule(py::module& m)
   OpenOptions_ConnectionType_.value("InMemory"                    , OpenOptions::ConnectionType::InMemory   , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_InMemory));
 
   // AWSOpenOptions
-  py::class_<AWSOpenOptions, OpenOptions> 
+  py::class_<AWSOpenOptions, OpenOptions, std::unique_ptr<AWSOpenOptions>> 
     AWSOpenOptions_(m,"AWSOpenOptions", OPENVDS_DOCSTRING(AWSOpenOptions));
 
   AWSOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions));
@@ -52,7 +55,7 @@ PyGlobal::initModule(py::module& m)
   AWSOpenOptions_.def_readwrite("region"                      , &AWSOpenOptions::region        , OPENVDS_DOCSTRING(AWSOpenOptions_region));
 
   // AzureOpenOptions
-  py::class_<AzureOpenOptions, OpenOptions> 
+  py::class_<AzureOpenOptions, OpenOptions, std::unique_ptr<AzureOpenOptions>> 
     AzureOpenOptions_(m,"AzureOpenOptions", OPENVDS_DOCSTRING(AzureOpenOptions));
 
   AzureOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptions));
@@ -64,13 +67,13 @@ PyGlobal::initModule(py::module& m)
   AzureOpenOptions_.def_readwrite("max_execution_time"          , &AzureOpenOptions::max_execution_time, OPENVDS_DOCSTRING(AzureOpenOptions_max_execution_time));
 
   // InMemoryOpenOptions
-  py::class_<InMemoryOpenOptions, OpenOptions> 
+  py::class_<InMemoryOpenOptions, OpenOptions, std::unique_ptr<InMemoryOpenOptions>> 
     InMemoryOpenOptions_(m,"InMemoryOpenOptions", OPENVDS_DOCSTRING(InMemoryOpenOptions));
 
   InMemoryOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(InMemoryOpenOptions_InMemoryOpenOptions));
 
   // Error
-  py::class_<Error> 
+  py::class_<Error, std::unique_ptr<Error>> 
     Error_(m,"Error", OPENVDS_DOCSTRING(Error));
 
   Error_.def_readwrite("code"                        , &Error::code                   , OPENVDS_DOCSTRING(Error_code));
@@ -99,5 +102,47 @@ PyGlobal::initModule(py::module& m)
       }
       return std::string("OpenOptions(connectionType='" + conn + "')");
     });
+
+  // Overloads for "open" and "create" that raise an exception when an error occurs
+  m.def("open"                        , [](const native::OpenOptions &opt)
+    {
+      native::Error err;
+      auto handle = native::Open(opt, err);
+      if (err.code) 
+      {
+        throw std::runtime_error(err.string);
+      }
+      return handle;
+    }, py::arg("options"), OPENVDS_DOCSTRING(Open));
+  m.def("open"                        , [](native::IOManager *mgr)
+    {
+      native::Error err;
+      auto handle = native::Open(mgr, err);
+      if (err.code) 
+      {
+        throw std::runtime_error(err.string);
+      }
+      return handle;
+    }, py::arg("ioManager"), OPENVDS_DOCSTRING(Open_2));
+  m.def("create"                      , [](const native::OpenOptions &opt, const native::VolumeDataLayoutDescriptor &layout, VectorWrapper<native::VolumeDataAxisDescriptor> axisdesc, VectorWrapper<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
+    {
+      native::Error err;
+      auto handle = native::Create(opt, layout , axisdesc, channeldesc, metadata, err);
+      if (err.code) 
+      {
+        throw std::runtime_error(err.string);
+      }
+      return handle;
+    }, py::arg("options"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), OPENVDS_DOCSTRING(Create));
+  m.def("create"                      , [](native::IOManager *mgr, const native::VolumeDataLayoutDescriptor &layout, VectorWrapper<native::VolumeDataAxisDescriptor> axisdesc, VectorWrapper<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
+    {
+      native::Error err;
+      auto handle = native::Create(mgr, layout , axisdesc, channeldesc, metadata, err);
+      if (err.code) 
+      {
+        throw std::runtime_error(err.string);
+      }
+      return handle;
+    }, py::arg("ioManager"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), OPENVDS_DOCSTRING(Create_2));
 }
 

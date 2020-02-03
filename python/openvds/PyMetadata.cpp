@@ -42,7 +42,7 @@ PyMetadata::initModule(py::module& m)
   MetadataType_.value("BLOB"                        , MetadataType::BLOB                      , OPENVDS_DOCSTRING(MetadataType_BLOB));
 
   // MetadataKey
-  py::class_<MetadataKey> 
+  py::class_<MetadataKey, std::unique_ptr<MetadataKey>> 
     MetadataKey_(m,"MetadataKey", OPENVDS_DOCSTRING(MetadataKey));
 
   MetadataKey_.def_readwrite("type"                        , &MetadataKey::type             , OPENVDS_DOCSTRING(MetadataKey_type));
@@ -107,7 +107,7 @@ PyMetadata::initModule(py::module& m)
   m.def("operator_eq"                 , static_cast<bool(*)(const native::MetadataKey &, const native::MetadataKey &)>(&operator==), py::arg("a"), py::arg("b"), OPENVDS_DOCSTRING(operator_eq));
 
   // MetadataContainer
-  py::class_<MetadataContainer, MetadataReadAccess, MetadataWriteAccess> 
+  py::class_<MetadataContainer, MetadataReadAccess, MetadataWriteAccess, std::unique_ptr<MetadataContainer>> 
     MetadataContainer_(m,"MetadataContainer", OPENVDS_DOCSTRING(MetadataContainer));
 
   MetadataContainer_.def("isMetadataIntAvailable"      , static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataIntAvailable), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataIntAvailable));

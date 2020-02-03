@@ -24,7 +24,7 @@ PyVolumeDataLayoutDescriptor::initModule(py::module& m)
 {
 //AUTOGEN-BEGIN
   // VolumeDataLayoutDescriptor
-  py::class_<VolumeDataLayoutDescriptor> 
+  py::class_<VolumeDataLayoutDescriptor, std::unique_ptr<VolumeDataLayoutDescriptor>> 
     VolumeDataLayoutDescriptor_(m,"VolumeDataLayoutDescriptor", OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor));
 
   VolumeDataLayoutDescriptor_.def(py::init<                              >(), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_VolumeDataLayoutDescriptor));

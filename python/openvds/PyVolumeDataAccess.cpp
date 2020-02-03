@@ -116,7 +116,7 @@ PyVolumeDataAccess::initModule(py::module& m)
   VolumeDataAccessor_.def("getBase"                     , static_cast<native::VolumeDataAccessorBase *(VolumeDataAccessor::*)()>(&VolumeDataAccessor::GetBase), OPENVDS_DOCSTRING(VolumeDataAccessor_GetBase));
 
   // VolumeDataAccessor::IndexOutOfRangeException
-  py::class_<VolumeDataAccessor::IndexOutOfRangeException> 
+  py::class_<VolumeDataAccessor::IndexOutOfRangeException, std::unique_ptr<VolumeDataAccessor::IndexOutOfRangeException>> 
     VolumeDataAccessor_IndexOutOfRangeException_(VolumeDataAccessor_,"VolumeDataAccessor::IndexOutOfRangeException", OPENVDS_DOCSTRING(VolumeDataAccessor_IndexOutOfRangeException));
 
   // VolumeDataAccessManager
