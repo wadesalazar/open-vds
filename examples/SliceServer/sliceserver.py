@@ -23,8 +23,7 @@ opt = openvds.AWSOpenOptions(bucket=args.bucket, region=args.region, key=args.ke
 opt.bucket = args.bucket
 opt.region = args.region
 opt.key = args.key
-err = openvds.Error()
-VDSs[opt.key] = openvds.open(opt, err)
+VDSs[opt.key] = openvds.open(opt)
 
 app = Flask(__name__)
 
