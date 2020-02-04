@@ -460,6 +460,8 @@ static const char *__doc_OpenVDS_MetadataContainer_GetMetadataIntVector3 = R"doc
 
 static const char *__doc_OpenVDS_MetadataContainer_GetMetadataIntVector4 = R"doc()doc";
 
+static const char *__doc_OpenVDS_MetadataContainer_GetMetadataKeys = R"doc()doc";
+
 static const char *__doc_OpenVDS_MetadataContainer_GetMetadataString = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataContainer_GetOrCreateMetadataKey = R"doc()doc";
@@ -522,10 +524,6 @@ static const char *__doc_OpenVDS_MetadataContainer_SetMetadataIntVector4 = R"doc
 
 static const char *__doc_OpenVDS_MetadataContainer_SetMetadataString = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataContainer_begin = R"doc()doc";
-
-static const char *__doc_OpenVDS_MetadataContainer_end = R"doc()doc";
-
 static const char *__doc_OpenVDS_MetadataContainer_m_blobData = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataContainer_m_categories = R"doc()doc";
@@ -560,7 +558,21 @@ static const char *__doc_OpenVDS_MetadataContainer_m_names = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataContainer_m_stringData = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataKey = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataKey = R"doc(A metadata key uniquely identifies a piece of metadata)doc";
+
+static const char *__doc_OpenVDS_MetadataKeyRange =
+R"doc(A range of metadata keys that can be iterated over using range-based
+'for')doc";
+
+static const char *__doc_OpenVDS_MetadataKeyRange_MetadataKeyRange = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataKeyRange_begin = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataKeyRange_end = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataKeyRange_m_begin = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataKeyRange_m_end = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataKey_category = R"doc()doc";
 
@@ -598,6 +610,8 @@ static const char *__doc_OpenVDS_MetadataReadAccess_GetMetadataIntVector3 = R"do
 
 static const char *__doc_OpenVDS_MetadataReadAccess_GetMetadataIntVector4 = R"doc()doc";
 
+static const char *__doc_OpenVDS_MetadataReadAccess_GetMetadataKeys = R"doc()doc";
+
 static const char *__doc_OpenVDS_MetadataReadAccess_GetMetadataString = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataReadAccess_IsMetadataBLOBAvailable = R"doc()doc";
@@ -627,10 +641,6 @@ static const char *__doc_OpenVDS_MetadataReadAccess_IsMetadataIntVector3Availabl
 static const char *__doc_OpenVDS_MetadataReadAccess_IsMetadataIntVector4Available = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataReadAccess_IsMetadataStringAvailable = R"doc()doc";
-
-static const char *__doc_OpenVDS_MetadataReadAccess_begin = R"doc()doc";
-
-static const char *__doc_OpenVDS_MetadataReadAccess_end = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataType = R"doc()doc";
 
@@ -2601,9 +2611,11 @@ R"doc(Converts a float local index to a float voxel index @param iLocalIndex
 the float local index to convert @return the float voxel index)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase_LocalIndexToWorldCoordinates =
-R"doc(Converts a local index to world coordinates using the indexer's IJK
-grid definition and IJK dimension map @param iLocalIndex the local
-index to convert @return the world coordinates)doc";
+R"doc(Converts a local index to world coordinates using the coordinate
+transformer's IJK grid definition and IJK dimension map @param
+iLocalIndex the local index to convert @param
+cVDSCoordinateTransformer the coordinate transformer to use @return
+the world coordinates)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase_RelativeAxisPositionToLocalIndex =
 R"doc(Converts a relative position along the volume axes to a local index
@@ -2612,8 +2624,8 @@ index)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase_RelativeAxisPositionToVoxelIndex =
 R"doc(Converts a relative volume axis position to a voxel index, rounding to
-the nears integer @param rPosition the axis position @iDimension the
-volume dimension @return the voxel index)doc";
+the nears integer @param rPosition the axis position @param iDimension
+the volume dimension @return the voxel index)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase_VolumeIndexerBase = R"doc(////////////////////////// Constructors /////////////////////////////)doc";
 
@@ -2669,29 +2681,36 @@ at 0.5.
 volume sampler local index)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToWorldCoordinates =
-R"doc(Converts a voxel index to world coordinates using the indexer's IJK
-grid definition and IJK dimension map @param iVoxelIndex the voxel
-index to convert @return the world coordinates)doc";
+R"doc(Converts a voxel index to world coordinates using the coordinate
+transformer's IJK grid definition and IJK dimension map @param
+iVoxelIndex the voxel index to convert @param
+cVDSCoordinateTransformer the coordinate transformer to use @return
+the world coordinates)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexToWorldCoordinates_2 =
-R"doc(Converts a float voxel index to world coordinates using the indexer's
-IJK grid definition and IJK dimension map @param rVoxelIndex the float
-voxel index to convert @return the world coordinates)doc";
+R"doc(Converts a float voxel index to world coordinates using the coordinate
+transformer's IJK grid definition and IJK dimension map @param
+rVoxelIndex the float voxel index to convert @param
+cVDSCoordinateTransformer the coordinate transformer to use @return
+the world coordinates)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase_WorldCoordinatesToLocalIndex =
 R"doc(Converts world coordinates to a local index, rounding to the nearest
-integer @param rWorldCoords the world coordinates to convert @return
+integer @param rWorldCoords the world coordinates to convert @param
+cVDSCoordinateTransformer the coordinate transformer to use @return
 the local index)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase_WorldCoordinatesToVoxelIndex =
 R"doc(Converts world coordinates to a voxel index, rounding to the nearest
-integer @param rWorldCoords the world coordinates to convert @return
+integer @param rWorldCoords the world coordinates to convert @param
+cVDSCoordinateTransformer the coordinate transformer to use @return
 the voxel index)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase_WorldCoordinatesToVoxelIndexFloat =
 R"doc(Converts world coordinates to a float voxel index without rounding
-@param rWorldCoords the world coordinates to convert @return the float
-voxel index)doc";
+@param rWorldCoords the world coordinates to convert @param
+cVDSCoordinateTransformer the coordinate transformer to use @return
+the float voxel index)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerData = R"doc()doc";
 
@@ -2857,6 +2876,8 @@ static const char *__doc_OpenVDS_operator_bor_2 = R"doc()doc";
 static const char *__doc_OpenVDS_operator_eq = R"doc()doc";
 
 static const char *__doc_OpenVDS_rangeSize = R"doc()doc";
+
+static const char *__doc_PyMetadata = R"doc()doc";
 
 static const char *__doc_std_hash = R"doc()doc";
 

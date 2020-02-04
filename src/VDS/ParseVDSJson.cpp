@@ -880,7 +880,7 @@ Json::Value SerializeMetadata(MetadataContainer const &metadataContainer)
   Json::Value
     metadataJsonArray(Json::arrayValue);
 
-  for(auto &metadataKey : metadataContainer)
+  for(auto &metadataKey : metadataContainer.GetMetadataKeys())
   {
     Json::Value  metadataJson;
 

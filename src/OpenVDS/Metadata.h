@@ -30,6 +30,8 @@
 #include <cassert>
 #include <cstring>
 
+class PyMetadata;
+
 namespace OpenVDS
 {
 
@@ -51,11 +53,24 @@ enum class MetadataType
   BLOB
 };
 
+/// \brief A metadata key uniquely identifies a piece of metadata
 struct MetadataKey
 {
   MetadataType type;
   const char *category;
   const char *name;
+};
+
+/// \brief A range of metadata keys that can be iterated over using range-based 'for'
+class MetadataKeyRange
+{
+  const MetadataKey *m_begin;
+  const MetadataKey *m_end;
+public:
+  using const_iterator = const MetadataKey *;
+  MetadataKeyRange(const_iterator begin, const_iterator end) : m_begin(begin), m_end(end) {}
+  const_iterator begin() const { return m_begin; } ///< Returns a const iterator pointing to the first element in the MetadataKey collection
+  const_iterator end() const   { return m_end; } ///< Returns a const iterator pointing to the past-the-end element in the MetadataKey collection
 };
 
 /// \brief Interface for read access to Metadata
@@ -105,9 +120,10 @@ public:
                         GetMetadataBLOB(category, name, &data, &size);
                         value.assign(reinterpret_cast<const T *>(data), reinterpret_cast<const T *>(data) + size/sizeof(T));
                       }
-  using const_iterator = const MetadataKey *;
-  virtual const_iterator begin() const = 0; ///< Returns a const iterator pointing to the first element in the MetadataKey collection
-  virtual const_iterator end() const = 0; ///< Returns a const iterator pointing to the past-the-end element in the MetadataKey collection
+  virtual MetadataKeyRange
+                      GetMetadataKeys() const = 0; ///< Returns a range of metadata keys that can be iterated over using range-based 'for'
+
+  friend PyMetadata;
 };
 
 /// \brief Interface for write access to Metadata
@@ -227,7 +243,7 @@ public:
 
   void        CopyMetadata(const char* category, MetadataReadAccess const *metadataReadAccess) override
   {
-    for (auto &key : *metadataReadAccess)
+    for (auto &key : metadataReadAccess->GetMetadataKeys())
     {
       if (strcmp(key.category, category) == 0)
       {
@@ -298,6 +314,7 @@ public:
         RemoveMetadataForKey(key);
     }
   }
+
   void        ClearMetadata(const char* category) override
   {
     std::vector<MetadataKey> localKeys;
@@ -314,6 +331,7 @@ public:
         RemoveMetadataForKey(key);
     }
   }
+
   void        GetMetadataBLOB(const char* category, const char* name, const void **data, size_t *size)  const override
   {
     MetadataKey key = { MetadataType::BLOB, category, name };
@@ -322,17 +340,10 @@ public:
     *size = (it != m_blobData.end()) ? it->second.size() : 0;
   }
 
-  const_iterator begin() const override
+  MetadataKeyRange
+  GetMetadataKeys() const override
   {
-    if (m_keys.empty())
-      return nullptr;
-    return &(*m_keys.begin());
-  }
-  const_iterator end() const override
-  {
-    if (m_keys.empty())
-      return nullptr;
-    return &(*(m_keys.end() - 1)) + 1;
+    return MetadataKeyRange(m_keys.data(), m_keys.data() + m_keys.size());
   }
 
 protected:

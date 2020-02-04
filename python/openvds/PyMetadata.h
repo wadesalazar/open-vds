@@ -19,8 +19,13 @@
 
 #include "PyGlobal.h"
 
+namespace internal {
+  class PyMetadataVariant;
+}
+
 class PyMetadata
 {
+  static internal::PyMetadataVariant GetMetadata(native::MetadataReadAccess* self, const char* category, const char* name, native::MetadataType type);
 public:
   static void initModule(py::module& m);
 };

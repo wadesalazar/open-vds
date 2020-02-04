@@ -65,7 +65,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   }
 
   OpenVDS::MetadataContainer metadata;
-  for (auto &meta : *inMemoryLayout)
+  for (auto &meta : inMemoryLayout->GetMetadataKeys())
   {
     switch(meta.type)
     {
