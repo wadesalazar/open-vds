@@ -479,6 +479,22 @@ bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volume
 bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error)
 {
   uint64_t volumeDataHashValue = VolumeDataHash::UNKNOWN;
+  memcpy(&volumeDataHashValue, metadata.data(), sizeof(uint64_t));
+  
+  VolumeDataHash volumeDataHash(volumeDataHashValue);
+
+  const VolumeDataLayer* volumeDataLayer = volumeDataChunk.layer;
+
+  if (volumeDataHash.IsConstant())
+  {
+    if (!CreateConstantValueDataBlock(volumeDataChunk, volumeDataLayer->GetFormat(), volumeDataLayer->GetNoValue(), volumeDataLayer->GetComponents(), volumeDataHash, dataBlock, target, error))
+    {
+      error.code = 31;
+      error.string = fmt::format("Failed to create constant value data block. Chunk index: {}.", volumeDataChunk.index);
+      return false;
+    }
+    return true;
+  }
 
   bool isWaveletAdaptive = false;
 
@@ -493,46 +509,29 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChu
     return false;
   }
 
-  memcpy(&volumeDataHashValue, metadata.data(), sizeof(uint64_t));
-  
-  VolumeDataHash volumeDataHash(volumeDataHashValue);
+  volumeDataHash = uint64_t(volumeDataHash) ^ (uint64_t(adaptiveLevel) + 1) * 0x4068934683409867ULL;
 
-  const VolumeDataLayer* volumeDataLayer = volumeDataChunk.layer;
+  //create a value range from scale and offset so that conversion to 8 or 16 bit is done correctly inside deserialization
+  FloatRange deserializeValueRange = volumeDataLayer->GetValueRange();
 
-  if (volumeDataHash.IsConstant())
+  if (volumeDataLayer->GetFormat() == VolumeDataChannelDescriptor::Format_U16 || volumeDataLayer->GetFormat() == VolumeDataChannelDescriptor::Format_U8)
   {
-    if (!CreateConstantValueDataBlock(volumeDataChunk, volumeDataLayer->GetFormat(), volumeDataLayer->GetNoValue(), volumeDataLayer->GetComponents(), volumeDataHash, dataBlock, target, error))
-      return false;
-  }
-  else
-  {
-    volumeDataHash = uint64_t(volumeDataHash) ^ (uint64_t(adaptiveLevel) + 1) * 0x4068934683409867ULL;
-
+    if (loadFormat == VolumeDataChannelDescriptor::Format_U16)
     {
-      //create a value range from scale and offset so that conversion to 8 or 16 bit is done correctly inside deserialization
-      FloatRange deserializeValueRange = volumeDataLayer->GetValueRange();
-
-      if (volumeDataLayer->GetFormat() == VolumeDataChannelDescriptor::Format_U16 || volumeDataLayer->GetFormat() == VolumeDataChannelDescriptor::Format_U8)
-      {
-        if (loadFormat == VolumeDataChannelDescriptor::Format_U16)
-        {
-          deserializeValueRange.Min = volumeDataLayer->GetIntegerOffset();
-          deserializeValueRange.Max = volumeDataLayer->GetIntegerScale() * (volumeDataLayer->IsUseNoValue() ? 65534.0f : 65535.0f) + volumeDataLayer->GetIntegerOffset();
-        }
-        else if (loadFormat == VolumeDataChannelDescriptor::Format_U8 && volumeDataLayer->GetFormat() != VolumeDataChannelDescriptor::Format_U16)
-        {
-          deserializeValueRange.Min = volumeDataLayer->GetIntegerOffset();
-          deserializeValueRange.Max = volumeDataLayer->GetIntegerScale() * (volumeDataLayer->IsUseNoValue() ? 254.0f : 255.0f) + volumeDataLayer->GetIntegerOffset();
-        }
-      }
-
-      if (!OpenVDS::DeserializeVolumeData(serializedData, loadFormat, compressionMethod, deserializeValueRange, volumeDataLayer->GetIntegerScale(), volumeDataLayer->GetIntegerOffset(), volumeDataLayer->IsUseNoValue(), volumeDataLayer->GetNoValue(), adaptiveLevel, dataBlock, target, error))
-        return false;
-
+      deserializeValueRange.Min = volumeDataLayer->GetIntegerOffset();
+      deserializeValueRange.Max = volumeDataLayer->GetIntegerScale() * (volumeDataLayer->IsUseNoValue() ? 65534.0f : 65535.0f) + volumeDataLayer->GetIntegerOffset();
+    }
+    else if (loadFormat == VolumeDataChannelDescriptor::Format_U8 && volumeDataLayer->GetFormat() != VolumeDataChannelDescriptor::Format_U16)
+    {
+      deserializeValueRange.Min = volumeDataLayer->GetIntegerOffset();
+      deserializeValueRange.Max = volumeDataLayer->GetIntegerScale() * (volumeDataLayer->IsUseNoValue() ? 254.0f : 255.0f) + volumeDataLayer->GetIntegerOffset();
     }
   }
 
-  return true;
+  if (!OpenVDS::DeserializeVolumeData(serializedData, loadFormat, compressionMethod, deserializeValueRange, volumeDataLayer->GetIntegerScale(), volumeDataLayer->GetIntegerOffset(), volumeDataLayer->IsUseNoValue(), volumeDataLayer->GetNoValue(), adaptiveLevel, dataBlock, target, error))
+    return false;
+
+    return true;
 }
 
 bool VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, std::vector<uint8_t>& destinationBuffer, uint64_t& outputHash, Error& error)
