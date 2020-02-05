@@ -24,24 +24,33 @@
 #include <OpenVDS/VolumeDataLayout.h>
 #include <VDS/VolumeDataAccessManagerImpl.h>
 
+#include "../utils/GenerateVDS.h"
+
 #include <chrono>
+
+namespace OpenVDS
+{
+extern int _cleanupthread_timeoutseconds;
+}
+struct CleanupTimeoutCleanup
+{
+  CleanupTimeoutCleanup()
+  {
+    OpenVDS::_cleanupthread_timeoutseconds = 3;
+  }
+  ~CleanupTimeoutCleanup()
+  {
+    OpenVDS::_cleanupthread_timeoutseconds = 30;
+  }
+};
 
 TEST(VDS_integration, RequestVolumeCleanupThread)
 {
+  CleanupTimeoutCleanup cleanup;
+
   OpenVDS::Error error;
-  OpenVDS::AWSOpenOptions options;
-
-  options.region = TEST_AWS_REGION;
-  options.bucket = TEST_AWS_BUCKET;
-  options.key = TEST_AWS_OBJECTID;
-
-  if(options.region.empty() || options.bucket.empty() || options.key.empty())
-  {
-    GTEST_SKIP() << "Environment variables not set";
-  }
-
-  ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(options, error), &OpenVDS::Close);
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(100,100,100, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32), OpenVDS::Close);
+  fill3DVDSWithNoise(handle.get());
   ASSERT_TRUE(handle);
 
   OpenVDS::VolumeDataAccessManagerImpl *accessManager = static_cast<OpenVDS::VolumeDataAccessManagerImpl *>(OpenVDS::GetAccessManager(handle.get()));
@@ -71,13 +80,13 @@ TEST(VDS_integration, RequestVolumeCleanupThread)
 
   int activePages = accessManager->CountActivePages();
   ASSERT_GT(activePages, 0);
-  std::this_thread::sleep_for(std::chrono::seconds(10));
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   activePages = accessManager->CountActivePages();
   ASSERT_GT(activePages, 0);
-  accessManager->WaitForCompletion(requestId);
+  ASSERT_TRUE(accessManager->WaitForCompletion(requestId));
   activePages = accessManager->CountActivePages();
   ASSERT_GT(activePages, 0);
-  std::this_thread::sleep_for(std::chrono::seconds(21));
+  std::this_thread::sleep_for(std::chrono::seconds(3));
   activePages = accessManager->CountActivePages();
   ASSERT_EQ(activePages, 0);
 

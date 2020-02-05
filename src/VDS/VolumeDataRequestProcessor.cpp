@@ -34,10 +34,12 @@
 namespace OpenVDS
 {
 
+OPENVDS_EXPORT int _cleanupthread_timeoutseconds = 30;
+
 static void CleanupThread(std::atomic_bool &exit, std::condition_variable &wakeup,  std::map<PageAccessorKey, VolumeDataPageAccessorImpl *> &pageAccessors, std::mutex &pageAccessorsMutex)
 {
   auto long_block = std::chrono::hours(24 * 32 * 12);
-  auto in_progress_block = std::chrono::seconds(30);
+  auto in_progress_block = std::chrono::seconds(_cleanupthread_timeoutseconds);
   while(!exit)
   {
     std::unique_lock<std::mutex> lock(pageAccessorsMutex);
@@ -165,6 +167,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
   if (page_accessor_it == m_pageAccessors.end())
   {
     auto pa = static_cast<VolumeDataPageAccessorImpl *>(m_manager.CreateVolumeDataPageAccessor(layout, dimensions, lod, channel, maxPages, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly));
+    pa->RemoveReference();
     auto insert_result = m_pageAccessors.emplace(key, pa);
     assert(insert_result.second);
     page_accessor_it = insert_result.first;
