@@ -96,7 +96,7 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
 
   m_blob = container.get_block_blob_reference(convertToUtilString(requestName));
   m_downloadTask = m_blob.download_range_to_stream_async(m_outStream.create_ostream(), range.start, range.end - range.start, azure::storage::access_condition(), local_options, m_context, m_cancelTokenSrc.get_token());
-  m_downloadTask.then([request, this](concurrency::task<void> downloadTask)
+  m_downloadTask.then([request, this](pplx::task<void> downloadTask)
     {
       auto downloadRequest = request.lock();
       if (!downloadRequest)
@@ -207,7 +207,7 @@ void UploadRequestAzure::run(azure::storage::cloud_blob_container& container, az
 
   m_taskResult = m_blob.upload_from_stream_async(concurrency::streams::bytestream::open_istream(*data), data->size(), azure::storage::access_condition(), local_options, m_context, m_cancelTokenSrc.get_token());
   m_taskResult.then(
-    [this, uploadRequest](concurrency::task<void> uploadTask)
+    [this, uploadRequest](pplx::task<void> uploadTask)
     {
       auto request = uploadRequest.lock();
       if (!request)
