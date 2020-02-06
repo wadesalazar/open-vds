@@ -474,6 +474,8 @@ bool VolumeDataAccessManagerImpl::CancelReadChunk(const VolumeDataChunk& chunk, 
     pendingRequest.m_activeTransfer->Cancel();
     m_pendingDownloadRequests.erase(pendingRequestIterator);
   }
+
+  return true;
 }
 
 void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPage)
