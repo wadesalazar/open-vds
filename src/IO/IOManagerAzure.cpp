@@ -107,8 +107,8 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
         // when the task is completed
         downloadTask.get();
         // download properties and metadata
-        m_blob.download_attributes();
-        std::vector<unsigned char> data = m_outStream.collection();
+        //m_blob.download_attributes();
+        std::vector<unsigned char> &data = m_outStream.collection();
 
         if (m_context.request_results().size() == 2 && m_context.request_results()[0].http_status_code() == 416 && m_requestedRange.start == 0 && m_requestedRange.end == 0)
           data.clear();
@@ -121,8 +121,7 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
             m_handler->HandleMetadata(convertFromUtilString(it.first), convertFromUtilString(it.second));
           }
           // send data to the data handler
-          auto blobData = m_outStream.collection();
-          m_handler->HandleData(std::move(blobData));
+          m_handler->HandleData(std::move(data));
 
           // declare success and set completion status
           m_error.code = 0;
@@ -217,16 +216,16 @@ void UploadRequestAzure::run(azure::storage::cloud_blob_container& container, az
       if (!request)
         return;
 
-      m_data.reset();
-
       try
       {
+        //uploadTask.get();
+        m_data.reset();
+
         m_error.code = 0;
         m_done = true;
         m_waitForFinish.notify_all();
         if (m_completedCallback) m_completedCallback(*this, m_error);
       }
-
       catch (azure::storage::storage_exception & e)
       {
         // On error set the completion (error) status and call the completion callback
