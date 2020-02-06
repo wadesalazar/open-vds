@@ -30,7 +30,8 @@ function(add_test_executable name)
   target_compile_definitions(${name} PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
   target_compile_definitions(${name} PRIVATE -DTEST_AWS_BUCKET="${TEST_AWS_BUCKET}")
   target_compile_definitions(${name} PRIVATE -DTEST_AWS_OBJECTID="${TEST_AWS_OBJECTID}")
-  target_compile_definitions(${name} PRIVATE -DTEST_AZURE_CONNECTION="${TEST_AZURE_CONNECTION}")
+  string(REPLACE ";" "\\\\;" TEST_AZURE_CONNECTION_ESCAPED "${TEST_AZURE_CONNECTION}")
+  target_compile_definitions(${name} PRIVATE -DTEST_AZURE_CONNECTION="${TEST_AZURE_CONNECTION_ESCAPED}")
 endfunction()
 
 add_test_executable(io_tests
