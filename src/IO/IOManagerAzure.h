@@ -58,6 +58,7 @@ namespace OpenVDS
         pplx::cancellation_token_source m_cancelTokenSrc;
         pplx::task<void> m_downloadTask;
         azure::storage::operation_context m_context;
+        IORange m_requestedRange;
     };
     class UploadRequestAzure : public Request
     {
