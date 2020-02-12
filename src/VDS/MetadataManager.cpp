@@ -42,6 +42,10 @@ void HandleData(std::vector<uint8_t> &&data) override
 
 void Completed(const Request &request, const Error &error) override
 {
+  if(error.code != 0)
+  {
+    manager->PageTransferError(accessManager, metadataPage, error);
+  }
 }
 
 MetadataManager *manager;
@@ -156,22 +160,11 @@ void MetadataManager::UploadDirtyPages(VolumeDataAccessManagerImpl *accessManage
   }
 }
 
-void MetadataManager::PageTransferError(MetadataPage* page, const char* msg)
+void MetadataManager::PageTransferError(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, const Error &error)
 {
-  std::string
-    errorString = std::string("Failed to transfer metadata page: ") + std::string(msg);
+  fmt::print(stderr, "Failed to transfer metadata page: {}", error.string);
 
-  fprintf(stderr, "OpenVDS: %s\n", errorString.c_str());
-
-  // what to do
-  //  std::unique_lock<std::mutex> metadataManagersMutexLock(VDSRemotePlugin::s_metadataManagersMutex);
-  //
-  //  for(auto pluginInstance : m_references)
-  //  {
-  //    pluginInstance->PageTransferCompleted(page);
-//  }
-
-  //TODO pendingrequestchangedcondition.notify_all
+  accessManager->PageTransferCompleted(page);
 }
 
 void MetadataManager::PageTransferCompleted(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::vector<uint8_t> &&data)

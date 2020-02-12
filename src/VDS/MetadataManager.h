@@ -116,7 +116,7 @@ namespace OpenVDS
 
     void InitPage(MetadataPage* page);
 
-    void PageTransferError(MetadataPage *page, const char *msg);
+    void PageTransferError(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, const Error &error);
 
     void PageTransferCompleted(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::vector<uint8_t>&& data);
 

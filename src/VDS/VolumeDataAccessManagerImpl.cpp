@@ -404,6 +404,7 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
   {
     error.code = -1;
     error.string = "Missing request for chunk: " + std::to_string(chunk.index);
+    compressionInfo = CompressionInfo();
     return false;
   }
   PendingDownloadRequest& pendingRequest = pendingRequestIterator->second;
@@ -415,6 +416,14 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
 
   auto activeTransfer = pendingRequest.m_activeTransfer;
   auto transferHandler = pendingRequest.m_transferHandle;
+
+  if(!activeTransfer)
+  {
+    error.code = -1;
+    error.string = "Failed to read metadata for chunk: " + std::to_string(chunk.index);
+    compressionInfo = CompressionInfo();
+    return false;
+  }
 
   bool moveData = pendingRequest.m_canMove;
   if (--pendingRequest.m_ref == 0)
@@ -513,6 +522,7 @@ void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPa
         pendingRequest.m_transferHandle = transferHandler;
       }
 
+      // Unlock the metadata page, even if invalid, to avoid infinite wait for pendingRequest.m_lockedMetadataPage to change in ReadChunk()
       metadataManager->UnlockPage(metadataPage);
       pendingRequest.m_lockedMetadataPage = nullptr;
     }
