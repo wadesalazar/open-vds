@@ -472,16 +472,24 @@ bool VolumeDataAccessManagerImpl::CancelReadChunk(const VolumeDataChunk& chunk, 
     error.string = "Missing request for chunk: " + std::to_string(chunk.index);
     return false;
   }
+
   PendingDownloadRequest& pendingRequest = pendingRequestIterator->second;
-  if (!pendingRequest.m_activeTransfer)
-  {
-    m_pendingRequestChangedCondition.wait(lock, [&pendingRequest]{ return !pendingRequest.m_lockedMetadataPage; });
-  }
 
   if (--pendingRequest.m_ref == 0)
   {
-    pendingRequest.m_activeTransfer->Cancel();
+    if(pendingRequest.m_activeTransfer)
+    {
+      pendingRequest.m_activeTransfer->Cancel();
+    }
+
+    auto lockedMetadataPage = pendingRequest.m_lockedMetadataPage;
+
     m_pendingDownloadRequests.erase(pendingRequestIterator);
+
+    if (lockedMetadataPage)
+    {
+      lockedMetadataPage->GetManager()->UnlockPage(lockedMetadataPage);
+    }
   }
 
   return true;
