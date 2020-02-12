@@ -47,6 +47,8 @@ main(int argc, char *argv[])
   std::string prefix;
   std::string persistentID;
   std::string fileName;
+  std::string azurePresignBase;
+  std::string azurePresignSuffix;
 
   options.add_option("", "", "bucket", "AWS S3 bucket to export from.", cxxopts::value<std::string>(bucket), "<string>");
   options.add_option("", "", "region", "AWS region of bucket to export from.", cxxopts::value<std::string>(region), "<string>");
@@ -56,6 +58,8 @@ main(int argc, char *argv[])
   options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
+  options.add_option("", "", "azure-presign-base", "Base URL for presigned Azure requests", cxxopts::value(azurePresignBase), "<value>");
+  options.add_option("", "", "azure-presign-suffix", "Suffix of the presigned URL for Azure requests", cxxopts::value(azurePresignSuffix), "<value>");
   options.add_option("", "", "output", "", cxxopts::value<std::string>(fileName), "");
   options.parse_positional("output");
 
@@ -94,6 +98,10 @@ main(int argc, char *argv[])
   else if(!container.empty())
   {
     openOptions.reset(new OpenVDS::AzureOpenOptions(connectionString, container, key));
+  }
+  else if (!azurePresignBase.empty())
+  {
+    openOptions.reset(new OpenVDS::AzurePresignedOpenOptions(azurePresignBase, azurePresignSuffix));
   }
 
   if(azureParallelismFactor)

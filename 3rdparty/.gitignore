@@ -7,3 +7,5 @@ cpprestapi*
 azure-storage-cpp*
 pybind11-2.4.3
 CMakeArtifacts*
+curl*
+libuv*

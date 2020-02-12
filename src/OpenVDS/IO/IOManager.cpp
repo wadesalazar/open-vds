@@ -21,6 +21,7 @@
 #include "IOManagerAWS.h"
 #include "IOManagerAzure.h"
 #include "IOManagerInMemory.h"
+#include "IOManagerAzurePresigned.h"
 
 namespace OpenVDS
 {
@@ -41,6 +42,8 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
     return new IOManagerAWS(static_cast<const AWSOpenOptions &>(options), error);
   case OpenOptions::Azure:
       return new IOManagerAzure(static_cast<const AzureOpenOptions&>(options), error);
+  case OpenOptions::AzurePresigned:
+    return new IOManagerAzurePresigned(static_cast<const AzurePresignedOpenOptions&>(options).baseUrl, static_cast<const AzurePresignedOpenOptions&>(options).urlSuffix, error);
   case OpenOptions::InMemory:
     return new IOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
   default:

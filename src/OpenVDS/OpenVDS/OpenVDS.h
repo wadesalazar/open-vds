@@ -41,6 +41,7 @@ struct OpenOptions
   {
     AWS,
     Azure,
+    AzurePresigned,
     File,
     InMemory
   };
@@ -125,6 +126,27 @@ struct AzureOpenOptions : OpenOptions
   AzureOpenOptions(std::string const& connectionString, std::string const& container, std::string const& blob, int& parallelism_factor, int& max_execution_time) : OpenOptions(Azure), connectionString(connectionString), container(container), blob(blob), parallelism_factor(parallelism_factor), max_execution_time(max_execution_time) {}
 };
 
+/// <summary>
+/// Options for opening a VDS with presigned Azure url
+/// </summary>
+struct AzurePresignedOpenOptions : OpenOptions
+{
+  std::string baseUrl;
+  std::string urlSuffix;
+
+  AzurePresignedOpenOptions() : OpenOptions(AzurePresigned) {}
+
+  /// <summary>
+  /// AzurePresignedOpenOptions constructor
+  /// </summary>
+  /// <param name="baseUrl">
+  /// The base url for the VDS
+  /// </param>
+  /// <param name="urlSuffix">
+  /// The suffix of the presigned url
+  /// </param>
+  AzurePresignedOpenOptions(const std::string &baseUrl, const std::string &urlSuffix) : OpenOptions(AzurePresigned), baseUrl(baseUrl), urlSuffix(urlSuffix) {}
+};
 /// <summary>
 /// Options for opening a VDS which is stored in memory (for testing)
 /// </summary>

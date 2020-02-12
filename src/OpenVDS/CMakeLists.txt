@@ -7,6 +7,8 @@ set(SOURCE_FILES
   IO/IOManagerAWS.cpp
   IO/IOManagerAzure.cpp
   IO/IOManagerInMemory.cpp
+  IO/IOManagerCurl.cpp
+  IO/IOManagerAzurePresigned.cpp
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
@@ -40,6 +42,8 @@ set (PRIVATE_HEADER_FILES
   IO/IOManagerAWS.h
   IO/IOManagerAzure.h
   IO/IOManagerInMemory.h
+  IO/IOManagerCurl.h
+  IO/IOManagerAzurePresigned.h
   VDS/VDS.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataChannelMapping.h
@@ -159,6 +163,16 @@ if (BUILD_ZLIB)
 else()
   find_package(ZLIB REQUIRED)
   target_link_libraries(openvds_objects PUBLIC ZLIB::ZLIB)
+endif()
+
+if (NOT BUILD_CURL)
+  find_package(CURL REQUIRED)
+  target_link_libraries(openvds_objects PUBLIC ${CURL_LIBRARIES})
+  target_include_directories(openvds_objects PUBLIC ${CURL_INCLUDE_DIRS})
+endif()
+if (NOT BUILD_UV)
+  find_package(LibUV REQUIRED)
+  target_link_libraries(openvds_objects PUBLIC LibUV::LibUV)
 endif()
 
 if (WIN32)

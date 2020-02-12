@@ -1004,6 +1004,7 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, c
 std::unique_ptr<OpenVDS::OpenOptions> createOpenOptions(const std::string &prefix, const std::string &persistentID,
                                                           const std::string &bucket, const std::string &region,
                                                           const std::string &container, const std::string &connectionString, int azureParallelismFactor,
+                                                          const std::string &azurePresignBase, const std::string &azurePresignSuffix, 
                                                           OpenVDS::Error &error)
 {
 
@@ -1019,6 +1020,10 @@ std::unique_ptr<OpenVDS::OpenOptions> createOpenOptions(const std::string &prefi
   else if(!container.empty())
   {
     openOptions.reset(new OpenVDS::AzureOpenOptions(connectionString, container, key));
+  }
+  else if (!azurePresignBase.empty())
+  {
+    openOptions.reset(new OpenVDS::AzurePresignedOpenOptions(azurePresignBase, azurePresignSuffix));
   }
 
   if(azureParallelismFactor)
@@ -1067,6 +1072,8 @@ main(int argc, char* argv[])
   std::string connectionString;
   std::string container;
   int azureParallelismFactor = 0;
+  std::string azurePresignBase;
+  std::string azurePresignSuffix;
   std::string prefix;
   std::string sourcePrefix;
   std::string persistentID;
@@ -1091,6 +1098,8 @@ main(int argc, char* argv[])
   options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
   options.add_option("", "", "container", "Azure Blob Storage container to upload to.", cxxopts::value<std::string>(container), "<string>");
   options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
+  options.add_option("", "", "azure-presign-base", "Base URL for presigned Azure requests", cxxopts::value(azurePresignBase), "<value>");
+  options.add_option("", "", "azure-presign-suffix", "Suffix of the presigned URL for Azure requests", cxxopts::value(azurePresignSuffix), "<value>");
   options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
   options.add_option("", "", "source-prefix", "Top-level prefix to prepend to all source object-keys.", cxxopts::value<std::string>(sourcePrefix), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
@@ -1129,13 +1138,13 @@ main(int argc, char* argv[])
 
   if (!scan)
   {
-    if(container.empty() && bucket.empty())
+    if(container.empty() && bucket.empty() && azurePresignBase.empty())
     {
       std::cerr << std::string("Either an Azure Blob Storage container name or an AWS S3 bucket name must be specified");
       return EXIT_FAILURE;
     }
 
-    if(!container.empty() && !bucket.empty())
+    if(!container.empty() && !bucket.empty() && !azurePresignBase.empty())
     {
       std::cerr << std::string("Only one of Azure Blob Storage container name and AWS S3 bucket name may be specified");
       return EXIT_FAILURE;
@@ -1204,7 +1213,7 @@ main(int argc, char* argv[])
   OpenVDS::Error
     error;
 
-  auto sourceBucketOpenOptions = createOpenOptions(sourcePrefix, persistentID, sourceBucket, region, container, connectionString, azureParallelismFactor, error);
+  auto sourceBucketOpenOptions = createOpenOptions(sourcePrefix, persistentID, sourceBucket, region, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, error);
 
   DataProvider dataProvider = sourceBucket.empty() ? CreateDataProviderFromFile(fileNames[0], error) : CreateDataProviderFromOpenOptions(*sourceBucketOpenOptions, fileNames[0], error);
 
@@ -1422,7 +1431,7 @@ main(int argc, char* argv[])
   OpenVDS::Error
     createError;
 
-  auto openOptions = createOpenOptions(prefix, persistentID, bucket, region, container, connectionString, azureParallelismFactor, createError);
+  auto openOptions = createOpenOptions(prefix, persistentID, bucket, region, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, createError);
 
   if (createError.code)
     fmt::print(stderr, "{}\n", createError.code);

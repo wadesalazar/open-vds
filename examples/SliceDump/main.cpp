@@ -76,6 +76,8 @@ int main(int argc, char **argv)
   std::string container;
   int azureParallelismFactor = 0;
   std::string object;
+  std::string azurePresignBase;
+  std::string azurePresignSuffix;
   std::string axis = "0,1,2";
   int axis_position = std::numeric_limits<int>::min();
   int32_t output_width = 500;
@@ -88,6 +90,8 @@ int main(int argc, char **argv)
   options.add_option("", "", "container", "Azure Blob Storage container to download from .", cxxopts::value<std::string>(container), "<string>");
   options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
   options.add_option("", "", "object",   "ObjectId of the VDS", cxxopts::value(object), "<string>");
+  options.add_option("", "", "azure-presign-base", "Base URL for presigned Azure requests", cxxopts::value(azurePresignBase), "<value>");
+  options.add_option("", "", "azure-presign-suffix", "Suffix of the presigned URL for Azure requests", cxxopts::value(azurePresignSuffix), "<value>");
   options.add_option("", "", "axis",     "Axis mapping. Comma seperated list. First digite is the axis for the slice. "
                                          "Second is the x axis and third is the y axis", cxxopts::value(axis), "<axis id>");
   options.add_option("", "", "noise",    "Generate a noise VDS in memory, and grab a slice from this (default off).", cxxopts::value(generate_noise), "<enable>");
@@ -107,7 +111,7 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  if (bucket.empty() && container.empty() && !generate_noise)
+  if (bucket.empty() && container.empty() && !generate_noise && azurePresignBase.empty())
   {
     fmt::print(stderr, "Either an Azure Blob Storage container name or an AWS S3 bucket name must be specified");
     return EXIT_FAILURE;
@@ -162,6 +166,14 @@ int main(int argc, char **argv)
     {
       openOptions.parallelism_factor = azureParallelismFactor;
     }
+
+    handle = OpenVDS::Open(openOptions, error);
+  }
+  else if (!azurePresignBase.empty())
+  {
+    OpenVDS::AzurePresignedOpenOptions openOptions;
+    openOptions.baseUrl = azurePresignBase;
+    openOptions.urlSuffix = azurePresignSuffix;
 
     handle = OpenVDS::Open(openOptions, error);
   }

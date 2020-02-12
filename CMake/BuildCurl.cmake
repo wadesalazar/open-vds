@@ -1,0 +1,13 @@
+function(BuildCurl)
+  if (NOT BUILD_CURL)
+    return()
+  endif()
+  if (WIN32)
+    list(APPEND CURL_LIBS_LIST_RELEASE "lib/libcurl_imp.lib")
+    list(APPEND CURL_DLLS_LIST_RELEASE "bin/libcurl.dll")
+    list(APPEND CURL_LIBS_LIST_DEBUG "lib/libcurl-d_imp.lib")
+    list(APPEND CURL_DLLS_LIST_DEBUG "bin/libcurl-d.dll")
+  endif()
+
+  BuildExternal(curl ${curl_VERSION} "" ${curl_SOURCE_DIR} "${CURL_LIBS_LIST_RELEASE}" "${CURL_DLLS_LIST_RELEASE}" "${CURL_LIBS_LIST_DEBUG}" "${CURL_DLLS_LIST_DEBUG}" "-DBUILD_CURL_EXE=OFF;-DHTTP_ONLY=ON;-DBUILD_TESTING=OFF;-DCMAKE_USE_WINSSL=ON")
+endfunction()
