@@ -31,6 +31,7 @@ set(SOURCE_FILES
   VDS/Rle.cpp
   VDS/VolumeDataRequestProcessor.cpp
   VDS/VolumeIndexer.cpp
+  VDS/Env.cpp
   )
 
 set (PRIVATE_HEADER_FILES
@@ -72,6 +73,7 @@ set (PRIVATE_HEADER_FILES
   VDS/Rle.h
   VDS/VolumeDataRequestProcessor.h
   VDS/ThreadPool.h
+  VDS/Env.h
   )
 
 set (EXPORTED_HEADER_FILES

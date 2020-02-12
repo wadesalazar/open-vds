@@ -22,6 +22,7 @@
 #include "VolumeDataLayoutImpl.h"
 #include "VolumeDataPageImpl.h"
 #include "VDS.h"
+#include "Env.h"
 
 #include <cstdint>
 #include <algorithm>
@@ -269,20 +270,6 @@ bool  VolumeDataRequestProcessor::IsCompleted(int64_t jobID)
     return true;
   }
   return false;
-}
-
-static bool getBooleanEnvironmentVariable(const char *name)
-{
-  const char *var = getenv(name);
-  if (!var)
-    return false;
-  if (strcmp(var, "") == 0)
-    return false;
-  if (strcmp(var, "false") == 0)
-    return false;
-  if (strcmp(var, "FALSE") == 0)
-    return false;
-  return true;
 }
 
 bool VolumeDataRequestProcessor::IsCanceled(int64_t jobID)
