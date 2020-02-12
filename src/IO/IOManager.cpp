@@ -21,6 +21,10 @@
 #include "IOManagerAWS.h"
 #include "IOManagerAzure.h"
 #include "IOManagerInMemory.h"
+#include "IOManagerCurlAWS.h"
+#include "IOManagerCurlAzure.h"
+
+#include <VDS/Env.h>
 
 namespace OpenVDS
 {
@@ -42,12 +46,19 @@ IOManager::~IOManager()
 {}
 IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
 {
+  bool use_curl = getBooleanEnvironmentVariable("OPENVDS_USE_CURL");
   switch(options.connectionType)
   {
   case OpenOptions::AWS:
-    return new IOManagerAWS(static_cast<const AWSOpenOptions &>(options), error);
+    if (use_curl)
+      return new IOManagerCurlAWS(static_cast<const AWSOpenOptions&>(options), error);
+
+    return new IOManagerAWS(static_cast<const AWSOpenOptions&>(options), error);
   case OpenOptions::Azure:
-      return new IOManagerAzure(static_cast<const AzureOpenOptions&>(options), error);
+    if (use_curl)
+      return new IOManagerCurlAzure(static_cast<const AzureOpenOptions&>(options), error);
+
+    return new IOManagerAzure(static_cast<const AzureOpenOptions&>(options), error);
   case OpenOptions::InMemory:
     return new IOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
   default:

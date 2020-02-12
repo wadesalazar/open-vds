@@ -8,6 +8,10 @@ set(SOURCE_FILES
   IO/IOManagerAzure.cpp
   IO/IOManagerInMemory.cpp
   IO/IOManagerCurl.cpp
+  IO/IOManagerCurlAWS.cpp
+  IO/IOManagerCurlAzure.cpp
+  IO/RequestSigner.cpp
+  IO/AWSCredentialsHandler.cpp
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
@@ -42,6 +46,10 @@ set (PRIVATE_HEADER_FILES
   IO/IOManagerAzure.h
   IO/IOManagerInMemory.h
   IO/IOManagerCurl.h
+  IO/IOManagerCurlAWS.h
+  IO/IOManagerCurlAzure.h
+  IO/RequestSigner.h
+  IO/AWSCredentialsHandler.cpp
   VDS/VDS.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataChannelMapping.h
