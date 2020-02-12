@@ -2,7 +2,7 @@ FROM alpine:latest
 
 # Install the various required packages
 RUN apk add python3 python3-dev gcc g++ cmake make git  \
-            libxml2-dev boost-dev zlib-dev openssl-dev curl-dev \
+            libxml2-dev boost-dev zlib-dev openssl-dev curl-dev libuv-dev \
             util-linux-dev # This package contains the uuid development headers
 
 # Copy the python requirement list into the container and download the packages

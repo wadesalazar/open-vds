@@ -1,0 +1,17 @@
+function(BuildLibUV)
+  if (NOT BUILD_UV)
+    return()
+  endif()
+  get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  if (${isMultiConfig}) ##we don't need build byproducts for visual studio or xcode
+    set(LIB_PREFIX "lib/$<CONFIG>")
+  else()
+    set(LIB_PREFIX "lib/${CMAKE_BUILD_TYPE}")
+  endif()
+  if (WIN32)
+    list(APPEND LIBUV_LIBS_LIST "${LIB_PREFIX}/uv.lib")
+    list(APPEND LIBUV_DLLS_LIST "${LIB_PREFIX}/uv.dll")
+  endif()
+
+  BuildExternal(libuv ${libuv_VERSION} "" ${libuv_SOURCE_DIR} "${LIBUV_LIBS_LIST}" "${LIBUV_DLLS_LIST}" "" "" "")
+endfunction()

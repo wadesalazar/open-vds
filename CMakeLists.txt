@@ -75,11 +75,20 @@ endif()
 
 if (WIN32)
   set(DEFAULT_BUILD_ZLIB ON)
+  set(DEFAULT_BUILD_CURL ON)
+  set(DEFAULT_BUILD_UV ON)
 else()
   set(DEFAULT_BUILD_ZLIB OFF)
+  set(DEFAULT_BUILD_CURL OFF)
+  set(DEFAULT_BUILD_UV OFF)
 endif()
 
 option(BUILD_ZLIB "Build zlib" ${DEFAULT_BUILD_ZLIB})
+
+option(BUILD_CURL "Build libcurl as part of the openVDS build" ${DEFAULT_BUILD_CURL})
+option(BUILD_UV   "Build libuv as part of the openVDS build" ${DEFAULT_BUILD_CURL})
+
+option(BUILD_CURL_IO_MANAGER ON)
 
 include(CMake/Fetch3rdPartyInBuild.cmake)
 Fetch3rdParty()

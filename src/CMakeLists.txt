@@ -7,6 +7,7 @@ set(SOURCE_FILES
   IO/IOManagerAWS.cpp
   IO/IOManagerAzure.cpp
   IO/IOManagerInMemory.cpp
+  IO/IOManagerCurl.cpp
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
@@ -40,6 +41,7 @@ set (PRIVATE_HEADER_FILES
   IO/IOManagerAWS.h
   IO/IOManagerAzure.h
   IO/IOManagerInMemory.h
+  IO/IOManagerCurl.h
   VDS/VDS.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataChannelMapping.h
@@ -159,6 +161,27 @@ else()
   target_link_libraries(openvds_objects PUBLIC ZLIB::ZLIB)
 endif()
 
+if (BUILD_CURL_IO_MANAGER)
+  if (NOT BUILD_CURL)
+    find_package(CURL REQUIRED)
+    target_link_libraries(openvds_objects PUBLIC ${CURL_LIBRARIES})
+    target_include_directories(openvds_objects PUBLIC ${CURL_INCLUDE_DIRS})
+  endif()
+  message("GOODBY")
+  if (NOT BUILD_UV)
+    message("HELLO WORLD")
+    find_package(LibUV REQUIRED)
+    target_link_libraries(openvds_objects PUBLIC LibUV::LibUV)
+  endif()
+
+  if (WIN32)
+    target_link_libraries(openvds_objects PUBLIC bcrypt)
+  else()
+    find_package(OpenSSL REQUIRED)
+    target_link_libraries(openvds_objects PUBLIC ${OPENSSL_CRYPTO_LIBRARY})
+    target_include_directories(openvds_objects PUBLIC ${OPENSSL_INCLUDE_DIR})
+  endif()
+endif()
 if (WIN32)
   set_source_files_properties(IO/Linux_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
 elseif (UNIX)
