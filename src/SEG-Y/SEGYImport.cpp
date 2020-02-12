@@ -39,6 +39,8 @@
 #include <json/json.h>
 #include <fmt/format.h>
 
+#include <chrono>
+
 Json::Value
 SerializeSEGYBinInfo(SEGYBinInfo const& binInfo)
 {
@@ -885,6 +887,7 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, c
 int
 main(int argc, char* argv[])
 {
+  auto start_time = std::chrono::high_resolution_clock::now();
   cxxopts::Options options("SEGYImport", "SEGYImport - A tool to scan and import a SEG-Y file to a volume data store (VDS)");
   options.positional_help("<input file>");
 
@@ -1391,5 +1394,9 @@ main(int argc, char* argv[])
   fmt::print("\r100% done.\n");
 
   fileView.reset();
+
+  double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+  fmt::print("Elapsed time is {}.\n", elapsed / 1000);
+
   return EXIT_SUCCESS;
 }
