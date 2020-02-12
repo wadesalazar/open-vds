@@ -40,9 +40,13 @@ add_test_executable(io_tests
   io/AzureIo.cpp
   )
 
-add_test_executable(io_tests_roundtrip
-  io/CreateSyntheticVDS.cpp
+add_test_executable(io_performance_test
+  io/IoPerformance.cpp
   )
+
+add_test_executable(synthetic_vds_upload_download
+  io/CreateSyntheticVDS.cpp
+)
 
 add_test_executable(jsoncpp_tests
   jsoncpp/jsoncpp_parse.cpp
