@@ -29,10 +29,13 @@
 #include <json/json.h>
 #include <assert.h>
 #include <fmt/format.h>
+#include <chrono>
 
 int
 main(int argc, char *argv[])
 {
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   cxxopts::Options options("SEGYExport", "SEGYExport - A tool to export a volume data store (VDS) to a SEG-Y file");
   options.positional_help("<output file>");
 
@@ -333,6 +336,9 @@ main(int argc, char *argv[])
     offset += activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize);
   }
   fmt::print(stdout, "\33[2K\r 100% Done. ", percentage);
+
+  double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+  fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 
   return EXIT_SUCCESS;
 }
