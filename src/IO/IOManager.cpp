@@ -21,8 +21,11 @@
 #include "IOManagerAWS.h"
 #include "IOManagerAzure.h"
 #include "IOManagerInMemory.h"
+
+#ifdef OPENVDS_CURL_IOMANAGER
 #include "IOManagerCurlAWS.h"
 #include "IOManagerCurlAzure.h"
+#endif
 
 #include <VDS/Env.h>
 
@@ -46,17 +49,23 @@ IOManager::~IOManager()
 {}
 IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
 {
+#ifdef OPENVDS_CURL_IOMANAGER
   bool use_curl = getBooleanEnvironmentVariable("OPENVDS_USE_CURL");
+#endif
   switch(options.connectionType)
   {
   case OpenOptions::AWS:
+#ifdef OPENVDS_CURL_IOMANAGER
     if (use_curl)
       return new IOManagerCurlAWS(static_cast<const AWSOpenOptions&>(options), error);
+#endif
 
     return new IOManagerAWS(static_cast<const AWSOpenOptions&>(options), error);
   case OpenOptions::Azure:
+#ifdef OPENVDS_CURL_IOMANAGER
     if (use_curl)
       return new IOManagerCurlAzure(static_cast<const AzureOpenOptions&>(options), error);
+#endif
 
     return new IOManagerAzure(static_cast<const AzureOpenOptions&>(options), error);
   case OpenOptions::InMemory:

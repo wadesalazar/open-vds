@@ -7,10 +7,6 @@ set(SOURCE_FILES
   IO/IOManagerAWS.cpp
   IO/IOManagerAzure.cpp
   IO/IOManagerInMemory.cpp
-  IO/IOManagerCurl.cpp
-  IO/IOManagerCurlAWS.cpp
-  IO/IOManagerCurlAzure.cpp
-  IO/RequestSigner.cpp
   IO/AWSCredentialsHandler.cpp
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataChannelMapping.cpp
@@ -45,10 +41,6 @@ set (PRIVATE_HEADER_FILES
   IO/IOManagerAWS.h
   IO/IOManagerAzure.h
   IO/IOManagerInMemory.h
-  IO/IOManagerCurl.h
-  IO/IOManagerCurlAWS.h
-  IO/IOManagerCurlAzure.h
-  IO/RequestSigner.h
   IO/AWSCredentialsHandler.cpp
   VDS/VDS.h
   VDS/VolumeDataPartition.h
@@ -170,14 +162,26 @@ else()
 endif()
 
 if (BUILD_CURL_IO_MANAGER)
+
+  target_sources(openvds_objects PRIVATE
+    IO/IOManagerCurl.h
+    IO/IOManagerCurlAWS.h
+    IO/IOManagerCurlAzure.h
+    IO/RequestSigner.h
+    IO/IOManagerCurl.cpp
+    IO/IOManagerCurlAWS.cpp
+    IO/IOManagerCurlAzure.cpp
+    IO/RequestSigner.cpp
+  )
+
+  target_compile_definitions(openvds_objects PUBLIC OPENVDS_CURL_IOMANAGER=1)
+
   if (NOT BUILD_CURL)
     find_package(CURL REQUIRED)
     target_link_libraries(openvds_objects PUBLIC ${CURL_LIBRARIES})
     target_include_directories(openvds_objects PUBLIC ${CURL_INCLUDE_DIRS})
   endif()
-  message("GOODBY")
   if (NOT BUILD_UV)
-    message("HELLO WORLD")
     find_package(LibUV REQUIRED)
     target_link_libraries(openvds_objects PUBLIC LibUV::LibUV)
   endif()
