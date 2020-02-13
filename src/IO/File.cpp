@@ -68,7 +68,6 @@ bool File::IsWriteable() const
 
 bool File::IsOpen() const
 {
-  assert(!!_pxPlatformHandle == !_cFileName.empty());
   return _pxPlatformHandle;
 }
 
