@@ -486,6 +486,8 @@ bool VolumeDataAccessManagerImpl::CancelReadChunk(const VolumeDataChunk& chunk, 
 
     m_pendingDownloadRequests.erase(pendingRequestIterator);
 
+    lock.unlock();
+
     if (lockedMetadataPage)
     {
       lockedMetadataPage->GetManager()->UnlockPage(lockedMetadataPage);
