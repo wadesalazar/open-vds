@@ -26,7 +26,6 @@
 
 #include <gtest/gtest.h>
 
-
 namespace OpenVDS
 {
   bool DeserializeVolumeData(const std::vector<uint8_t>& serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, const FloatRange& valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, DataBlock& dataBlock, std::vector<uint8_t>& destination, Error& error);
@@ -149,7 +148,6 @@ static std::vector<uint8_t> LoadTestFile(const std::string &file)
 
 GTEST_TEST(VDS_integration, DeSerializeVolumeData)
 {
-
   OpenVDS::Error error;
 
   std::vector<uint8_t> serializedNone = LoadTestFile("/chunk.CompressionMethod_None");
@@ -157,7 +155,6 @@ GTEST_TEST(VDS_integration, DeSerializeVolumeData)
   OpenVDS::DataBlock dataBlockNone;
   OpenVDS::DeserializeVolumeData(serializedNone, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::None, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockNone, dataNone, error);
   EXPECT_EQ(error.code, 0);
-  
   
   std::vector<uint8_t> serializedWavelet = LoadTestFile("/chunk.CompressionMethod_Wavelet");
   std::vector<uint8_t> dataWavelet;
@@ -178,6 +175,16 @@ GTEST_TEST(VDS_integration, DeSerializeVolumeData)
   double avg_diff = diff / samples;
   double one_procent_range = (0.07883811742067337 + 0.07883811742067337) / 100;
   EXPECT_TRUE(avg_diff < one_procent_range * 2);
+
+  std::vector<uint8_t> serializedWaveletLossless = LoadTestFile("/chunk.CompressionMethod_WaveletLossless");
+  std::vector<uint8_t> dataWaveletLossless;
+  OpenVDS::DataBlock dataBlockWaveletLossless;
+  OpenVDS::DeserializeVolumeData(serializedWaveletLossless, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::WaveletLossless, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, -1, dataBlockWaveletLossless, dataWaveletLossless, error);
+  EXPECT_EQ(error.code, 0);
+
+  EXPECT_EQ(dataNone.size(), dataWaveletLossless.size());
+  int comp_lossless = memcmp(dataNone.data(), dataWaveletLossless.data(), dataNone.size());
+  EXPECT_TRUE(comp_lossless == 0);
 
   std::vector<uint8_t> serializedRLE = LoadTestFile("/chunk.CompressionMethod_RLE");
   std::vector<uint8_t> dataRLE;
