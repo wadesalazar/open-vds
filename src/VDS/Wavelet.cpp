@@ -367,8 +367,7 @@ static int CalculateBufferSizeNeeded(int maxPixels, int maxChildren)
 
 Wavelet::Wavelet(const void *compressedData, int32_t transformSizeX, int32_t transformSizeY, int32_t transformSizeZ, int32_t allocatedSizeX, int32_t allocatedSizeY, int32_t allocatedSizeZ, int32_t dimensions, int32_t dataVersion)
 {
-  m_compressedData = (const uint8_t *)compressedData;
-  m_wordCompressedData = (const uint32_t *)compressedData;
+  m_readCompressedData = (const uint32_t *)compressedData;
   m_noValueData = nullptr;
   m_dataVersion = dataVersion;
   m_dimensions = dimensions;
@@ -705,7 +704,7 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
   assert(m_dataVersion == WAVELET_DATA_VERSION_1_4);
   InitCoder();
 
-  int32_t *startOfCompressedData = (int32_t *)m_compressedData;
+  int32_t *startOfCompressedData = (int32_t *)m_readCompressedData;
 
   int32_t compressedSize = startOfCompressedData[1];
 
@@ -725,19 +724,19 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
     return true;
   }
 
-  m_wordCompressedData += 6;
+  m_readCompressedData += 6;
   
   int nDeCompressZeroSize = 0;
   
   unsigned char *pnDecompressZeroSize = nullptr;
   
-  pnDecompressZeroSize = (unsigned char*)m_wordCompressedData;
-  nDeCompressZeroSize = *m_wordCompressedData;
-  m_wordCompressedData += (nDeCompressZeroSize + 3) / 4;
+  pnDecompressZeroSize = (unsigned char*)m_readCompressedData;
+  nDeCompressZeroSize = *m_readCompressedData;
+  m_readCompressedData += (nDeCompressZeroSize + 3) / 4;
 
   DeCompressNoValuesHeader();
 
-  float *normalField = (float *)(m_wordCompressedData);
+  float *normalField = (float *)(m_readCompressedData);
   
   if (isNormalize)
   {
@@ -747,22 +746,22 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
       {
         for (int iX = 0; iX < m_dataBlockSizeX; iX+=NORMAL_BLOCK_SIZE)
         {
-          m_wordCompressedData++;
+          m_readCompressedData++;
         }
       }
     }
   }
 
-  float *floatRead = (float *)m_wordCompressedData;
+  float *floatRead = (float *)m_readCompressedData;
 
   *threshold = *floatRead++,            // Get Threshold
   *startThreshold = *floatRead++;       // Get StartThreshold
 
-  m_wordCompressedData = (uint32_t *)floatRead;
+  m_readCompressedData = (uint32_t *)floatRead;
 
   void *pxData = (void*) target.data();                                                             
 
-  int nAdaptiveSize = *m_wordCompressedData++;
+  int nAdaptiveSize = *m_readCompressedData++;
 
   float *floatReadWriteData = (float*)pxData;
 
@@ -776,7 +775,7 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
   std::vector<uint8_t> cpuTempData;
   cpuTempData.resize(cpuTempDecodeSizeNeeded);
 
-  WaveletAdaptiveLL_DecodeIterator decodeIterator = WaveletAdaptiveLL_CreateDecodeIterator((uint8_t*)m_wordCompressedData, floatReadWriteData, m_allocatedSizeX, m_allocatedSizeY, m_allocatedSizeZ, *threshold, *startThreshold, m_transformMask, transformData, m_transformIterations,
+  WaveletAdaptiveLL_DecodeIterator decodeIterator = WaveletAdaptiveLL_CreateDecodeIterator((uint8_t*)m_readCompressedData, floatReadWriteData, m_allocatedSizeX, m_allocatedSizeY, m_allocatedSizeZ, *threshold, *startThreshold, m_transformMask, transformData, m_transformIterations,
       m_pixelSetChildren.get(), m_pixelSetChildrenCount, m_pixelSetPixelInSignificant.get(), m_pixelSetPixelInSignificantCount,
       m_allocatedHalfSizeX, m_allocatedHalfSizeX * m_allocatedHalfSizeY, cpuTempData.data(), m_allocatedHalfSizeX * m_allocatedHalfSizeY * m_allocatedHalfSizeZ, m_allocatedSizeX * m_allocatedSizeY * m_allocatedSizeZ, decompressLevel);
 
@@ -839,11 +838,11 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
   {
     assert(dataBlockFormat == VolumeDataChannelDescriptor::Format_R32);
 
-    m_compressedData += (nAdaptiveSize + 3) / 4;
+    m_readCompressedData += (nAdaptiveSize + 3) / 4;
 
-    int32_t size = WaveletAdaptiveLL_DecompressLossless((unsigned char*)m_compressedData, floatReadWriteData, m_transformSizeX, m_transformSizeY, m_transformSizeZ, m_allocatedSizeX, m_allocatedSizeXY);
+    int32_t size = WaveletAdaptiveLL_DecompressLossless((unsigned char*)m_readCompressedData, floatReadWriteData, m_transformSizeX, m_transformSizeY, m_transformSizeZ, m_allocatedSizeX, m_allocatedSizeXY);
 
-    m_compressedData += (size + 3) / 4;
+    m_readCompressedData += (size + 3) / 4;
   }
 
   return true;
@@ -851,19 +850,19 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
 
 void Wavelet::DeCompressNoValuesHeader()
 {
-  int size = *m_wordCompressedData;
+  int size = *m_readCompressedData;
 
   if (size == -1)
   {
-    m_wordCompressedData++;
+    m_readCompressedData++;
     m_noValueData = nullptr;
     return; // no NoValues
   }
 
-  m_noValueData = m_wordCompressedData;
+  m_noValueData = m_readCompressedData;
 
-  m_wordCompressedData += 2; // size and no value
-  m_wordCompressedData += (size + 3) / 4;
+  m_readCompressedData += 2; // size and no value
+  m_readCompressedData += (size + 3) / 4;
 }
 
 template<typename T>

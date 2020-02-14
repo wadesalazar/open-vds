@@ -32,8 +32,7 @@ namespace OpenVDS
 
 class Wavelet
 {
-  const uint8_t *m_compressedData;
-  const uint32_t *m_wordCompressedData;
+  const uint32_t *m_readCompressedData;
 
   const uint32_t *m_noValueData;
 
