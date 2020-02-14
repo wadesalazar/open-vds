@@ -37,12 +37,23 @@ MetadataPageTransfer(MetadataManager *manager, VolumeDataAccessManagerImpl *acce
 
 void HandleData(std::vector<uint8_t> &&data) override
 {
-  manager->PageTransferCompleted(accessManager, metadataPage, std::move(data));
+  metadata = std::move(data);
 }
 
-void Completed(const Request &request, const Error &error) override
+void Completed(const Request &request, const Error &e) override
 {
-  if(error.code != 0)
+  Error error = e;
+  if (error.code == 0 && metadata.empty())
+  {
+    error.code = -1;
+    error.string = "Empty medata page data downloaded";
+  }
+
+  if(error.code == 0)
+  {
+    manager->PageTransferCompleted(accessManager, metadataPage, std::move(metadata));
+  }
+  else
   {
     manager->PageTransferError(accessManager, metadataPage, error);
   }
@@ -51,6 +62,7 @@ void Completed(const Request &request, const Error &error) override
 MetadataManager *manager;
 VolumeDataAccessManagerImpl *accessManager;
 MetadataPage *metadataPage;
+std::vector<uint8_t> metadata;
 };
 
 MetadataManager::MetadataManager(IOManager* iomanager, std::string const& layerUrl, MetadataStatus const& metadataStatus, int pageLimit)
@@ -162,9 +174,7 @@ void MetadataManager::UploadDirtyPages(VolumeDataAccessManagerImpl *accessManage
 
 void MetadataManager::PageTransferError(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, const Error &error)
 {
-  fmt::print(stderr, "Failed to transfer metadata page: {}", error.string);
-
-  accessManager->PageTransferCompleted(page);
+  accessManager->PageTransferCompleted(page, error);
 }
 
 void MetadataManager::PageTransferCompleted(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::vector<uint8_t> &&data)
@@ -174,7 +184,8 @@ void MetadataManager::PageTransferCompleted(VolumeDataAccessManagerImpl* accessM
   page->m_valid = true;
   lock.unlock();
 
-  accessManager->PageTransferCompleted(page);
+  Error error;
+  accessManager->PageTransferCompleted(page, error);
 }
 
 uint8_t const *MetadataManager::GetPageEntry(MetadataPage *page, int entryIndex) const

@@ -417,6 +417,13 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
   auto activeTransfer = pendingRequest.m_activeTransfer;
   auto transferHandler = pendingRequest.m_transferHandle;
 
+  if (pendingRequest.m_metadataPageRequestError.code != 0)
+  {
+    error = pendingRequest.m_metadataPageRequestError;
+    compressionInfo = CompressionInfo();
+    return false;
+  }
+
   if(!activeTransfer)
   {
     error.code = -1;
@@ -497,7 +504,7 @@ bool VolumeDataAccessManagerImpl::CancelReadChunk(const VolumeDataChunk& chunk, 
   return true;
 }
 
-void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPage)
+void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPage, const Error &error)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -514,6 +521,9 @@ void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPa
       int32_t entryIndex = (int)(volumeDataChunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
       assert(pageIndex == metadataPage->PageIndex());
+
+      if (error.code != 0)
+        pendingRequest.m_metadataPageRequestError= error;
 
       if (metadataPage->IsValid())
       {

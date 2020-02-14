@@ -82,6 +82,7 @@ public:
 struct PendingDownloadRequest
 {
   MetadataPage* m_lockedMetadataPage;
+  Error m_metadataPageRequestError;
 
   std::shared_ptr<Request> m_activeTransfer;
   std::shared_ptr<ReadChunkTransfer> m_transferHandle;
@@ -233,7 +234,7 @@ public:
   bool PrepareReadChunkData(const VolumeDataChunk& chunk, bool verbose, Error& error);
   bool ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
   bool CancelReadChunk(const VolumeDataChunk& chunk, Error& error);
-  void PageTransferCompleted(MetadataPage* metadataPage);
+  void PageTransferCompleted(MetadataPage* metadataPage, const Error &error);
   bool WriteMetadataPage(MetadataPage* metadataPage, const std::vector<uint8_t> &data);
 
   int64_t RequestWriteChunk(const VolumeDataChunk &chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data);
