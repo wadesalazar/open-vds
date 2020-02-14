@@ -33,7 +33,7 @@ static void getScaleOffsetForFormat(float min, float max, bool novalue, OpenVDS:
   }
 }
 
-static OpenVDS::VDS *generateSimpleInMemory3DVDS(int32_t samplesX = 100, int32_t samplesY = 100, int32_t samplesZ = 100, OpenVDS::VolumeDataChannelDescriptor::Format format = OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize brickSize = OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32)
+static OpenVDS::VDS *generateSimpleInMemory3DVDS(int32_t samplesX = 100, int32_t samplesY = 100, int32_t samplesZ = 100, OpenVDS::VolumeDataChannelDescriptor::Format format = OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize brickSize = OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, OpenVDS::IOManager *ioManager = nullptr)
 {
   int negativeMargin = 4;
   int positiveMargin = 4;
@@ -55,9 +55,13 @@ static OpenVDS::VDS *generateSimpleInMemory3DVDS(int32_t samplesX = 100, int32_t
   getScaleOffsetForFormat(rangeMin, rangeMax, true, format, intScale, intOffset);
   channelDescriptors.emplace_back(format, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", rangeMin, rangeMax, OpenVDS::VolumeDataMapping::Direct, 1, OpenVDS::VolumeDataChannelDescriptor::Default, 0.f, intScale, intOffset);
 
-  OpenVDS::InMemoryOpenOptions options;
   OpenVDS::MetadataContainer metadataContainer;
   OpenVDS::Error error;
+  if (ioManager)
+  {
+    return OpenVDS::Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error);
+  }
+  OpenVDS::InMemoryOpenOptions options;
   return OpenVDS::Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error);
 }
 

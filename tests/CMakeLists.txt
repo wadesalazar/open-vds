@@ -44,6 +44,10 @@ add_test_executable(io_tests_roundtrip
   io/CreateSyntheticVDS.cpp
   )
 
+add_test_executable(io_error_handling_tests
+  io/IOErrorHandling.cpp
+  )
+
 add_test_executable(jsoncpp_tests
   jsoncpp/jsoncpp_parse.cpp
   jsoncpp/jsoncpp_serialize.cpp)
