@@ -5,11 +5,16 @@
 #include <OpenVDS/VolumeDataAccess.h>
 
 #include <VDS/VolumeDataLayoutImpl.h>
+#include <IO/IOManagerInMemory.h>
 
 #include "../utils/GenerateVDS.h"
+#include "../utils/FacadeIOManager.h"
 
 #include <chrono>
 #include <fmt/format.h>
+
+//#define IN_MEMORY_TEST 1
+
 int handleUploadErrors(OpenVDS::VolumeDataAccessManager *accessManager)
 {
   int32_t errorCount = accessManager->UploadErrorCount();
@@ -30,25 +35,37 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
 {
   auto full_start = std::chrono::high_resolution_clock::now();
   OpenVDS::Error error;
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> inMemoryVDS(generateSimpleInMemory3DVDS(100,100,100, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32), OpenVDS::Close);
+  OpenVDS::IOManagerInMemory *inMemory = new OpenVDS::IOManagerInMemory(OpenVDS::InMemoryOpenOptions(), error);
+#ifdef IN_MEMORY_TEST
+  int createDim[] = {800,800,800};
+#else
+  int createDim[] = {400,400,400};
+#endif
+
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> inMemoryVDS(generateSimpleInMemory3DVDS(createDim[0], createDim[1], createDim[2], OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_64, inMemory), OpenVDS::Close);
   fill3DVDSWithNoise(inMemoryVDS.get());
   OpenVDS::VolumeDataLayout *inMemoryLayout = OpenVDS::GetLayout(inMemoryVDS.get());
 
-  OpenVDS::AzureOpenOptions options;
-  options.connectionString = TEST_AZURE_CONNECTION;
-  options.container = "SIMPLE_NOISE_VDS";
-  options.parallelism_factor = 8;
+#ifndef IN_MEMORY_TEST
+  //OpenVDS::AzureOpenOptions options;
+  //options.connectionString = TEST_AZURE_CONNECTION;
+  //options.container = "SIMPLE_NOISE_VDS";
+  //options.parallelism_factor = 8;
 
-  if (options.connectionString.empty())
+  //if (options.connectionString.empty())
+  //{
+  //  GTEST_SKIP() << "Environment variables not set";
+  //}
+
+  OpenVDS::AWSOpenOptions options;
+  options.region = TEST_AWS_REGION;
+  options.bucket = TEST_AWS_BUCKET;
+  options.key = "SIMPLE_NOISE_VDS";
+  if (options.bucket.empty())
   {
     GTEST_SKIP() << "Environment variables not set";
   }
-
-  //OpenVDS::AWSOpenOptions options;
-  //options.region = TEST_AWS_REGION;
-  //options.bucket = TEST_AWS_BUCKET;
-  //options.key = "SIMPLE_NOISE_VDS";
-
+#endif
 
   auto layoutDescriptor = inMemoryLayout->GetLayoutDescriptor();
   int dimensions = inMemoryLayout->GetDimensionality();
@@ -94,7 +111,11 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   }
 
   auto create_start = std::chrono::high_resolution_clock::now();
+#ifdef IN_MEMORY_TEST
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> networkVDS(OpenVDS::Create(new IOManagerFacadeLight(inMemory), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error), &OpenVDS::Close);
+#else
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> networkVDS(OpenVDS::Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error), &OpenVDS::Close);
+#endif
   ASSERT_TRUE(networkVDS);
 
 
@@ -147,7 +168,11 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   auto create_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - create_start);
 
   auto read_start = std::chrono::high_resolution_clock::now();
+#ifdef IN_MEMORY_TEST
+  networkVDS.reset(OpenVDS::Open(new IOManagerFacadeLight(inMemory), error));
+#else
   networkVDS.reset(OpenVDS::Open(options, error));
+#endif
   ASSERT_TRUE(networkVDS);
 
   OpenVDS::VolumeDataLayout *networkLayout = OpenVDS::GetLayout(networkVDS.get());
@@ -164,9 +189,14 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
 
   networkData.resize(networkAccessManager->GetVolumeSubsetBufferSize(networkLayout, minPos, maxPos, networkLayout->GetChannelFormat(0), 0));
 
+
+  fmt::print(stderr, "About to start download request.\n");
+  auto download_start_time = std::chrono::high_resolution_clock::now();
   int64_t networkRequest = networkAccessManager->RequestVolumeSubset(networkData.data(), networkLayout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, networkLayout->GetChannelFormat(0));
 
   ASSERT_TRUE(networkAccessManager->WaitForCompletion(networkRequest));
+
+  auto download_end_time = std::chrono::high_resolution_clock::now();
 
   networkVDS.reset();
 
@@ -174,6 +204,14 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   auto read_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - read_start);
   auto full_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - full_start);
   fmt::print(stderr, "Create time {} - Read time {} - Full time {}\n", create_time.count(), read_time.count(), full_time.count());
+  
+  double download_time = std::chrono::duration_cast<std::chrono::milliseconds>(download_end_time - download_start_time).count() / 1000.0;
+  int64_t bytes = networkData.size();
+  int64_t bits = bytes * 8;
+  int mega = 1 << 20;
+  double mbytes = bytes / double(mega);
+  double mbitsSecDownload = bits / download_time / double(mega);
+  fmt::print(stderr, "Completed Downloading {} MB in {} Seconds giving {} Mbit/s\n", mbytes, download_time, mbitsSecDownload);
 
   std::vector<uint8_t> inMemoryData;
   inMemoryData.resize(inMemoryAccessManager->GetVolumeSubsetBufferSize(inMemoryLayout, minPos, maxPos, inMemoryLayout->GetChannelFormat(0), 0));
