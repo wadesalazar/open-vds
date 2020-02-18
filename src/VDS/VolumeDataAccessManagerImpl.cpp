@@ -227,6 +227,8 @@ VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDS &vds)
 
 VolumeDataAccessManagerImpl::~VolumeDataAccessManagerImpl()
 {
+  assert(m_pendingDownloadRequests.empty());
+  assert(m_pendingUploadRequests.empty());
   if (m_uploadErrors.size())
   {
     fprintf(stderr, "VolumeDataAccessManager destructor: there where upload errors\n");
@@ -421,6 +423,10 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
   {
     error = pendingRequest.m_metadataPageRequestError;
     compressionInfo = CompressionInfo();
+    if (--pendingRequest.m_ref == 0)
+    {
+      m_pendingDownloadRequests.erase(pendingRequestIterator);
+    }
     return false;
   }
 
@@ -429,6 +435,10 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
     error.code = -1;
     error.string = "Failed to read metadata for chunk: " + std::to_string(chunk.index);
     compressionInfo = CompressionInfo();
+    if (--pendingRequest.m_ref == 0)
+    {
+      m_pendingDownloadRequests.erase(pendingRequestIterator);
+    }
     return false;
   }
 
