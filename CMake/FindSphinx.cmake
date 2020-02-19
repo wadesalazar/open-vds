@@ -1,11 +1,7 @@
-#Look for an executable called sphinx-build
-find_program(SPHINX_EXECUTABLE
-             NAMES sphinx-build
-             DOC "Path to sphinx-build executable")
+execute_process(COMMAND ${Python3_EXECUTABLE} -c "import sphinx"  RESULT_VARIABLE sphinx_ret)
 
-include(FindPackageHandleStandardArgs)
-
-#Handle standard arguments to find_package like REQUIRED and QUIET
-find_package_handle_standard_args(Sphinx
-                                  "Failed to find sphinx-build executable"
-                                  SPHINX_EXECUTABLE)
+if (sphinx_ret EQUAL "0")
+  set(Sphinx_FOUND 1)
+else()
+  set(Sphinx_FOUND 0)
+endif()

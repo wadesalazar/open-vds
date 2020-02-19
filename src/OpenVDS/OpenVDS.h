@@ -51,6 +51,9 @@ protected:
   OpenOptions(ConnectionType connectionType) : connectionType(connectionType) {}
 };
 
+/// <summary>
+/// Options for opening a VDS in AWS
+/// </summary>
 struct AWSOpenOptions : OpenOptions
 {
   std::string bucket;
@@ -58,9 +61,24 @@ struct AWSOpenOptions : OpenOptions
   std::string region;
 
   AWSOpenOptions() : OpenOptions(AWS) {}
+  /// <summary>
+  /// AWSOpenOptions constructor
+  /// </summary>
+  /// <param name="bucket">
+  /// The bucket of the VDS
+  /// </param>
+  /// <param name="key">
+  /// The key prefix of the VDS
+  /// </param>
+  /// <param name="region">
+  /// The region of the bucket of the VDS
+  /// </param>
   AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), bucket(bucket), key(key), region(region) {}
 };
 
+/// <summary>
+/// Options for opening a VDS in Azure
+/// </summary>
 struct AzureOpenOptions : OpenOptions
 {
   std::string connectionString;
@@ -71,11 +89,45 @@ struct AzureOpenOptions : OpenOptions
   int max_execution_time = 100000;
 
   AzureOpenOptions() : OpenOptions(Azure) {}
+
+  /// <summary>
+  /// AzureOpenOptions constructor
+  /// </summary>
+  /// <param name="connectionString">
+  /// The connectionString for the VDS
+  /// </param>
+  /// <param name="container">
+  /// The container of the VDS
+  /// </param>
+  /// <param name="blob">
+  /// The blob prefix of the VDS
+  /// </param>
   AzureOpenOptions(std::string const& connectionString, std::string const& container, std::string const& blob) : OpenOptions(Azure), connectionString(connectionString), container(container), blob(blob) {}
+
+  /// <summary>
+  /// AzureOpenOptions constructor
+  /// </summary>
+  /// <param name="connectionString">
+  /// The connectionString for the VDS
+  /// </param>
+  /// <param name="container">
+  /// The container of the VDS
+  /// </param>
+  /// <param name="blob">
+  /// The blob prefix of the VDS
+  /// </param>
+  /// <param name="parallelism_factor">
+  /// The parallelism factor setting for the Azure Blob Storage library
+  /// </param>
+  /// <param name="max_execution_time">
+  /// The max execution time setting for the Azure Blob Storage library
+  /// </param>
   AzureOpenOptions(std::string const& connectionString, std::string const& container, std::string const& blob, int& parallelism_factor, int& max_execution_time) : OpenOptions(Azure), connectionString(connectionString), container(container), blob(blob), parallelism_factor(parallelism_factor), max_execution_time(max_execution_time) {}
 };
 
-
+/// <summary>
+/// Options for opening a VDS which is stored in memory (for testing)
+/// </summary>
 struct InMemoryOpenOptions : OpenOptions
 {
   InMemoryOpenOptions() : OpenOptions(InMemory) {}

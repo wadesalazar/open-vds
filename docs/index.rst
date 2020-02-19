@@ -12,6 +12,9 @@ Welcome to OpenVDS's documentation!
 
   getting-started
 
+  cpp-api
+  python-api
+
 Indices and tables
 ==================
 
@@ -21,6 +24,5 @@ Indices and tables
 
 API Reference
 =============
- 
-.. doxygenclass:: OpenVDS::VolumeDataAccessManager
-   :members:
+* :ref:`cpp-api`
+* :ref:`python-api`

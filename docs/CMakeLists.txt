@@ -1,10 +1,6 @@
 # Based on https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
-find_package(Doxygen)
-find_package(Sphinx)
-
-if (NOT Doxygen_FOUND OR NOT Sphinx_FOUND)
-  return()
-endif()
+find_package(Doxygen REQUIRED)
+find_package(Sphinx REQUIRED)
 
 # Find all the public headers
 get_target_property(OPENVDS_PUBLIC_HEADER_DIR openvds  INTERFACE_INCLUDE_DIRECTORIES)
@@ -44,13 +40,19 @@ set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR})
 set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/html)
 set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
 
+if (UNIX)
+  set(separator ":")
+else ()
+  set(separator ";")
+endif()
+
 # Only regenerate Sphinx when:
 # - Doxygen has rerun
 # - Our doc files have been updated
 # - The Sphinx config has been updated
 add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
-                   COMMAND 
-                     ${SPHINX_EXECUTABLE} -b html
+                   COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=$<TARGET_FILE_DIR:core>/.." "PATH=${separator}${CMAKE_CURRENT_BINARY_DIR}"
+                     ${Python3_EXECUTABLE} -m sphinx -b html
                      # Tell Breathe where to find the Doxygen output
                      -Dbreathe_projects.OpenVDS=${DOXYGEN_OUTPUT_DIRECTORY}/xml
                    ${SPHINX_SOURCE} ${SPHINX_BUILD}
@@ -59,6 +61,8 @@ add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
                    # Other docs files you want to track should go here (or in some variable)
                    ${CMAKE_CURRENT_SOURCE_DIR}/index.rst
                    ${CMAKE_CURRENT_SOURCE_DIR}/getting-started.rst
+                   ${CMAKE_CURRENT_SOURCE_DIR}/python-api.rst
+                   ${CMAKE_CURRENT_SOURCE_DIR}/cpp-api.rst
                    MAIN_DEPENDENCY ${SPHINX_SOURCE}/conf.py
                    COMMENT "Generating documentation with Sphinx")
 
