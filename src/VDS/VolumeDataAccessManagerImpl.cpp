@@ -344,6 +344,12 @@ bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &ch
   assert(pageIndex == metadataPage->PageIndex());
 
   std::unique_lock<std::mutex> lock(m_mutex);
+  if (metadataPage->transferError().code != 0)
+  {
+    error = metadataPage->transferError();
+    metadataManager->UnlockPage(metadataPage);
+    return false;
+  }
 
   if (initiateTransfer)
   {
@@ -355,16 +361,17 @@ bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &ch
   // Check if the page is not valid and we need to add the request later when the metadata page transfer completes
   if (!metadataPage->IsValid())
   {
-    if (m_pendingDownloadRequests.find(chunk) == m_pendingDownloadRequests.end())
+    auto it = m_pendingDownloadRequests.lower_bound(chunk);
+    if (it == m_pendingDownloadRequests.end() || chunk < it->first)
     {
-      m_pendingDownloadRequests[chunk] = PendingDownloadRequest(metadataPage);
+      it = m_pendingDownloadRequests.emplace_hint(it, chunk, PendingDownloadRequest(metadataPage));
     }
     else
     {
-      m_pendingDownloadRequests[chunk].m_ref++;
-      m_pendingDownloadRequests[chunk].m_canMove = false;
+      it->second.m_ref++;
+      it->second.m_canMove = false;
     }
-    return true;
+    return it->second.m_metadataPageRequestError.code == 0;
   }
 
   lock.unlock();
@@ -413,7 +420,7 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
 
   if (!pendingRequest.m_activeTransfer)
   {
-    m_pendingRequestChangedCondition.wait(lock, [&pendingRequest]{ return !pendingRequest.m_lockedMetadataPage; });
+    m_pendingRequestChangedCondition.wait(lock, [&pendingRequest]{ return !pendingRequest.m_lockedMetadataPage || pendingRequest.m_metadataPageRequestError.code != 0; });
   }
 
   auto activeTransfer = pendingRequest.m_activeTransfer;
@@ -533,7 +540,7 @@ void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPa
       assert(pageIndex == metadataPage->PageIndex());
 
       if (error.code != 0)
-        pendingRequest.m_metadataPageRequestError= error;
+        pendingRequest.m_metadataPageRequestError = error;
 
       if (metadataPage->IsValid())
       {

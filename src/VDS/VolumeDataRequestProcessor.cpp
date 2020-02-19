@@ -127,7 +127,11 @@ static Error ProcessPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessor
   MarkJobAsDoneOnExit jobDone(job, pageIndex);
   Error error;
   JobPage& jobPage = job->pages[pageIndex];
-  if (jobPage.page->GetError().code)
+
+  if (!jobPage.page)
+    return Error();
+
+  if (jobPage.page && jobPage.page->GetError().code)
   {
     job->cancelled = true;
     return jobPage.page->GetError();
@@ -198,6 +202,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
       break;
     }
   }
+  job->pagesCount = job->pages.size();
 
   if (job->cancelled)
   {
@@ -244,9 +249,9 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
   } 
   else
   {
-    for (int i = 0; i < chunks.size(); i++)
+    auto job_ptr = job.get();
+    for (int i = 0; i < job->pages.size(); i++)
     {
-      auto job_ptr = job.get();
       job->future.push_back(m_threadPool.Enqueue([job_ptr, i, pageAccessor, processor]
         {
           return ProcessPageInJob(job_ptr, i, pageAccessor, processor);

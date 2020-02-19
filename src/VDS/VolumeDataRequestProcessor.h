@@ -77,7 +77,7 @@ struct Job
   std::atomic_int pagesProcessed;
   std::atomic_bool done;
   std::atomic_bool cancelled;
-  const int pagesCount;
+  int pagesCount;
   std::mutex &completed_mutex;
   Error completedError;
 };

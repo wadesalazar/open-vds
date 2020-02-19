@@ -63,6 +63,7 @@ namespace OpenVDS
     bool m_valid;
     bool m_dirty;
     int m_lockCount;
+    Error m_transferError;
 
     std::shared_ptr<Request> m_activeTransfer;
 
@@ -72,6 +73,7 @@ namespace OpenVDS
     int PageIndex() const { return m_pageIndex; }
     bool IsValid()   const { return m_valid; }
     bool IsDirty()   const { return m_dirty; }
+    const Error &transferError() const { return m_transferError; }
 
     MetadataPage(MetadataManager *manager, int pageIndex)
       : m_manager(manager)

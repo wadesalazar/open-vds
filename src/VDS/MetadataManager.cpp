@@ -174,6 +174,10 @@ void MetadataManager::UploadDirtyPages(VolumeDataAccessManagerImpl *accessManage
 
 void MetadataManager::PageTransferError(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, const Error &error)
 {
+  std::unique_lock<std::mutex> lock(m_mutex);
+  page->m_valid = false;
+  page->m_transferError = error;
+  lock.unlock();
   accessManager->PageTransferCompleted(page, error);
 }
 

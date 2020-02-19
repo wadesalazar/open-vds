@@ -256,8 +256,8 @@ VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk)
   VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(chunk);
   if (!m_accessManager->PrepareReadChunkData(volumeDataChunk, true, error))
   {
+    page->SetError(error);
     page->UnPin();
-    fprintf(stderr, "Failed to download chunk: %s\n", error.string.c_str());
     return nullptr;
   }
 
@@ -364,9 +364,12 @@ void VolumeDataPageAccessorImpl::CancelPreparedReadPage(VolumeDataPage* page)
     m_accessManager->CancelReadChunk(volumeDataChunk, error);
     if (error.code)
     {
-      fmt::print(stderr, "Failed when canceling chunk: {}. Error {}\n", volumeDataChunk.index, error.string);
+      pageImpl->SetError(error);
     }
   }
+  pageImpl->SetRequestPrepared(false);
+  pageImpl->LeaveSettingData();
+  m_pageReadCondition.notify_all();
 }
 
 VolumeDataPage* VolumeDataPageAccessorImpl::ReadPage(int64_t chunk)
