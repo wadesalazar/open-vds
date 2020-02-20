@@ -213,6 +213,15 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   double mbitsSecDownload = bits / download_time / double(mega);
   fmt::print(stderr, "Completed Downloading {} MB in {} Seconds giving {} Mbit/s\n", mbytes, download_time, mbitsSecDownload);
 
+  auto memcopy_start = std::chrono::high_resolution_clock::now();
+  uint8_t *memcpy_data = new uint8_t[networkData.size()];
+  memcpy(memcpy_data, networkData.data(), networkData.size());
+  auto memcopy_end = std::chrono::high_resolution_clock::now();
+  double memcopy_time = std::chrono::duration_cast<std::chrono::milliseconds>(memcopy_end - memcopy_start).count() / 1000.0;
+  double mbitsSecMemcpy = bits / memcopy_time / double(mega);
+  fmt::print(stderr, "Completed Alloc&Memcopying {} MB in {} Seconds giving {} Mbit/s\n", mbytes, memcopy_time, mbitsSecMemcpy);
+  delete[] memcpy_data;
+
   std::vector<uint8_t> inMemoryData;
   inMemoryData.resize(inMemoryAccessManager->GetVolumeSubsetBufferSize(inMemoryLayout, minPos, maxPos, inMemoryLayout->GetChannelFormat(0), 0));
   int64_t inMemoryRequest = inMemoryAccessManager->RequestVolumeSubset(inMemoryData.data(), inMemoryLayout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, inMemoryLayout->GetChannelFormat(0));
