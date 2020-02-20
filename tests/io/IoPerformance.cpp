@@ -7,7 +7,7 @@
 
 #include <fmt/printf.h>
 
-#define IN_MEMORY 1
+//#define IN_MEMORY 1
 class Transfer : public OpenVDS::TransferDownloadHandler
 {
 public:

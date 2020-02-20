@@ -158,3 +158,41 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingVDSJsonHttpError)
   ASSERT_FALSE(handle);
 }
 
+TEST_F(IOErrorHandlingFixture, ErrorHandlingVDSInvalidJson)
+{
+  OpenVDS::Error error;
+  IOManagerFacade *facadeIoManager = new IOManagerFacade(IOErrorHandlingFixture::inMemoryIOManager);
+
+  const char data[] = R"json({ "hello": "world" } )json";
+  auto &volumedatalayout = facadeIoManager->m_data["VolumeDataLayout"].data;
+  volumedatalayout.insert(volumedatalayout.end(), data, data + sizeof(data));
+
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(facadeIoManager, error), OpenVDS::Close);
+  ASSERT_FALSE(handle);
+}
+
+TEST_F(IOErrorHandlingFixture, ErrorHandlingLayerStatusJsonHttpError)
+{
+  OpenVDS::Error error;
+  IOManagerFacade *facadeIoManager = new IOManagerFacade(IOErrorHandlingFixture::inMemoryIOManager);
+
+  facadeIoManager->m_data["LayerStatus"].error.code = 402;
+  facadeIoManager->m_data["LayerStatus"].error.string = "LayerStatus is missing";
+
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(facadeIoManager, error), OpenVDS::Close);
+  ASSERT_FALSE(handle);
+}
+
+TEST_F(IOErrorHandlingFixture, ErrorHandlingLayerStatusInvalidJson)
+{
+  OpenVDS::Error error;
+  IOManagerFacade *facadeIoManager = new IOManagerFacade(IOErrorHandlingFixture::inMemoryIOManager);
+
+  const char data[] = R"json({ "hello": "world" } )json";
+  auto &volumedatalayout = facadeIoManager->m_data["LayerStatus"].data;
+  volumedatalayout.insert(volumedatalayout.end(), data, data + sizeof(data));
+
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(facadeIoManager, error), OpenVDS::Close);
+  ASSERT_FALSE(handle);
+}
+
