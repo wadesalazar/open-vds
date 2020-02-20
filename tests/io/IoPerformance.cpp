@@ -7,6 +7,7 @@
 
 #include <fmt/printf.h>
 
+#define IN_MEMORY 1
 class Transfer : public OpenVDS::TransferDownloadHandler
 {
 public:
@@ -45,6 +46,9 @@ void completedCallback(const OpenVDS::Request& request, const OpenVDS::Error& er
 
 TEST(IOTests, performance)
 {
+#ifdef IN_MEMORY
+  OpenVDS::InMemoryOpenOptions options;
+#else
   //OpenVDS::AzureOpenOptions options;
   //options.connectionString = TEST_AZURE_CONNECTION;
   //options.container = "SIMPLE_NOISE_VDS";
@@ -68,13 +72,18 @@ TEST(IOTests, performance)
   {
     GTEST_SKIP() << "Environment variables not set";
   }
+#endif
 
   OpenVDS::Error error;
   OpenVDS::IOManager* ioManager = OpenVDS::IOManager::CreateIOManager(options, error);
 
   int mega = 1 << 20;
   int chunkSize = mega * 4;
+#ifdef IN_MEMORY
+  int chunkCount = 1000;
+#else
   int chunkCount = 100;
+#endif
   std::random_device rd;  //Will be used to obtain a seed for the random number engine
   std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
   std::uniform_int_distribution<uint64_t> dis(0);

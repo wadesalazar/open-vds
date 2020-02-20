@@ -13,7 +13,7 @@
 #include <chrono>
 #include <fmt/format.h>
 
-//#define IN_MEMORY_TEST 1
+#define IN_MEMORY_TEST 1
 
 int handleUploadErrors(OpenVDS::VolumeDataAccessManager *accessManager)
 {
