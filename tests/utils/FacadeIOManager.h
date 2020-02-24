@@ -107,14 +107,26 @@ public:
         });
       return request;
     }
-    else
-    {
+
     return backend->Download(objectName, handler, range);
-    }
   }
 
   std::shared_ptr<OpenVDS::Request> Upload(const std::string objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const OpenVDS::Request & request, const OpenVDS::Error & error)> completedCallback = nullptr) override
   {
+    auto object_it = m_data.find(objectName);
+    OpenVDS::Error error;
+    if (object_it != m_data.end())
+    {
+      auto &object = (*object_it).second;
+      error = object.error;
+      auto request = std::make_shared<FacadeRequest>(objectName, error);
+      if (completedCallback)
+      {
+        threadPool.Enqueue([completedCallback, error, request] { completedCallback(*request, error); });
+      }
+      return request;
+    }
+
     return backend->Upload(objectName, contentDispostionFilename, contentType, metadataHeader, data, completedCallback);
   }
 

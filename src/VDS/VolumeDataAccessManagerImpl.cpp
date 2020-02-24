@@ -587,7 +587,7 @@ bool VolumeDataAccessManagerImpl::WriteMetadataPage(MetadataPage* metadataPage, 
   if(error.code != 0)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
-    m_uploadErrors.emplace_back(new UploadError(error, "LayerStatus"));
+    m_uploadErrors.emplace_back(new UploadError(error, url));
   }
 
   return success;
@@ -734,6 +734,7 @@ void VolumeDataAccessManagerImpl::GetCurrentUploadError(const char** objectId, i
       *errorCode = 0;
     if (errorString)
       *errorString = nullptr;
+    return;
   }
 
   const auto &error = m_uploadErrors[m_currentErrorIndex];
@@ -744,6 +745,5 @@ void VolumeDataAccessManagerImpl::GetCurrentUploadError(const char** objectId, i
     *errorCode = error->error.code;
   if (errorString)
     *errorString = error->error.string.c_str();
-  lock.unlock();
 }
 }

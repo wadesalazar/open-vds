@@ -196,3 +196,231 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingLayerStatusInvalidJson)
   ASSERT_FALSE(handle);
 }
 
+TEST(IOErrorHandlingUpload, ErrorHandlingVolumeDataLayoutHttpError)
+{
+  OpenVDS::Error error;
+  int negativeMargin = 4;
+  int positiveMargin = 4;
+  int brickSize2DMultiplier = 4;
+  auto lodLevels = OpenVDS::VolumeDataLayoutDescriptor::LODLevels_None;
+  auto layoutOptions = OpenVDS::VolumeDataLayoutDescriptor::Options_None;
+  OpenVDS::VolumeDataLayoutDescriptor layoutDescriptor(OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, negativeMargin, positiveMargin, brickSize2DMultiplier, lodLevels, layoutOptions);
+
+  std::vector<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors;
+  axisDescriptors.emplace_back(100, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, "ms", 0.0f, 4.f);
+  axisDescriptors.emplace_back(100, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE, "", 1932.f, 2536.f);
+  axisDescriptors.emplace_back(100, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,    "", 9985.f, 10369.f);
+
+  std::vector<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors;
+  float rangeMin = -0.1234f;
+  float rangeMax = 0.1234f;
+  float intScale;
+  float intOffset;
+  getScaleOffsetForFormat(rangeMin, rangeMax, true, OpenVDS::VolumeDataChannelDescriptor::Format_U32, intScale, intOffset);
+  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_U32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", rangeMin, rangeMax, OpenVDS::VolumeDataMapping::Direct, 1, OpenVDS::VolumeDataChannelDescriptor::Default, 0.f, intScale, intOffset);
+
+  OpenVDS::MetadataContainer metadataContainer;
+
+  OpenVDS::IOManagerInMemory inMemoryIO(OpenVDS::InMemoryOpenOptions(), error);
+  IOManagerFacade *ioManager = new IOManagerFacade(&inMemoryIO);
+  auto &object = ioManager->m_data["VolumeDataLayout"];
+  object.error.code = 456;
+  object.error.string = "This tests refuses to accept your VolumeDataLayout";
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error), OpenVDS::Close);
+
+  ASSERT_FALSE(handle);
+  ASSERT_EQ(error.code, 456);
+  ASSERT_TRUE(error.string.size());
+}
+
+TEST(IOErrorHandlingUpload, ErrorHandlingChunkHttpError)
+{
+  OpenVDS::Error error;
+  int negativeMargin = 4;
+  int positiveMargin = 4;
+  int brickSize2DMultiplier = 4;
+  auto lodLevels = OpenVDS::VolumeDataLayoutDescriptor::LODLevels_None;
+  auto layoutOptions = OpenVDS::VolumeDataLayoutDescriptor::Options_None;
+  OpenVDS::VolumeDataLayoutDescriptor layoutDescriptor(OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, negativeMargin, positiveMargin, brickSize2DMultiplier, lodLevels, layoutOptions);
+
+  std::vector<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors;
+  axisDescriptors.emplace_back(63, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, "ms", 0.0f, 4.f);
+  axisDescriptors.emplace_back(32, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE, "", 1932.f, 2536.f);
+  axisDescriptors.emplace_back(32, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,    "", 9985.f, 10369.f);
+
+  std::vector<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors;
+  float rangeMin = -0.1234f;
+  float rangeMax = 0.1234f;
+  float intScale;
+  float intOffset;
+  getScaleOffsetForFormat(rangeMin, rangeMax, true, OpenVDS::VolumeDataChannelDescriptor::Format_U32, intScale, intOffset);
+  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_U32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", rangeMin, rangeMax, OpenVDS::VolumeDataMapping::Direct, 1, OpenVDS::VolumeDataChannelDescriptor::Default, 0.f, intScale, intOffset);
+
+  OpenVDS::MetadataContainer metadataContainer;
+
+  OpenVDS::IOManagerInMemory inMemoryIO(OpenVDS::InMemoryOpenOptions(), error);
+  IOManagerFacade *ioManager = new IOManagerFacade(&inMemoryIO);
+  auto &chunk = ioManager->m_data["Dimensions_012LOD0/1"];
+  chunk.error.code = 489;
+  chunk.error.string = "We don't let chunk 1 through";
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error), OpenVDS::Close);
+  ASSERT_TRUE(handle);
+
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
+  ASSERT_TRUE(layout);
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  ASSERT_TRUE(accessManager);
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  ASSERT_TRUE(pageAccessor);
+
+  int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
+
+  OpenVDS::VolumeDataChannelDescriptor::Format format = layout->GetChannelFormat(0);
+
+  for (int i = 0; i < chunkCount; i++)
+  {
+    OpenVDS::VolumeDataPage *page =  pageAccessor->CreatePage(i);
+    int pitch[OpenVDS::Dimensionality_Max];
+    void *buffer = page->GetWritableBuffer(pitch);
+    page->Release();
+  }
+  pageAccessor->Commit();
+  pageAccessor->SetMaxPages(0);
+  accessManager->DestroyVolumeDataPageAccessor(pageAccessor);
+
+  ASSERT_EQ(accessManager->UploadErrorCount(), 1);
+  const char *object;
+  int errorCode;
+  const char *errorString;
+  accessManager->GetCurrentUploadError(&object, &errorCode, &errorString);
+  ASSERT_EQ(errorCode, 489);
+  ASSERT_EQ(std::string(object), std::string("Dimensions_012LOD0/1"));
+}
+
+TEST(IOErrorHandlingUpload, ErrorHandlingLayerStatusHttpError)
+{
+  OpenVDS::Error error;
+  int negativeMargin = 4;
+  int positiveMargin = 4;
+  int brickSize2DMultiplier = 4;
+  auto lodLevels = OpenVDS::VolumeDataLayoutDescriptor::LODLevels_None;
+  auto layoutOptions = OpenVDS::VolumeDataLayoutDescriptor::Options_None;
+  OpenVDS::VolumeDataLayoutDescriptor layoutDescriptor(OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, negativeMargin, positiveMargin, brickSize2DMultiplier, lodLevels, layoutOptions);
+
+  std::vector<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors;
+  axisDescriptors.emplace_back(63, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, "ms", 0.0f, 4.f);
+  axisDescriptors.emplace_back(32, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE, "", 1932.f, 2536.f);
+  axisDescriptors.emplace_back(32, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,    "", 9985.f, 10369.f);
+
+  std::vector<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors;
+  float rangeMin = -0.1234f;
+  float rangeMax = 0.1234f;
+  float intScale;
+  float intOffset;
+  getScaleOffsetForFormat(rangeMin, rangeMax, true, OpenVDS::VolumeDataChannelDescriptor::Format_U32, intScale, intOffset);
+  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_U32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", rangeMin, rangeMax, OpenVDS::VolumeDataMapping::Direct, 1, OpenVDS::VolumeDataChannelDescriptor::Default, 0.f, intScale, intOffset);
+
+  OpenVDS::MetadataContainer metadataContainer;
+
+  OpenVDS::IOManagerInMemory inMemoryIO(OpenVDS::InMemoryOpenOptions(), error);
+  IOManagerFacade *ioManager = new IOManagerFacade(&inMemoryIO);
+  auto &chunk = ioManager->m_data["LayerStatus"];
+  chunk.error.code = 466;
+  chunk.error.string = "No Layerstatus";
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error), OpenVDS::Close);
+  ASSERT_TRUE(handle);
+
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
+  ASSERT_TRUE(layout);
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  ASSERT_TRUE(accessManager);
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  ASSERT_TRUE(pageAccessor);
+
+  int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
+
+  OpenVDS::VolumeDataChannelDescriptor::Format format = layout->GetChannelFormat(0);
+
+  for (int i = 0; i < chunkCount; i++)
+  {
+    OpenVDS::VolumeDataPage *page =  pageAccessor->CreatePage(i);
+    int pitch[OpenVDS::Dimensionality_Max];
+    void *buffer = page->GetWritableBuffer(pitch);
+    page->Release();
+  }
+  pageAccessor->Commit();
+  pageAccessor->SetMaxPages(0);
+  accessManager->DestroyVolumeDataPageAccessor(pageAccessor);
+
+  ASSERT_EQ(accessManager->UploadErrorCount(), 1);
+  const char *object;
+  int errorCode;
+  const char *errorString;
+  accessManager->GetCurrentUploadError(&object, &errorCode, &errorString);
+  ASSERT_EQ(errorCode, 466);
+  ASSERT_EQ(std::string(object), std::string("LayerStatus"));
+}
+
+TEST(IOErrorHandlingUpload, ErrorHandlingChunkMetadataHttpError)
+{
+  OpenVDS::Error error;
+  int negativeMargin = 4;
+  int positiveMargin = 4;
+  int brickSize2DMultiplier = 4;
+  auto lodLevels = OpenVDS::VolumeDataLayoutDescriptor::LODLevels_None;
+  auto layoutOptions = OpenVDS::VolumeDataLayoutDescriptor::Options_None;
+  OpenVDS::VolumeDataLayoutDescriptor layoutDescriptor(OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, negativeMargin, positiveMargin, brickSize2DMultiplier, lodLevels, layoutOptions);
+
+  std::vector<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors;
+  axisDescriptors.emplace_back(63, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, "ms", 0.0f, 4.f);
+  axisDescriptors.emplace_back(32, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE, "", 1932.f, 2536.f);
+  axisDescriptors.emplace_back(32, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,    "", 9985.f, 10369.f);
+
+  std::vector<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors;
+  float rangeMin = -0.1234f;
+  float rangeMax = 0.1234f;
+  float intScale;
+  float intOffset;
+  getScaleOffsetForFormat(rangeMin, rangeMax, true, OpenVDS::VolumeDataChannelDescriptor::Format_U32, intScale, intOffset);
+  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_U32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", rangeMin, rangeMax, OpenVDS::VolumeDataMapping::Direct, 1, OpenVDS::VolumeDataChannelDescriptor::Default, 0.f, intScale, intOffset);
+
+  OpenVDS::MetadataContainer metadataContainer;
+
+  OpenVDS::IOManagerInMemory inMemoryIO(OpenVDS::InMemoryOpenOptions(), error);
+  IOManagerFacade *ioManager = new IOManagerFacade(&inMemoryIO);
+  auto &chunk = ioManager->m_data["Dimensions_012LOD0/ChunkMetadata/0"];
+  chunk.error.code = 433;
+  chunk.error.string = "No metadata";
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error), OpenVDS::Close);
+  ASSERT_TRUE(handle);
+
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
+  ASSERT_TRUE(layout);
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  ASSERT_TRUE(accessManager);
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  ASSERT_TRUE(pageAccessor);
+
+  int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
+
+  OpenVDS::VolumeDataChannelDescriptor::Format format = layout->GetChannelFormat(0);
+
+  for (int i = 0; i < chunkCount; i++)
+  {
+    OpenVDS::VolumeDataPage *page =  pageAccessor->CreatePage(i);
+    int pitch[OpenVDS::Dimensionality_Max];
+    void *buffer = page->GetWritableBuffer(pitch);
+    page->Release();
+  }
+  pageAccessor->Commit();
+  pageAccessor->SetMaxPages(0);
+  accessManager->DestroyVolumeDataPageAccessor(pageAccessor);
+
+  ASSERT_EQ(accessManager->UploadErrorCount(), 1);
+  const char *object;
+  int errorCode;
+  const char *errorString;
+  accessManager->GetCurrentUploadError(&object, &errorCode, &errorString);
+  ASSERT_EQ(errorCode, 433);
+  ASSERT_EQ(std::string(object), std::string("Dimensions_012LOD0/ChunkMetadata/0"));
+}

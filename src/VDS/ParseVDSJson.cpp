@@ -1161,7 +1161,7 @@ bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDS& vds, Error& error)
   request->WaitForFinish();
   if (!request->IsSuccess(error) || volumedatalayout_json.empty())
   {
-    error.string = "S3 Error on downloading VolumeDataLayout object: " + error.string;
+    error.string = "Error on downloading VolumeDataLayout object: " + error.string;
     return false;
   }
   std::vector<uint8_t> layerstatus_json;
@@ -1170,7 +1170,7 @@ bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDS& vds, Error& error)
   request->WaitForFinish();
   if (!request->IsSuccess(error) || layerstatus_json.empty())
   {
-    error.string = "S3 Error on downloading LayerStatus object: " + error.string;
+    error.string = "Error on downloading LayerStatus object: " + error.string;
     return false;
   }
 
@@ -1203,7 +1203,7 @@ bool SerializeAndUploadVolumeDataLayout(VDS& vds, Error& error)
 
   if (!request->IsSuccess(error))
   {
-    error.string = "S3 Error on uploading VolumeDataLayout object: " + error.string;
+    error.string = "Error on uploading VolumeDataLayout object: " + error.string;
     return false;
   }
 
@@ -1220,7 +1220,7 @@ bool SerializeAndUploadLayerStatus(VDS& vds, Error& error)
 
   if (!request->IsSuccess(error))
   {
-    error.string = "S3 Error on uploading LayerStatus object: " + error.string;
+    error.string = "Error on uploading LayerStatus object: " + error.string;
     return false;
   }
 
