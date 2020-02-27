@@ -255,6 +255,7 @@ main(int argc, char *argv[])
     {
       percentage = new_percentage;
       fmt::print(stdout, "\33[2K\r {:3}% Done. ", percentage);
+      fflush(stdout);
     }
     int min[OpenVDS::Dimensionality_Max] = {},
         max[OpenVDS::Dimensionality_Max] = {};
@@ -335,10 +336,10 @@ main(int argc, char *argv[])
     }
     offset += activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize);
   }
-  fmt::print(stdout, "\33[2K\r 100% Done. ", percentage);
+  fmt::print(stdout, "\33[2K\r 100% Done.\n", percentage);
 
   double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
-  fmt::print("Elapsed time is {}.\n", elapsed / 1000);
+  //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 
   return EXIT_SUCCESS;
 }

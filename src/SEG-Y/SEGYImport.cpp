@@ -1261,11 +1261,17 @@ main(int argc, char* argv[])
 
   std::shared_ptr<OpenVDS::FileView> fileView;
 
+  int percentage = -1;
+  fmt::print("\nImporting into PersistentID: {}\n\n", persistentID);
   for (int64_t chunk = 0; chunk < amplitudeAccessor->GetChunkCount(); chunk++)
   {
-    int done = int(double(chunk) / amplitudeAccessor->GetChunkCount() * 100);
-    fmt::print("\r{:3d}% done.", done);
-    fflush(stdout);
+    int new_percentage = int(double(chunk) / amplitudeAccessor->GetChunkCount() * 100);
+    if (percentage != new_percentage)
+    {
+      percentage = new_percentage;
+      fmt::print(stdout, "\33[2K\r {:3}% Done. ", percentage);
+      fflush(stdout);
+    }
     int32_t errorCount = accessManager->UploadErrorCount();
     for (int i = 0; i < errorCount; i++)
     {
@@ -1396,7 +1402,7 @@ main(int argc, char* argv[])
   fileView.reset();
 
   double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
-  fmt::print("Elapsed time is {}.\n", elapsed / 1000);
+  //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 
   return EXIT_SUCCESS;
 }
