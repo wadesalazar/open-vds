@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
+from pathlib import Path
+
+if sys.version_info[0] < 3:
+    raise Exception("OpenVDS only supports Python 3")
 
 try:
     from skbuild import setup
@@ -11,6 +15,7 @@ except ImportError:
     print('  python -m pip install scikit-build')
     sys.exit(1)
 
+python_root_path = "-DPython3_ROOT_DIR={}".format(Path(sys.executable).parent.absolute().as_posix())
 setup(
     name="openvds",
     version="0.1",
@@ -18,5 +23,6 @@ setup(
     author='The Open Group / Bluware, Inc.',
     license="Apache License, Version 2.0",
     packages=['openvds'],
-    package_dir={'': 'python'}
+    package_dir={'': 'python'},
+    cmake_args=[python_root_path]
 )

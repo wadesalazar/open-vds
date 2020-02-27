@@ -23,8 +23,21 @@ Licensed under [**Apache 2.0**](https://gitlab.opengroup.org/osdu/open-vds/blob/
 
 ### Building
 By default OpenVDS builds the Python 3 bindings. To install the required dependencies go into ${OpenVDSFolder}/python folder and run:
-`$ pip3 install -r requirements-dev.txt`
+`$ python -m pip install -r requirements-dev.txt`
 To disable building the Python 3 bindings use the -DBUILD_PYTHON=OFF cmake argument.
+
+To install the python bindings as a site-package run:
+`$ python setup.py install`
+
+This will use the python executable as the target python distribution.
+
+When building using cmake the cmake variable Python3_ROOT_DIR can be used to
+specify a specific python installation.
+
+Otherwise the cmake find_package
+python rules will be used. Since CMake version 3.13 Python_FIND_REGISTRY can be
+used to modify search order on windows. Ie. to disable searching the registry
+pass the cmake option: -DPython_FIND_REGISTRY=NEVER.
 
 #### Linux
 Make a build directory in the OpenVDS folder and change current directory to the created folder.
