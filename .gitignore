@@ -15,4 +15,5 @@ python/tools/WrapperReport.txt
 /.pytest_cache
 /_skbuild
 /**/aws_sdk*.log
+/**/.ipynb_checkpoints
 /python/openvds.egg-info
