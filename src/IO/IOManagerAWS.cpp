@@ -25,9 +25,15 @@
 #include <aws/s3/model/BucketLocationConstraint.h>
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/PutObjectRequest.h>
+#include <aws/core/utils/memory/AWSMemory.h>
 #include <aws/core/utils/memory/stl/AWSString.h>
 #include <aws/core/utils/logging/DefaultLogSystem.h>
 #include <aws/core/utils/logging/AWSLogging.h>
+#include <aws/core/auth/AWSCredentialsProvider.h>
+#include <aws/core/auth/AWSCredentialsProviderChain.h>
+#include <aws/core/auth/AWSCredentials.h>
+#include <aws/sts/STSClient.h>
+#include <aws/sts/model/AssumeRoleRequest.h>
 #include <mutex>
 #include <functional>
 
@@ -65,7 +71,7 @@ namespace OpenVDS
     }
   }
 
-  static void deinitizlieAWSSDK()
+  static void deinitializeAWSSDK()
   {
     std::unique_lock<std::mutex> lock(initialize_sdk_mutex);
     initialize_sdk--;
@@ -281,18 +287,65 @@ namespace OpenVDS
       m_objectId.resize(m_objectId.size() - 1);
     initializeAWSSDK();
 
+    Aws::String profileName = "";
+
+    Aws::Auth::AWSCredentials
+      credentials;
+
+    // If the default profile uses a role, we need to resolve the role ourselves
+    if(profileName.empty() && !Aws::Config::GetCachedConfigProfile(Aws::Auth::GetConfigProfileName()).GetRoleArn().empty())
+    {
+      profileName = Aws::Auth::GetConfigProfileName();
+    }
+
+    // If there is no profile name set we use the default credentials provider chain
+    if(profileName.empty())
+    {
+      Aws::Auth::DefaultAWSCredentialsProviderChain provider;
+      credentials = provider.GetAWSCredentials();
+    }
+    else
+    {
+      auto profile = Aws::Config::GetCachedConfigProfile(profileName);
+
+      // If the profile is using roles we need to resolve the role ourselves as the AWS C++ SDK doesn't do this correctly
+      if(!profile.GetRoleArn().empty())
+      {
+        auto sourceProfileName = profile.GetSourceProfile();
+        Aws::Auth::ProfileConfigFileAWSCredentialsProvider sourceCredentialsProvider(sourceProfileName.c_str());
+        auto sourceProfileCredentials = sourceCredentialsProvider.GetAWSCredentials();
+
+        Aws::STS::Model::AssumeRoleRequest request;
+        request.SetRoleArn(profile.GetRoleArn());
+        request.SetRoleSessionName("OpenVDS");
+
+        Aws::STS::STSClient stsClient(sourceProfileCredentials);
+        auto result = stsClient.AssumeRole(request);
+        if (result.IsSuccess())
+        {
+          auto stsCredentials = result.GetResult().GetCredentials();
+          credentials = Aws::Auth::AWSCredentials(stsCredentials.GetAccessKeyId(), stsCredentials.GetSecretAccessKey(), stsCredentials.GetSessionToken(), stsCredentials.GetExpiration());
+        }
+      }
+      else
+      {
+        Aws::Auth::ProfileConfigFileAWSCredentialsProvider credentialsProvider(profileName.c_str());
+        credentials = credentialsProvider.GetAWSCredentials();
+      }
+    }
+
     Aws::Client::ClientConfiguration clientConfig;
     clientConfig.scheme = Aws::Http::Scheme::HTTPS;
     clientConfig.region = m_region.c_str();
     clientConfig.connectTimeoutMs = 3000;
     clientConfig.requestTimeoutMs = 6000;
 
-    m_s3Client.reset(new Aws::S3::S3Client(clientConfig));
+    m_s3Client.reset(new Aws::S3::S3Client(credentials, clientConfig));
   }
 
   IOManagerAWS::~IOManagerAWS()
   {
-    deinitizlieAWSSDK();
+    deinitializeAWSSDK();
   }
 
   std::shared_ptr<Request> IOManagerAWS::Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)

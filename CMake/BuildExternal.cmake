@@ -56,6 +56,8 @@ function(BuildExternal name version depends source_dir install_libs_release runt
     PREFIX ${PROJECT_BINARY_DIR}/${name}_${version}
     SOURCE_DIR ${source_dir}
     BUILD_IN_SOURCE OFF
+    USES_TERMINAL_DOWNLOAD ON
+    USES_TERMINAL_BUILD ON
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
     CMAKE_ARGS ${cmake_arg_complete}
