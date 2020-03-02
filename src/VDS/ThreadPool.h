@@ -30,9 +30,9 @@ class ThreadPool
 {
 public:
   ThreadPool(size_t);
-  template <class F, class... Args>
-  auto Enqueue(F&& f, Args&& ... args)
-    ->std::future<typename std::result_of<F(Args...)>::type>;
+  template <class F>
+  auto Enqueue(F&& f)
+    ->std::future<typename std::result_of<F()>::type>;
   ~ThreadPool();
 
 private:
@@ -73,14 +73,13 @@ inline ThreadPool::ThreadPool(size_t threads)
       });
 }
 
-template <class F, class... Args>
-auto ThreadPool::Enqueue(F && f, Args && ... args)
--> std::future<typename std::result_of<F(Args...)>::type>
+template <class F>
+auto ThreadPool::Enqueue(F && f)
+-> std::future<typename std::result_of<F()>::type>
 {
-  using return_type = typename std::result_of<F(Args...)>::type;
+  using return_type = typename std::result_of<F()>::type;
 
-  auto task = std::make_shared<std::packaged_task<return_type()>>(
-    std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+  auto task = std::make_shared<std::packaged_task<return_type()>>(std::forward<F>(f));
 
   std::future<return_type> res = task->get_future();
   {
