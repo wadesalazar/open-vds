@@ -40,27 +40,27 @@ static std::string ErrorToString(int error)
   return std::string(strerror(error));
 }
 
-static void SetIoError(int error, IOError &io_error)
+static void SetIoError(int error, Error &io_error)
 {
   io_error.code = error;
   io_error.string = ErrorToString(error);
 }
 
-static void SetIoError(int error, std::string &error_string_prefix, IOError &io_error)
+static void SetIoError(int error, std::string &error_string_prefix, Error &io_error)
 {
   io_error.code = error;
   io_error.string = error_string_prefix + ErrorToString(error);
 }
 
 template<size_t N>
-static void SetIoError(int error, const char (&error_string_prefix)[N], IOError &io_error)
+static void SetIoError(int error, const char (&error_string_prefix)[N], Error &io_error)
 {
   io_error.code = error;
   io_error.string = std::string(error_string_prefix, N) + ErrorToString(error);
 }
 
 template<size_t N>
-static void SetIoError(const char (&error_string_prefix)[N], IOError &io_error)
+static void SetIoError(const char (&error_string_prefix)[N], Error &io_error)
 {
   io_error.code = -1;
   io_error.string = std::string(error_string_prefix, N);
@@ -112,7 +112,7 @@ private:
   static size_t         s_nPageSize;
 
 public:
-	SystemFileView(SystemFileMappingObject *pFileMappingObject, int64_t nPos, int64_t nSize, bool isPopulate, IOError &error)
+  SystemFileView(SystemFileMappingObject *pFileMappingObject, int64_t nPos, int64_t nSize, bool isPopulate, Error &error)
 		: m_pxBaseAddress(NULL)
   {
     (void)&m_cSignalHandlerInstaller;
@@ -168,7 +168,7 @@ public:
     }
   }
 
-  bool Prefetch(const void *pData, int64_t nSize, IOError &error) const override
+  bool Prefetch(const void *pData, int64_t nSize, Error &error) const override
   {
     int64_t nDelta = (int64_t)((uintptr_t)pData % s_nPageSize);
 
@@ -192,7 +192,7 @@ bool File::Exists(const std::string& filename)
   return (lstat(filename.c_str(), &buf) == 0) && S_ISREG(buf.st_mode);
 }
 
-bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError &error)
+bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, Error &error)
 {
   assert(!IsOpen());
   assert(!isDestroyExisting || isCreate);
@@ -232,7 +232,7 @@ void File::Close()
   //return isOK;
 }
 
-int64_t File::Size(IOError& error) const
+int64_t File::Size(Error& error) const
 {
   int fd  = (int)(intptr_t)_pxPlatformHandle;
   int64_t nLength = lseek(fd, 0, SEEK_END);
@@ -245,7 +245,7 @@ int64_t File::Size(IOError& error) const
   return nLength;
 }
 
-bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const
+bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, Error& error) const
 {
 	assert(nOffset >= 0);
 	int fd    = (int)(intptr_t)_pxPlatformHandle;
@@ -275,7 +275,7 @@ bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) 
 	return true;
 }
 
-bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, IOError & error)
+bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & error)
 {
   assert(nOffset >= 0);
 
@@ -322,7 +322,7 @@ bool File::Flush()
 #endif
 }
 
-FileView *File::CreateFileView(int64_t nPos, int64_t nSize, bool isPopulate, IOError &error)
+FileView *File::CreateFileView(int64_t nPos, int64_t nSize, bool isPopulate, Error &error)
 {
   if(!m_pFileMappingObject)
   {
@@ -345,7 +345,7 @@ SystemFileView_SetSigBusJmpEnv(sigjmp_buf* pSigjmpEnv)
   SystemFileView_pSigjmpEnv = pSigjmpEnv;
 }
 
-bool FileView::SystemFileMappingObject::Open(SystemFileMappingObject** ppcFileMappingObject, File& file, IOError& error)
+bool FileView::SystemFileMappingObject::Open(SystemFileMappingObject** ppcFileMappingObject, File& file, Error& error)
 {
   assert(ppcFileMappingObject && !*ppcFileMappingObject);
   int iFile = (int)(intptr_t)file.Handle();

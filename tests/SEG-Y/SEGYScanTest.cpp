@@ -27,7 +27,7 @@ TEST(SEGYScanTest, scan)
   OpenVDS::File
     file;
 
-  OpenVDS::IOError
+  OpenVDS::Error
     error;
 
   std::string

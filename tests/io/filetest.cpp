@@ -62,7 +62,7 @@ struct Offset
 
 static int TestFileView(OpenVDS::File &file, const std::vector<uint32_t> &rand_data, Offset (&offsets)[128])
 {
-  OpenVDS::IOError error;
+  OpenVDS::Error error;
   int result = 0;
   OpenVDS::FileView *fileview = file.CreateFileView(0, DATA_SIZE * sizeof(*rand_data.data()), true, error);
   if (!fileview)
@@ -118,7 +118,7 @@ TEST(IOTests, FileIO)
     offset.size = std::min(uint32_t(ArraySize(rand_data)) - offset.offset, uint32_t(next_rand % 4096));
   }
 
-  OpenVDS::IOError error;
+  OpenVDS::Error error;
   std::string filename("test.txt");
   {
     OpenVDS::File file;
@@ -158,7 +158,7 @@ TEST(IOTests, FileIO)
   ThreadPool thread_pool(32);
   {
     OpenVDS::File file;
-    OpenVDS::IOError error;
+    OpenVDS::Error error;
     if (!file.Open("test_multi.txt", true, true, true, error))
     {
       fprintf(stderr, "Could not open file for multi %s\n", error.string.c_str());
@@ -177,14 +177,14 @@ TEST(IOTests, FileIO)
       free(empty);
     }
 
-    std::vector<std::future<OpenVDS::IOError>> results;
+    std::vector<std::future<OpenVDS::Error>> results;
     results.reserve(ArraySize(offsets));
 
     for (const auto& offset : offsets)
     {
       results.push_back(thread_pool.enqueue([&file, &rand_data](const Offset & offset)
         {
-          OpenVDS::IOError error;
+          OpenVDS::Error error;
           file.Write(&rand_data[offset.offset], offset.offset * sizeof(*rand_data.data()), offset.size * sizeof(*rand_data.data()), error);
           return error;
         }, offset));
@@ -206,7 +206,7 @@ TEST(IOTests, FileIO)
     {
       results.push_back(thread_pool.enqueue([&file, &rand_data](const Offset & offset)
         {
-          OpenVDS::IOError error;
+          OpenVDS::Error error;
           std::vector<uint8_t> vec;
           vec.resize(offset.size * sizeof(*rand_data.data()));
           if (!file.Read(vec.data(), offset.offset * sizeof(*rand_data.data()), offset.size * sizeof(*rand_data.data()), error))

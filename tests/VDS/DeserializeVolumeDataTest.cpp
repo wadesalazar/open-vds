@@ -132,7 +132,7 @@ static void Stats(const OpenVDS::DataBlock &aDataBlock, const std::vector<uint8_
 static std::vector<uint8_t> LoadTestFile(const std::string &file)
 {
     OpenVDS::File chunkFile;
-    OpenVDS::IOError error;
+    OpenVDS::Error error;
     chunkFile.Open(TEST_DATA_PATH + file, false, false, false, error);
     EXPECT_EQ(error.code, 0);
 

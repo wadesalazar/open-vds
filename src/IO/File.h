@@ -22,17 +22,12 @@
 #include <vector>
 
 #include <OpenVDS/openvds_export.h>
+#include <OpenVDS/OpenVDS.h>
 
 namespace OpenVDS
 {
 
 class File;
-
-struct IOError
-{
-  int code = 0;
-  std::string string;
-};
 
 class FileView
 {
@@ -56,7 +51,7 @@ public:
   class SystemFileMappingObject
   {
   public:
-    static bool Open(SystemFileMappingObject** ppcFileMappingObject, File &file, IOError &error);
+    static bool Open(SystemFileMappingObject** ppcFileMappingObject, File &file, Error &error);
     static void Close(SystemFileMappingObject** pcFileMappingObject);
   };
 
@@ -79,7 +74,7 @@ public:
   }
 
   OPENVDS_EXPORT
-  virtual bool Prefetch(const void *pData, int64_t nSize, IOError &error) const = 0;
+  virtual bool Prefetch(const void *pData, int64_t nSize, Error &error) const = 0;
 
   OPENVDS_EXPORT
   static FileView* AddReference(FileView* pcFileView);
@@ -98,20 +93,20 @@ public:
   OPENVDS_EXPORT ~File();
 
   OPENVDS_EXPORT static bool Exists(const std::string& filename);
-  OPENVDS_EXPORT bool Open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError& error);
+  OPENVDS_EXPORT bool Open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, Error& error);
   OPENVDS_EXPORT void Close();
 
-  OPENVDS_EXPORT int64_t Size(IOError& error) const;
+  OPENVDS_EXPORT int64_t Size(Error& error) const;
 
-  OPENVDS_EXPORT bool Read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const;
-  OPENVDS_EXPORT bool Write(const void* pxData, int64_t nOffset, int32_t nLength, IOError& error);
+  OPENVDS_EXPORT bool Read(void* pxData, int64_t nOffset, int32_t nLength, Error& error) const;
+  OPENVDS_EXPORT bool Write(const void* pxData, int64_t nOffset, int32_t nLength, Error& error);
 
   OPENVDS_EXPORT bool Flush();
   OPENVDS_EXPORT bool IsWriteable() const;
   OPENVDS_EXPORT bool IsOpen() const;
   OPENVDS_EXPORT std::string FileName() const;
 
-  OPENVDS_EXPORT FileView *CreateFileView(int64_t iPos, int64_t nSize, bool isPopulate, IOError &error);
+  OPENVDS_EXPORT FileView *CreateFileView(int64_t iPos, int64_t nSize, bool isPopulate, Error &error);
 
   OPENVDS_EXPORT void *Handle() const;
 private:

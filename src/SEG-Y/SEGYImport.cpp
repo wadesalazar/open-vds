@@ -251,7 +251,7 @@ HeaderFieldFromJson(Json::Value const& jsonHeaderField)
 bool
 ParseHeaderFormatFile(OpenVDS::File const& file, std::map<std::string, SEGY::HeaderField>& traceHeaderFields, SEGY::Endianness& headerEndianness)
 {
-  OpenVDS::IOError error;
+  OpenVDS::Error error;
 
   int64_t fileSize = file.Size(error);
 
@@ -377,7 +377,7 @@ findRepresentativeSegment(SEGYFileInfo const& fileInfo)
 }
 
 bool
-analyzeSegment(OpenVDS::File const& file, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, OpenVDS::IOError& error)
+analyzeSegment(OpenVDS::File const& file, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, OpenVDS::Error& error)
 {
   int traceByteSize = fileInfo.TraceByteSize();
 
@@ -482,7 +482,7 @@ analyzeSegment(OpenVDS::File const& file, SEGYFileInfo const& fileInfo, SEGYSegm
 }
 
 bool
-createSEGYHeadersMetadata(OpenVDS::File const& file, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::IOError& error)
+createSEGYHeadersMetadata(OpenVDS::File const& file, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error& error)
 {
   std::vector<uint8_t> textHeader(SEGY::TextualFileHeaderSize);
   std::vector<uint8_t> binaryHeader(SEGY::BinaryFileHeaderSize);
@@ -583,7 +583,7 @@ createSurveyCoordinateSystemMetadata(SEGYFileInfo const& fileInfo, OpenVDS::Meta
 bool
 parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
 {
-  OpenVDS::IOError error;
+  OpenVDS::Error error;
 
   int64_t fileSize = file.Size(error);
 
@@ -732,7 +732,7 @@ class FileViewManager
 public:
   FileViewManager(OpenVDS::File& file) : m_file(file) {}
 
-  std::shared_ptr<OpenVDS::FileView> acquireFileView(int64_t pos, int64_t size, bool isPopulate, OpenVDS::IOError& error)
+  std::shared_ptr<OpenVDS::FileView> acquireFileView(int64_t pos, int64_t size, bool isPopulate, OpenVDS::Error& error)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -989,7 +989,7 @@ main(int argc, char* argv[])
     OpenVDS::File
       headerFormatFile;
 
-    OpenVDS::IOError
+    OpenVDS::Error
       error;
 
     headerFormatFile.Open(headerFormatFileName.c_str(), false, false, false, error);
@@ -1032,7 +1032,7 @@ main(int argc, char* argv[])
   OpenVDS::File
     file;
 
-  OpenVDS::IOError
+  OpenVDS::Error
     error;
 
   file.Open(fileNames[0].c_str(), false, false, false, error);
@@ -1088,7 +1088,7 @@ main(int argc, char* argv[])
         OpenVDS::File
           fileInfoFile;
 
-        OpenVDS::IOError
+        OpenVDS::Error
           error;
 
         fileInfoFile.Open(fileInfoFileName.c_str(), true, false, true, error);
@@ -1115,7 +1115,7 @@ main(int argc, char* argv[])
     OpenVDS::File
       fileInfoFile;
 
-    OpenVDS::IOError
+    OpenVDS::Error
       error;
 
     fileInfoFile.Open(fileInfoFileName.c_str(), false, false, false, error);

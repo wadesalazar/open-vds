@@ -109,7 +109,7 @@ SEGYFileInfo::Scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
   m_primaryKey = primaryKeyHeaderField;
   m_secondaryKey = secondaryKeyHeaderField;
 
-  OpenVDS::IOError error;
+  OpenVDS::Error error;
 
   file.Read(textualFileHeader,                          0, TextualFileHeaderSize, error) &&
   file.Read(binaryFileHeader, TextualFileHeaderSize, BinaryFileHeaderSize,  error);

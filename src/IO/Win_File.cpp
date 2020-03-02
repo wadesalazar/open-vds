@@ -52,20 +52,20 @@ static std::string ErrorToString(DWORD error)
   return ret;
 }
 
-static void SetIoError(DWORD error, IOError &io_error)
+static void SetIoError(DWORD error, Error &io_error)
 {
   io_error.code = error;
   io_error.string = ErrorToString(error);
 }
 
 template<size_t N>
-void SetIoError(DWORD error, const char (&error_string_prefix)[N], IOError &io_error)
+void SetIoError(DWORD error, const char (&error_string_prefix)[N], Error &io_error)
 {
   io_error.code = error;
   io_error.string = std::string(error_string_prefix, N) + ErrorToString(error);
 }
 
-bool FileView::SystemFileMappingObject::Open(SystemFileMappingObject** ppcFileMappingObject, File& file, IOError& error)
+bool FileView::SystemFileMappingObject::Open(SystemFileMappingObject** ppcFileMappingObject, File& file, Error& error)
 {
   assert(ppcFileMappingObject && !*ppcFileMappingObject);
 
@@ -130,7 +130,7 @@ class SystemFileView : public FileView
   }
 
 public:
-  SystemFileView(SystemFileMappingObject* pFileMappingObject, int64_t nPos, int64_t nSize, bool isPopulate, IOError &error)
+  SystemFileView(SystemFileMappingObject* pFileMappingObject, int64_t nPos, int64_t nSize, bool isPopulate, Error &error)
   {
     int64_t nDelta = nPos % s_dwPageSize;
 
@@ -174,7 +174,7 @@ public:
     }
   }
 
-  bool Prefetch(const void* pData, int64_t nSize, IOError &error ) const override
+  bool Prefetch(const void* pData, int64_t nSize, Error &error ) const override
   {
     if (!s_pfPrefetchVirtualMemory)
     {
@@ -218,7 +218,7 @@ bool File::Exists(const std::string& filename)
   return (result != INVALID_FILE_ATTRIBUTES) && ((result & FILE_ATTRIBUTE_DIRECTORY) == 0);
 }
 
-bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, IOError& error)
+bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, Error& error)
 {
   assert(!IsOpen());
   assert(!isDestroyExisting || isCreate);
@@ -264,7 +264,7 @@ void File::Close()
   _cFileName.clear();
 }
 
-int64_t File::Size(IOError& error) const
+int64_t File::Size(Error& error) const
 {
   LARGE_INTEGER
     li;
@@ -277,7 +277,7 @@ int64_t File::Size(IOError& error) const
   return int64_t(li.QuadPart);
 }
 
-bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) const
+bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, Error& error) const
 {
   assert(nOffset >= 0);
 
@@ -326,7 +326,7 @@ bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, IOError& error) 
   return isOK;
 }
 
-bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, IOError & error)
+bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & error)
 {
   assert(nOffset >= 0);
 
@@ -391,7 +391,7 @@ bool File::Flush()
   return isOK;
 }
 
-FileView *File::CreateFileView(int64_t nPos, int64_t nSize, bool isPopulate, IOError &error)
+FileView *File::CreateFileView(int64_t nPos, int64_t nSize, bool isPopulate, Error &error)
 {
   if(!m_pFileMappingObject)
   {

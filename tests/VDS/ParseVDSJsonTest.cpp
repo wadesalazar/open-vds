@@ -46,7 +46,7 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
   {
     OpenVDS::File volumeDataLayoutFile;
 
-    OpenVDS::IOError error;
+    OpenVDS::Error error;
 
     volumeDataLayoutFile.Open(TEST_DATA_PATH "/VolumeDataLayout.json", false, false, false, error);
     EXPECT_EQ(error.code, 0);
@@ -67,7 +67,7 @@ GTEST_TEST(VDS_integration, ParseVolumeDataLayoutAndLayerStatus)
   {
     OpenVDS::File layerStatusFile;
 
-    OpenVDS::IOError error;
+    OpenVDS::Error error;
 
     layerStatusFile.Open(TEST_DATA_PATH "/LayerStatus.json", false, false, false, error);
     EXPECT_EQ(error.code, 0);

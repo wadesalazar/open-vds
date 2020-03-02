@@ -129,7 +129,7 @@ main(int argc, char *argv[])
   OpenVDS::File
     file;
 
-  OpenVDS::IOError
+  OpenVDS::Error
     error;
 
   file.Open(fileName.c_str(), true, true, true, error);
