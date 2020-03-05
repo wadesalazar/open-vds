@@ -56,12 +56,15 @@ target_include_directories(core
 )
 
 target_link_libraries(core PRIVATE openvds)
-
-get_property(runtime_3rdparty_release GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_RELEASE)
-get_property(runtime_3rdparty_debug   GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_DEBUG)
+set_target_properties(core PROPERTIES INSTALL_RPATH "\\$\{ORIGIN\}/../lib")
 
 install(TARGETS core LIBRARY DESTINATION python/openvds)
 install(FILES ${pythonsources} DESTINATION python/openvds)
-install(FILES ${runtime_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION python/openvds)
-install(FILES ${runtime_3rdparty_debug} CONFIGURATIONS Debug DESTINATION python/openvds)
-install(FILES $<TARGET_FILE:openvds> DESTINATION python/openvds)
+
+if (WIN32)
+  get_property(runtime_3rdparty_release GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_RELEASE)
+  get_property(runtime_3rdparty_debug   GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_DEBUG)
+  install(FILES ${runtime_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION python/openvds)
+  install(FILES ${runtime_3rdparty_debug} CONFIGURATIONS Debug DESTINATION python/openvds)
+  install(FILES $<TARGET_FILE:openvds> DESTINATION python/openvds)
+endif()

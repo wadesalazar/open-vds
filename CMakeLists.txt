@@ -49,6 +49,7 @@ option(BUILD_SHARED_LIBS "Build OpenVDS as a shared library" ON)
 option(BUILD_EXAMPLES "Build OpenVDS example projects" ON)
 option(BUILD_TESTS "Build OpenVDS tests" ON)
 option(BUILD_DOCS  "Build OpenVDS docs" OFF)
+option(ENABLE_RUNPATH_ORIGIN "On Linux make the install have ORIGIN as RUNPATH" ON)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)

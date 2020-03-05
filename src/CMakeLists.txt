@@ -179,6 +179,12 @@ set_target_properties(openvds
   PUBLIC_HEADER "${EXPORTED_HEADER_FILES}"
   #OUTPUT_NAME ${PROJECT_NAME}
 )
+if (ENABLE_RUNPATH_ORIGIN)
+set_target_properties(openvds
+  PROPERTIES
+  INSTALL_RPATH  "\\$\{ORIGIN\}"
+)
+endif()
 target_include_directories(openvds
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -213,6 +219,11 @@ install(
 
 install(FILES ${runtime_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
 install(FILES ${runtime_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
+
+if (UNIX)
+  install(FILES ${link_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR})
+  install(FILES ${link_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR})
+endif()
 
 export(
     TARGETS
