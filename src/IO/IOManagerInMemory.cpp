@@ -1,5 +1,7 @@
 #include "IOManagerInMemory.h"
 
+#include <fmt/format.h>
+
 namespace OpenVDS
 {
 
@@ -55,6 +57,22 @@ IOManagerInMemory::IOManagerInMemory(const InMemoryOpenOptions &openOptions, Err
 IOManagerInMemory::~IOManagerInMemory()
 {
 
+}
+
+HeadInfo IOManagerInMemory::Head(const std::string &objectName, Error &error, const IORange& range)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  auto it = m_data.find(objectName);
+  HeadInfo ret;
+  if (it == m_data.end())
+  {
+    error.code = -2;
+    error.string = fmt::format("Object {} not found\n", objectName);
+    ret.contentLength = 0;
+    return ret;
+  }
+  ret.contentLength = it->second.data.size();
+  return ret;
 }
 
 std::shared_ptr<OpenVDS::Request> IOManagerInMemory::Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)

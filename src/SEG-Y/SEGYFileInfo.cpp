@@ -19,6 +19,7 @@
 
 #include "IO/File.h"
 #include "SEGYFileInfo.h"
+#include "DataProvider.h"
 
 #include <iostream>
 #include <algorithm>
@@ -100,7 +101,7 @@ SEGYFileInfo::StaticGetUniqueID()
 }
 
 bool
-SEGYFileInfo::Scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeaderField, HeaderField const &secondaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
+SEGYFileInfo::Scan(DataProvider &dataProvider, HeaderField const &primaryKeyHeaderField, HeaderField const &secondaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
 {
   char textualFileHeader[TextualFileHeaderSize];
   char binaryFileHeader[BinaryFileHeaderSize];
@@ -111,8 +112,8 @@ SEGYFileInfo::Scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
 
   OpenVDS::Error error;
 
-  file.Read(textualFileHeader,                          0, TextualFileHeaderSize, error) &&
-  file.Read(binaryFileHeader, TextualFileHeaderSize, BinaryFileHeaderSize,  error);
+  dataProvider.Read(textualFileHeader,                          0, TextualFileHeaderSize, error) &&
+  dataProvider.Read(binaryFileHeader, TextualFileHeaderSize, BinaryFileHeaderSize,  error);
 
   if(error.code != 0)
   {
@@ -121,7 +122,7 @@ SEGYFileInfo::Scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
 
   m_dataSampleFormatCode = BinaryHeader::DataSampleFormatCode(ReadFieldFromHeader(binaryFileHeader, BinaryHeader::DataSampleFormatCodeHeaderField, m_headerEndianness));
 
-  int64_t fileSize = file.Size(error);
+  int64_t fileSize = dataProvider.Size(error);
 
   if(error.code != 0)
   {
@@ -134,7 +135,7 @@ SEGYFileInfo::Scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
   }
 
   // Read first trace header
-  file.Read(traceHeader, TextualFileHeaderSize + BinaryFileHeaderSize, TraceHeaderSize, error);
+  dataProvider.Read(traceHeader, TextualFileHeaderSize + BinaryFileHeaderSize, TraceHeaderSize, error);
 
   if(error.code != 0)
   {
@@ -188,7 +189,7 @@ SEGYFileInfo::Scan(OpenVDS::File const &file, HeaderField const &primaryKeyHeade
 
   while(segmentInfo.m_traceStop != lastTrace)
   {
-    file.Read(traceHeader, TextualFileHeaderSize + BinaryFileHeaderSize + trace * TraceByteSize(), TraceHeaderSize, error);
+    dataProvider.Read(traceHeader, TextualFileHeaderSize + BinaryFileHeaderSize + trace * TraceByteSize(), TraceHeaderSize, error);
 
     if(error.code != 0)
     {

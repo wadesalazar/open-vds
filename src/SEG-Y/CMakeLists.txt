@@ -4,8 +4,9 @@ add_executable(SEGYImport
     SEGY.h
     SEGY.cpp
     SEGYFileInfo.h
-  	SEGYFileInfo.cpp
+    SEGYFileInfo.cpp
     SEGYImport.cpp
+    DataProvider.h
     )
 
 add_executable(SEGYExport

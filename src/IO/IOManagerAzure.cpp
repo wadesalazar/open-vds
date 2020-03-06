@@ -307,6 +307,36 @@ IOManagerAzure::~IOManagerAzure()
 {
 }
 
+HeadInfo IOManagerAzure::Head(const std::string &objectName, Error &error, const IORange& range)
+{
+  azure::storage::blob_request_options local_options;
+  local_options.set_parallelism_factor(m_options.parallelism_factor()); //example: (4)
+  local_options.set_maximum_execution_time(m_options.maximum_execution_time()); //example: (std::chrono::milliseconds(10000));
+  auto blob = m_container.get_block_blob_reference(convertToUtilString(objectName));
+
+  HeadInfo ret;
+
+  try
+  {
+    blob.download_attributes();
+    ret.contentLength = blob.properties().size();
+  }
+  catch (azure::storage::storage_exception & e)
+  {
+    std::string code = convertFromUtilString(e.result().extended_error().code());
+    char *endptr = &code[0] + code.size();
+    int codeint = strtol(code.c_str(), &endptr, 10);
+    if (endptr <= &code[0])
+      codeint = -1;
+    error.code = codeint;
+    error.string = convertFromUtilString(e.result().extended_error().message());
+    return {};
+  }
+  assert(false);
+
+  return ret;
+}
+
 std::shared_ptr<Request> IOManagerAzure::Download(const std::string requestName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
 {
   std::shared_ptr<DownloadRequestAzure> azureRequest = std::make_shared<DownloadRequestAzure>(requestName, handler);

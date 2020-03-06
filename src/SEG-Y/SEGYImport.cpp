@@ -18,6 +18,7 @@
 #include "SEGYFileInfo.h"
 #include "IO/File.h"
 #include "VDS/Hash.h"
+#include "DataProvider.h"
 
 #include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/KnownMetadata.h>
@@ -40,6 +41,22 @@
 #include <fmt/format.h>
 
 #include <chrono>
+
+static DataProvider createDataProviderFromFile(const std::string &filename, OpenVDS::Error &error)
+{
+  std::unique_ptr<OpenVDS::File> file(new OpenVDS::File());
+  if (!file->Open(filename, false, false, false, error))
+    return DataProvider((OpenVDS::File *)nullptr);
+  return DataProvider(file.release());
+}
+
+static DataProvider createDataProviderFromOpenOptions(const OpenVDS::OpenOptions &openoptions, const std::string &objectId, OpenVDS::Error &error)
+{
+  std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(openoptions, error));
+  if (error.code)
+    return DataProvider((OpenVDS::IOManager *)nullptr, "");
+  return DataProvider(ioManager.release(), objectId);
+}
 
 Json::Value
 SerializeSEGYBinInfo(SEGYBinInfo const& binInfo)
@@ -377,7 +394,7 @@ findRepresentativeSegment(SEGYFileInfo const& fileInfo)
 }
 
 bool
-analyzeSegment(OpenVDS::File const& file, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, OpenVDS::Error& error)
+analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, OpenVDS::Error& error)
 {
   int traceByteSize = fileInfo.TraceByteSize();
 
@@ -387,7 +404,7 @@ analyzeSegment(OpenVDS::File const& file, SEGYFileInfo const& fileInfo, SEGYSegm
 
   std::unique_ptr<char[]> buffer(new char[(segmentInfo.m_traceStop - segmentInfo.m_traceStart) * traceByteSize]);
 
-  file.Read(buffer.get(), offset, traceCount * traceByteSize, error);
+  dataProvider.Read(buffer.get(), offset, traceCount * traceByteSize, error);
 
   if (error.code != 0)
   {
@@ -482,14 +499,14 @@ analyzeSegment(OpenVDS::File const& file, SEGYFileInfo const& fileInfo, SEGYSegm
 }
 
 bool
-createSEGYHeadersMetadata(OpenVDS::File const& file, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error& error)
+createSEGYHeadersMetadata(DataProvider &dataProvider, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error& error)
 {
   std::vector<uint8_t> textHeader(SEGY::TextualFileHeaderSize);
   std::vector<uint8_t> binaryHeader(SEGY::BinaryFileHeaderSize);
 
   // Read headers
-  bool success = file.Read(textHeader.data(), 0, SEGY::TextualFileHeaderSize, error) &&
-    file.Read(binaryHeader.data(), SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize, error);
+  bool success = dataProvider.Read(textHeader.data(), 0, SEGY::TextualFileHeaderSize, error) &&
+    dataProvider.Read(binaryHeader.data(), SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize, error);
 
   if (!success) return false;
 
@@ -708,55 +725,6 @@ createChannelDescriptors(SEGYFileInfo const& fileInfo, OpenVDS::FloatRange const
   return channelDescriptors;
 }
 
-class FileViewManager
-{
-  typedef std::map<std::pair<int64_t, int64_t>, OpenVDS::FileView*> FileViewMap;
-
-  std::mutex m_mutex;
-  FileViewMap m_fileViewMap;
-  OpenVDS::File& m_file;
-
-  void releaseFileView(OpenVDS::FileView* fileView)
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-
-    auto it = m_fileViewMap.find(FileViewMap::key_type(fileView->Pos(), fileView->Size()));
-    assert(it != m_fileViewMap.end());
-
-    if (OpenVDS::FileView::RemoveReference(fileView))
-    {
-      m_fileViewMap.erase(it);
-    }
-  }
-
-public:
-  FileViewManager(OpenVDS::File& file) : m_file(file) {}
-
-  std::shared_ptr<OpenVDS::FileView> acquireFileView(int64_t pos, int64_t size, bool isPopulate, OpenVDS::Error& error)
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-
-    OpenVDS::FileView* fileView = nullptr;
-
-    auto it = m_fileViewMap.find(FileViewMap::key_type(pos, size));
-    if (it != m_fileViewMap.end())
-    {
-      fileView = it->second;
-      OpenVDS::FileView::AddReference(fileView);
-    }
-    else
-    {
-      fileView = m_file.CreateFileView(pos, size, isPopulate, error);
-      if (fileView)
-      {
-        m_fileViewMap.insert(FileViewMap::value_type(FileViewMap::key_type(pos, size), fileView));
-      }
-    }
-
-    return std::shared_ptr<OpenVDS::FileView>(fileView, [this](OpenVDS::FileView* fileView) { if (fileView) this->releaseFileView(fileView); });
-  }
-};
-
 int
 findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, const void* traceData, int traceCount, int secondaryStart, int secondaryStop)
 {
@@ -884,6 +852,44 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, c
   return findFirstTrace(primaryKey, secondaryKey, fileInfo, traceData, traceCount, secondaryStart, secondaryStop);
 }
 
+std::unique_ptr<OpenVDS::OpenOptions> createOpenOptions(const std::string &prefix, const std::string &persistentID,
+                                                          const std::string &bucket, const std::string &region,
+                                                          const std::string &container, const std::string &connectionString, int azureParallelismFactor,
+                                                          OpenVDS::Error &error)
+{
+
+  // Create the VDS
+  std::string key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
+
+  std::unique_ptr<OpenVDS::OpenOptions> openOptions;
+
+  if(!bucket.empty())
+  {
+    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region));
+  }
+  else if(!container.empty())
+  {
+    openOptions.reset(new OpenVDS::AzureOpenOptions(connectionString, container, key));
+  }
+
+  if(azureParallelismFactor)
+  {
+    if(openOptions->connectionType == OpenVDS::OpenOptions::Azure)
+    {
+      auto &azureOpenOptions = *static_cast<OpenVDS::AzureOpenOptions *>(openOptions.get());
+
+      azureOpenOptions.parallelism_factor = azureParallelismFactor;
+    }
+    else
+    {
+      error.code = EXIT_FAILURE;
+      error.string = "Cannot specify parallelism-factor with other backends than Azure";
+      openOptions.reset(nullptr);
+    }
+  }
+  return openOptions;
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -901,11 +907,13 @@ main(int argc, char* argv[])
   int brickSize;
   bool force = false;
   std::string bucket;
+  std::string sourceBucket;
   std::string region;
   std::string connectionString;
   std::string container;
   int azureParallelismFactor = 0;
   std::string prefix;
+  std::string sourcePrefix;
   std::string persistentID;
   bool uniqueID;
 
@@ -922,11 +930,13 @@ main(int argc, char* argv[])
   options.add_option("", "b", "brick-size", "The brick size for the volume data store.", cxxopts::value<int>(brickSize)->default_value("64"), "<value>");
   options.add_option("", "f", "force", "Continue on upload error.", cxxopts::value<bool>(force), "");
   options.add_option("", "", "bucket", "AWS S3 bucket to upload to.", cxxopts::value<std::string>(bucket), "<string>");
+  options.add_option("", "", "source-bucket", "AWS S3 bucket to download from.", cxxopts::value<std::string>(sourceBucket), "<string>");
   options.add_option("", "", "region", "AWS region of bucket to upload to.", cxxopts::value<std::string>(region), "<string>");
   options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
   options.add_option("", "", "container", "Azure Blob Storage container to upload to.", cxxopts::value<std::string>(container), "<string>");
   options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
   options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
+  options.add_option("", "", "source-prefix", "Top-level prefix to prepend to all source object-keys.", cxxopts::value<std::string>(sourcePrefix), "<string>");
   options.add_option("", "", "persistentID", "persistentID", cxxopts::value<std::string>(persistentID), "<ID>");
   options.add_option("", "", "uniqueID", "uniqueID", cxxopts::value<bool>(uniqueID), "<ID>");
 
@@ -1029,17 +1039,16 @@ main(int argc, char* argv[])
   SEGYBinInfoHeaderFields
     binInfoHeaderFields(g_traceHeaderFields["InlineNumber"], g_traceHeaderFields["CrosslineNumber"], g_traceHeaderFields["CoordinateScale"], g_traceHeaderFields["EnsembleXCoordinate"], g_traceHeaderFields["EnsembleYCoordinate"], scale);
 
-  OpenVDS::File
-    file;
-
   OpenVDS::Error
     error;
 
-  file.Open(fileNames[0].c_str(), false, false, false, error);
+  auto sourceBucketOpenOptions = createOpenOptions(sourcePrefix, persistentID, sourceBucket, region, container, connectionString, azureParallelismFactor, error);
+
+  DataProvider dataProvider = sourceBucket.empty() ? createDataProviderFromFile(fileNames[0], error) : createDataProviderFromOpenOptions(*sourceBucketOpenOptions, fileNames[0], error);
 
   if (error.code != 0)
   {
-    std::cerr << std::string("Could not open file: ") << fileNames[0];
+    fmt::print(stderr, "Could not open: {} - {}\n", fileNames[0], error.string);
     return EXIT_FAILURE;
   }
 
@@ -1062,7 +1071,7 @@ main(int argc, char* argv[])
       fileInfo.m_persistentID = OpenVDS::HashCombiner(hash);
     }
 
-    bool success = fileInfo.Scan(file, primaryKeyHeaderField, secondaryKeyHeaderField, binInfoHeaderFields);
+    bool success = fileInfo.Scan(dataProvider, primaryKeyHeaderField, secondaryKeyHeaderField, binInfoHeaderFields);
 
     if (!success)
     {
@@ -1148,7 +1157,7 @@ main(int argc, char* argv[])
   OpenVDS::FloatRange
     valueRange;
 
-  analyzeSegment(file, fileInfo, findRepresentativeSegment(fileInfo), 99.9f, valueRange, error);
+  analyzeSegment(dataProvider, fileInfo, findRepresentativeSegment(fileInfo), 99.9f, valueRange, error);
 
   if (error.code != 0)
   {
@@ -1193,7 +1202,7 @@ main(int argc, char* argv[])
   OpenVDS::MetadataContainer
     metadataContainer;
 
-  createSEGYHeadersMetadata(file, metadataContainer, error);
+  createSEGYHeadersMetadata(dataProvider, metadataContainer, error);
 
   if (error.code != 0)
   {
@@ -1203,38 +1212,13 @@ main(int argc, char* argv[])
 
   createSurveyCoordinateSystemMetadata(fileInfo, metadataContainer);
 
-  // Create the VDS
-  std::string
-    key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
-
-  std::unique_ptr<OpenVDS::OpenOptions> openOptions;
-
-  if(!bucket.empty())
-  {
-    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region));
-  }
-  else if(!container.empty())
-  {
-    openOptions.reset(new OpenVDS::AzureOpenOptions(connectionString, container, key));
-  }
-
-  if(azureParallelismFactor)
-  {
-    if(openOptions->connectionType == OpenVDS::OpenOptions::Azure)
-    {
-      auto &azureOpenOptions = *static_cast<OpenVDS::AzureOpenOptions *>(openOptions.get());
-
-      azureOpenOptions.parallelism_factor = azureParallelismFactor;
-    }
-    else
-    {
-      std::cerr << "Cannot specify parallelism-factor with other backends than Azure";
-      return EXIT_FAILURE;
-    }
-  }
-
   OpenVDS::Error
     createError;
+
+  auto openOptions = createOpenOptions(prefix, persistentID, bucket, region, container, connectionString, azureParallelismFactor, createError);
+
+  if (createError.code)
+    fmt::print(stderr, "{}\n", createError.code);
 
   OpenVDS::VDSHandle
     handle = OpenVDS::Create(*openOptions.get(), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
@@ -1248,7 +1232,7 @@ main(int argc, char* argv[])
   // auto-close vds handle when it goes out of scope
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vdsGuard(handle, &OpenVDS::Close);
 
-  FileViewManager fileViewManager(file);
+  DataViewManager dataViewManager(dataProvider);
 
   auto accessManager = OpenVDS::GetAccessManager(handle);
   auto layout = accessManager->GetVolumeDataLayout();
@@ -1259,7 +1243,7 @@ main(int argc, char* argv[])
 
   int64_t traceByteSize = fileInfo.TraceByteSize();
 
-  std::shared_ptr<OpenVDS::FileView> fileView;
+  std::shared_ptr<DataView> dataView;
 
   int percentage = -1;
   fmt::print("\nImporting into PersistentID: {}\n\n", persistentID);
@@ -1311,7 +1295,7 @@ main(int argc, char* argv[])
     int64_t size = (traceStop - traceStart + 1) * traceByteSize;
 
     // This acquires the new file view before releasing the previous so we usually end up re-using the same file view
-    fileView = fileViewManager.acquireFileView(offset, size, false, error);
+    dataView = dataViewManager.acquireDataView(offset, size, false, error);
 
     if (error.code == 0)
     {
@@ -1340,7 +1324,7 @@ main(int argc, char* argv[])
       // We loop through the segments that have primary keys inside this block and copy the traces that have secondary keys inside this block
       for (auto segment = lower; segment != upper; ++segment)
       {
-        const void* traceData = reinterpret_cast<const void*>(intptr_t(fileView->Pointer()) + (segment->m_traceStart - traceStart) * traceByteSize);
+        const void* traceData = reinterpret_cast<const void*>(intptr_t(dataView->Pointer()) + (segment->m_traceStart - traceStart) * traceByteSize);
         int traceCount = int(segment->m_traceStop - segment->m_traceStart + 1);
 
         int firstTrace = findFirstTrace(segment->m_primaryKey, secondaryKeyStart, fileInfo, traceData, traceCount);
@@ -1399,7 +1383,7 @@ main(int argc, char* argv[])
 
   fmt::print("\r100% done.\n");
 
-  fileView.reset();
+  dataView.reset();
 
   double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
   //fmt::print("Elapsed time is {}.\n", elapsed / 1000);

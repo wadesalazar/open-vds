@@ -16,6 +16,7 @@
 ****************************************************************************/
 
 #include "SEGY.h"
+#include "DataProvider.h"
 
 #include <cstdint>
 #include <vector>
@@ -96,5 +97,5 @@ struct SEGYFileInfo
 
   int  TraceByteSize() const;
 
-  bool Scan(OpenVDS::File const &file, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::StandardHeaderFields());
+  bool Scan(DataProvider &dataprovider, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::StandardHeaderFields());
 };

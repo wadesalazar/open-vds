@@ -89,6 +89,7 @@ namespace OpenVDS
         IOManagerAzure(const AzureOpenOptions& openOptions, Error& error);
         ~IOManagerAzure() override;
 
+        HeadInfo Head(const std::string &objectName, Error &error, const IORange& range = IORange());
         std::shared_ptr<Request> Download(const std::string requestName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range = IORange()) override;
         std::shared_ptr<Request> Upload(const std::string requestName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback = nullptr) override;
     private:

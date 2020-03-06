@@ -66,6 +66,8 @@ public:
     : backend(backend)
   {}
 
+  OpenVDS::HeadInfo Head(const std::string &objectName, OpenVDS::Error &error, const OpenVDS::IORange& range = OpenVDS::IORange()) override { return backend->Head(objectName, error, range); }
+
   std::shared_ptr<OpenVDS::Request> Download(const std::string objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler, const OpenVDS::IORange& range = OpenVDS::IORange()) override
   {
     return backend->Download(objectName, handler, range);
@@ -85,6 +87,8 @@ public:
     : backend(backend)
     , threadPool(1)
   {}
+
+  OpenVDS::HeadInfo Head(const std::string &objectName, OpenVDS::Error &error, const OpenVDS::IORange& range = OpenVDS::IORange()) override { return backend->Head(objectName, error, range); }
 
   std::shared_ptr<OpenVDS::Request> Download(const std::string objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler, const OpenVDS::IORange& range = OpenVDS::IORange()) override
   {

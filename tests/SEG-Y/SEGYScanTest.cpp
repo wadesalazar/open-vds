@@ -24,8 +24,7 @@ using namespace SEGY;
 
 TEST(SEGYScanTest, scan)
 {
-  OpenVDS::File
-    file;
+  std::unique_ptr<OpenVDS::File> file(new OpenVDS::File);
 
   OpenVDS::Error
     error;
@@ -38,13 +37,14 @@ TEST(SEGYScanTest, scan)
     GTEST_SKIP() << "Could not locate test data";
   }
 
-  file.Open(fileName, false, false, false, error);
+  file->Open(fileName, false, false, false, error);
   EXPECT_EQ(error.code, 0);
 
+  DataProvider dataProvider(file.release());
   SEGYFileInfo
     fileInfo;
 
-  bool success = fileInfo.Scan(file, HeaderField(189, FieldWidth::FourByte));
+  bool success = fileInfo.Scan(dataProvider, HeaderField(189, FieldWidth::FourByte));
   EXPECT_TRUE(success);
 
 

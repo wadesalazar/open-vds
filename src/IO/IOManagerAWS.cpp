@@ -25,6 +25,7 @@
 #include <aws/s3/model/BucketLocationConstraint.h>
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/PutObjectRequest.h>
+#include <aws/s3/model/HeadObjectRequest.h>
 #include <aws/core/utils/memory/AWSMemory.h>
 #include <aws/core/utils/memory/stl/AWSString.h>
 #include <aws/core/utils/logging/DefaultLogSystem.h>
@@ -283,7 +284,7 @@ namespace OpenVDS
       return;
     }
 
-    if (m_objectId[m_objectId.size() -1] == '/')
+    if (m_objectId.size() && m_objectId[m_objectId.size() -1] == '/')
       m_objectId.resize(m_objectId.size() - 1);
     initializeAWSSDK();
 
@@ -346,6 +347,30 @@ namespace OpenVDS
   IOManagerAWS::~IOManagerAWS()
   {
     deinitializeAWSSDK();
+  }
+
+  HeadInfo IOManagerAWS::Head(const std::string &objectName, Error &error, const IORange& range)
+  {
+    std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
+    Aws::S3::Model::HeadObjectRequest object_request;
+    object_request.SetBucket(convertStdString(m_bucket));
+    object_request.SetKey(convertStdString(id));
+    if (range.end)
+    {
+      object_request.SetRange(convertStdString(fmt::format("bytes={}-{}", range.start, range.end)));
+    }
+    auto head = m_s3Client.get()->HeadObject(object_request);
+    if (!head.IsSuccess())
+    {
+      error.code = int(head.GetError().GetResponseCode());
+      error.string = convertAwsString(head.GetError().GetMessage());
+      return {};
+    }
+
+    auto result = head.GetResultWithOwnership();
+    HeadInfo headInfo;
+    headInfo.contentLength = result.GetContentLength();
+    return headInfo;
   }
 
   std::shared_ptr<Request> IOManagerAWS::Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
