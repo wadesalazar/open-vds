@@ -66,7 +66,10 @@ public:
     : backend(backend)
   {}
 
-  OpenVDS::HeadInfo Head(const std::string &objectName, OpenVDS::Error &error, const OpenVDS::IORange& range = OpenVDS::IORange()) override { return backend->Head(objectName, error, range); }
+  std::shared_ptr<OpenVDS::Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler) override
+  {
+    return backend->ReadObjectInfo(objectName, handler);
+  }
 
   std::shared_ptr<OpenVDS::Request> Download(const std::string objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler, const OpenVDS::IORange& range = OpenVDS::IORange()) override
   {
@@ -88,7 +91,29 @@ public:
     , threadPool(1)
   {}
 
-  OpenVDS::HeadInfo Head(const std::string &objectName, OpenVDS::Error &error, const OpenVDS::IORange& range = OpenVDS::IORange()) override { return backend->Head(objectName, error, range); }
+  std::shared_ptr<OpenVDS::Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler) override
+  {
+    auto object_it = m_data.find(objectName);
+    OpenVDS::Error error;
+    if (object_it != m_data.end())
+    {
+      auto &object = (*object_it).second;
+      error = object.error;
+      handler->HandleObjectSize(int64_t(object.data.size()));
+      for (auto& meta : object.metaHeader)
+      {
+        handler->HandleMetadata(meta.first, meta.second);
+      }
+      auto request = std::make_shared<FacadeRequest>(objectName, error);
+      threadPool.Enqueue([handler, error, request]
+        {
+          handler->Completed(*request, error);
+        });
+      return request;
+    }
+
+    return backend->ReadObjectInfo(objectName, handler);
+  }
 
   std::shared_ptr<OpenVDS::Request> Download(const std::string objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler, const OpenVDS::IORange& range = OpenVDS::IORange()) override
   {
@@ -98,6 +123,7 @@ public:
     {
       auto &object = (*object_it).second;
       error = object.error;
+      handler->HandleObjectSize(int64_t(object.data.size()));
       for (auto& meta : object.metaHeader)
       {
         handler->HandleMetadata(meta.first, meta.second);

@@ -59,20 +59,43 @@ IOManagerInMemory::~IOManagerInMemory()
 
 }
 
-HeadInfo IOManagerInMemory::Head(const std::string &objectName, Error &error, const IORange& range)
+std::shared_ptr<Request> IOManagerInMemory::ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
-  auto it = m_data.find(objectName);
-  HeadInfo ret;
-  if (it == m_data.end())
-  {
-    error.code = -2;
-    error.string = fmt::format("Object {} not found\n", objectName);
-    ret.contentLength = 0;
-    return ret;
-  }
-  ret.contentLength = it->second.data.size();
-  return ret;
+  auto request = std::make_shared<InMemoryRequest>(objectName);
+  m_threadPool.Enqueue([this, objectName, handler, request]
+    {
+      std::unique_lock<std::mutex> lock(m_mutex);
+      auto it = m_data.find(objectName);
+      Error error;
+      if (it != m_data.end())
+      {
+        auto object = it->second;
+        lock.unlock();
+        handler->HandleObjectSize(int64_t(object.data.size()));
+        for (auto& meta : object.metaHeader)
+        {
+          handler->HandleMetadata(meta.first, meta.second);
+        }
+      }
+      else
+      {
+        lock.unlock();
+        error.string = std::string("Object: ") + objectName + " not found.";
+        error.code = 404;
+      }
+
+      {
+        std::unique_lock<std::mutex> request_lock(request->m_mutex);
+        request->m_done = true;
+        request->m_error = error;
+      }
+
+      handler->Completed(*request, error);
+
+      request->m_wait.notify_all();
+    });
+  std::shared_ptr<OpenVDS::Request>  retRequest = request;
+  return retRequest;
 }
 
 std::shared_ptr<OpenVDS::Request> IOManagerInMemory::Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
@@ -86,7 +109,8 @@ std::shared_ptr<OpenVDS::Request> IOManagerInMemory::Download(const std::string 
       if (it != m_data.end())
       {
         auto object = it->second;
-        lock.unlock(); 
+        lock.unlock();
+        handler->HandleObjectSize(int64_t(object.data.size()));
         for (auto& meta : object.metaHeader)
         {
           handler->HandleMetadata(meta.first, meta.second);
@@ -110,7 +134,8 @@ std::shared_ptr<OpenVDS::Request> IOManagerInMemory::Download(const std::string 
 
       request->m_wait.notify_all();
     });
-  return request;
+  std::shared_ptr<OpenVDS::Request>  retRequest = request;
+  return retRequest;
 }
 
 std::shared_ptr<Request> IOManagerInMemory::Upload(const std::string objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string> > &metadataHeader, std::shared_ptr<std::vector<uint8_t> > data, std::function<void (const Request &, const Error &)> completedCallback)
@@ -137,7 +162,8 @@ std::shared_ptr<Request> IOManagerInMemory::Upload(const std::string objectName,
 
       request->m_wait.notify_all();
     });
-  return request;
+  std::shared_ptr<OpenVDS::Request>  retRequest = request;
+  return retRequest;
 }
 
 }

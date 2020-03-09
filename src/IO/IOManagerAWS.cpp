@@ -94,6 +94,102 @@ namespace OpenVDS
     std::mutex mutex;
   };
 
+  GetOrHeadRequestAWS::GetOrHeadRequestAWS(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
+    : Request(id)
+    , m_handler(handler)
+    , m_cancelled(false)
+    , m_done(false)
+  {
+  }
+
+  GetOrHeadRequestAWS::~GetOrHeadRequestAWS()
+  {
+    GetOrHeadRequestAWS::Cancel();
+  }
+
+  void GetOrHeadRequestAWS::WaitForFinish()
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_waitForFinish.wait(lock, [this]{ return m_done; });
+  }
+  bool GetOrHeadRequestAWS::IsDone() const
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    return m_done;
+  }
+
+  bool GetOrHeadRequestAWS::IsSuccess(Error& error) const
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (!m_done)
+    {
+      error.code = -1;
+      error.string = "Download not done.";
+      return false;
+    }
+    error = m_error;
+    return m_error.code == 0;
+  }
+
+  void GetOrHeadRequestAWS::Cancel()
+  {
+    m_cancelled = true;
+  }
+
+  static void readobjectinfo_callback(const Aws::S3::S3Client *client, const Aws::S3::Model::HeadObjectRequest& objreq, const Aws::S3::Model::HeadObjectOutcome &getObjectOutcome, std::weak_ptr<ReadObjectInfoRequestAWS> weak_request)
+  {
+    auto objReq =  weak_request.lock();
+
+    if (!objReq || objReq->m_cancelled)
+      return;
+
+    std::unique_lock<std::mutex> lock(objReq->m_mutex, std::defer_lock);
+    if (getObjectOutcome.IsSuccess())
+    {
+      Aws::S3::Model::HeadObjectResult result = const_cast<Aws::S3::Model::HeadObjectOutcome&>(getObjectOutcome).GetResultWithOwnership();
+
+      int64_t content_length = int64_t(result.GetContentLength());
+      objReq->m_handler->HandleObjectSize(content_length);
+      for (auto it : result.GetMetadata())
+      {
+        objReq->m_handler->HandleMetadata(convertAwsString(it.first), convertAwsString(it.second));
+      }
+
+      lock.lock();
+    }
+    else
+    {
+      lock.lock();
+      auto s3error = getObjectOutcome.GetError();
+      objReq->m_error.code = int(s3error.GetResponseCode());
+      objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
+    }
+
+    objReq->m_done = true;
+    objReq->m_waitForFinish.notify_all();
+    lock.unlock();
+    objReq->m_handler->Completed(*objReq, objReq->m_error);
+  }
+
+  ReadObjectInfoRequestAWS::ReadObjectInfoRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler)
+    : GetOrHeadRequestAWS(id, handler)
+  {
+
+  }
+
+  void ReadObjectInfoRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, std::weak_ptr<ReadObjectInfoRequestAWS> readObjectInfoRequest)
+  {
+    Aws::S3::Model::HeadObjectRequest object_request;
+    object_request.SetBucket(convertStdString(bucket));
+    object_request.SetKey(convertStdString(GetObjectName()));
+
+    Aws::S3::HeadObjectResponseReceivedHandler bounded_callback = [readObjectInfoRequest](const Aws::S3::S3Client *client, const Aws::S3::Model::HeadObjectRequest &request, const Aws::S3::Model::HeadObjectOutcome &outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&)
+    {
+      readobjectinfo_callback(client, request, outcome, readObjectInfoRequest);
+    };
+    client.HeadObjectAsync(object_request, bounded_callback);
+  }
+
   static void download_callback(const Aws::S3::S3Client *client, const Aws::S3::Model::GetObjectRequest& objreq, const Aws::S3::Model::GetObjectOutcome &getObjectOutcome, std::weak_ptr<DownloadRequestAWS> weak_request)
   {
     auto objReq =  weak_request.lock();
@@ -105,12 +201,13 @@ namespace OpenVDS
     if (getObjectOutcome.IsSuccess())
     {
       Aws::S3::Model::GetObjectResult result = const_cast<Aws::S3::Model::GetObjectOutcome&>(getObjectOutcome).GetResultWithOwnership();
+      int64_t content_length = int64_t(result.GetContentLength());
+      objReq->m_handler->HandleObjectSize(content_length);
       for (auto it : result.GetMetadata())
       {
         objReq->m_handler->HandleMetadata(convertAwsString(it.first), convertAwsString(it.second));
       }
       auto& retrieved_object = result.GetBody();
-      auto content_length = result.GetContentLength();
       std::vector<uint8_t> data;
 
       if (content_length > 0)
@@ -135,19 +232,10 @@ namespace OpenVDS
     objReq->m_handler->Completed(*objReq, objReq->m_error);
   }
 
-  DownloadRequestAWS::DownloadRequestAWS(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
-    : Request(id)
-    , m_handler(handler)
-    , m_cancelled(false)
-    , m_done(false)
+  DownloadRequestAWS::DownloadRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler)
+    : GetOrHeadRequestAWS(id, handler)
   {
   }
-
-  DownloadRequestAWS::~DownloadRequestAWS()
-  {
-    DownloadRequestAWS::Cancel();
-  }
-
   void DownloadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestAWS> downloadRequest)
   {
     Aws::S3::Model::GetObjectRequest object_request;
@@ -157,40 +245,11 @@ namespace OpenVDS
     {
       object_request.SetRange(convertStdString(fmt::format("bytes={}-{}", range.start, range.end)));
     }
-    Aws::S3::GetObjectResponseReceivedHandler bounded_callback = [downloadRequest](const Aws::S3::S3Client *client, const Aws::S3::Model::GetObjectRequest &request, const Aws::S3::Model::GetObjectOutcome &outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) 
+    Aws::S3::GetObjectResponseReceivedHandler bounded_callback = [downloadRequest](const Aws::S3::S3Client *client, const Aws::S3::Model::GetObjectRequest &request, const Aws::S3::Model::GetObjectOutcome &outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&)
     {
       download_callback(client, request, outcome, downloadRequest);
     };
     client.GetObjectAsync(object_request, bounded_callback);
-  }
-
-  void DownloadRequestAWS::WaitForFinish()
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_waitForFinish.wait(lock, [this]{ return m_done; });
-  }
-  bool DownloadRequestAWS::IsDone() const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    return m_done;
-  }
-
-  bool DownloadRequestAWS::IsSuccess(Error& error) const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    if (!m_done)
-    {
-      error.code = -1;
-      error.string = "Download not done.";
-      return false;
-    }
-    error = m_error;
-    return m_error.code == 0;
-  }
-
-  void DownloadRequestAWS::Cancel()
-  {
-    m_cancelled = true;
   }
 
   static void upload_callback(const Aws::S3::S3Client* client, const Aws::S3::Model::PutObjectRequest&putRequest, const Aws::S3::Model::PutObjectOutcome &outcome, std::weak_ptr<UploadRequestAWS> weak_upload)
@@ -349,28 +408,12 @@ namespace OpenVDS
     deinitializeAWSSDK();
   }
 
-  HeadInfo IOManagerAWS::Head(const std::string &objectName, Error &error, const IORange& range)
+  std::shared_ptr<Request> IOManagerAWS::ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    Aws::S3::Model::HeadObjectRequest object_request;
-    object_request.SetBucket(convertStdString(m_bucket));
-    object_request.SetKey(convertStdString(id));
-    if (range.end)
-    {
-      object_request.SetRange(convertStdString(fmt::format("bytes={}-{}", range.start, range.end)));
-    }
-    auto head = m_s3Client.get()->HeadObject(object_request);
-    if (!head.IsSuccess())
-    {
-      error.code = int(head.GetError().GetResponseCode());
-      error.string = convertAwsString(head.GetError().GetMessage());
-      return {};
-    }
-
-    auto result = head.GetResultWithOwnership();
-    HeadInfo headInfo;
-    headInfo.contentLength = result.GetContentLength();
-    return headInfo;
+    auto ret = std::make_shared<ReadObjectInfoRequestAWS>(id, handler);
+    ret->run(*m_s3Client.get(), m_bucket, ret);
+    return ret;
   }
 
   std::shared_ptr<Request> IOManagerAWS::Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)

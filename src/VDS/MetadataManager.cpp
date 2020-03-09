@@ -35,6 +35,8 @@ MetadataPageTransfer(MetadataManager *manager, VolumeDataAccessManagerImpl *acce
   , metadataPage(metadataPage)
 { }
 
+void HandleObjectSize(int64_t size) override {}
+void HandleMetadata(const std::string &key, const std::string &header) {};
 void HandleData(std::vector<uint8_t> &&data) override
 {
   metadata = std::move(data);

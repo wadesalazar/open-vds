@@ -29,8 +29,9 @@ namespace OpenVDS
   class TransferDownloadHandler
   {
   public:
-    OPENVDS_EXPORT virtual ~TransferDownloadHandler();
-    OPENVDS_EXPORT virtual void HandleMetadata(const std::string &key, const std::string &header);
+    virtual ~TransferDownloadHandler() {};
+    virtual void HandleObjectSize(int64_t size) = 0;
+    virtual void HandleMetadata(const std::string &key, const std::string &header) = 0;
     virtual void HandleData(std::vector<uint8_t> &&data) = 0;
     virtual void Completed(const Request &request, const Error &error) = 0;
   };
@@ -56,17 +57,11 @@ namespace OpenVDS
     int64_t end;
   };
 
-
-  struct  HeadInfo
-  {
-    int64_t contentLength;
-  };
-
   class IOManager
   {
   public:
     virtual ~IOManager();
-    virtual HeadInfo Head(const std::string &objectName, Error &error, const IORange& range = IORange()) = 0;
+    virtual std::shared_ptr<Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler) = 0;
     virtual std::shared_ptr<Request> Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
     virtual std::shared_ptr<Request> Upload(const std::string objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr) = 0;
     std::shared_ptr<Request> UploadBinary(const std::string objectName, const std::string &contentDispositionFilename, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)

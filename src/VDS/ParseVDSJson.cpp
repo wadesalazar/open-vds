@@ -1138,14 +1138,20 @@ WriteJson(Json::Value root)
 class SyncTransferHandler : public TransferDownloadHandler
 {
 public:
-    void HandleData(std::vector<uint8_t> &&data) override
-    {
-      *(this->data) = data;
-    }
-    void Completed(const Request &request, const Error &error) override
-    {
-      *(this->error) = error;
-    }
+  void HandleObjectSize(int64_t size) override
+  {
+  }
+  void HandleMetadata(const std::string &key, const std::string &header) override
+  {
+  }
+  void HandleData(std::vector<uint8_t> &&data) override
+  {
+    *(this->data) = data;
+  }
+  void Completed(const Request &request, const Error &error) override
+  {
+    *(this->error) = error;
+  }
 
   std::vector<uint8_t> *data;
   Error *error;

@@ -31,13 +31,6 @@ Request::Request(const std::string& objectName)
 Request::~Request()
 {}
 
-TransferDownloadHandler::~TransferDownloadHandler()
-{
-}
-void TransferDownloadHandler::HandleMetadata(const std::string& key, const std::string& header)
-{
-}
-
 IOManager::~IOManager()
 {}
 IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)

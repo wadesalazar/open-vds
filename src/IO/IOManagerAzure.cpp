@@ -70,7 +70,7 @@ static std::string convertFromUtilString(const utility::string_t& str)
 }
 #endif
 
-DownloadRequestAzure::DownloadRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
+GetHeadRequestAzure::GetHeadRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
   : Request(id)
   , m_handler(handler)
   , m_cancelled(false)
@@ -78,9 +78,108 @@ DownloadRequestAzure::DownloadRequestAzure(const std::string& id, const std::sha
 {
 }
 
-DownloadRequestAzure::~DownloadRequestAzure()
+GetHeadRequestAzure::~GetHeadRequestAzure()
 {
-  DownloadRequestAzure::Cancel();
+  GetHeadRequestAzure::Cancel();
+}
+
+void GetHeadRequestAzure::WaitForFinish()
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_waitForFinish.wait(lock, [this]
+    {
+      return m_done;
+    });
+
+}
+
+bool GetHeadRequestAzure::IsDone() const
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  return m_done;
+}
+
+bool GetHeadRequestAzure::IsSuccess(Error& error) const
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  if (!m_done)
+  {
+    error.code = -1;
+    error.string = "GetHead not done.";
+    return false;
+  }
+  error = m_error;
+  return m_error.code == 0;
+}
+
+void GetHeadRequestAzure::Cancel()
+{
+  //m_cancelTokenSrc.cancel();
+  m_cancelled = true;
+}
+
+ReadObjectInfoRequestAzure::ReadObjectInfoRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
+  : GetHeadRequestAzure(id, handler)
+{
+}
+
+void ReadObjectInfoRequestAzure::run(azure::storage::cloud_blob_container& container, azure::storage::blob_request_options options, const std::string & requestName, std::weak_ptr<ReadObjectInfoRequestAzure> request)
+{
+  // set options, we should probably get these through AzureOpenOptions instead of haddong here - default set in the IOMangerAzure
+  azure::storage::blob_request_options local_options;
+  local_options.set_parallelism_factor(options.parallelism_factor()); //example: (4)
+  local_options.set_maximum_execution_time(options.maximum_execution_time()); //example: (std::chrono::milliseconds(10000));
+
+  // set the cancellation token
+  m_cancelTokenSrc = pplx::cancellation_token_source();
+  m_context = azure::storage::operation_context();
+
+  m_blob = container.get_block_blob_reference(convertToUtilString(requestName));
+  //m_task = m_blob.download_range_to_stream_async(m_outStream.create_ostream(), range.start, range.end - range.start, azure::storage::access_condition(), local_options, m_context, m_cancelTokenSrc.get_token());
+  m_task = m_blob.download_attributes_async(azure::storage::access_condition(), local_options, m_context, m_cancelTokenSrc.get_token());
+  m_task.then([request, this](pplx::task<void> task)
+    {
+      auto readObjectRequest = request.lock();
+      if (!readObjectRequest)
+        return;
+      try
+      {
+        // when the task is completed
+        task.get();
+
+        if (auto tmp = request.lock())
+        {
+          // send metadata one at a time to the metadata handler
+          m_handler->HandleObjectSize(m_blob.properties().size());
+          for (auto it : m_blob.metadata())
+          {
+            m_handler->HandleMetadata(convertFromUtilString(it.first), convertFromUtilString(it.second));
+          }
+
+          // declare success and set completion status
+          m_error.code = 0;
+          m_done = true;
+          m_waitForFinish.notify_all();
+          m_handler->Completed(*this, m_error);
+        }
+
+      }
+      catch (const azure::storage::storage_exception & e)
+      {
+        // display the erro message, set completion (error) status and return the error to the handler
+        ucout << _XPLATSTR("Error message is: ") << e.what() << std::endl;
+        m_error.code = -1;
+        m_error.string = e.what();
+        m_done = true;
+        m_waitForFinish.notify_all();
+        m_handler->Completed(*this, m_error);
+      }
+    });
+}
+
+DownloadRequestAzure::DownloadRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
+  : GetHeadRequestAzure(id, handler)
+{
 }
 
 void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, azure::storage::blob_request_options options, const std::string& requestName, const IORange& range, std::weak_ptr<DownloadRequestAzure> request)
@@ -96,8 +195,8 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
   m_requestedRange = range;
 
   m_blob = container.get_block_blob_reference(convertToUtilString(requestName));
-  m_downloadTask = m_blob.download_range_to_stream_async(m_outStream.create_ostream(), range.start, range.end - range.start, azure::storage::access_condition(), local_options, m_context, m_cancelTokenSrc.get_token());
-  m_downloadTask.then([request, this](pplx::task<void> downloadTask)
+  m_task = m_blob.download_range_to_stream_async(m_outStream.create_ostream(), range.start, range.end - range.start, azure::storage::access_condition(), local_options, m_context, m_cancelTokenSrc.get_token());
+  m_task.then([request, this](pplx::task<void> downloadTask)
     {
       auto downloadRequest = request.lock();
       if (!downloadRequest)
@@ -116,6 +215,8 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
         if (auto tmp = request.lock())
         {
           // send metadata one at a time to the metadata handler
+          m_handler->HandleObjectSize(m_blob.properties().size());
+
           for (auto it : m_blob.metadata())
           {
             m_handler->HandleMetadata(convertFromUtilString(it.first), convertFromUtilString(it.second));
@@ -142,41 +243,6 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
         m_handler->Completed(*this, m_error);
       }
     });
-}
-
-void DownloadRequestAzure::WaitForFinish()
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  m_waitForFinish.wait(lock, [this]
-    {
-      return m_done;
-    });
-
-}
-
-bool DownloadRequestAzure::IsDone() const
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  return m_done;
-}
-
-bool DownloadRequestAzure::IsSuccess(Error& error) const
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  if (!m_done)
-  {
-    error.code = -1;
-    error.string = "Download not done.";
-    return false;
-  }
-  error = m_error;
-  return m_error.code == 0;
-}
-
-void DownloadRequestAzure::Cancel()
-{
-  //m_cancelTokenSrc.cancel();
-  m_cancelled = true;
 }
 
 UploadRequestAzure::UploadRequestAzure(const std::string& id, std::function<void(const Request & request, const Error & error)> completedCallback)
@@ -307,34 +373,11 @@ IOManagerAzure::~IOManagerAzure()
 {
 }
 
-HeadInfo IOManagerAzure::Head(const std::string &objectName, Error &error, const IORange& range)
+std::shared_ptr<Request> IOManagerAzure::ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler)
 {
-  azure::storage::blob_request_options local_options;
-  local_options.set_parallelism_factor(m_options.parallelism_factor()); //example: (4)
-  local_options.set_maximum_execution_time(m_options.maximum_execution_time()); //example: (std::chrono::milliseconds(10000));
-  auto blob = m_container.get_block_blob_reference(convertToUtilString(objectName));
-
-  HeadInfo ret;
-
-  try
-  {
-    blob.download_attributes();
-    ret.contentLength = blob.properties().size();
-  }
-  catch (azure::storage::storage_exception & e)
-  {
-    std::string code = convertFromUtilString(e.result().extended_error().code());
-    char *endptr = &code[0] + code.size();
-    int codeint = strtol(code.c_str(), &endptr, 10);
-    if (endptr <= &code[0])
-      codeint = -1;
-    error.code = codeint;
-    error.string = convertFromUtilString(e.result().extended_error().message());
-    return {};
-  }
-  assert(false);
-
-  return ret;
+  std::shared_ptr<ReadObjectInfoRequestAzure> azureRequest = std::make_shared<ReadObjectInfoRequestAzure>(objectName, handler);
+  azureRequest->run(m_container, m_options, objectName, azureRequest);
+  return azureRequest;
 }
 
 std::shared_ptr<Request> IOManagerAzure::Download(const std::string requestName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)

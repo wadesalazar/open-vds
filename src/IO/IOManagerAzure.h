@@ -34,13 +34,11 @@
 
 namespace OpenVDS
 {
-    class DownloadRequestAzure : public Request
+    class GetHeadRequestAzure : public Request
     {
     public:
-        DownloadRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler);
-        ~DownloadRequestAzure() override;
-
-        void run(azure::storage::cloud_blob_container& container, azure::storage::blob_request_options options, const std::string & requestName, const IORange& range, std::weak_ptr<DownloadRequestAzure> request);
+        GetHeadRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler);
+        ~GetHeadRequestAzure() override;
 
         void WaitForFinish() override;
         bool IsDone() const override;
@@ -54,12 +52,31 @@ namespace OpenVDS
         std::condition_variable m_waitForFinish;
         mutable std::mutex m_mutex;
         azure::storage::cloud_block_blob  m_blob;
-        concurrency::streams::container_buffer<std::vector<uint8_t>> m_outStream;
         pplx::cancellation_token_source m_cancelTokenSrc;
-        pplx::task<void> m_downloadTask;
+        pplx::task<void> m_task;
         azure::storage::operation_context m_context;
+    };
+
+    class ReadObjectInfoRequestAzure : public GetHeadRequestAzure
+    {
+    public:
+        ReadObjectInfoRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler);
+
+        void run(azure::storage::cloud_blob_container& container, azure::storage::blob_request_options options, const std::string & requestName, std::weak_ptr<ReadObjectInfoRequestAzure> request);
+
+    };
+
+    class DownloadRequestAzure : public GetHeadRequestAzure
+    {
+    public:
+        DownloadRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler);
+
+        void run(azure::storage::cloud_blob_container& container, azure::storage::blob_request_options options, const std::string & requestName, const IORange& range, std::weak_ptr<DownloadRequestAzure> request);
+
+        concurrency::streams::container_buffer<std::vector<uint8_t>> m_outStream;
         IORange m_requestedRange;
     };
+
     class UploadRequestAzure : public Request
     {
     public:
@@ -89,7 +106,7 @@ namespace OpenVDS
         IOManagerAzure(const AzureOpenOptions& openOptions, Error& error);
         ~IOManagerAzure() override;
 
-        HeadInfo Head(const std::string &objectName, Error &error, const IORange& range = IORange());
+        std::shared_ptr<Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler) override;
         std::shared_ptr<Request> Download(const std::string requestName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range = IORange()) override;
         std::shared_ptr<Request> Upload(const std::string requestName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback = nullptr) override;
     private:

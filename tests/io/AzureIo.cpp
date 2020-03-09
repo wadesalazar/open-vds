@@ -20,6 +20,10 @@ public:
   {
   }
 
+  void HandleObjectSize(int64_t size) override
+  {
+  }
+
   void HandleMetadata(const std::string& key, const std::string& header) override
   {
     if (key == "vdschunkmetadata")

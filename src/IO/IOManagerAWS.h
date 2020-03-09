@@ -31,13 +31,12 @@ namespace OpenVDS
   using AsyncDownloadContext = AsyncContext<DownloadRequestAWS>;
   using AsyncUploadContext = AsyncContext<UploadRequestAWS>;
 
-  class DownloadRequestAWS : public Request
+  class GetOrHeadRequestAWS : public Request
   {
   public:
-    DownloadRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
-    ~DownloadRequestAWS() override;
+    GetOrHeadRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
+    ~GetOrHeadRequestAWS() override;
 
-    void run(Aws::S3::S3Client& client, const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestAWS> request);
 
     void WaitForFinish() override;
     bool IsDone() const override;
@@ -50,6 +49,20 @@ namespace OpenVDS
     Error m_error;
     std::condition_variable m_waitForFinish;
     mutable std::mutex m_mutex;
+  };
+
+  class ReadObjectInfoRequestAWS : public GetOrHeadRequestAWS
+  {
+  public:
+    ReadObjectInfoRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
+    void run(Aws::S3::S3Client& client, const std::string& bucket, std::weak_ptr<ReadObjectInfoRequestAWS> request);
+  };
+
+  class DownloadRequestAWS : public GetOrHeadRequestAWS
+  {
+  public:
+    DownloadRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
+    void run(Aws::S3::S3Client& client, const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestAWS> request);
   };
 
   class VectorBuf : public std::basic_streambuf<char, std::char_traits<char>>
@@ -98,7 +111,7 @@ namespace OpenVDS
       IOManagerAWS(const AWSOpenOptions &openOptions, Error &error);
       ~IOManagerAWS() override;
 
-      HeadInfo Head(const std::string &objectName, Error &error, const IORange& range = IORange()) override;
+      std::shared_ptr<Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler) override;
       std::shared_ptr<Request> Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range = IORange()) override;
       std::shared_ptr<Request> Upload(const std::string objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback = nullptr) override;
     private:

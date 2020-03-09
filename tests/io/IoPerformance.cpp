@@ -11,29 +11,32 @@
 class Transfer : public OpenVDS::TransferDownloadHandler
 {
 public:
-    Transfer() {}
-    OpenVDS::Error m_error;
+  Transfer() {}
+  OpenVDS::Error m_error;
 
   std::vector<uint8_t> m_data;
   std::vector<uint8_t> m_metadata;
 
-    ~Transfer() override
-    {
-    }
+  ~Transfer() override
+  {
+  }
 
-    void HandleMetadata(const std::string& key, const std::string& header) override
-    {
-    }
+  void HandleObjectSize(int64_t size) override
+  {
+  }
+  void HandleMetadata(const std::string& key, const std::string& header) override
+  {
+  }
 
-    void HandleData(std::vector<uint8_t>&& data) override
-    {
-      m_data = std::move(data);
-    }
+  void HandleData(std::vector<uint8_t>&& data) override
+  {
+    m_data = std::move(data);
+  }
 
-    void Completed(const OpenVDS::Request& req, const OpenVDS::Error& error) override
-    {
-      m_error = error;
-    }
+  void Completed(const OpenVDS::Request& req, const OpenVDS::Error& error) override
+  {
+    m_error = error;
+  }
 };
 
 void completedCallback(const OpenVDS::Request& request, const OpenVDS::Error& error)

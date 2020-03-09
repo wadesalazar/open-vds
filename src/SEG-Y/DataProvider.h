@@ -27,6 +27,10 @@
 
 struct SynchronousDataTransfer : public OpenVDS::TransferDownloadHandler
 {
+  void HandleObjectSize(int64_t size) override
+  {
+    this->size = size;
+  }
   void HandleMetadata(const std::string &key, const std::string &header) override
   {
   }
@@ -41,6 +45,7 @@ struct SynchronousDataTransfer : public OpenVDS::TransferDownloadHandler
     this->error = error;
   }
 
+  int64_t size = 0;
   std::vector<uint8_t> data;
   OpenVDS::Error error;
 };
@@ -53,7 +58,7 @@ struct DataProvider
   {
   }
 
-  DataProvider(OpenVDS::IOManager *ioManager, const std::string &objectName)
+  DataProvider(OpenVDS::IOManager *ioManager, const std::string &objectName, OpenVDS::Error &error)
     : m_file(nullptr)
     , m_ioManager(ioManager)
     , m_objectName(objectName)
@@ -61,10 +66,12 @@ struct DataProvider
     if (m_ioManager)
     {
       OpenVDS::Error error;
-      auto info = m_ioManager->Head(objectName, error);
-      if (error.code == 0)
+      auto syncTransfer = std::make_shared<SynchronousDataTransfer>();
+      auto syncRequest = m_ioManager->ReadObjectInfo(objectName, syncTransfer);
+      syncRequest->WaitForFinish();
+      if (syncRequest->IsSuccess(error))
       {
-        m_size = info.contentLength;
+        m_size = syncTransfer->size;
       }
     }
   }

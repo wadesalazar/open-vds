@@ -54,8 +54,8 @@ static DataProvider createDataProviderFromOpenOptions(const OpenVDS::OpenOptions
 {
   std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(openoptions, error));
   if (error.code)
-    return DataProvider((OpenVDS::IOManager *)nullptr, "");
-  return DataProvider(ioManager.release(), objectId);
+    return DataProvider((OpenVDS::IOManager *)nullptr, "", error);
+  return DataProvider(ioManager.release(), objectId, error);
 }
 
 Json::Value
