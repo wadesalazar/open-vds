@@ -178,7 +178,7 @@ static const HeaderField CoordinateScaleHeaderField(71, FieldWidth::TwoByte);
 static const HeaderField SourceXCoordinateHeaderField(73, FieldWidth::FourByte);
 static const HeaderField SourceYCoordinateHeaderField(77, FieldWidth::FourByte);
 static const HeaderField GroupXCoordinateHeaderField(81, FieldWidth::FourByte);
-static const HeaderField GroupYCoordinateHeaderField(84, FieldWidth::FourByte);
+static const HeaderField GroupYCoordinateHeaderField(85, FieldWidth::FourByte);
 static const HeaderField CoordinateUnitsHeaderField(89, FieldWidth::TwoByte);
 static const HeaderField StartTimeHeaderField(109, FieldWidth::TwoByte);
 static const HeaderField NumSamplesHeaderField(115, FieldWidth::TwoByte);
