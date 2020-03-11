@@ -93,7 +93,7 @@ struct DataProvider
     return false;
   }
 
-  bool Size(OpenVDS::Error &error) const
+  int64_t Size(OpenVDS::Error &error) const
   {
     if (m_file)
       return m_file->Size(error);
