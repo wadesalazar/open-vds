@@ -42,6 +42,16 @@
 
 #include <chrono>
 
+#if defined(WIN32)
+#undef WIN32_LEAN_AND_MEAN // avoid warnings if defined on command line
+#define WIN32_LEAN_AND_MEAN 1
+#define NOMINMAX 1
+#include <io.h>
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 static DataProvider createDataProviderFromFile(const std::string &filename, OpenVDS::Error &error)
 {
   std::unique_ptr<OpenVDS::File> file(new OpenVDS::File());
@@ -893,6 +903,11 @@ std::unique_ptr<OpenVDS::OpenOptions> createOpenOptions(const std::string &prefi
 int
 main(int argc, char* argv[])
 {
+#if defined(WIN32)
+  bool is_tty = _isatty(_fileno(stdout));
+#else
+  bool is_tty = isatty(fileno(stdout));
+#endif
   auto start_time = std::chrono::high_resolution_clock::now();
   cxxopts::Options options("SEGYImport", "SEGYImport - A tool to scan and import a SEG-Y file to a volume data store (VDS)");
   options.positional_help("<input file>");
@@ -1250,10 +1265,10 @@ main(int argc, char* argv[])
   for (int64_t chunk = 0; chunk < amplitudeAccessor->GetChunkCount(); chunk++)
   {
     int new_percentage = int(double(chunk) / amplitudeAccessor->GetChunkCount() * 100);
-    if (percentage != new_percentage)
+    if (is_tty && percentage != new_percentage)
     {
       percentage = new_percentage;
-      fmt::print(stdout, "\33[2K\r {:3}% Done. ", percentage);
+      fmt::print(stdout, "\r {:3}% Done. ", percentage);
       fflush(stdout);
     }
     int32_t errorCount = accessManager->UploadErrorCount();
@@ -1381,7 +1396,7 @@ main(int argc, char* argv[])
   traceFlagAccessor->Commit();
   segyTraceHeaderAccessor->Commit();
 
-  fmt::print("\r100% done.\n");
+  fmt::print("\r100% done processing P{.\n", persistentID);
 
   dataView.reset();
 
