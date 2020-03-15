@@ -48,11 +48,27 @@
 #define NOMINMAX 1
 #include <io.h>
 #include <windows.h>
+
+int64_t GetTotalSystemMemory()
+{
+    MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    GlobalMemoryStatusEx(&status);
+    return int64_t(status.ullTotalPhys);
+}
+
 #else
 #include <unistd.h>
+
+int64_t GetTotalSystemMemory()
+{
+    long pages = sysconf(_SC_PHYS_PAGES);
+    long page_size = sysconf(_SC_PAGE_SIZE);
+    return int64_t(pages) * int64_t(page_size);
+}
 #endif
 
-static DataProvider createDataProviderFromFile(const std::string &filename, OpenVDS::Error &error)
+static DataProvider CreateDataProviderFromFile(const std::string &filename, OpenVDS::Error &error)
 {
   std::unique_ptr<OpenVDS::File> file(new OpenVDS::File());
   if (!file->Open(filename, false, false, false, error))
@@ -60,7 +76,7 @@ static DataProvider createDataProviderFromFile(const std::string &filename, Open
   return DataProvider(file.release());
 }
 
-static DataProvider createDataProviderFromOpenOptions(const OpenVDS::OpenOptions &openoptions, const std::string &objectId, OpenVDS::Error &error)
+static DataProvider CreateDataProviderFromOpenOptions(const OpenVDS::OpenOptions &openoptions, const std::string &objectId, OpenVDS::Error &error)
 {
   std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(openoptions, error));
   if (error.code)
@@ -1059,7 +1075,7 @@ main(int argc, char* argv[])
 
   auto sourceBucketOpenOptions = createOpenOptions(sourcePrefix, persistentID, sourceBucket, region, container, connectionString, azureParallelismFactor, error);
 
-  DataProvider dataProvider = sourceBucket.empty() ? createDataProviderFromFile(fileNames[0], error) : createDataProviderFromOpenOptions(*sourceBucketOpenOptions, fileNames[0], error);
+  DataProvider dataProvider = sourceBucket.empty() ? CreateDataProviderFromFile(fileNames[0], error) : CreateDataProviderFromOpenOptions(*sourceBucketOpenOptions, fileNames[0], error);
 
   if (error.code != 0)
   {
@@ -1247,8 +1263,6 @@ main(int argc, char* argv[])
   // auto-close vds handle when it goes out of scope
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vdsGuard(handle, &OpenVDS::Close);
 
-  DataViewManager dataViewManager(dataProvider);
-
   auto accessManager = OpenVDS::GetAccessManager(handle);
   auto layout = accessManager->GetVolumeDataLayout();
 
@@ -1278,12 +1292,13 @@ main(int argc, char* argv[])
     size_t upperSegmentIndex;
     int64_t traceStart;
     int64_t traceStop;
-    int64_t dataOffset;
-    int64_t dataSize;
+    DataRequestInfo dataRequestInfo;
   };
 
   std::vector<ChunkIndex> chunkIndices;
   chunkIndices.resize(amplitudeAccessor->GetChunkCount());
+  std::vector<DataRequestInfo> dataRequests;
+  dataRequests.reserve(chunkIndices.capacity());
   for (int64_t chunk = 0; chunk < amplitudeAccessor->GetChunkCount(); chunk++)
   {
     auto &chunkIndex = chunkIndices[chunk];
@@ -1308,9 +1323,14 @@ main(int argc, char* argv[])
 
     assert(chunkIndex.traceStop > chunkIndex.traceStart);
 
-    chunkIndex.dataOffset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + chunkIndex.traceStart * traceByteSize;
-    chunkIndex.dataSize = (chunkIndex.traceStop - chunkIndex.traceStart + 1) * traceByteSize;
+    chunkIndex.dataRequestInfo.offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + chunkIndex.traceStart * traceByteSize;
+    chunkIndex.dataRequestInfo.size = (chunkIndex.traceStop - chunkIndex.traceStart + 1) * traceByteSize;
+    dataRequests.push_back(chunkIndex.dataRequestInfo);
   }
+
+  int64_t memoryAvailable = GetTotalSystemMemory();
+  DataViewManager dataViewManager(dataProvider, memoryAvailable / 3, std::move(dataRequests));
+
   for (int64_t chunk = 0; chunk < amplitudeAccessor->GetChunkCount(); chunk++)
   {
     int new_percentage = int(double(chunk) / amplitudeAccessor->GetChunkCount() * 100);
@@ -1337,7 +1357,7 @@ main(int argc, char* argv[])
     auto &chunkIndex = chunkIndices[chunk];
 
     // This acquires the new file view before releasing the previous so we usually end up re-using the same file view
-    dataView = dataViewManager.acquireDataView(chunkIndex.dataOffset, chunkIndex.dataSize, false, error);
+    dataView = dataViewManager.acquireDataView(chunkIndex.dataRequestInfo, false, error);
 
     if (error.code == 0)
     {
@@ -1369,7 +1389,12 @@ main(int argc, char* argv[])
 
       for (auto segment = lower; segment != upper; ++segment)
       {
-        const void* traceData = reinterpret_cast<const void*>(intptr_t(dataView->Pointer()) + (segment->m_traceStart - chunkIndex.traceStart) * traceByteSize);
+        const void* traceData = reinterpret_cast<const void*>(intptr_t(dataView->Pointer(error)) + (segment->m_traceStart - chunkIndex.traceStart) * traceByteSize);
+        if (error.code)
+        {
+          fmt::print(stderr, "Failed when reading data");
+          break;
+        }
         int traceCount = int(segment->m_traceStop - segment->m_traceStart + 1);
 
         int firstTrace = findFirstTrace(segment->m_primaryKey, chunkIndex.secondaryKeyStart, fileInfo, traceData, traceCount);
@@ -1426,7 +1451,7 @@ main(int argc, char* argv[])
   traceFlagAccessor->Commit();
   segyTraceHeaderAccessor->Commit();
 
-  fmt::print("\r100% done processing P{.\n", persistentID);
+  fmt::print("\r100% done processing {}.\n", persistentID);
 
   dataView.reset();
 

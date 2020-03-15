@@ -25,7 +25,7 @@
 #include <memory>
 #include <mutex>
 
-struct SynchronousDataTransfer : public OpenVDS::TransferDownloadHandler
+struct DataTransfer : public OpenVDS::TransferDownloadHandler
 {
   void HandleObjectSize(int64_t size) override
   {
@@ -65,8 +65,7 @@ struct DataProvider
   {
     if (m_ioManager)
     {
-      OpenVDS::Error error;
-      auto syncTransfer = std::make_shared<SynchronousDataTransfer>();
+      auto syncTransfer = std::make_shared<DataTransfer>();
       auto syncRequest = m_ioManager->ReadObjectInfo(objectName, syncTransfer);
       syncRequest->WaitForFinish();
       if (syncRequest->IsSuccess(error))
@@ -84,7 +83,7 @@ struct DataProvider
     }
     else if (m_ioManager)
     {
-      auto dataTransfer = std::make_shared<SynchronousDataTransfer>();
+      auto dataTransfer = std::make_shared<DataTransfer>();
       auto request = m_ioManager->Download(m_objectName, dataTransfer, { offset, offset + length});
       request->WaitForFinish();
       if (dataTransfer->error.code)
@@ -96,7 +95,7 @@ struct DataProvider
       return true;
     }
     error.code = -1;
-    error.string = "Not implemented";
+    error.string = "Invalid dataprovider, no file nor ioManager provided";
     return false;
   }
 
@@ -108,7 +107,7 @@ struct DataProvider
     if (m_ioManager)
       return m_size;
     error.code = -1;
-    error.string = "Not implemented";
+    error.string = "Invalid dataprovider, no file nor ioManager provided";
     return 0;
   }
 
@@ -125,7 +124,8 @@ struct DataView
     : m_fileView(nullptr)
     , m_pos(0)
     , m_size(0)
-    , m_ref(1)
+    , m_ref(0)
+    , m_transfer(std::make_shared<DataTransfer>())
   {
     if (dataProvider.m_file)
     {
@@ -133,15 +133,7 @@ struct DataView
     }
     else if (dataProvider.m_ioManager)
     {
-      auto dataTransfer = std::make_shared<SynchronousDataTransfer>();
-      auto request = dataProvider.m_ioManager->Download(dataProvider.m_objectName, dataTransfer, { pos, pos + size});
-      request->WaitForFinish();
-      if (dataTransfer->error.code)
-      {
-        error = dataTransfer->error;
-        return;
-      }
-      m_data = std::move(dataTransfer->data);
+      m_request = dataProvider.m_ioManager->Download(dataProvider.m_objectName, m_transfer, { pos, pos + size});
       m_pos = pos;
       m_size = size;
     }
@@ -157,10 +149,23 @@ struct DataView
       OpenVDS::FileView::RemoveReference(m_fileView);
   }
 
-  const void * Pointer() const
+  const void * Pointer(OpenVDS::Error &error)
   {
     if (m_fileView)
       return m_fileView->Pointer();
+    if (m_request)
+    {
+      m_request->WaitForFinish();
+      if (m_request->IsSuccess(m_error))
+        m_data = std::move(m_transfer->data);
+      m_request.reset();
+      m_transfer.reset();
+    }
+    if (m_error.code)
+    {
+      error = m_error;
+      return nullptr;
+    }
     return m_data.data();
   }
 
@@ -193,28 +198,71 @@ struct DataView
   std::vector<uint8_t> m_data;
   int64_t m_pos;
   int64_t m_size;
+  std::shared_ptr<OpenVDS::Request> m_request;
+  std::shared_ptr<DataTransfer> m_transfer;
+  OpenVDS::Error m_error;
   int m_ref;
+};
+
+struct DataRequestInfo
+{
+  int64_t offset;
+  int64_t size;
+
+  bool operator==(const DataRequestInfo &other) const
+  {
+    return offset == other.offset && size == other.size;
+  }
+  bool operator!=(const DataRequestInfo &other) const
+  {
+    return offset != other.offset || size != other.size;
+  }
+  bool operator<(const DataRequestInfo &other) const
+  {
+    if (offset == other.offset)
+      return size < other.size;
+    return offset < other.offset;
+  }
 };
 
 class DataViewManager
 {
 public:
-  DataViewManager(DataProvider &dataProvider)
+  DataViewManager(DataProvider &dataProvider, int64_t prefetchLimit, std::vector<DataRequestInfo> dataRequestInfo)
     : m_dataProvider(dataProvider)
-  {}
+    , m_memoryLimit(prefetchLimit)
+    , m_usage(0)
+  {
 
-  std::shared_ptr<DataView> acquireDataView(int64_t pos, int64_t size, bool isPopulate, OpenVDS::Error& error)
+    if (m_requests.empty())
+    {
+      m_requests = std::move(dataRequestInfo);
+    }
+    else
+    {
+      m_requests.insert(m_requests.end(), dataRequestInfo.begin(), dataRequestInfo.end());
+    }
+    prefetchUntilMemoryLimit();
+  }
+
+  std::shared_ptr<DataView> acquireDataView(DataRequestInfo &dataRequestInfo, bool isPopulate, OpenVDS::Error& error)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
 
+    if (m_error.code)
+    {
+      error = m_error;
+      return nullptr;
+    }
+
     DataView* dataView = nullptr;
 
-    auto key = DataViewMap::key_type(pos, size);
-    auto it = m_dataViewMap.lower_bound(key);
-    if (it == m_dataViewMap.end() || it->first != key)
+    auto it = m_dataViewMap.lower_bound(dataRequestInfo);
+    if (it == m_dataViewMap.end() || it->first != dataRequestInfo)
     {
-      auto dataView = new DataView(m_dataProvider, pos, size, isPopulate, error);
-      it = m_dataViewMap.insert(it, {key, dataView});
+      auto dataView = new DataView(m_dataProvider, dataRequestInfo.offset, dataRequestInfo.size, isPopulate, error);
+      dataView->ref();
+      it = m_dataViewMap.insert(it, {dataRequestInfo, dataView});
     }
     else
     {
@@ -224,12 +272,17 @@ public:
     auto ptr = std::shared_ptr<DataView>(it->second, [this](DataView* dataView) { if (dataView) this->releaseDataView(dataView); });
     return ptr;
   }
-private:
-  typedef std::map<std::pair<int64_t, int64_t>, DataView *> DataViewMap;
 
-  std::mutex m_mutex;
-  DataViewMap m_dataViewMap;
+private:
+  typedef std::map<DataRequestInfo, DataView *> DataViewMap;
+
   DataProvider &m_dataProvider;
+  std::vector<DataRequestInfo> m_requests;
+  DataViewMap m_dataViewMap;
+  std::mutex m_mutex;
+  int64_t m_memoryLimit;
+  int64_t m_usage;
+  OpenVDS::Error m_error;
 
   void releaseDataView(DataView *dataView)
   {
@@ -237,11 +290,31 @@ private:
 
     if (dataView->deref())
     {
-      auto it = m_dataViewMap.find(DataViewMap::key_type(dataView->Pos(), dataView->Size()));
+      m_usage -= dataView->Size();
+      auto it = m_dataViewMap.find(DataViewMap::key_type{dataView->Pos(), dataView->Size()});
       assert(it != m_dataViewMap.end());
       delete it->second;
       m_dataViewMap.erase(it);
+      prefetchUntilMemoryLimit();
     }
+  }
+
+  void prefetchUntilMemoryLimit()
+  {
+    if (m_usage >= m_memoryLimit)
+      return;
+    int i;
+    for (i = 0; i < m_requests.size() && m_usage < m_memoryLimit && m_error.code == 0; i++)
+    {
+      auto &req = m_requests[i];
+      auto it = m_dataViewMap.find(req);
+      if (it != m_dataViewMap.end())
+        continue;
+      auto dataView = new DataView(m_dataProvider, req.offset, req.size, true, m_error);
+      m_dataViewMap.insert(it, {req, dataView});
+      m_usage += req.size;
+    }
+    m_requests.erase(m_requests.begin(), m_requests.begin() + i);
   }
 };
 
