@@ -94,6 +94,7 @@ include(CMake/Build3rdParty.cmake)
 build3rdparty()
 
 add_subdirectory(src)
+add_subdirectory(tools)
 
 if (BUILD_PYTHON)
   add_subdirectory(python)

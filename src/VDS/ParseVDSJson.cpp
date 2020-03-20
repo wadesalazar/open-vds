@@ -31,7 +31,8 @@
 
 namespace OpenVDS
 {
-
+namespace Internal
+{
 static DimensionsND DimensionsNDFromJson(Json::Value const &jsonDimensionsND)
 {
   std::string
@@ -982,15 +983,11 @@ std::string ToString(CompressionMethod compressionMethod)
   };
 }
 
-Json::Value SerializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayout, MetadataContainer const &metadataContainer)
+OPENVDS_EXPORT Json::Value SerializeVolumeDataLayoutDescriptor(VolumeDataLayout const &volumeDataLayout)
 {
-  Json::Value root;
-
-  VolumeDataLayoutDescriptor
-    layoutDescriptor = volumeDataLayout.GetLayoutDescriptor();
+  VolumeDataLayoutDescriptor layoutDescriptor = volumeDataLayout.GetLayoutDescriptor();
 
   Json::Value layoutDescriptorJson;
-
   layoutDescriptorJson["brickSize"] = ToString(layoutDescriptor.GetBrickSize());
   layoutDescriptorJson["negativeMargin"] = layoutDescriptor.GetNegativeMargin();
   layoutDescriptorJson["positiveMargin"] = layoutDescriptor.GetPositiveMargin();
@@ -999,26 +996,38 @@ Json::Value SerializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayo
   layoutDescriptorJson["create2DLODs"] = layoutDescriptor.IsCreate2DLODs();
   layoutDescriptorJson["forceFullResolutionDimension"] = layoutDescriptor.IsForceFullResolutionDimension();
   layoutDescriptorJson["fullResolutionDimension"] = layoutDescriptor.GetFullResolutionDimension();
+  return layoutDescriptorJson;
+}
 
-  root["layoutDescriptor"] = layoutDescriptorJson;
-
+OPENVDS_EXPORT Json::Value SerializeAxisDescriptors(VolumeDataLayout const &volumeDataLayout)
+{
   Json::Value axisDescriptorsJson(Json::arrayValue);
 
   for(int dimension = 0, dimensionality = volumeDataLayout.GetDimensionality(); dimension < dimensionality; dimension++)
   {
     axisDescriptorsJson.append(SerializeAxisDescriptor(volumeDataLayout.GetAxisDescriptor(dimension)));
   }
+  return axisDescriptorsJson;
+}
 
-  root["axisDescriptors"] = axisDescriptorsJson;
-
+OPENVDS_EXPORT Json::Value SerializeChannelDescriptors(VolumeDataLayout const &volumeDataLayout)
+{
   Json::Value channelDescriptorsJson(Json::arrayValue);
 
   for(int channel = 0, channelCount = volumeDataLayout.GetChannelCount(); channel < channelCount; channel++)
   {
     channelDescriptorsJson.append(SerializeChannelDescriptor(volumeDataLayout.GetChannelDescriptor(channel)));
   }
+  return channelDescriptorsJson;
+}
 
-  root["channelDescriptors"] = channelDescriptorsJson;
+Json::Value SerializeVolumeDataLayout(VolumeDataLayoutImpl const &volumeDataLayout, MetadataContainer const &metadataContainer)
+{
+  Json::Value root;
+
+  root["layoutDescriptor"] = SerializeVolumeDataLayoutDescriptor(volumeDataLayout);
+  root["axisDescriptors"] = SerializeAxisDescriptors(volumeDataLayout);
+  root["channelDescriptors"] = SerializeChannelDescriptors(volumeDataLayout);
 
   root["metadata"] = SerializeMetadata(metadataContainer);
 
@@ -1157,10 +1166,12 @@ public:
   Error *error;
 };
 
+}
+
 bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDS& vds, Error& error)
 {
   std::vector<uint8_t> volumedatalayout_json;
-  std::shared_ptr<SyncTransferHandler> syncTransferHandler = std::make_shared<SyncTransferHandler>();
+  std::shared_ptr<Internal::SyncTransferHandler> syncTransferHandler = std::make_shared<Internal::SyncTransferHandler>();
   syncTransferHandler->error = &error;
   syncTransferHandler->data = &volumedatalayout_json;
   auto request = vds.ioManager->Download("VolumeDataLayout", syncTransferHandler);
@@ -1182,9 +1193,9 @@ bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDS& vds, Error& error)
 
   try
   {
-    if (!ParseVolumeDataLayout(volumedatalayout_json, vds, error))
+    if (!Internal::ParseVolumeDataLayout(volumedatalayout_json, vds, error))
       return false;
-    if (!ParseLayerStatus(layerstatus_json, vds, error))
+    if (!Internal::ParseLayerStatus(layerstatus_json, vds, error))
       return false;
   }
   catch (Json::Exception& e)
@@ -1201,8 +1212,8 @@ bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDS& vds, Error& error)
 
 bool SerializeAndUploadVolumeDataLayout(VDS& vds, Error& error)
 {
-  Json::Value volumeDataLayoutJson = SerializeVolumeDataLayout(*vds.volumeDataLayout, vds.metadataContainer);
-  auto serializedVolumeDataLayout = std::make_shared<std::vector<uint8_t>>(WriteJson(volumeDataLayoutJson));
+  Json::Value volumeDataLayoutJson = Internal::SerializeVolumeDataLayout(*vds.volumeDataLayout, vds.metadataContainer);
+  auto serializedVolumeDataLayout = std::make_shared<std::vector<uint8_t>>(Internal::WriteJson(volumeDataLayoutJson));
   auto request = vds.ioManager->UploadJson("VolumeDataLayout", serializedVolumeDataLayout);
 
   request->WaitForFinish();
@@ -1218,8 +1229,8 @@ bool SerializeAndUploadVolumeDataLayout(VDS& vds, Error& error)
 
 bool SerializeAndUploadLayerStatus(VDS& vds, Error& error)
 {
-  Json::Value layerStatusArrayJson = SerializeLayerStatusArray(*vds.volumeDataLayout, vds.layerMetadataContainer);
-  auto serializedLayerStatus = std::make_shared<std::vector<uint8_t>>(WriteJson(layerStatusArrayJson));
+  Json::Value layerStatusArrayJson = Internal::SerializeLayerStatusArray(*vds.volumeDataLayout, vds.layerMetadataContainer);
+  auto serializedLayerStatus = std::make_shared<std::vector<uint8_t>>(Internal::WriteJson(layerStatusArrayJson));
   auto request = vds.ioManager->UploadJson("LayerStatus", serializedLayerStatus);
 
   request->WaitForFinish();
