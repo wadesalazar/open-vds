@@ -367,7 +367,8 @@ int main(int argc, char **argv)
       {
         metaInfo.append(getJsonFromMetadata(metadatakey, layout));
       }
-      root["metadata"] = metaInfo;
+      if (metaInfo.size())
+        root["metadata"] = metaInfo;
     }
   }
 
