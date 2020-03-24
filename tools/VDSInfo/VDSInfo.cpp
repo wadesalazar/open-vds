@@ -52,6 +52,133 @@ const char ebcdic_to_ascii[256] =
   /* 248*/ '8', '9', 0, 0, 0, 0, 0, 0,
 };
 
+static std::string MetadataTypeToString(OpenVDS::MetadataType type)
+{
+  switch (type)
+  {
+  case OpenVDS::MetadataType::Int:
+    return "Int";
+  case OpenVDS::MetadataType::IntVector2:
+    return "IntVector2";
+  case OpenVDS::MetadataType::IntVector3:
+    return "IntVector3";
+  case OpenVDS::MetadataType::IntVector4:
+    return "IntVector4";
+  case OpenVDS::MetadataType::Float:
+    return "Float";
+  case OpenVDS::MetadataType::FloatVector2:
+    return "FloatVector2";
+  case OpenVDS::MetadataType::FloatVector3:
+    return "FloatVector3";
+  case OpenVDS::MetadataType::FloatVector4:
+    return "FloatVector4";
+  case OpenVDS::MetadataType::Double:
+    return "Double";
+  case OpenVDS::MetadataType::DoubleVector2:
+    return "DoubleVector2";
+  case OpenVDS::MetadataType::DoubleVector3:
+    return "DoubleVector3";
+  case OpenVDS::MetadataType::DoubleVector4:
+    return "DoubleVector4";
+  case OpenVDS::MetadataType::String:
+    return "String";
+  case OpenVDS::MetadataType::BLOB:
+    return "BLOB";
+  }
+  return "";
+}
+
+template<typename T, size_t N>
+Json::Value getJsonFromVector(const OpenVDS::Vector<T, N> &vec)
+{
+  Json::Value ret;
+  for (int i = 0; i < N; i++)
+  {
+    ret.append(vec[i]);
+  }
+  return ret;
+}
+
+Json::Value getJsonFromMetadata(const OpenVDS::MetadataKey &key, OpenVDS::VolumeDataLayout *layout)
+{
+  Json::Value value;
+  value["category"] = key.category;
+  value["name"] = key.name;
+  value["type"] = MetadataTypeToString(key.type);
+  switch (key.type)
+  {
+  case OpenVDS::MetadataType::Int:
+    value["value"] = layout->GetMetadataInt(key.category, key.name);
+    break;
+  case OpenVDS::MetadataType::IntVector2:
+    value["value"] = getJsonFromVector(layout->GetMetadataIntVector2(key.category, key.name));
+    break;
+  case OpenVDS::MetadataType::IntVector3:
+    value["value"] = getJsonFromVector(layout->GetMetadataIntVector3(key.category, key.name));
+    break;
+  case OpenVDS::MetadataType::IntVector4:
+    value["value"] = getJsonFromVector(layout->GetMetadataIntVector4(key.category, key.name));
+    break;
+  case OpenVDS::MetadataType::Float:
+    value["value"] = layout->GetMetadataFloat(key.category, key.name);
+    break;
+  case OpenVDS::MetadataType::FloatVector2:
+    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector2(key.category, key.name));
+    break;
+  case OpenVDS::MetadataType::FloatVector3:
+    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector3(key.category, key.name));
+    break;
+  case OpenVDS::MetadataType::FloatVector4:
+    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector4(key.category, key.name));
+    break;
+  case OpenVDS::MetadataType::Double:
+    value["value"] = layout->GetMetadataDouble(key.category, key.name);
+    break;
+  case OpenVDS::MetadataType::DoubleVector2:
+    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector2(key.category, key.name));
+    break;
+  case OpenVDS::MetadataType::DoubleVector3:
+    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector3(key.category, key.name));
+    break;
+  case OpenVDS::MetadataType::DoubleVector4:
+    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector4(key.category, key.name));
+    break;
+  case OpenVDS::MetadataType::String:
+    value["value"] = layout->GetMetadataString(key.category, key.name);
+    break;
+  default:
+    break;
+  }
+  return value;
+}
+
+static std::string convertToString(const Json::Value &value)
+{
+  std::stringstream stream;
+  Json::StyledStreamWriter("  ").write(stream, value);
+  return stream.str();
+}
+
+static bool autodetectDecode(const std::vector<uint8_t> &blob)
+{
+  int countEbcidicSpace = 0;
+  int valuesGT127 = 0;
+  for (auto c : blob)
+  {
+    if (c > 127)
+      valuesGT127++;
+    else if (c == '@')
+      countEbcidicSpace++;
+  }
+
+  return countEbcidicSpace > blob.size() * 0.20 && valuesGT127 > blob.size() * 0.3;
+}
+
+static void decodedEbcdic(std::vector<uint8_t> &ebcdic)
+{
+  std::transform(ebcdic.begin(), ebcdic.end(), ebcdic.begin(), [](const uint8_t &d) { return ebcdic_to_ascii[d]; });
+}
+
 int main(int argc, char **argv)
 {
   cxxopts::Options options("VDSInfo", "VDSInfo - A tool for extracting info from a VDS");
@@ -63,13 +190,16 @@ int main(int argc, char **argv)
   int azureParallelismFactor = 0;
   std::string prefix;
   std::string persistentID;
+  std::string metadataPrintName;
+  std::string metadataPrintCategory;
 
-  bool axis_descriptors = false;
-  bool channel_descriptors = false;
-  bool volume_data_layout = false;
-  bool SEGYText = false;
-  bool SEGYTextEbcdicDecode = false;
-  int  SEGYTextDecodedWidth = 80;
+  bool axisDescriptors = false;
+  bool channelDescriptors = false;
+  bool volumeDataLayout = false;
+  bool metaKeys = false;
+  bool metaDataFirstBlob = false;
+  bool metadataAutoDecodeEPCIDIC = false;
+  int  textDecodeWidth = std::numeric_limits<int>::max();
 
 //connection options
   options.add_option("", "", "bucket", "AWS S3 bucket to connect to.", cxxopts::value<std::string>(bucket), "<string>");
@@ -81,13 +211,16 @@ int main(int argc, char **argv)
   options.add_option("", "", "persistentID", "persistentID", cxxopts::value<std::string>(persistentID), "<ID>");
 
 ///action
-  options.add_option("", "", "axis", "Print axis descriptors", cxxopts::value<bool>(axis_descriptors), "");
-  options.add_option("", "", "channels", "Print channel descriptors", cxxopts::value<bool>(channel_descriptors), "");
-  options.add_option("", "", "layout", "Print layout", cxxopts::value<bool>(volume_data_layout), "");
+  options.add_option("", "", "axis", "Print axis descriptors", cxxopts::value<bool>(axisDescriptors), "");
+  options.add_option("", "", "channels", "Print channel descriptors", cxxopts::value<bool>(channelDescriptors), "");
+  options.add_option("", "", "layout", "Print layout", cxxopts::value<bool>(volumeDataLayout), "");
 
-  options.add_option("", "", "SEGYText", "Print SEGY Text header", cxxopts::value<bool>(SEGYText), "");
-  options.add_option("", "", "SEGYTextDecode", "Assume EBCIDIC encoding in SEGY Text header and decode", cxxopts::value<bool>(SEGYTextEbcdicDecode), "");
-  options.add_option("", "", "SEGYDecodedWidth", "When text decoding header, force linebreaks at width", cxxopts::value<int>(SEGYTextDecodedWidth), "<value>");
+  options.add_option("", "", "metadatakeys", "Print metadata keys", cxxopts::value<bool>(metaKeys), "");
+  options.add_option("", "", "metadata-name", "Print metadata matching name", cxxopts::value<std::string>(metadataPrintName), "<string>");
+  options.add_option("", "", "metadata-category", "Print metadata matching category", cxxopts::value<std::string>(metadataPrintCategory), "<string>");
+  options.add_option("", "b", "metadata-firstblob", "Print first blob found", cxxopts::value<bool>(metaDataFirstBlob), "");
+  options.add_option("", "e", "metadata-autodecode", "Autodetect EPCIDIC and decode to ASCII for blobs", cxxopts::value<bool>(metadataAutoDecodeEPCIDIC), "");
+  options.add_option("", "w", "metadata-force-width", "Force output width", cxxopts::value<int>(textDecodeWidth), "");
 
   if(argc == 1)
   {
@@ -144,64 +277,108 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  Json::Value root;
-
   auto layout = OpenVDS::GetLayout(handle.get());
   if (!layout)
   {
     fmt::print(stderr, "Internal error, no layout\n");
     return EXIT_FAILURE;
   }
-  if (volume_data_layout)
+  
+  Json::Value root;
+
+  Json::Value layoutJson;
+  if (volumeDataLayout)
   {
-    root["layoutDescriptor"] = OpenVDS::Internal::SerializeVolumeDataLayoutDescriptor(*layout);
+    layoutJson["layoutDescriptor"] = OpenVDS::Internal::SerializeVolumeDataLayoutDescriptor(*layout);
   }
-  if (axis_descriptors)
+  if (axisDescriptors)
   {
-    root["axisDescriptors"] = OpenVDS::Internal::SerializeAxisDescriptors(*layout);
+    layoutJson["axisDescriptors"] = OpenVDS::Internal::SerializeAxisDescriptors(*layout);
   }
-  if (channel_descriptors)
+  if (channelDescriptors)
   {
-    root["channelDescriptors"] = OpenVDS::Internal::SerializeChannelDescriptors(*layout);
+    layoutJson["channelDescriptors"] = OpenVDS::Internal::SerializeChannelDescriptors(*layout);
   }
 
-  if (root.size() == 1)
-  {
-    fmt::print(stdout, "{}\n", Json::StyledWriter().write(*root.begin()));
-    return EXIT_SUCCESS;
-  }
-  else if (root.size() > 1)
-  {
-    fmt::print(stdout, "{}\n", Json::StyledWriter().write(root));
-    return EXIT_SUCCESS;
-  }
+  if (layoutJson.size())
+    root["layoutInfo"] = layoutJson;
 
-  if (SEGYText)
+  if (metaKeys)
   {
-    std::vector<uint8_t> header;
-    layout->GetMetadataBLOB("SEGY", "TextHeader", header);
-    if (SEGYTextEbcdicDecode)
+    Json::Value metaKeysInfo;
+    auto keys = layout->GetMetadataKeys();
+    for (auto &key : layout->GetMetadataKeys())
     {
-      std::string textheader;
-      textheader.reserve(header.size() * 2);
-      int lines = header.size() / SEGYTextDecodedWidth + 1;
-      for (int line = 0; line < lines; line++)
+      Json::Value jsonKey;
+      jsonKey["type"] = MetadataTypeToString(key.type);
+      jsonKey["category"] = key.category;
+      jsonKey["name"] = key.name;
+      metaKeysInfo.append(jsonKey);
+    }
+    root["metaKeysInfo"] = metaKeysInfo;
+  }
+
+  if (metadataPrintName.size() || metadataPrintCategory.size())
+  {
+    std::vector<OpenVDS::MetadataKey> to_print;
+    std::vector<OpenVDS::MetadataKey> to_print_blobs;
+    for (auto &key : layout->GetMetadataKeys())
+    {
+      if (metadataPrintName.size() && metadataPrintName != key.name)
+        continue;
+      if (metadataPrintCategory.size() && metadataPrintCategory != key.category)
+        continue;
+      if (key.type == OpenVDS::MetadataType::BLOB)
+        to_print_blobs.push_back(key);
+      else
+        to_print.push_back(key);
+    }
+
+    if (root.empty() && (metaDataFirstBlob || to_print.empty()))
+    {
+      if (to_print_blobs.size())
       {
-        int characters_on_line = std::min(int(header.size() - line * SEGYTextDecodedWidth), SEGYTextDecodedWidth);
-        for (int i = 0; i < characters_on_line; i++)
+        auto &key = to_print_blobs.front();
+        std::vector<uint8_t> vector;
+        layout->GetMetadataBLOB(key.category, key.name, vector);
+        bool decodeEPCIDIC = false;
+        if (metadataAutoDecodeEPCIDIC)
         {
-          int character = line * SEGYTextDecodedWidth + i;
-          textheader.push_back(ebcdic_to_ascii[header[character]]);
+          decodeEPCIDIC = autodetectDecode(vector);
         }
-        textheader.push_back('\n');
+        if (decodeEPCIDIC)
+        {
+          decodedEbcdic(vector);
+        }
+        int i = 0;
+        while(i < vector.size())
+        {
+          int to_copy = std::min(textDecodeWidth, int(vector.size() - i));
+          fwrite(vector.data() + i, 1, to_copy, stdout);
+          fwrite("\n", 1, 1, stdout);
+          i += to_copy;
+        }
       }
-      fmt::print(stdout, "{}\n", textheader);
     }
     else
     {
-      fwrite(header.data(), 1, header.size(), stdout);
+      Json::Value metaInfo;
+      for (auto& metadatakey : to_print)
+      {
+        metaInfo.append(getJsonFromMetadata(metadatakey, layout));
+      }
+      root["metadata"] = metaInfo;
     }
-    EXIT_SUCCESS;
+  }
+
+
+  while (root.size() == 1)
+    root = *root.begin();
+
+  if (root.size())
+  {
+    std::string outstring = convertToString(root);
+    fwrite(outstring.c_str(), 1, outstring.size(), stdout);
   }
 
   return EXIT_SUCCESS;
