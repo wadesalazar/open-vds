@@ -141,7 +141,7 @@ TEST(IOTests, performance)
   for (int i = 0; i < chunkCount; i++)
   {
     downloadTransfers.push_back(std::make_shared<Transfer>());
-    downloadRequests.push_back(ioManager->Download(std::to_string(i), downloadTransfers.back()));
+    downloadRequests.push_back(ioManager->ReadObject(std::to_string(i), downloadTransfers.back()));
   }
 
   for (int i = 0; i < chunkCount; i++)

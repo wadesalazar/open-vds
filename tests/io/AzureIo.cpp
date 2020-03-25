@@ -87,7 +87,7 @@ TEST(IOTests, basicAzure)
 
   // Test that we can upload and download some data
   {
-    std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->Upload("aztest1", "NA", "Text", meta_map, to_write, completedCallback);
+    std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->WriteObject("aztest1", "NA", "Text", meta_map, to_write, completedCallback);
     while (!uploadRequest->IsDone())
     {
         std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -100,7 +100,7 @@ TEST(IOTests, basicAzure)
   {
     auto transferHandler = std::make_shared<AzureTransfer>();
 
-    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->Download("aztest1", transferHandler);
+    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("aztest1", transferHandler);
 
     downloadRequest->WaitForFinish();
     ASSERT_TRUE(downloadRequest->IsDone());
@@ -112,7 +112,7 @@ TEST(IOTests, basicAzure)
   // Test that we can upload and download a 0 byte chunk
   {
     to_write->clear();
-    std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->Upload("aztest2", "", "Text", meta_map, to_write, completedCallback);
+    std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->WriteObject("aztest2", "", "Text", meta_map, to_write, completedCallback);
 
     uploadRequest->WaitForFinish();
     ASSERT_TRUE(uploadRequest->IsDone());
@@ -124,7 +124,7 @@ TEST(IOTests, basicAzure)
   {
     auto transferHandler = std::make_shared<AzureTransfer>();
 
-    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->Download("aztest2", transferHandler);
+    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("aztest2", transferHandler);
 
     downloadRequest->WaitForFinish();
     ASSERT_TRUE(downloadRequest->IsDone());
@@ -137,7 +137,7 @@ TEST(IOTests, basicAzure)
   {
     auto transferHandler = std::make_shared<AzureTransfer>();
 
-    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->Download("aztest_not_existing_blob", transferHandler);
+    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("aztest_not_existing_blob", transferHandler);
 
     downloadRequest->WaitForFinish();
     ASSERT_TRUE(downloadRequest->IsDone());

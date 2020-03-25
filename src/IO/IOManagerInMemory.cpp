@@ -98,7 +98,7 @@ std::shared_ptr<Request> IOManagerInMemory::ReadObjectInfo(const std::string &ob
   return retRequest;
 }
 
-std::shared_ptr<OpenVDS::Request> IOManagerInMemory::Download(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
+std::shared_ptr<OpenVDS::Request> IOManagerInMemory::ReadObject(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
 {
   auto request = std::make_shared<InMemoryRequest>(objectName);
   m_threadPool.Enqueue([this, objectName, handler, request]
@@ -138,7 +138,7 @@ std::shared_ptr<OpenVDS::Request> IOManagerInMemory::Download(const std::string 
   return retRequest;
 }
 
-std::shared_ptr<Request> IOManagerInMemory::Upload(const std::string &objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string> > &metadataHeader, std::shared_ptr<std::vector<uint8_t> > data, std::function<void (const Request &, const Error &)> completedCallback)
+std::shared_ptr<Request> IOManagerInMemory::WriteObject(const std::string &objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string> > &metadataHeader, std::shared_ptr<std::vector<uint8_t> > data, std::function<void (const Request &, const Error &)> completedCallback)
 {
   auto request = std::make_shared<InMemoryRequest>(objectName);
   m_threadPool.Enqueue([objectName, metadataHeader, data, completedCallback, request, this]

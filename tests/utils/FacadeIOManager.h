@@ -71,14 +71,14 @@ public:
     return backend->ReadObjectInfo(objectName, handler);
   }
 
-  std::shared_ptr<OpenVDS::Request> Download(const std::string &objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler, const OpenVDS::IORange& range = OpenVDS::IORange()) override
+  std::shared_ptr<OpenVDS::Request> ReadObject(const std::string &objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler, const OpenVDS::IORange& range = OpenVDS::IORange()) override
   {
-    return backend->Download(objectName, handler, range);
+    return backend->ReadObject(objectName, handler, range);
   }
 
-  std::shared_ptr<OpenVDS::Request> Upload(const std::string &objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const OpenVDS::Request & request, const OpenVDS::Error & error)> completedCallback = nullptr) override
+  std::shared_ptr<OpenVDS::Request> WriteObject(const std::string &objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const OpenVDS::Request & request, const OpenVDS::Error & error)> completedCallback = nullptr) override
   {
-    return backend->Upload(objectName, contentDispostionFilename, contentType, metadataHeader, data, completedCallback);
+    return backend->WriteObject(objectName, contentDispostionFilename, contentType, metadataHeader, data, completedCallback);
   }
 
   IOManager *backend;
@@ -115,7 +115,7 @@ public:
     return backend->ReadObjectInfo(objectName, handler);
   }
 
-  std::shared_ptr<OpenVDS::Request> Download(const std::string &objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler, const OpenVDS::IORange& range = OpenVDS::IORange()) override
+  std::shared_ptr<OpenVDS::Request> ReadObject(const std::string &objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler, const OpenVDS::IORange& range = OpenVDS::IORange()) override
   {
     auto object_it = m_data.find(objectName);
     OpenVDS::Error error;
@@ -138,10 +138,10 @@ public:
       return request;
     }
 
-    return backend->Download(objectName, handler, range);
+    return backend->ReadObject(objectName, handler, range);
   }
 
-  std::shared_ptr<OpenVDS::Request> Upload(const std::string &objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const OpenVDS::Request & request, const OpenVDS::Error & error)> completedCallback = nullptr) override
+  std::shared_ptr<OpenVDS::Request> WriteObject(const std::string &objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const OpenVDS::Request & request, const OpenVDS::Error & error)> completedCallback = nullptr) override
   {
     auto object_it = m_data.find(objectName);
     OpenVDS::Error error;
@@ -157,7 +157,7 @@ public:
       return request;
     }
 
-    return backend->Upload(objectName, contentDispostionFilename, contentType, metadataHeader, data, completedCallback);
+    return backend->WriteObject(objectName, contentDispostionFilename, contentType, metadataHeader, data, completedCallback);
   }
 
   IOManager *backend;

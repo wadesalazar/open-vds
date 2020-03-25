@@ -1174,7 +1174,7 @@ bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDS& vds, Error& error)
   std::shared_ptr<Internal::SyncTransferHandler> syncTransferHandler = std::make_shared<Internal::SyncTransferHandler>();
   syncTransferHandler->error = &error;
   syncTransferHandler->data = &volumedatalayout_json;
-  auto request = vds.ioManager->Download("VolumeDataLayout", syncTransferHandler);
+  auto request = vds.ioManager->ReadObject("VolumeDataLayout", syncTransferHandler);
   request->WaitForFinish();
   if (!request->IsSuccess(error) || volumedatalayout_json.empty())
   {
@@ -1183,7 +1183,7 @@ bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDS& vds, Error& error)
   }
   std::vector<uint8_t> layerstatus_json;
   syncTransferHandler->data = &layerstatus_json;
-  request = vds.ioManager->Download("LayerStatus", syncTransferHandler);
+  request = vds.ioManager->ReadObject("LayerStatus", syncTransferHandler);
   request->WaitForFinish();
   if (!request->IsSuccess(error) || layerstatus_json.empty())
   {

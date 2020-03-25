@@ -84,7 +84,7 @@ struct DataProvider
     else if (m_ioManager)
     {
       auto dataTransfer = std::make_shared<DataTransfer>();
-      auto request = m_ioManager->Download(m_objectName, dataTransfer, { offset, offset + length});
+      auto request = m_ioManager->ReadObject(m_objectName, dataTransfer, { offset, offset + length});
       request->WaitForFinish();
       if (dataTransfer->error.code)
       {
@@ -133,7 +133,7 @@ struct DataView
     }
     else if (dataProvider.m_ioManager)
     {
-      m_request = dataProvider.m_ioManager->Download(dataProvider.m_objectName, m_transfer, { pos, pos + size});
+      m_request = dataProvider.m_ioManager->ReadObject(dataProvider.m_objectName, m_transfer, { pos, pos + size});
       m_pos = pos;
       m_size = size;
     }
