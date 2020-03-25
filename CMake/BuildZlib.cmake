@@ -18,7 +18,16 @@ macro(BuildZlib)
     set(ZLIB_INST "${ZLIB_ROOT_INSTALL}/${CMAKE_BUILD_TYPE}")
   endif()
 
-  set(EXTRA_CMAKE_ARGS "-DINSTALL_BIN_DIR=${ZLIB_INST}/bin;-DINSTALL_LIB_DIR=${ZLIB_INST}/lib;-DINSTALL_INC_DIR=${ZLIB_INST}/include")
+  include(CMake/TargetArch.cmake)
+  target_architecture(arch)
+  message("ARCHITECUTRE IS ${arch}")
+  if (arch MATCHES "i386")
+    set(ZLIB_ARCH_FLAG ";-DASM686=ON")
+  elseif (arch MATCHES "x86_64")
+    set(ZLIB_ARCH_FLAG ";-DAMD64=ON")
+  endif()
+
+    set(EXTRA_CMAKE_ARGS "-DINSTALL_BIN_DIR=${ZLIB_INST}/bin;-DINSTALL_LIB_DIR=${ZLIB_INST}/lib;-DINSTALL_INC_DIR=${ZLIB_INST}/include${ZLIB_ARCH_FLAG}")
   BuildExternal(zlib ${zlib_VERSION} "" ${zlib_SOURCE_DIR} "${ZLIB_LIBS_LIST_RELEASE}" "${ZLIB_DLLS_LIST_RELEASE}" "${ZLIB_LIBS_LIST_DEBUG}" "${ZLIB_DLLS_LIST_DEBUG}" "${EXTRA_CMAKE_ARGS}")
 endmacro()
 
