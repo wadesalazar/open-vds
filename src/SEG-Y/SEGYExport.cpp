@@ -126,22 +126,45 @@ main(int argc, char *argv[])
   // auto-close vds handle when it goes out of scope
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vdsGuard(handle, &OpenVDS::Close);
 
-  OpenVDS::File
-    file;
-
-  OpenVDS::Error
-    error;
-
-  file.Open(fileName.c_str(), true, true, true, error);
-
-  if(error.code != 0)
-  {
-    fmt::print(stderr, "Could not open file: {}", fileName);
-    return EXIT_FAILURE;
-  }
-
   auto accessManager = OpenVDS::GetAccessManager(handle);
   auto volumeDataLayout = accessManager->GetVolumeDataLayout();
+
+  int dimensionality = accessManager->GetVolumeDataLayout()->GetDimensionality();
+  int outerDimension = std::max(2, dimensionality - 1);
+
+  // Find a dimension group containing (at least) the inner dimensions and can be produced
+  OpenVDS::DimensionsND dimensionGroup = OpenVDS::Dimensions_01;
+
+  if(outerDimension == 1)
+  {
+    dimensionGroup = OpenVDS::Dimensions_02;
+  }
+
+  if(accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) != OpenVDS::VDSProduceStatus::Normal)
+  {
+    if(dimensionality == 4 && outerDimension == 2)
+    {
+      if(accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_013, 0, 0) == OpenVDS::VDSProduceStatus::Normal || 
+        accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_013, 0, 0) == OpenVDS::VDSProduceStatus::Remapped && accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable)
+      {
+        dimensionGroup = OpenVDS::Dimensions_013;
+      }
+    }
+    else
+    {
+      if(accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_012, 0, 0) == OpenVDS::VDSProduceStatus::Normal || 
+        accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_012, 0, 0) == OpenVDS::VDSProduceStatus::Remapped && accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable)
+      {
+        dimensionGroup = OpenVDS::Dimensions_012;
+      }
+    }
+  }
+
+  if(accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable)
+  {
+    fmt::print(stderr, "VDS cannot produce data");
+    return EXIT_FAILURE;
+  }
 
   if(!volumeDataLayout->IsChannelAvailable("Trace"))
   {
@@ -219,6 +242,20 @@ main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
+  OpenVDS::File
+    file;
+
+  OpenVDS::Error
+    error;
+
+  file.Open(fileName.c_str(), true, true, true, error);
+
+  if(error.code != 0)
+  {
+    fmt::print(stderr, "Could not open file: {}", fileName);
+    return EXIT_FAILURE;
+  }
+
   file.Write(textHeader.data(), 0, SEGY::TextualFileHeaderSize, error) && file.Write(binaryHeader.data(), SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize, error);
   if(error.code != 0)
   {
@@ -226,14 +263,15 @@ main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  int dimensionality = accessManager->GetVolumeDataLayout()->GetDimensionality();
-  int outerDimension = std::max(2, dimensionality - 1);
   int lineCount = volumeDataLayout->GetDimensionNumSamples(outerDimension);
 
   int64_t traceCount = 1;
-  for(int dimension = 1; dimension < outerDimension; dimension++)
+  for(int dimension = 1; dimension < dimensionality; dimension++)
   {
-    traceCount *= volumeDataLayout->GetDimensionNumSamples(dimension);
+    if(dimension != outerDimension)
+    {
+      traceCount *= volumeDataLayout->GetDimensionNumSamples(dimension);
+    }
   }
 
   const int sampleFormatSize = 4;
@@ -268,13 +306,13 @@ main(int argc, char *argv[])
     min[outerDimension] = line;
     max[outerDimension] = line + 1;
 
-    int64_t dataRequestID = accessManager->RequestVolumeSubset(data.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, 0, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+    int64_t dataRequestID = accessManager->RequestVolumeSubset(data.get(), volumeDataLayout, dimensionGroup, 0, 0, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
 
     max[0] = 1;
-    int64_t traceFlagRequestID = accessManager->RequestVolumeSubset(traceFlag.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, traceFlagChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+    int64_t traceFlagRequestID = accessManager->RequestVolumeSubset(traceFlag.get(), volumeDataLayout, dimensionGroup, 0, traceFlagChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
 
     max[0] = 240;
-    int64_t segyTraceHaderRequestID = accessManager->RequestVolumeSubset(segyTraceHeader.get(), volumeDataLayout, OpenVDS::Dimensions_012, 0, segyTraceHeaderChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+    int64_t segyTraceHaderRequestID = accessManager->RequestVolumeSubset(segyTraceHeader.get(), volumeDataLayout, dimensionGroup, 0, segyTraceHeaderChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
 
     // Need to queue the writing on another thread to get max. performance
     if (!accessManager->WaitForCompletion(dataRequestID))
