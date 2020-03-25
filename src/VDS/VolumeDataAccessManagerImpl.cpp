@@ -245,6 +245,24 @@ VolumeDataLayoutImpl const* VolumeDataAccessManagerImpl::GetVolumeDataLayoutImpl
   return m_vds.volumeDataLayout.get();
 }
 
+VDSProduceStatus VolumeDataAccessManagerImpl::GetVDSProduceStatus(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel) const
+{
+  VolumeDataLayer *layer = GetVolumeDataLayer(static_cast<VolumeDataLayoutImpl const *>(volumeDataLayout), dimensionsND, channel, lod, true);
+
+  if(layer && layer->GetProduceStatus() == VolumeDataLayer::ProduceStatus_Normal)
+  {
+    return VDSProduceStatus::Normal;
+  }
+  else if(layer && layer->GetProduceStatus() == VolumeDataLayer::ProduceStatus_Remapped)
+  {
+    return VDSProduceStatus::Remapped;
+  }
+  else
+  {
+    return VDSProduceStatus::Unavailable;
+  }
+}
+
 VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
@@ -255,7 +273,7 @@ VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccesso
 
   if(accessMode == VolumeDataAccessManager::AccessMode_Create)
   {
-    layer->GetProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
+    layer->SetProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
     MetadataStatus metadataStatus = {};
     metadataStatus.m_chunkMetadataPageSize = 1024;
     metadataStatus.m_chunkMetadataByteSize = sizeof(int64_t);

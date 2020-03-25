@@ -24,6 +24,13 @@
 
 namespace OpenVDS {
 
+enum class VDSProduceStatus
+{
+  Normal,
+  Remapped,
+  Unavailable
+};
+
 class VolumeDataPageAccessor;
 class VolumeDataLayout;
 struct VDS;
@@ -75,6 +82,26 @@ public:
   /// The VolumeDataLayout object associated with the VDS or NULL if there is no valid VolumeDataLayout.
   /// </returns>
   virtual VolumeDataLayout const *GetVolumeDataLayout() const = 0;
+
+  /// <summary>
+  /// Get the produce status for the specific DimensionsND/LOD/Channel combination.
+  /// </summary>
+  /// <param name="volumeDataLayout">
+  /// The VolumeDataLayout object associated with the VDS that we're getting the produce status for.
+  /// </param>
+  /// <param name="dimensionsND">
+  /// The dimensions group we're getting the produce status for.
+  /// </param>
+  /// <param name="lod">
+  /// The LOD level we're getting the produce status for.
+  /// </param>
+  /// <param name="channel">
+  /// The channel index we're getting the produce status for.
+  /// </param>
+  /// <returns>
+  /// The produce status for the specific DimensionsND/LOD/Channel combination.
+  /// </returns>
+  virtual VDSProduceStatus GetVDSProduceStatus(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel) const = 0;
 
   /// <summary>
   /// Create a volume data page accessor object for the VDS associated with the given VolumeDataLayout object.

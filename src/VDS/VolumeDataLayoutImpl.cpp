@@ -413,7 +413,7 @@ void VolumeDataLayoutImpl::CreateLayers(DimensionGroup dimensionGroup, int32_t b
       {
         if(volumeDataLayer->GetLayerType() != VolumeDataLayer::Virtual)
         {
-          volumeDataLayer->GetProduceStatus(produceStatus);
+          volumeDataLayer->SetProduceStatus(produceStatus);
         }
       }
     }

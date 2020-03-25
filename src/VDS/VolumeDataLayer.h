@@ -214,7 +214,7 @@ public:
 
   float GetIntegerOffset() const;
 
-  void GetProduceStatus(ProduceStatus produceStatus);
+  void SetProduceStatus(ProduceStatus produceStatus);
 };
 }
 #endif //VOLUMEDATALAYER_H

@@ -347,7 +347,7 @@ float VolumeDataLayer::GetIntegerOffset() const
   return m_volumeDataLayout->GetChannelIntegerOffset(m_channel);
 }
 
-void VolumeDataLayer::GetProduceStatus(ProduceStatus produceStatus)
+void VolumeDataLayer::SetProduceStatus(ProduceStatus produceStatus)
 {
   m_produceStatus = produceStatus;
 }

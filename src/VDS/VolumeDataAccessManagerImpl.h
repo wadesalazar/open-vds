@@ -124,7 +124,7 @@ inline bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
       return a.layer->GetLOD() < b.layer->GetLOD();
     }
   }
-  return DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(a.layer->GetChunkDimensionGroup()) < DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(b.layer->GetChunkDimensionGroup());
+  return a.layer->GetChunkDimensionGroup() < b.layer->GetChunkDimensionGroup();
 }
 
 struct RetryInfo
@@ -178,6 +178,7 @@ public:
   VolumeDataAccessManagerImpl(VDS &vds);
   ~VolumeDataAccessManagerImpl() override;
   VolumeDataLayout const *GetVolumeDataLayout() const override;
+  VDSProduceStatus GetVDSProduceStatus(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel) const override;
   VolumeDataLayoutImpl const *GetVolumeDataLayoutImpl() const;
   VolumeDataPageAccessor *CreateVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) override;
 
