@@ -62,13 +62,13 @@ namespace OpenVDS
   public:
     virtual ~IOManager();
     virtual std::shared_ptr<Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler) = 0;
-    virtual std::shared_ptr<Request> Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
-    virtual std::shared_ptr<Request> Upload(const std::string objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr) = 0;
-    std::shared_ptr<Request> UploadBinary(const std::string objectName, const std::string &contentDispositionFilename, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
+    virtual std::shared_ptr<Request> Download(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
+    virtual std::shared_ptr<Request> Upload(const std::string &objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr) = 0;
+    std::shared_ptr<Request> UploadBinary(const std::string &objectName, const std::string &contentDispositionFilename, const std::vector<std::pair<std::string, std::string>> &metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
     {
       return Upload(objectName, contentDispositionFilename, "application/octet-stream", metadataHeader, data, completedCallback);
     }
-    std::shared_ptr<Request> UploadJson(const std::string objectName, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
+    std::shared_ptr<Request> UploadJson(const std::string &objectName, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request &request, const Error &error)> completedCallback = nullptr)
     {
       return Upload(objectName, "", "application/json", std::vector<std::pair<std::string, std::string>>(), data, completedCallback);
     }

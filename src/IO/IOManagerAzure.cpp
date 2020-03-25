@@ -380,14 +380,14 @@ std::shared_ptr<Request> IOManagerAzure::ReadObjectInfo(const std::string &objec
   return azureRequest;
 }
 
-std::shared_ptr<Request> IOManagerAzure::Download(const std::string requestName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
+std::shared_ptr<Request> IOManagerAzure::Download(const std::string &requestName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
 {
   std::shared_ptr<DownloadRequestAzure> azureRequest = std::make_shared<DownloadRequestAzure>(requestName, handler);
   azureRequest->run(m_container, m_options, requestName, range, azureRequest);
   return azureRequest;
 }
 
-std::shared_ptr<Request> IOManagerAzure::Upload(const std::string requestName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
+std::shared_ptr<Request> IOManagerAzure::Upload(const std::string &requestName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
 {
   std::shared_ptr<UploadRequestAzure> azureRequest = std::make_shared<UploadRequestAzure>(requestName, completedCallback);
   azureRequest->run(m_container, m_options, requestName, contentDispositionFilename, contentType, metadataHeader, data, azureRequest);

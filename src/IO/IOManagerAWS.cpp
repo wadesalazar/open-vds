@@ -416,7 +416,7 @@ namespace OpenVDS
     return ret;
   }
 
-  std::shared_ptr<Request> IOManagerAWS::Download(const std::string objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
+  std::shared_ptr<Request> IOManagerAWS::Download(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
     auto ret = std::make_shared<DownloadRequestAWS>(id, handler);
@@ -424,7 +424,7 @@ namespace OpenVDS
     return ret;
   }
 
-  std::shared_ptr<Request> IOManagerAWS::Upload(const std::string objectName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
+  std::shared_ptr<Request> IOManagerAWS::Upload(const std::string &objectName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
   {
     std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
     auto ret = std::make_shared<UploadRequestAWS>(id, completedCallback);
