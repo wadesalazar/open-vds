@@ -63,34 +63,7 @@ readBinInfoFromHeader(const char *header, SEGYBinInfoHeaderFields const &headerF
 int
 SEGYFileInfo::TraceByteSize() const
 {
-  int formatSize;
-
-  switch(m_dataSampleFormatCode)
-  {
-  default:
-    return false;
-  case BinaryHeader::DataSampleFormatCode::Int8:
-  case BinaryHeader::DataSampleFormatCode::UInt8:
-    formatSize = 1; break;
-  case BinaryHeader::DataSampleFormatCode::Int16:
-  case BinaryHeader::DataSampleFormatCode::UInt16:
-    formatSize = 2; break;
-  case BinaryHeader::DataSampleFormatCode::Int24:
-  case BinaryHeader::DataSampleFormatCode::UInt24:
-    formatSize = 3; break;
-  case BinaryHeader::DataSampleFormatCode::IBMFloat:
-  case BinaryHeader::DataSampleFormatCode::Int32:
-  case BinaryHeader::DataSampleFormatCode::FixedPoint:
-  case BinaryHeader::DataSampleFormatCode::IEEEFloat:
-  case BinaryHeader::DataSampleFormatCode::UInt32:
-    formatSize = 4; break;
-  case BinaryHeader::DataSampleFormatCode::IEEEDouble:
-  case BinaryHeader::DataSampleFormatCode::Int64:
-  case BinaryHeader::DataSampleFormatCode::UInt64:
-    formatSize = 8; break;
-  }
-
-  return TraceHeaderSize + m_sampleCount * formatSize;
+  return TraceHeaderSize + m_sampleCount * SEGY::FormatSize(m_dataSampleFormatCode);
 }
 
 uint64_t
