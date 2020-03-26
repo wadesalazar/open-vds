@@ -435,7 +435,7 @@ main(int argc, char *argv[])
   }
   fmt::print(stdout, "\33[2K\r 100% Done.\n", percentage);
 
-  double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+  double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
   //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 
   return EXIT_SUCCESS;
