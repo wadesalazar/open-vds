@@ -220,6 +220,28 @@ main(int argc, char *argv[])
     for(int i = 0; i < textHeader.size(); i++) textHeader[i] = a2e[textHeader[i]];
   }
 
+  SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian;
+
+  if(volumeDataLayout->IsMetadataIntAvailable("SEGY", "HeaderEndianness"))
+  {
+    switch(volumeDataLayout->GetMetadataInt("SEGY", "HeaderEndianness"))
+    {
+    case 0: headerEndianness = SEGY::Endianness::BigEndian;    break;
+    case 1: headerEndianness = SEGY::Endianness::LittleEndian; break;
+    }
+  }
+
+  SEGY::Endianness dataEndianness = headerEndianness;
+
+  if(volumeDataLayout->IsMetadataIntAvailable("SEGY", "DataEndianness"))
+  {
+    switch(volumeDataLayout->GetMetadataInt("SEGY", "DataEndianness"))
+    {
+    case 0: dataEndianness = SEGY::Endianness::BigEndian;    break;
+    case 1: dataEndianness = SEGY::Endianness::LittleEndian; break;
+    }
+  }
+
   if(volumeDataLayout->IsMetadataBLOBAvailable("SEGY", "BinaryHeader"))
   {
     volumeDataLayout->GetMetadataBLOB("SEGY", "BinaryHeader", binaryHeader);
@@ -233,12 +255,39 @@ main(int argc, char *argv[])
     binaryHeader.resize(littleEndianBinaryHeader.size());
 
     // Convert to big-endian
-    for(int i = 0; i < littleEndianBinaryHeader.size(); i++) binaryHeader[i] = littleEndianBinaryHeader[(i < 3 * 4) ? (i ^ 3) : (i ^ 1)];
+    if(headerEndianness == SEGY::Endianness::BigEndian)
+    {
+      for(int i = 0; i < littleEndianBinaryHeader.size(); i++) binaryHeader[i] = littleEndianBinaryHeader[(i < 3 * 4) ? (i ^ 3) : (i ^ 1)];
+    }
   }
 
   if(textHeader.size() != SEGY::TextualFileHeaderSize || binaryHeader.size() != SEGY::BinaryFileHeaderSize)
   {
     fmt::print(stderr, "Invalid SEG-Y Text/Binary headers");
+    return EXIT_FAILURE;
+  }
+
+  SEGY::BinaryHeader::DataSampleFormatCode dataSampleFormatCode;
+
+  if(volumeDataLayout->IsMetadataIntAvailable("SEGY", "DataSampleFormatCode"))
+  {
+    dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(volumeDataLayout->GetMetadataInt("SEGY", "DataSampleFormatCode"));
+  }
+  else
+  {
+    dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(ReadFieldFromHeader(binaryHeader.data(), SEGY::BinaryHeader::DataSampleFormatCodeHeaderField, headerEndianness));
+  }
+
+  if(dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat && dataEndianness == SEGY::Endianness::LittleEndian)
+  {
+    fmt::print(stderr, "Little-endian IBM float is not supported");
+    return EXIT_FAILURE;
+  }
+
+  if(dataSampleFormatCode != SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat &&
+     dataSampleFormatCode != SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat)
+  {
+    fmt::print(stderr, "Unsupported data sample format: {}", dataSampleFormatCode);
     return EXIT_FAILURE;
   }
 
@@ -265,6 +314,17 @@ main(int argc, char *argv[])
 
   int lineCount = volumeDataLayout->GetDimensionNumSamples(outerDimension);
 
+  // Find which dimension to loop over in case the data has been transposed on import (i.e. crossline-sorted binned data)
+  const char *primaryKey = volumeDataLayout->GetMetadataString("SEGY", "PrimaryKey");
+  for(int dimension = 1; dimension < dimensionality; dimension++)
+  {
+    if(strcmp(primaryKey, volumeDataLayout->GetDimensionName(dimension)) == 0)
+    {
+      outerDimension = dimension;
+    }
+  }
+
+  // Count the total number of traces for each request
   int64_t traceCount = 1;
   for(int dimension = 1; dimension < dimensionality; dimension++)
   {
@@ -337,10 +397,6 @@ main(int argc, char *argv[])
     std::unique_ptr<char[]> writeBuffer(new char[traceCount * (traceDataSize + SEGY::TraceHeaderSize)]);
     int activeTraceCount = 0;
 
-    SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian;
-
-    auto dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(ReadFieldFromHeader(binaryHeader.data(), SEGY::BinaryHeader::DataSampleFormatCodeHeaderField, headerEndianness));
-
     for(int trace = 0; trace < traceCount; trace++)
     {
       if(traceFlag[trace])
@@ -355,11 +411,14 @@ main(int argc, char *argv[])
         }
         else if(dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat)
         {
-          memcpy(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, data.get() + trace * traceDataSize, traceDataSize);
-        }
-        else
-        {
-          assert(0 && "other formats not implemented yet");
+          if(dataEndianness == SEGY::Endianness::BigEndian)
+          {
+            SEGY::ConvertEndianness<SEGY::Endianness::BigEndian>(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, reinterpret_cast<float *>(data.get() + trace * traceDataSize), sampleCount);
+          }
+          else
+          {
+            SEGY::ConvertEndianness<SEGY::Endianness::LittleEndian>(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, reinterpret_cast<float *>(data.get() + trace * traceDataSize), sampleCount);
+          }
         }
 
         activeTraceCount++;
