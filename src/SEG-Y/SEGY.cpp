@@ -270,4 +270,31 @@ ReadFieldFromHeader(const void *header, HeaderField const &headerField, Endianne
   }
 }
 
+int FormatSize(BinaryHeader::DataSampleFormatCode dataSampleFormatCode)
+{
+  switch(dataSampleFormatCode)
+  {
+    case BinaryHeader::DataSampleFormatCode::Int8:
+    case BinaryHeader::DataSampleFormatCode::UInt8:
+      return 1;
+    case BinaryHeader::DataSampleFormatCode::Int16:
+    case BinaryHeader::DataSampleFormatCode::UInt16:
+      return 2;
+    case BinaryHeader::DataSampleFormatCode::Int24:
+    case BinaryHeader::DataSampleFormatCode::UInt24:
+      return 3;
+    case BinaryHeader::DataSampleFormatCode::IBMFloat:
+    case BinaryHeader::DataSampleFormatCode::Int32:
+    case BinaryHeader::DataSampleFormatCode::FixedPoint:
+    case BinaryHeader::DataSampleFormatCode::IEEEFloat:
+    case BinaryHeader::DataSampleFormatCode::UInt32:
+      return 4;
+    case BinaryHeader::DataSampleFormatCode::IEEEDouble:
+    case BinaryHeader::DataSampleFormatCode::Int64:
+    case BinaryHeader::DataSampleFormatCode::UInt64:
+      return 8;
+  }
+  return 0;
+}
+
 } // end namespace SEGY

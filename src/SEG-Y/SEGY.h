@@ -190,7 +190,54 @@ static const HeaderField CrosslineNumberHeaderField(193, FieldWidth::FourByte);
 
 } // end namespace TraceHeader
 
-// Conversion functions
+// Endianness conversion functions
+
+template<SEGY::Endianness targetEndianness, typename T>
+char *
+ConvertEndianness(char *target, T *source)
+{
+  union
+  {
+    char data[sizeof(T)];
+    T    value;
+  } converter;
+
+  converter.value = *source;
+
+  if(targetEndianness == SEGY::Endianness::LittleEndian)
+  {
+    const char *data = converter.data;
+
+    for(int i = 0; i < (int)sizeof(T); i++)
+    {
+      *target++ = *data++;
+    }
+  }
+  else
+  {
+    const char *data = converter.data + (int)sizeof(T);
+
+    for(int i = 0; i < (int)sizeof(T); i++)
+    {
+      *target++ = *--data;
+    }
+  }
+
+  return target;
+}
+
+template<SEGY::Endianness targetEndianness, typename T>
+char *
+ConvertEndianness(char *target, T *source, int sampleCount)
+{
+  for(int sample = 0; sample < sampleCount; sample++)
+  {
+    target = ConvertEndianness<targetEndianness, T>(target, source++);
+  }
+  return target;
+}
+
+// Floating point format conversion functions
 
 void Ibm2ieee(void *to, const void *from, size_t len);
 void Ieee2ibm(void *to, const void *from, size_t len);
@@ -198,5 +245,9 @@ void Ieee2ibm(void *to, const void *from, size_t len);
 // Read field from header
 
 int ReadFieldFromHeader(const void *header, HeaderField const &headerField, Endianness endianness);
+
+// Byte size of sample, returns 0 for invalid format
+
+int FormatSize(BinaryHeader::DataSampleFormatCode dataSampleFormatCode);
 
 } // end namespace SEGY
