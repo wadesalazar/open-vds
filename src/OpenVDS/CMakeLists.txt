@@ -178,6 +178,17 @@ if (WIN32)
   set_source_files_properties(IO/Linux_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
 elseif (UNIX)
   set_source_files_properties(IO/Win_File.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
+
+  set(CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
+  check_symbol_exists(syncfs "unistd.h" HAVE_SYNCFS)
+  set(CMAKE_REQUIRED_DEFINITIONS "")
+
+  if (HAVE_SYNCFS)
+    set_source_files_properties(IO/Linux_File.cpp
+      PROPERTIES COMPILE_DEFINITIONS
+      HAVE_SYNCFS
+    )
+  endif()
 endif()
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)

@@ -17,8 +17,8 @@
 
 #include "File.h"
 
-#ifndef _XOPEN_SOURCE
-  #define _XOPEN_SOURCE 500
+#ifdef HAVE_SYNCFS
+  #define _GNU_SOURCE
 #endif
 
 #include <sys/mman.h>
@@ -332,9 +332,9 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
 
 bool File::Flush()
 {
-#ifdef LINUX
-  int fd  = (int)(intptr_t)_pxPlatformHandle;
-  return syncfs(fd) == 0;
+#ifdef HAVE_SYNCFS
+	int fd  = (int)(intptr_t)_pxPlatformHandle;
+	return syncfs(fd) == 0;
 #else
   sync();
   return true;
