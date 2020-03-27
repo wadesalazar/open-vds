@@ -507,31 +507,30 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
       {
         if (samples[sample] < minHeap[0])
         {
-          minHeap.push_back(samples[sample]);
-          if (minHeap.size() <= heapSizeMax)
+          if (minHeap.size() < heapSizeMax)
           {
-            std::push_heap(minHeap.begin(), minHeap.end(), std::less<float>());
+            minHeap.push_back(samples[sample]);
           }
           else
           {
             std::pop_heap(minHeap.begin(), minHeap.end(), std::less<float>());
-            minHeap.pop_back();
+            minHeap.back() = samples[sample];
           }
+          std::push_heap(minHeap.begin(), minHeap.end(), std::less<float>());
         }
 
         if (samples[sample] > maxHeap[0])
         {
-          maxHeap.push_back(samples[sample]);
-
-          if (maxHeap.size() <= heapSizeMax)
+          if (maxHeap.size() < heapSizeMax)
           {
-            std::push_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
+            maxHeap.push_back(samples[sample]);
           }
           else
           {
             std::pop_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
-            maxHeap.pop_back();
+            maxHeap.back() = samples[sample];
           }
+          std::push_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
         }
       }
     }
