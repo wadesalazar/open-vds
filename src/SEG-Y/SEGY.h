@@ -194,7 +194,7 @@ static const HeaderField CrosslineNumberHeaderField(193, FieldWidth::FourByte);
 
 template<SEGY::Endianness targetEndianness, typename T>
 char *
-ConvertEndianness(char *target, T *source)
+ConvertToEndianness(char *target, const T *source)
 {
   union
   {
@@ -206,7 +206,7 @@ ConvertEndianness(char *target, T *source)
 
   if(targetEndianness == SEGY::Endianness::LittleEndian)
   {
-    const char *data = converter.data;
+    char *data = converter.data;
 
     for(int i = 0; i < (int)sizeof(T); i++)
     {
@@ -215,7 +215,7 @@ ConvertEndianness(char *target, T *source)
   }
   else
   {
-    const char *data = converter.data + (int)sizeof(T);
+    char *data = converter.data + (int)sizeof(T);
 
     for(int i = 0; i < (int)sizeof(T); i++)
     {
@@ -226,15 +226,60 @@ ConvertEndianness(char *target, T *source)
   return target;
 }
 
+template<SEGY::Endianness sourceEndianness, typename T>
+const char *
+ConvertFromEndianness(T *target, const char *source)
+{
+  union
+  {
+    char data[sizeof(T)];
+    T    value;
+  } converter;
+
+  if(sourceEndianness == SEGY::Endianness::LittleEndian)
+  {
+    char *data = converter.data;
+
+    for(int i = 0; i < (int)sizeof(T); i++)
+    {
+      *data++ = *source++;
+    }
+  }
+  else
+  {
+    char *data = converter.data + (int)sizeof(T);
+
+    for(int i = 0; i < (int)sizeof(T); i++)
+    {
+      *--data = *source++;
+    }
+  }
+
+  *target = converter.value;
+
+  return source;
+}
+
 template<SEGY::Endianness targetEndianness, typename T>
 char *
-ConvertEndianness(char *target, T *source, int sampleCount)
+ConvertToEndianness(char *target, const T *source, int sampleCount)
 {
   for(int sample = 0; sample < sampleCount; sample++)
   {
-    target = ConvertEndianness<targetEndianness, T>(target, source++);
+    target = ConvertToEndianness<targetEndianness, T>(target, source++);
   }
   return target;
+}
+
+template<SEGY::Endianness sourceEndianness, typename T>
+const char *
+ConvertFromEndianness(T *target, const char *source, int sampleCount)
+{
+  for(int sample = 0; sample < sampleCount; sample++)
+  {
+    source = ConvertFromEndianness<sourceEndianness, T>(target++, source);
+  }
+  return source;
 }
 
 // Floating point format conversion functions

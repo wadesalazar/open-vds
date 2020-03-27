@@ -222,9 +222,9 @@ main(int argc, char *argv[])
 
   SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian;
 
-  if(volumeDataLayout->IsMetadataIntAvailable("SEGY", "HeaderEndianness"))
+  if(volumeDataLayout->IsMetadataIntAvailable("SEGY", "Endianness"))
   {
-    switch(volumeDataLayout->GetMetadataInt("SEGY", "HeaderEndianness"))
+    switch(volumeDataLayout->GetMetadataInt("SEGY", "Endianness"))
     {
     case 0: headerEndianness = SEGY::Endianness::BigEndian;    break;
     case 1: headerEndianness = SEGY::Endianness::LittleEndian; break;
@@ -413,11 +413,11 @@ main(int argc, char *argv[])
         {
           if(dataEndianness == SEGY::Endianness::BigEndian)
           {
-            SEGY::ConvertEndianness<SEGY::Endianness::BigEndian>(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, reinterpret_cast<float *>(data.get() + trace * traceDataSize), sampleCount);
+            SEGY::ConvertToEndianness<SEGY::Endianness::BigEndian>(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, reinterpret_cast<float *>(data.get() + trace * traceDataSize), sampleCount);
           }
           else
           {
-            SEGY::ConvertEndianness<SEGY::Endianness::LittleEndian>(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, reinterpret_cast<float *>(data.get() + trace * traceDataSize), sampleCount);
+            SEGY::ConvertToEndianness<SEGY::Endianness::LittleEndian>(writeBuffer.get() + activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize) + SEGY::TraceHeaderSize, reinterpret_cast<float *>(data.get() + trace * traceDataSize), sampleCount);
           }
         }
 

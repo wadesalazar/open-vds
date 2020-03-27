@@ -419,6 +419,46 @@ findRepresentativeSegment(SEGYFileInfo const& fileInfo)
   return fileInfo.m_segmentInfo[bestIndex];
 }
 
+void
+copySamples(const void* data, SEGY::BinaryHeader::DataSampleFormatCode dataSampleFormatCode, SEGY::Endianness endianness, float* target, int sampleStart, int sampleCount)
+{
+  if (dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
+  {
+    if(endianness == SEGY::Endianness::LittleEndian)
+    {
+      // Reverse endianness since Ibm2ieee expects big endian data
+      const char * source = reinterpret_cast<const char*>((intptr_t)data + (size_t)sampleStart * 4);
+      std::unique_ptr<char[]> temp(new char[sampleCount * 4]);
+      for(int sample = 0; sample < sampleCount; sample++)
+      {
+        temp[sample * 4 + 0] = source[sample * 4 + 3];
+        temp[sample * 4 + 1] = source[sample * 4 + 2];
+        temp[sample * 4 + 2] = source[sample * 4 + 1];
+        temp[sample * 4 + 3] = source[sample * 4 + 0];
+      }
+      SEGY::Ibm2ieee(target, temp.get(), sampleCount);
+    }
+    else
+    {
+      assert(endianness == SEGY::Endianness::BigEndian);
+      SEGY::Ibm2ieee(target, reinterpret_cast<const uint32_t*>((intptr_t)data + (size_t)sampleStart * 4), sampleCount);
+    }
+  }
+  else
+  {
+    assert(dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat);
+    if(endianness == SEGY::Endianness::LittleEndian)
+    {
+      SEGY::ConvertFromEndianness<SEGY::Endianness::LittleEndian>(target, reinterpret_cast<const char*>((intptr_t)data + (size_t)sampleStart * 4), sampleCount);
+    }
+    else
+    {
+      assert(endianness == SEGY::Endianness::BigEndian);
+      SEGY::ConvertFromEndianness<SEGY::Endianness::BigEndian>(target, reinterpret_cast<const char*>((intptr_t)data + (size_t)sampleStart * 4), sampleCount);
+    }
+  }
+}
+
 bool
 analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, OpenVDS::Error& error)
 {
@@ -443,15 +483,8 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
   }
   else if (fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat || fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat)
   {
-    std::unique_ptr<float[]> sampleBuffer;
-
-    float* samples = nullptr;
-
-    if (fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
-    {
-      sampleBuffer.reset(new float[fileInfo.m_sampleCount]);
-      samples = sampleBuffer.get();
-    }
+    std::unique_ptr<float[]> sampleBuffer(new float[fileInfo.m_sampleCount]);
+    float* samples = sampleBuffer.get();
 
     int heapSizeMax = (int)(((100.0f - valueRangePercentile) / 100.0f) * traceCount * fileInfo.m_sampleCount / 2);
 
@@ -462,15 +495,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
 
     for (int trace = 0; trace < traceCount; trace++)
     {
-      if (fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
-      {
-        SEGY::Ibm2ieee(sampleBuffer.get(), buffer.get() + traceByteSize * trace + SEGY::TraceHeaderSize, fileInfo.m_sampleCount);
-      }
-      else
-      {
-        assert(fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat);
-        samples = reinterpret_cast<float*>(buffer.get() + traceByteSize * trace + SEGY::TraceHeaderSize);
-      }
+      copySamples(buffer.get() + traceByteSize * trace + SEGY::TraceHeaderSize, fileInfo.m_dataSampleFormatCode, fileInfo.m_headerEndianness, samples, 0, fileInfo.m_sampleCount);
 
       if (trace == 0)
       {
@@ -847,20 +872,6 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, c
   }
 
   return traceStop;
-}
-
-void
-copySamples(const void* data, SEGY::BinaryHeader::DataSampleFormatCode dataSampleFormatCode, float* target, int sampleStart, int sampleCount)
-{
-  if (dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat)
-  {
-    SEGY::Ibm2ieee(target, reinterpret_cast<const void*>((intptr_t)data + sampleStart * 4), sampleCount);
-  }
-  else
-  {
-    assert(dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat);
-    memcpy(target, reinterpret_cast<const void*>((intptr_t)data + sampleStart * 4), sampleCount * 4);
-  }
 }
 
 int
@@ -1422,7 +1433,7 @@ main(int argc, char* argv[])
           {
             int targetOffset = (primaryIndex - chunkIndex.min[2]) * amplitudePitch[2] + (secondaryIndex - chunkIndex.min[1]) * amplitudePitch[1];
 
-            copySamples(data, fileInfo.m_dataSampleFormatCode, &reinterpret_cast<float*>(amplitudeBuffer)[targetOffset], chunkIndex.sampleStart, chunkIndex.sampleCount);
+            copySamples(data, fileInfo.m_dataSampleFormatCode, fileInfo.m_headerEndianness, &reinterpret_cast<float*>(amplitudeBuffer)[targetOffset], chunkIndex.sampleStart, chunkIndex.sampleCount);
           }
 
           if (traceFlagBuffer)
@@ -1455,7 +1466,7 @@ main(int argc, char* argv[])
 
   dataView.reset();
 
-  double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+  double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
   //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 
   return EXIT_SUCCESS;
