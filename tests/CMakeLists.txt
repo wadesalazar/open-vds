@@ -1,5 +1,3 @@
-include (${PROJECT_SOURCE_DIR}/CMake/CopyDllForTarget.cmake)
-
 include(GoogleTest)
 set(BUILD_GMOCK OFF CACHE BOOL "We dont need mock" FORCE)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -25,7 +23,7 @@ function(add_test_executable name)
   set_target_properties(${name} PROPERTIES FOLDER tests)
   get_target_property(fmt_INCLUDE fmt::fmt INTERFACE_INCLUDE_DIRECTORIES)
   get_target_property(json_INCLUDE jsoncpp_lib_static INTERFACE_INCLUDE_DIRECTORIES)
-  target_include_directories(${name} PRIVATE ${fmt_INCLUDE} ${json_INCLUDE})
+  target_include_directories(${name} PRIVATE ${fmt_INCLUDE} ${json_INCLUDE} ${PROJECT_SOURCE_DIR}/src/OpenVDS)
   target_compile_definitions(${name} PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
   target_compile_definitions(${name} PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
   target_compile_definitions(${name} PRIVATE -DTEST_AWS_BUCKET="${TEST_AWS_BUCKET}")
@@ -61,11 +59,11 @@ add_test_executable(fmt_tests
 
 add_test_executable(segy_tests
   SEG-Y/SEGYScanTest.cpp
-  ../src/SEG-Y/SEGY.cpp
-  ../src/SEG-Y/SEGYFileInfo.cpp
-  ../src/SEG-Y/SEGYFileInfo.h)
+  ../src/SEGYUtils/SEGY.cpp
+  ../src/SEGYUtils/SEGYFileInfo.cpp
+  ../src/SEGYUtils/SEGYUtils/SEGYFileInfo.h)
 target_compile_definitions(segy_tests PRIVATE -DTEST_DATA_PATH="${TEST_DATA_PATH}")
-target_include_directories(segy_tests PRIVATE ../src/SEG-Y)
+target_include_directories(segy_tests PRIVATE ../src/SEGYUtils)
 
 add_test_executable(vds_integration_tests
   VDS/ParseVDSJsonTest.cpp

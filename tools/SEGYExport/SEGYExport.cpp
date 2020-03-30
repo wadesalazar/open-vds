@@ -15,7 +15,7 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "SEGY.h"
+#include <SEGYUtils/SEGY.h>
 #include "IO/File.h"
 
 #include <OpenVDS/OpenVDS.h>

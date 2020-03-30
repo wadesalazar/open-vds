@@ -16,7 +16,7 @@
 ****************************************************************************/
 
 #include "IO/File.h"
-#include "SEGYFileInfo.h"
+#include <SEGYUtils/SEGYFileInfo.h>
 
 #include <gtest/gtest.h>
 

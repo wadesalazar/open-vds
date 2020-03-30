@@ -15,7 +15,7 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "SEGY.h"
+#include <SEGYUtils/SEGY.h>
 
 #include <stdint.h>
 #include <stdlib.h>

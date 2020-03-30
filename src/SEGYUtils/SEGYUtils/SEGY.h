@@ -17,6 +17,8 @@
 
 #include <cstddef>
 
+#include <OpenVDS/openvds_export.h>
+
 namespace SEGY
 {
 
@@ -284,15 +286,14 @@ ConvertFromEndianness(T *target, const char *source, int sampleCount)
 
 // Floating point format conversion functions
 
-void Ibm2ieee(void *to, const void *from, size_t len);
-void Ieee2ibm(void *to, const void *from, size_t len);
+OPENVDS_EXPORT void Ibm2ieee(void *to, const void *from, size_t len);
+OPENVDS_EXPORT void Ieee2ibm(void *to, const void *from, size_t len);
 
 // Read field from header
 
-int ReadFieldFromHeader(const void *header, HeaderField const &headerField, Endianness endianness);
-
+OPENVDS_EXPORT int ReadFieldFromHeader(const void *header, HeaderField const &headerField, Endianness endianness);
 // Byte size of sample, returns 0 for invalid format
 
-int FormatSize(BinaryHeader::DataSampleFormatCode dataSampleFormatCode);
+OPENVDS_EXPORT int FormatSize(BinaryHeader::DataSampleFormatCode dataSampleFormatCode);
 
 } // end namespace SEGY

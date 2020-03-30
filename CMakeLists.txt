@@ -93,6 +93,8 @@ Fetch3rdParty()
 include(CMake/Build3rdParty.cmake)
 build3rdparty()
 
+include(CMake/CopyDllForTarget.cmake)
+
 add_subdirectory(src)
 add_subdirectory(tools)
 

@@ -15,10 +15,10 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "SEGYFileInfo.h"
+#include <SEGYUtils/SEGYFileInfo.h>
 #include "IO/File.h"
 #include "VDS/Hash.h"
-#include "DataProvider.h"
+#include <SEGYUtils/DataProvider.h>
 
 #include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/KnownMetadata.h>

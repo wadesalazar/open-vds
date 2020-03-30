@@ -18,8 +18,8 @@
 #include <VDS/Hash.h>
 
 #include "IO/File.h"
-#include "SEGYFileInfo.h"
-#include "DataProvider.h"
+#include <SEGYUtils/SEGYFileInfo.h>
+#include <SEGYUtils/DataProvider.h>
 
 #include <iostream>
 #include <algorithm>
