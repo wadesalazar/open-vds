@@ -1,3 +1,5 @@
+## VDSInfo
+
 VDSInfo is a simple tool for getting info about a VDS. It prints out the result
 of the query in json, and it will try and give the shortes json for the
 specific query by eliminating redundant json parent structures.
