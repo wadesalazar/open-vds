@@ -389,13 +389,14 @@ segmentInfoFromJson(Json::Value const& jsonSegmentInfo)
 }
 
 SEGYSegmentInfo const&
-findRepresentativeSegment(SEGYFileInfo const& fileInfo)
+findRepresentativeSegment(SEGYFileInfo const& fileInfo, int& primaryStep)
 {
-  float
-    bestScore = 0.0f;
+  primaryStep = 0;
 
-  int
-    bestIndex = 0;
+  float bestScore = 0.0f;
+  int bestIndex = 0;
+
+  int segmentPrimaryStep = 0;
 
   for (int i = 0; i < fileInfo.m_segmentInfo.size(); i++)
   {
@@ -413,7 +414,21 @@ findRepresentativeSegment(SEGYFileInfo const& fileInfo)
       bestScore = score;
       bestIndex = i;
     }
+
+    // Updating the primary step with the step for the previous segment intentionally ignores the step of the last segment since it can be anomalous
+    if(segmentPrimaryStep && (!primaryStep || std::abs(segmentPrimaryStep) < std::abs(primaryStep)))
+    {
+      primaryStep = segmentPrimaryStep;
+    }
+
+    if(i > 0)
+    {
+      segmentPrimaryStep = fileInfo.m_segmentInfo[i].m_primaryKey - fileInfo.m_segmentInfo[i - 1].m_primaryKey;
+    }
   }
+
+  // If the primary step couldn't be determined, set it to the last step or 1
+  primaryStep = primaryStep ? primaryStep : std::max(segmentPrimaryStep, 1);
 
   return fileInfo.m_segmentInfo[bestIndex];
 }
@@ -459,80 +474,128 @@ copySamples(const void* data, SEGY::BinaryHeader::DataSampleFormatCode dataSampl
 }
 
 bool
-analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, OpenVDS::Error& error)
+analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, int& fold, int& secondaryStep, OpenVDS::Error& error)
 {
-  int traceByteSize = fileInfo.TraceByteSize();
+  assert(segmentInfo.m_traceStop > segmentInfo.m_traceStart && "A valid segment info should always have a greater stop trace than the start trace");
 
-  int64_t offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + segmentInfo.m_traceStart * traceByteSize;
+  bool success = true;
 
-  int traceCount = int(segmentInfo.m_traceStop - segmentInfo.m_traceStart);
+  valueRange = OpenVDS::FloatRange(0.0f, 1.0f);
+  secondaryStep = 0;
+  fold = 1;
 
-  std::unique_ptr<char[]> buffer(new char[(segmentInfo.m_traceStop - segmentInfo.m_traceStart) * traceByteSize]);
+  const int traceByteSize = fileInfo.TraceByteSize();
 
-  dataProvider.Read(buffer.get(), offset, traceCount * traceByteSize, error);
+  int64_t traceBufferStart = 0;
+  int traceBufferSize = 0;
+  std::unique_ptr<char[]> buffer;
 
-  if (error.code != 0)
+  // Create min/max heaps for determining value range
+  int heapSizeMax = int(((100.0f - valueRangePercentile) / 100.0f) * (segmentInfo.m_traceStop - segmentInfo.m_traceStart) * fileInfo.m_sampleCount / 2) + 1;
+
+  std::vector<float> minHeap, maxHeap;
+
+  minHeap.reserve(heapSizeMax);
+  maxHeap.reserve(heapSizeMax);
+
+  // Allocate sample buffer for converting samples to float
+  std::unique_ptr<float[]> sampleBuffer(new float[fileInfo.m_sampleCount]);
+  float* samples = sampleBuffer.get();
+
+  // Determine fold and secondary step
+  int gatherSecondaryKey = 0, gatherFold = 0, gatherSecondaryStep = 0;
+
+  for (int64_t trace = segmentInfo.m_traceStart; trace <  segmentInfo.m_traceStop; trace++)
   {
-    return false;
-  }
-
-  if (fileInfo.m_sampleCount == 0 || traceCount == 0)
-  {
-    valueRange = OpenVDS::FloatRange(0.0f, 0.0f);
-  }
-  else if (fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat || fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat)
-  {
-    std::unique_ptr<float[]> sampleBuffer(new float[fileInfo.m_sampleCount]);
-    float* samples = sampleBuffer.get();
-
-    int heapSizeMax = (int)(((100.0f - valueRangePercentile) / 100.0f) * traceCount * fileInfo.m_sampleCount / 2);
-
-    std::vector<float> minHeap, maxHeap;
-
-    minHeap.reserve(heapSizeMax + 1);
-    maxHeap.reserve(heapSizeMax + 1);
-
-    for (int trace = 0; trace < traceCount; trace++)
+    if(trace - traceBufferStart >= traceBufferSize)
     {
-      copySamples(buffer.get() + traceByteSize * trace + SEGY::TraceHeaderSize, fileInfo.m_dataSampleFormatCode, fileInfo.m_headerEndianness, samples, 0, fileInfo.m_sampleCount);
+      traceBufferStart = trace;
+      traceBufferSize = (segmentInfo.m_traceStop - trace) < 1000 ? int(segmentInfo.m_traceStop - trace) : 1000;
 
-      if (trace == 0)
+      buffer.reset(new char[traceByteSize * traceBufferSize]);
+      int64_t offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + traceByteSize * traceBufferStart;
+      success = dataProvider.Read(buffer.get(), offset, traceByteSize * traceBufferSize, error);
+
+      if (!success)
       {
-        minHeap.push_back(samples[0]);
-        maxHeap.push_back(samples[0]);
+        break;
       }
+    }
+
+    const void *header = buffer.get() + traceByteSize * (trace - traceBufferStart);
+    const void *data   = buffer.get() + traceByteSize * (trace - traceBufferStart) + SEGY::TraceHeaderSize;
+
+    int tracePrimaryKey = SEGY::ReadFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness);
+    int traceSecondaryKey = SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
+
+    if(tracePrimaryKey != segmentInfo.m_primaryKey)
+    {
+      fmt::print(stderr, "Warning: trace {} has a primary key that doesn't match with the segment. This trace will be ignored.", segmentInfo.m_traceStart + trace);
+      continue;
+    }
+
+    if(gatherFold > 0 && traceSecondaryKey == gatherSecondaryKey)
+    {
+      gatherFold++;
+      fold = std::max(fold, gatherFold);
+    }
+    else
+    {
+      // Updating the secondary step with the step for the previous gather intentionally ignores the step of the last gather since it can be anomalous
+      if(gatherSecondaryStep && (!secondaryStep || std::abs(gatherSecondaryStep) < std::abs(secondaryStep)))
+      {
+        secondaryStep = gatherSecondaryStep;
+      }
+
+      if(gatherFold > 0)
+      {
+        gatherSecondaryStep = traceSecondaryKey - gatherSecondaryKey;
+      }
+      gatherSecondaryKey = traceSecondaryKey;
+      gatherFold = 1;
+    }
+
+    // Update value range
+    if (fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat || fileInfo.m_dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat)
+    {
+      copySamples(data, fileInfo.m_dataSampleFormatCode, fileInfo.m_headerEndianness, samples, 0, fileInfo.m_sampleCount);
 
       for (int sample = 0; sample < fileInfo.m_sampleCount; sample++)
       {
-        if (samples[sample] < minHeap[0])
+        if (minHeap.size() < heapSizeMax)
         {
-          if (minHeap.size() < heapSizeMax)
-          {
-            minHeap.push_back(samples[sample]);
-          }
-          else
-          {
-            std::pop_heap(minHeap.begin(), minHeap.end(), std::less<float>());
-            minHeap.back() = samples[sample];
-          }
+          minHeap.push_back(samples[sample]);
+          std::push_heap(minHeap.begin(), minHeap.end(), std::less<float>());
+        }
+        else if (samples[sample] < minHeap[0])
+        {
+          std::pop_heap(minHeap.begin(), minHeap.end(), std::less<float>());
+          minHeap.back() = samples[sample];
           std::push_heap(minHeap.begin(), minHeap.end(), std::less<float>());
         }
 
-        if (samples[sample] > maxHeap[0])
+        if (maxHeap.size() < heapSizeMax)
         {
-          if (maxHeap.size() < heapSizeMax)
-          {
-            maxHeap.push_back(samples[sample]);
-          }
-          else
-          {
-            std::pop_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
-            maxHeap.back() = samples[sample];
-          }
+          maxHeap.push_back(samples[sample]);
+          std::push_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
+        }
+        else if (samples[sample] > maxHeap[0])
+        {
+          std::pop_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
+          maxHeap.back() = samples[sample];
           std::push_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
         }
       }
     }
+  }
+
+  // If the secondary step couldn't be determined, set it to the last step or 1
+  secondaryStep = secondaryStep ? secondaryStep : std::max(gatherSecondaryStep, 1);
+
+  // Set value range
+  if (!minHeap.empty())
+  {
+    assert(!maxHeap.empty());
 
     if (minHeap[0] != maxHeap[0])
     {
@@ -544,7 +607,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
     }
   }
 
-  return true;
+  return success;
 }
 
 bool
@@ -721,21 +784,22 @@ parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
 }
 
 std::vector<OpenVDS::VolumeDataAxisDescriptor>
-createAxisDescriptors(SEGYFileInfo const& fileInfo)
+createAxisDescriptors(SEGYFileInfo const& fileInfo, int inlineStep, int crosslineStep)
 {
   std::vector<OpenVDS::VolumeDataAxisDescriptor>
     axisDescriptors;
 
   axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, "ms", 0.0f, (fileInfo.m_sampleCount - 1) * (float)fileInfo.m_sampleIntervalMilliseconds));
 
-  int inlineStep = 1,
-    crosslineStep = 1;
+  int minInline    = fileInfo.m_segmentInfo[0].m_binInfoStart.m_inlineNumber,
+      minCrossline = fileInfo.m_segmentInfo[0].m_binInfoStart.m_crosslineNumber,
+      maxInline    = minInline,
+      maxCrossline = minCrossline;
 
-  int minInline = fileInfo.m_segmentInfo[0].m_binInfoStart.m_inlineNumber, maxInline = minInline,
-    minCrossline = fileInfo.m_segmentInfo[0].m_binInfoStart.m_crosslineNumber, maxCrossline = minCrossline;
-
-  for (auto const& segmentInfo : fileInfo.m_segmentInfo)
+  for (int segment = 0; segment < (int)fileInfo.m_segmentInfo.size(); segment++)
   {
+    auto const &segmentInfo = fileInfo.m_segmentInfo[segment];
+
     minInline = std::min(minInline, segmentInfo.m_binInfoStart.m_inlineNumber);
     minInline = std::min(minInline, segmentInfo.m_binInfoStop.m_inlineNumber);
     maxInline = std::max(maxInline, segmentInfo.m_binInfoStart.m_inlineNumber);
@@ -747,11 +811,15 @@ createAxisDescriptors(SEGYFileInfo const& fileInfo)
     maxCrossline = std::max(maxCrossline, segmentInfo.m_binInfoStop.m_crosslineNumber);
   }
 
-  int inlineCount = 1 + (maxInline - minInline) / inlineStep,
-    crosslineCount = 1 + (maxCrossline - minCrossline) / crosslineStep;
+  // Ensure the max inline/crossline is a multiple of the step size from the min
+  maxCrossline += (maxCrossline - minCrossline) % crosslineStep;
+  maxInline    += (maxInline    - minInline)    % inlineStep;
+
+  int inlineCount    = 1 + (maxInline    - minInline   ) / inlineStep,
+      crosslineCount = 1 + (maxCrossline - minCrossline) / crosslineStep;
 
   axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(crosslineCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE, "", (float)minCrossline, (float)maxCrossline));
-  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(inlineCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE, "", (float)minInline, (float)maxInline));
+  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(inlineCount,    KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,    "", (float)minInline,    (float)maxInline));
 
   return axisDescriptors;
 }
@@ -1201,6 +1269,37 @@ main(int argc, char* argv[])
     persistentID = fmt::format("{:X}", fileInfo.m_persistentID);
   }
 
+  // Check for only a single segment
+
+  if(fileInfo.m_segmentInfo.size() == 1)
+  {
+    fmt::print(stderr, "Warning: There is only one segment, either this is (as of now unsupported) 2D data or this usually indicates using the wrong header format for the input dataset.\n");
+    if(!ignoreWarnings)
+    {
+      fmt::print(stderr, "Use --ignore-warnings to force the import to go ahead.\n");
+      return EXIT_FAILURE;
+    }
+  }
+
+  // Determine value range, fold and primary/secondary step
+
+  OpenVDS::FloatRange valueRange;
+  int fold = 1, primaryStep = 1, secondaryStep = 1;
+
+  analyzeSegment(dataProvider, fileInfo, findRepresentativeSegment(fileInfo, primaryStep), 99.9f, valueRange, fold, secondaryStep, error);
+
+  if (error.code != 0)
+  {
+    std::cerr << error.string;
+    return EXIT_FAILURE;
+  }
+
+  if(fold > 1)
+  {
+    fmt::print(stderr, "Error: Detected a fold of {}, either this is (as of now unsupported) prestack data or this usually indicates using the wrong header format for the input dataset.\n", fold);
+    return EXIT_FAILURE;
+  }
+
   // Create layout descriptor
 
   enum OpenVDS::VolumeDataLayoutDescriptor::BrickSize
@@ -1227,10 +1326,10 @@ main(int argc, char* argv[])
   OpenVDS::VolumeDataLayoutDescriptor layoutDescriptor(brickSizeEnum, negativeMargin, positiveMargin, brickSize2DMultiplier, lodLevels, layoutOptions);
 
   // Create axis descriptors
-
-  std::vector<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors = createAxisDescriptors(fileInfo);
+  std::vector<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors = createAxisDescriptors(fileInfo, primaryStep, secondaryStep);
 
   // Check for excess of empty traces
+
   int64_t
     traceCountInVDS = 1;
 
@@ -1249,20 +1348,7 @@ main(int argc, char* argv[])
     }
   }
 
-  // Determine value range
-  OpenVDS::FloatRange
-    valueRange;
-
-  analyzeSegment(dataProvider, fileInfo, findRepresentativeSegment(fileInfo), 99.9f, valueRange, error);
-
-  if (error.code != 0)
-  {
-    std::cerr << error.string;
-    return EXIT_FAILURE;
-  }
-
   // Create channel descriptors
-
   std::vector<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors = createChannelDescriptors(fileInfo, valueRange);
 
   // Create metadata
