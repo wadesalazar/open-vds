@@ -709,6 +709,52 @@ createSurveyCoordinateSystemMetadata(SEGYFileInfo const& fileInfo, OpenVDS::Meta
   metadataContainer.SetMetadataDoubleVector2(LATTICE_CATEGORY, LATTICE_CROSSLINE_SPACING, OpenVDS::DoubleVector2(crosslineSpacing[0], crosslineSpacing[1]));
 }
 
+/////////////////////////////////////////////////////////////////////////////
+bool
+createImportInformationMetadata(DataProvider &dataProvider, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error &error)
+{
+  auto now = std::chrono::system_clock::now();
+  std::time_t tt = std::chrono::system_clock::to_time_t(now);
+  std::tm tm = *std::gmtime(&tt);
+  auto duration = now.time_since_epoch();
+  int millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() % 1000;
+
+  std::string importTimeStamp = fmt::format("{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}.{:03d}Z", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, millis);
+
+  std::string inputFileName = dataProvider.FileOrObjectName();
+
+  // Strip the path from the file/object name
+  const char pathSeparators[] = { '/', '\\', ':' };
+  for(auto pathSeparator : pathSeparators)
+  {
+    size_t pos = inputFileName.rfind(pathSeparator);
+    if(pos != std::string::npos) inputFileName = inputFileName.substr(pos + 1);
+  }
+
+  // In lack of a better displayName we use the file name
+  std::string displayName = inputFileName;
+
+  std::string inputTimeStamp = dataProvider.LastWriteTime(error);
+  if (error.code != 0)
+  {
+    return false;
+  }
+
+  int64_t inputFileSize = dataProvider.Size(error);
+  if (error.code != 0)
+  {
+    return false;
+  }
+
+  // Set import information
+  metadataContainer.SetMetadataString(KNOWNMETADATA_CATEGORY_IMPORTINFORMATION, KNOWNMETADATA_IMPORTINFORMATION_DISPLAYNAME, displayName);
+  metadataContainer.SetMetadataString(KNOWNMETADATA_CATEGORY_IMPORTINFORMATION, KNOWNMETADATA_IMPORTINFORMATION_INPUTFILENAME, inputFileName);
+  metadataContainer.SetMetadataDouble(KNOWNMETADATA_CATEGORY_IMPORTINFORMATION, KNOWNMETADATA_IMPORTINFORMATION_INPUTFILESIZE, (double)inputFileSize);
+  metadataContainer.SetMetadataString(KNOWNMETADATA_CATEGORY_IMPORTINFORMATION, KNOWNMETADATA_IMPORTINFORMATION_INPUTTIMESTAMP, inputTimeStamp);
+  metadataContainer.SetMetadataString(KNOWNMETADATA_CATEGORY_IMPORTINFORMATION, KNOWNMETADATA_IMPORTINFORMATION_IMPORTTIMESTAMP, importTimeStamp);
+  return true;
+}
+
 bool
 parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
 {
@@ -1354,6 +1400,14 @@ main(int argc, char* argv[])
   // Create metadata
   OpenVDS::MetadataContainer
     metadataContainer;
+
+  createImportInformationMetadata(dataProvider, metadataContainer, error);
+
+  if (error.code != 0)
+  {
+    std::cerr << error.string;
+    return EXIT_FAILURE;
+  }
 
   createSEGYHeadersMetadata(dataProvider, metadataContainer, error);
 
