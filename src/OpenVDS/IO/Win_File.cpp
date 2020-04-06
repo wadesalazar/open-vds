@@ -23,6 +23,12 @@
 
 #include <io.h>
 #include <windows.h>
+#include <fmt/format.h>
+
+#include <sys/stat.h>
+#include <time.h>
+#define stat _stat
+#define gmtime_r(a,b) _gmtime64_s(b,a)
 
 namespace OpenVDS
 {
@@ -275,6 +281,27 @@ int64_t File::Size(Error& error) const
     return -1;
   }
   return int64_t(li.QuadPart);
+}
+
+std::string File::LastWriteTime(Error& error) const
+{
+  FILETIME lastWriteTime;
+
+  if(!GetFileTime(_pxPlatformHandle, NULL, NULL, &lastWriteTime))
+  {
+    SetIoError(GetLastError(), "GetFileTime: ", error);
+    return std::string();
+  }
+
+  SYSTEMTIME systemTime;
+
+  if(!FileTimeToSystemTime(&lastWriteTime, &systemTime))
+  {
+    SetIoError(GetLastError(), "FileTimeToSystemTime: ", error);
+    return std::string();
+  }
+
+  return fmt::format("{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}.{:03d}Z", systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds);
 }
 
 bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, Error& error) const

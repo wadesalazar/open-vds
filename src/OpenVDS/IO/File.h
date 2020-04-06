@@ -97,6 +97,7 @@ public:
   OPENVDS_EXPORT void Close();
 
   OPENVDS_EXPORT int64_t Size(Error& error) const;
+  OPENVDS_EXPORT std::string LastWriteTime(Error& error) const;
 
   OPENVDS_EXPORT bool Read(void* pxData, int64_t nOffset, int32_t nLength, Error& error) const;
   OPENVDS_EXPORT bool Write(const void* pxData, int64_t nOffset, int32_t nLength, Error& error);

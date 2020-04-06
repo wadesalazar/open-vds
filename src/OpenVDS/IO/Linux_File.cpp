@@ -31,6 +31,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <fmt/format.h>
+#include <time.h>
 
 namespace OpenVDS
 {
@@ -71,7 +73,7 @@ static __thread sigjmp_buf * SystemFileView_pSigjmpEnv;
 class SystemFileView : public FileView
 {
 private:
-	static void SIGBUSHandler(int sig)
+  static void SIGBUSHandler(int sig)
   {
     if(SystemFileView_pSigjmpEnv)
     {
@@ -113,7 +115,7 @@ private:
 
 public:
   SystemFileView(SystemFileMappingObject *pFileMappingObject, int64_t nPos, int64_t nSize, bool isPopulate, Error &error)
-		: m_pxBaseAddress(NULL)
+    : m_pxBaseAddress(NULL)
   {
     (void)&m_cSignalHandlerInstaller;
 
@@ -148,7 +150,7 @@ public:
 
     if (isPopulate)
     {
-			int32_t iRetval = madvise((void*)m_pxBaseAddress, m_nNumberOfBytes, MADV_WILLNEED);
+      int32_t iRetval = madvise((void*)m_pxBaseAddress, m_nNumberOfBytes, MADV_WILLNEED);
 
       if (iRetval != 0)
       {
@@ -180,9 +182,9 @@ public:
     if (iRetval != 0)
     {
       SetIoError(errno, "FileView::prefetch ", error);
-			return false;
+      return false;
     }
-		return true;
+    return true;
   }
 };
 
@@ -245,34 +247,51 @@ int64_t File::Size(Error& error) const
   return nLength;
 }
 
+std::string File::LastWriteTime(Error& error) const
+{
+  struct stat result;
+  if (lstat(_cFileName.c_str(), &result) < 0)
+  {
+    SetIoError(errno, "File::size ", error);
+    return std::string();
+  }
+
+  struct tm lastWriteTime;
+  gmtime_r(&result.st_mtime, &lastWriteTime);
+
+  const long millis = result.st_mtim.tv_nsec / 1000;
+
+  return fmt::format("{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}.{:03d}Z", lastWriteTime.tm_year + 1900, lastWriteTime.tm_mon + 1, lastWriteTime.tm_mday, lastWriteTime.tm_hour, lastWriteTime.tm_min, lastWriteTime.tm_sec, millis);
+}
+
 bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, Error& error) const
 {
-	assert(nOffset >= 0);
-	int fd    = (int)(intptr_t)_pxPlatformHandle;
-	ssize_t nread;
+  assert(nOffset >= 0);
+  int fd = (int)(intptr_t)_pxPlatformHandle;
+  ssize_t nread;
 
-	while (nLength > 0)
-	{
-		nread = pread(fd, pxData, nLength, nOffset);
-		assert(nread <= nLength);
+  while (nLength > 0)
+  {
+    nread = pread(fd, pxData, nLength, nOffset);
+    assert(nread <= nLength);
 
-		if (nread < 0)
-		{
+    if (nread < 0)
+    {
       SetIoError(errno, "File::read ", error);
-			return false;
-		}
+      return false;
+    }
 
-		if (nread == 0)
-		{
+    if (nread == 0)
+    {
       SetIoError(errno, "File::read (zero-length read) ", error);
-			return false;
-		}
+      return false;
+    }
 
-		nLength -= nread;
-		pxData = (char*)pxData + nread;
-		nOffset += nread;
-	}
-	return true;
+    nLength -= nread;
+    pxData = (char*)pxData + nread;
+    nOffset += nread;
+  }
+  return true;
 }
 
 bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & error)
@@ -280,10 +299,10 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
   assert(nOffset >= 0);
 
   if (!_isWriteable)
-	{
+  {
     SetIoError("File::write: file not writeable", error);
-		return false;
-	}
+    return false;
+  }
 
   int fd  = (int)(intptr_t)_pxPlatformHandle;
   ssize_t nwritten;
@@ -314,11 +333,11 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
 bool File::Flush()
 {
 #ifdef LINUX
-	int fd  = (int)(intptr_t)_pxPlatformHandle;
-	return syncfs(fd) == 0;
+  int fd  = (int)(intptr_t)_pxPlatformHandle;
+  return syncfs(fd) == 0;
 #else
-        sync();
-        return true;
+  sync();
+  return true;
 #endif
 }
 
