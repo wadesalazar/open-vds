@@ -24,6 +24,10 @@ public:
   {
   }
 
+  void HandleObjectLastWriteTime(const std::string &lastWriteTimeISO8601) override
+  {
+  }
+
   void HandleMetadata(const std::string& key, const std::string& header) override
   {
     if (key == "vdschunkmetadata")

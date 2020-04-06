@@ -150,6 +150,10 @@ namespace OpenVDS
 
       int64_t content_length = int64_t(result.GetContentLength());
       objReq->m_handler->HandleObjectSize(content_length);
+
+      auto lastModified = result.GetLastModified();
+      objReq->m_handler->HandleObjectLastWriteTime(convertAwsString(lastModified.ToGmtString(Aws::Utils::DateFormat::ISO_8601)));
+
       for (auto it : result.GetMetadata())
       {
         objReq->m_handler->HandleMetadata(convertAwsString(it.first), convertAwsString(it.second));
@@ -174,7 +178,6 @@ namespace OpenVDS
   ReadObjectInfoRequestAWS::ReadObjectInfoRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler)
     : GetOrHeadRequestAWS(id, handler)
   {
-
   }
 
   void ReadObjectInfoRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, std::weak_ptr<ReadObjectInfoRequestAWS> readObjectInfoRequest)
@@ -201,12 +204,18 @@ namespace OpenVDS
     if (getObjectOutcome.IsSuccess())
     {
       Aws::S3::Model::GetObjectResult result = const_cast<Aws::S3::Model::GetObjectOutcome&>(getObjectOutcome).GetResultWithOwnership();
+
       int64_t content_length = int64_t(result.GetContentLength());
       objReq->m_handler->HandleObjectSize(content_length);
+
+      auto lastModified = result.GetLastModified();
+      objReq->m_handler->HandleObjectLastWriteTime(convertAwsString(lastModified.ToGmtString(Aws::Utils::DateFormat::ISO_8601)));
+
       for (auto it : result.GetMetadata())
       {
         objReq->m_handler->HandleMetadata(convertAwsString(it.first), convertAwsString(it.second));
       }
+
       auto& retrieved_object = result.GetBody();
       std::vector<uint8_t> data;
 
@@ -236,6 +245,7 @@ namespace OpenVDS
     : GetOrHeadRequestAWS(id, handler)
   {
   }
+
   void DownloadRequestAWS::run(Aws::S3::S3Client& client, const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestAWS> downloadRequest)
   {
     Aws::S3::Model::GetObjectRequest object_request;

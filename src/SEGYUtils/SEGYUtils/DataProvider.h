@@ -31,6 +31,12 @@ struct DataTransfer : public OpenVDS::TransferDownloadHandler
   {
     this->size = size;
   }
+
+  void HandleObjectLastWriteTime(const std::string &lastWriteTimeISO8601) override
+  {
+    this->lastWriteTime = lastWriteTimeISO8601;
+  }
+
   void HandleMetadata(const std::string &key, const std::string &header) override
   {
   }
@@ -46,6 +52,7 @@ struct DataTransfer : public OpenVDS::TransferDownloadHandler
   }
 
   int64_t size = 0;
+  std::string lastWriteTime;
   std::vector<uint8_t> data;
   OpenVDS::Error error;
 };
@@ -71,6 +78,7 @@ struct DataProvider
       if (syncRequest->IsSuccess(error))
       {
         m_size = syncTransfer->size;
+        m_lastWriteTime = syncTransfer->lastWriteTime;
       }
     }
   }
@@ -81,7 +89,8 @@ struct DataProvider
     {
       return m_file->Read(data, offset, length, error);
     }
-    else if (m_ioManager)
+    
+    if (m_ioManager)
     {
       auto dataTransfer = std::make_shared<DataTransfer>();
       auto request = m_ioManager->ReadObject(m_objectName, dataTransfer, { offset, offset + length});
@@ -94,6 +103,7 @@ struct DataProvider
       memcpy(data, dataTransfer->data.data(), std::min(size_t(length), dataTransfer->data.size()));
       return true;
     }
+
     error.code = -1;
     error.string = "Invalid dataprovider, no file nor ioManager provided";
     return false;
@@ -106,15 +116,35 @@ struct DataProvider
 
     if (m_ioManager)
       return m_size;
+
     error.code = -1;
     error.string = "Invalid dataprovider, no file nor ioManager provided";
     return 0;
   }
 
+  std::string LastWriteTime(OpenVDS::Error &error) const
+  {
+    if (m_file)
+      return m_file->LastWriteTime(error);
+
+    if (m_ioManager)
+      return m_lastWriteTime;
+
+    error.code = -1;
+    error.string = "Invalid dataprovider, no file nor ioManager provided";
+    return 0;
+  }
+
+  std::string FileOrObjectName() const
+  {
+    return m_file ? m_file->FileName() : m_objectName;
+  }
+
   std::unique_ptr<OpenVDS::File> m_file;
   std::unique_ptr<OpenVDS::IOManager> m_ioManager;
   const std::string m_objectName;
-  int64_t m_size;
+  int64_t m_size = 0;
+  std::string m_lastWriteTime;
 };
 
 struct DataView

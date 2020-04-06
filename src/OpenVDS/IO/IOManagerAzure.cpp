@@ -149,8 +149,11 @@ void ReadObjectInfoRequestAzure::run(azure::storage::cloud_blob_container& conta
 
         if (auto tmp = request.lock())
         {
-          // send metadata one at a time to the metadata handler
           m_handler->HandleObjectSize(m_blob.properties().size());
+
+          m_handler->HandleObjectLastWriteTime(convertFromUtilString(m_blob.properties().last_modified().to_string(utility::datetime::ISO_8601)));
+
+          // send metadata one at a time to the metadata handler
           for (auto it : m_blob.metadata())
           {
             m_handler->HandleMetadata(convertFromUtilString(it.first), convertFromUtilString(it.second));
@@ -214,9 +217,11 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
 
         if (auto tmp = request.lock())
         {
-          // send metadata one at a time to the metadata handler
           m_handler->HandleObjectSize(m_blob.properties().size());
 
+          m_handler->HandleObjectLastWriteTime(convertFromUtilString(m_blob.properties().last_modified().to_string(utility::datetime::ISO_8601)));
+
+          // send metadata one at a time to the metadata handler
           for (auto it : m_blob.metadata())
           {
             m_handler->HandleMetadata(convertFromUtilString(it.first), convertFromUtilString(it.second));

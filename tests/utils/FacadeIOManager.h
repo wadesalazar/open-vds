@@ -100,6 +100,7 @@ public:
       auto &object = (*object_it).second;
       error = object.error;
       handler->HandleObjectSize(int64_t(object.data.size()));
+
       for (auto& meta : object.metaHeader)
       {
         handler->HandleMetadata(meta.first, meta.second);

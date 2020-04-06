@@ -31,6 +31,7 @@ namespace OpenVDS
   public:
     virtual ~TransferDownloadHandler() {};
     virtual void HandleObjectSize(int64_t size) = 0;
+    virtual void HandleObjectLastWriteTime(const std::string &lastWriteTimeISO8601) = 0;
     virtual void HandleMetadata(const std::string &key, const std::string &header) = 0;
     virtual void HandleData(std::vector<uint8_t> &&data) = 0;
     virtual void Completed(const Request &request, const Error &error) = 0;
