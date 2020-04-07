@@ -37,6 +37,9 @@ add_test_executable(io_tests
   io/InMemoryIo.cpp
   io/AzureIo.cpp
   )
+if (UNIX)
+  set_source_files_properties(io/AzureIo.cpp PROPERTIES COMPILE_FLAGS -I${Boost_INCLUDE_DIR})
+endif()
 
 add_test_executable(io_performance_test
   io/IoPerformance.cpp

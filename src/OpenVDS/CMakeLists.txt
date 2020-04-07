@@ -145,7 +145,9 @@ endif()
 
 #Azure storage exposes boost_system on linux et al.
 if (UNIX)
-    target_link_libraries(openvds_objects PUBLIC boost_system)
+    find_package(Boost REQUIRED COMPONENTS system date_time regex)
+    set_source_files_properties(IO/IOManager.cpp PROPERTIES COMPILE_FLAGS -I${Boost_INCLUDE_DIR})
+    set_source_files_properties(IO/IOManagerAzure.cpp PROPERTIES COMPILE_FLAGS -I${Boost_INCLUDE_DIR})
 endif()
 
 if (OpenMP_CXX_FOUND)
