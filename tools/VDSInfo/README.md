@@ -1,8 +1,32 @@
 ## VDSInfo
 
-VDSInfo is a simple tool for getting info about a VDS. It prints out the result
-of the query in json, and it will try and give the shortes json for the
-specific query by eliminating redundant json parent structures.
+A tool for extracting info from a VDS.
+
+Usage:
+```
+VDSInfo [OPTION...]
+```
+
+| Option                        | Decription |
+|-------------------------------|------------|
+| --bucket \<string>            | AWS S3 bucket to connect to.
+| --region \<string>            | AWS region of bucket to connect to.
+| --connection-string \<string> | Azure Blob Storage connection string.
+| --container \<string>         | Azure Blob Storage container to connect to.
+| --parallelism-factor \<value> | Azure parallelism factor.
+| --prefix \<string>            | Top-level prefix to prepend to all object-keys.
+| --persistentID \<ID>          | A globally unique ID for the VDS, usually an 8-digit hexadecimal number.
+| --axis                        | Print axis descriptors.
+| --channels                    | Print channel descriptors.
+| --layout                      | Print layout.
+| --metadatakeys                | Print metadata keys.
+| --metadata-name \<string>     | Print metadata matching name.
+| --metadata-category \<string> | Print metadata matching category.
+| --metadata-firstblob          | Print first blob found.
+| --metadata-autodecode         | Autodetect EBCDIC and decode to ASCII for blobs.
+| --metadata-force-width \<arg> | Force output width.
+
+VDSInfo prints out the result of the query in json, and it will try and give the shortest json for the specific query by eliminating redundant json parent structures.
 
 Some examples:
 ```
@@ -46,4 +70,3 @@ To force a width for BLOB printing use the `-w` parameter.
 ```
 $ VDSInfo.exe --bucket <some_bucket> --region <a_region> --persistentID <some_vds_id> --metadata-name TextHeader -e -w 80
 ```
-

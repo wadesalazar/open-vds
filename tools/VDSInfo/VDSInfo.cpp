@@ -198,7 +198,7 @@ int main(int argc, char **argv)
   bool volumeDataLayout = false;
   bool metaKeys = false;
   bool metaDataFirstBlob = false;
-  bool metadataAutoDecodeEPCIDIC = false;
+  bool metadataAutoDecodeEBCDIC = false;
   int  textDecodeWidth = std::numeric_limits<int>::max();
 
 //connection options
@@ -208,19 +208,19 @@ int main(int argc, char **argv)
   options.add_option("", "", "container", "Azure Blob Storage container to connect to.", cxxopts::value<std::string>(container), "<string>");
   options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
   options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
-  options.add_option("", "", "persistentID", "persistentID", cxxopts::value<std::string>(persistentID), "<ID>");
+  options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
 ///action
-  options.add_option("", "", "axis", "Print axis descriptors", cxxopts::value<bool>(axisDescriptors), "");
-  options.add_option("", "", "channels", "Print channel descriptors", cxxopts::value<bool>(channelDescriptors), "");
-  options.add_option("", "", "layout", "Print layout", cxxopts::value<bool>(volumeDataLayout), "");
+  options.add_option("", "", "axis", "Print axis descriptors.", cxxopts::value<bool>(axisDescriptors), "");
+  options.add_option("", "", "channels", "Print channel descriptors.", cxxopts::value<bool>(channelDescriptors), "");
+  options.add_option("", "", "layout", "Print layout.", cxxopts::value<bool>(volumeDataLayout), "");
 
-  options.add_option("", "", "metadatakeys", "Print metadata keys", cxxopts::value<bool>(metaKeys), "");
-  options.add_option("", "", "metadata-name", "Print metadata matching name", cxxopts::value<std::string>(metadataPrintName), "<string>");
-  options.add_option("", "", "metadata-category", "Print metadata matching category", cxxopts::value<std::string>(metadataPrintCategory), "<string>");
-  options.add_option("", "b", "metadata-firstblob", "Print first blob found", cxxopts::value<bool>(metaDataFirstBlob), "");
-  options.add_option("", "e", "metadata-autodecode", "Autodetect EPCIDIC and decode to ASCII for blobs", cxxopts::value<bool>(metadataAutoDecodeEPCIDIC), "");
-  options.add_option("", "w", "metadata-force-width", "Force output width", cxxopts::value<int>(textDecodeWidth), "");
+  options.add_option("", "", "metadatakeys", "Print metadata keys.", cxxopts::value<bool>(metaKeys), "");
+  options.add_option("", "", "metadata-name", "Print metadata matching name.", cxxopts::value<std::string>(metadataPrintName), "<string>");
+  options.add_option("", "", "metadata-category", "Print metadata matching category.", cxxopts::value<std::string>(metadataPrintCategory), "<string>");
+  options.add_option("", "b", "metadata-firstblob", "Print first blob found.", cxxopts::value<bool>(metaDataFirstBlob), "");
+  options.add_option("", "e", "metadata-autodecode", "Autodetect EBCDIC and decode to ASCII for blobs.", cxxopts::value<bool>(metadataAutoDecodeEBCDIC), "");
+  options.add_option("", "w", "metadata-force-width", "Force output width.", cxxopts::value<int>(textDecodeWidth), "");
 
   if(argc == 1)
   {
@@ -341,12 +341,12 @@ int main(int argc, char **argv)
         auto &key = to_print_blobs.front();
         std::vector<uint8_t> vector;
         layout->GetMetadataBLOB(key.category, key.name, vector);
-        bool decodeEPCIDIC = false;
-        if (metadataAutoDecodeEPCIDIC)
+        bool decodeEBCDIC = false;
+        if (metadataAutoDecodeEBCDIC)
         {
-          decodeEPCIDIC = autodetectDecode(vector);
+          decodeEBCDIC = autodetectDecode(vector);
         }
-        if (decodeEPCIDIC)
+        if (decodeEBCDIC)
         {
           decodedEbcdic(vector);
         }
