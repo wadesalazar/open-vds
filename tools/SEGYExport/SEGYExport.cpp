@@ -54,7 +54,7 @@ main(int argc, char *argv[])
   options.add_option("", "", "container", "Azure Blob Storage container to export from .", cxxopts::value<std::string>(container), "<string>");
   options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
   options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
-  options.add_option("", "", "persistentID", "persistentID", cxxopts::value<std::string>(persistentID), "<ID>");
+  options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
   options.add_option("", "", "output", "", cxxopts::value<std::string>(fileName), "");
   options.parse_positional("output");
