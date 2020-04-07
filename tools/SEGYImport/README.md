@@ -1,6 +1,7 @@
 ## SEGYImport
 
-A tool to scan and import a SEG-Y file to a volume data store (VDS)
+A tool to scan and import a SEG-Y file to a volume data store (VDS).
+
 Usage:
 ```
 SEGYImport [OPTION...] <input file>
@@ -85,7 +86,7 @@ The default trace header fields (that can be overridden with a header format JSO
 | GroupYCoordinate      | Group-Y, ReceiverYCoordinate, Receiver-Y |  85    | 4     |
 | CoordinateScale       | Scalar                                   |  71    | 2     |
 
-Either a `--container` or
+Either a `--container` (for Azure) or a `--bucket` (for AWS) argument and an input SEG-Y file must be specified.
 
 Example usage:
 ```
