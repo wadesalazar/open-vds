@@ -150,7 +150,7 @@ endif()
 #Azure storage exposes boost_system on linux et al.
 if (UNIX)
     find_package(Boost REQUIRED COMPONENTS system date_time regex)
-    target_link_libraries(openvds_objects PUBLIC boost_system)
+    target_link_libraries(openvds_objects PUBLIC Boost::system)
 endif()
 
 if (OpenMP_CXX_FOUND)
