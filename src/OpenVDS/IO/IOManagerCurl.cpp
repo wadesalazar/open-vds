@@ -17,6 +17,8 @@
 
 #include "IOManagerCurl.h"
 
+#include <sstream>
+#include <iomanip>
 #include <fmt/printf.h>
 
 namespace OpenVDS
@@ -533,19 +535,31 @@ void CurlDownloadHandler::handleHeaderData(char* b, size_t size)
   }
 
   downloadRequest->m_handler->HandleMetadata(name, value);
-  std::string contentlength = name;
-  std::transform(contentlength.begin(), contentlength.end(), contentlength.begin(), [](char c)
+  std::string lowercase_name = name;
+  std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), [](char c)
     {
       return std::tolower(c);
     });
-  if (contentlength == "content-length")
+  if (lowercase_name == "content-length")
   {
     char* end = 0;
     long long length = strtoll(value.data(), &end, 10);
     if (end > value.data() && length)
     {
-      data.reserve(length);
+      if (verb == GET)
+        data.reserve(length);
+      downloadRequest->m_handler->HandleObjectSize(length);
     }
+  }
+  else if (lowercase_name == "last-modified")
+  {
+    std::tm tm = {};
+    std::stringstream ss(value);
+    ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S");
+
+    ss = std::stringstream();
+    ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+    downloadRequest->m_handler->HandleObjectLastWriteTime(ss.str());
   }
   return;
 }

@@ -1071,9 +1071,13 @@ main(int argc, char* argv[])
   std::string region;
   std::string connectionString;
   std::string container;
+  std::string sourceConnectionString;
+  std::string sourceContainer;
   int azureParallelismFactor = 0;
   std::string azurePresignBase;
   std::string azurePresignSuffix;
+  std::string azurePresignSourceBase;
+  std::string azurePresignSourceSuffix;
   std::string prefix;
   std::string sourcePrefix;
   std::string persistentID;
@@ -1097,9 +1101,13 @@ main(int argc, char* argv[])
   options.add_option("", "", "region", "AWS region of bucket to upload to.", cxxopts::value<std::string>(region), "<string>");
   options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
   options.add_option("", "", "container", "Azure Blob Storage container to upload to.", cxxopts::value<std::string>(container), "<string>");
+  options.add_option("", "", "source-connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(sourceConnectionString), "<string>");
+  options.add_option("", "", "source-container", "Azure Blob Storage container to upload to.", cxxopts::value<std::string>(sourceContainer), "<string>");
   options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
   options.add_option("", "", "azure-presign-base", "Base URL for presigned Azure requests", cxxopts::value(azurePresignBase), "<value>");
   options.add_option("", "", "azure-presign-suffix", "Suffix of the presigned URL for Azure requests", cxxopts::value(azurePresignSuffix), "<value>");
+  options.add_option("", "", "azure-presign-source-base", "Base URL for presigned Azure requests", cxxopts::value(azurePresignSourceBase), "<value>");
+  options.add_option("", "", "azure-presign-source-suffix", "Suffix of the presigned URL for Azure requests", cxxopts::value(azurePresignSourceSuffix), "<value>");
   options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
   options.add_option("", "", "source-prefix", "Top-level prefix to prepend to all source object-keys.", cxxopts::value<std::string>(sourcePrefix), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
@@ -1213,9 +1221,9 @@ main(int argc, char* argv[])
   OpenVDS::Error
     error;
 
-  auto sourceBucketOpenOptions = createOpenOptions(sourcePrefix, persistentID, sourceBucket, region, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, error);
+  auto sourceBucketOpenOptions = createOpenOptions(sourcePrefix, persistentID, sourceBucket, region, sourceContainer, sourceConnectionString, azureParallelismFactor, azurePresignSourceBase, azurePresignSourceSuffix, error);
 
-  DataProvider dataProvider = sourceBucket.empty() ? CreateDataProviderFromFile(fileNames[0], error) : CreateDataProviderFromOpenOptions(*sourceBucketOpenOptions, fileNames[0], error);
+  DataProvider dataProvider = error.code ? CreateDataProviderFromFile(fileNames[0], error) : CreateDataProviderFromOpenOptions(*sourceBucketOpenOptions, fileNames[0], error);
 
   if (error.code != 0)
   {

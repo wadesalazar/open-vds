@@ -55,7 +55,7 @@ namespace OpenVDS
     {
       headers.emplace_back();
       auto& header = headers.back();
-      header = fmt::format("Range: {}-{}", range.start, range.end);
+      header = fmt::format("x-ms-range: bytes={}-{}", range.start, range.end);
     }
     m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", CurlDownloadHandler::GET);
     return request;
