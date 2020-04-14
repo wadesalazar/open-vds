@@ -1001,7 +1001,7 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, c
   return findFirstTrace(primaryKey, secondaryKey, fileInfo, traceData, traceCount, secondaryStart, secondaryStop);
 }
 
-std::unique_ptr<OpenVDS::OpenOptions> createOpenOptions(const std::string &prefix, const std::string &persistentID,
+static std::unique_ptr<OpenVDS::OpenOptions> CreateOpenOptions(const std::string &prefix, const std::string &persistentID,
                                                           const std::string &bucket, const std::string &region,
                                                           const std::string &container, const std::string &connectionString, int azureParallelismFactor,
                                                           const std::string &azurePresignBase, const std::string &azurePresignSuffix, 
@@ -1025,6 +1025,12 @@ std::unique_ptr<OpenVDS::OpenOptions> createOpenOptions(const std::string &prefi
   {
     openOptions.reset(new OpenVDS::AzurePresignedOpenOptions(azurePresignBase, azurePresignSuffix));
   }
+  else
+  {
+    error.code = -1;
+    error.string = "Failed to determing correct openOptions.";
+  }
+
 
   if(azureParallelismFactor)
   {
@@ -1043,6 +1049,23 @@ std::unique_ptr<OpenVDS::OpenOptions> createOpenOptions(const std::string &prefi
   }
   return openOptions;
 }
+
+static DataProvider CreateDataProvider(const std::string &fileName,
+                                       const std::string &prefix, const std::string &persistentID,
+                                       const std::string &bucket, const std::string &region,
+                                       const std::string &container, const std::string &connectionString, int azureParallelismFactor,
+                                       const std::string &azurePresignBase, const std::string &azurePresignSuffix,
+                                       OpenVDS::Error &error)
+{
+  auto openOptions = CreateOpenOptions(prefix, persistentID, bucket, region, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, error);
+  if (error.code || !openOptions)
+  {
+    error = OpenVDS::Error();
+    return CreateDataProviderFromFile(fileName, error);
+  }
+  return CreateDataProviderFromOpenOptions(*openOptions, fileName, error);
+}
+
 
 int
 main(int argc, char* argv[])
@@ -1221,10 +1244,7 @@ main(int argc, char* argv[])
   OpenVDS::Error
     error;
 
-  auto sourceBucketOpenOptions = createOpenOptions(sourcePrefix, persistentID, sourceBucket, region, sourceContainer, sourceConnectionString, azureParallelismFactor, azurePresignSourceBase, azurePresignSourceSuffix, error);
-
-  DataProvider dataProvider = error.code ? CreateDataProviderFromFile(fileNames[0], error) : CreateDataProviderFromOpenOptions(*sourceBucketOpenOptions, fileNames[0], error);
-
+  DataProvider dataProvider = CreateDataProvider(fileNames[0], sourcePrefix, persistentID, sourceBucket, region, sourceContainer, sourceConnectionString, azureParallelismFactor, azurePresignSourceBase, azurePresignSourceSuffix, error);
   if (error.code != 0)
   {
     fmt::print(stderr, "Could not open: {} - {}\n", fileNames[0], error.string);
@@ -1439,7 +1459,7 @@ main(int argc, char* argv[])
   OpenVDS::Error
     createError;
 
-  auto openOptions = createOpenOptions(prefix, persistentID, bucket, region, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, createError);
+  auto openOptions = CreateOpenOptions(prefix, persistentID, bucket, region, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, createError);
 
   if (createError.code)
     fmt::print(stderr, "{}\n", createError.code);
