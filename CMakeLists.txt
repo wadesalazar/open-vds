@@ -120,3 +120,7 @@ endif()
 if (BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
+
+set(CPACK_GENERATOR "TGZ")
+include(CPack)
+
