@@ -256,6 +256,13 @@ public:
   int32_t UploadErrorCount() override;
   void GetCurrentUploadError(const char **objectId, int32_t *errorCode, const char **errorString) override;
 
+  void GetCurrentDownloadError(int *code, const char** errorString) override;
+ 
+  void SetCurrentDownloadError(const Error& error)
+  {
+    m_currentDownloadError = error;
+  }
+
   int CountActivePages() { return m_requestProcessor.CountActivePages(); }
 private:
   VDS &m_vds;
@@ -268,6 +275,7 @@ private:
   std::map<int64_t, PendingUploadRequest> m_pendingUploadRequests;
   std::vector<std::unique_ptr<UploadError>> m_uploadErrors;
   uint32_t m_currentErrorIndex;
+  Error m_currentDownloadError;
 };
 
 }

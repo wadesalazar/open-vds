@@ -156,6 +156,26 @@ static Error ProcessPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessor
   return error;
 }
 
+static void SetErrorForJob(Job* job)
+{
+  assert(job->cancelled);
+  for (auto& future : job->future)
+  {
+    if (!future.valid())
+      continue;
+    Error jobError = future.get();
+
+    if (!jobError.code)
+      continue;
+
+    job->completedError = jobError;
+    if (jobError.code != 4)
+    {
+      break;
+    }
+  }
+}
+
 int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& chunks, std::function<bool(VolumeDataPageImpl * page, const VolumeDataChunk &volumeDataChunk, Error & error)> processor, bool singleThread)
 {
   auto layer = chunks.front().layer;
@@ -301,6 +321,8 @@ bool VolumeDataRequestProcessor::IsCanceled(int64_t jobID)
       }
       fmt::print(stderr, "{}", out);
     }
+    SetErrorForJob(job);
+    m_manager.SetCurrentDownloadError(job->completedError);
     m_jobs.erase(job_it);
     return true;
   }
@@ -338,6 +360,8 @@ bool VolumeDataRequestProcessor::WaitForCompletion(int64_t jobID, int millisecon
     m_jobs.erase(job_it);
     return true;
   }
+  SetErrorForJob(job);
+  m_manager.SetCurrentDownloadError(job->completedError);
   return false;
 }
 

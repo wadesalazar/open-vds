@@ -627,6 +627,7 @@ public:
   virtual void ForceClearAllUploadErrors() = 0;
   virtual int32_t UploadErrorCount() = 0;
   virtual void GetCurrentUploadError(const char **objectId, int32_t *errorCode, const char **errorString) = 0;
+  virtual void GetCurrentDownloadError(int *code, const char** errorString) = 0;
 };
 
 template<> inline VolumeDataReadWriteAccessor<IntVector4, double>   *VolumeDataAccessManager::CreateVolumeDataAccessor<IntVector4, double>  (VolumeDataPageAccessor* volumeDataPageAccessor, float replacementNoValue) { return Create4DVolumeDataAccessorR64 (volumeDataPageAccessor, replacementNoValue); }

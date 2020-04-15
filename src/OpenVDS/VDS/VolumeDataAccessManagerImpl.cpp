@@ -764,4 +764,11 @@ void VolumeDataAccessManagerImpl::GetCurrentUploadError(const char** objectId, i
   if (errorString)
     *errorString = error->error.string.c_str();
 }
+
+void VolumeDataAccessManagerImpl::GetCurrentDownloadError(int* errorCode, const char** errorString)
+{
+  *errorCode = m_currentDownloadError.code;
+  *errorString = m_currentDownloadError.string.c_str();
+}
+
 }
