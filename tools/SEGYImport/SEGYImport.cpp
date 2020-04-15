@@ -1544,7 +1544,7 @@ main(int argc, char* argv[])
   int64_t memoryAvailable = GetTotalSystemMemory();
   DataViewManager dataViewManager(dataProvider, memoryAvailable / 3, std::move(dataRequests));
 
-  for (int64_t chunk = 0; chunk < amplitudeAccessor->GetChunkCount(); chunk++)
+  for (int64_t chunk = 0; chunk < amplitudeAccessor->GetChunkCount() && error.code == 0; chunk++)
   {
     int new_percentage = int(double(chunk) / amplitudeAccessor->GetChunkCount() * 100);
     if (is_tty && percentage != new_percentage)
@@ -1605,7 +1605,7 @@ main(int argc, char* argv[])
         const void* traceData = reinterpret_cast<const void*>(intptr_t(dataView->Pointer(error)) + (segment->m_traceStart - chunkIndex.traceStart) * traceByteSize);
         if (error.code)
         {
-          fmt::print(stderr, "Failed when reading data");
+          fmt::print(stderr, "Failed when reading data: {} - {}", error.code, error.string);
           break;
         }
         int traceCount = int(segment->m_traceStop - segment->m_traceStart + 1);
@@ -1664,10 +1664,13 @@ main(int argc, char* argv[])
   traceFlagAccessor->Commit();
   segyTraceHeaderAccessor->Commit();
 
-  fmt::print("\r100% done processing {}.\n", persistentID);
-
   dataView.reset();
 
+  if (error.code != 0)
+  {
+    return EXIT_FAILURE;
+  }
+  fmt::print("\r100% done processing {}.\n", persistentID);
   double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
   //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 

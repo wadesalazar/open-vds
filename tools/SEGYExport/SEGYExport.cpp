@@ -385,20 +385,29 @@ main(int argc, char *argv[])
     // Need to queue the writing on another thread to get max. performance
     if (!accessManager->WaitForCompletion(dataRequestID))
     {
+      int errorCode;
+      const char* errorString;
+      accessManager->GetCurrentDownloadError(&errorCode, &errorString);
+      fmt::print(stderr, "\nError in data request: {} - {}\n", errorCode, errorString);
       assert(accessManager->IsCanceled(dataRequestID));
-      fmt::print(stderr, "\nError in data request\n");
       exit(1);
     }
     if (!accessManager->WaitForCompletion(traceFlagRequestID))
     {
+      int errorCode;
+      const char* errorString;
+      accessManager->GetCurrentDownloadError(&errorCode, &errorString);
+      fmt::print(stderr, "\nError in traceFlag request: {} - {}\n", errorCode, errorString);
       assert(accessManager->IsCanceled(traceFlagRequestID));
-      fmt::print(stderr, "\nError in traceFlag request\n");
       exit(1);
     }
     if (!accessManager->WaitForCompletion(segyTraceHaderRequestID))
     {
+      int errorCode;
+      const char* errorString;
+      accessManager->GetCurrentDownloadError(&errorCode, &errorString);
+      fmt::print(stderr, "\nError in segyTraceHeader request: {} - {}\n", errorCode, errorString);
       assert(accessManager->IsCanceled(segyTraceHaderRequestID));
-      fmt::print(stderr, "\nError in segyTraceHeader request\n");
       exit(1);
     }
 
