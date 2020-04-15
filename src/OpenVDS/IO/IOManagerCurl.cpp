@@ -17,8 +17,6 @@
 
 #include "IOManagerCurl.h"
 
-#include <sstream>
-#include <iomanip>
 #include <fmt/printf.h>
 
 namespace OpenVDS
@@ -553,13 +551,14 @@ void CurlDownloadHandler::handleHeaderData(char* b, size_t size)
   }
   else if (lowercase_name == "last-modified")
   {
-    std::tm tm = {};
-    std::stringstream ss(value);
-    ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S");
-
-    ss = std::stringstream();
-    ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
-    downloadRequest->m_handler->HandleObjectLastWriteTime(ss.str());
+    if (!toISO8601DateTransformer)
+    {
+      downloadRequest->m_handler->HandleObjectLastWriteTime(value);
+    }
+    else
+    {
+      downloadRequest->m_handler->HandleObjectLastWriteTime(toISO8601DateTransformer(value));
+    }
   }
   return;
 }
@@ -763,9 +762,9 @@ CurlHandler::~CurlHandler()
   m_thread->join();
 }
 
-void CurlHandler::addDownloadRequest(const std::shared_ptr<DownloadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, const std::string &metaKeyPrefixTrim, CurlDownloadHandler::Verb verb)
+void CurlHandler::addDownloadRequest(const std::shared_ptr<DownloadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, const std::string& metaKeyPrefixTrim, std::function<std::string(const std::string&)> toISO8601DateTransformer, CurlDownloadHandler::Verb verb)
 {
- auto curlData =  std::make_shared<CurlDownloadHandler>(&m_eventLoopData, request, url, headers, metaKeyPrefixTrim, verb);
+ auto curlData =  std::make_shared<CurlDownloadHandler>(&m_eventLoopData, request, url, headers, metaKeyPrefixTrim, toISO8601DateTransformer, verb);
  request->m_downloadHandler = curlData;
  std::unique_lock<std::mutex> lock(m_eventLoopData.mutex);
  m_eventLoopData.incommingDownloadRequests.push_back(curlData);

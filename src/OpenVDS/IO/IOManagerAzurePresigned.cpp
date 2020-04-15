@@ -18,6 +18,8 @@
 #include "IOManagerAzurePresigned.h"
 
 #include <fmt/format.h>
+#include <sstream>
+#include <iomanip>
 
 namespace OpenVDS
 {
@@ -37,12 +39,23 @@ namespace OpenVDS
       m_base.push_back('/');
   }
 
+  std::string convertToISO8601(const std::string &value)
+  {
+    std::tm tm = {};
+    std::stringstream ss(value);
+    ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S");
+
+    ss = std::stringstream();
+    ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%SZ");
+    return ss.str();
+  }
+
   std::shared_ptr<Request> IOManagerAzurePresigned::ReadObjectInfo(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler)
   {
     std::string url = m_base + objectName + m_suffix;
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
-    m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", CurlDownloadHandler::HEADER);
+    m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", convertToISO8601, CurlDownloadHandler::HEADER);
     return request;
     
   }
@@ -57,7 +70,7 @@ namespace OpenVDS
       auto& header = headers.back();
       header = fmt::format("x-ms-range: bytes={}-{}", range.start, range.end);
     }
-    m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", CurlDownloadHandler::GET);
+    m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", convertToISO8601, CurlDownloadHandler::GET);
     return request;
   }
   std::shared_ptr<Request> IOManagerAzurePresigned::WriteObject(const std::string& objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request& request, const Error& error)> completedCallback)
