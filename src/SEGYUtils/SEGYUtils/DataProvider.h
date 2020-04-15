@@ -27,6 +27,11 @@
 
 struct DataTransfer : public OpenVDS::TransferDownloadHandler
 {
+  DataTransfer(int64_t offset = 0)
+    : offset(offset)
+    , size(0)
+  {}
+
   void HandleObjectSize(int64_t size) override
   {
     this->size = size;
@@ -51,7 +56,8 @@ struct DataTransfer : public OpenVDS::TransferDownloadHandler
     this->error = error;
   }
 
-  int64_t size = 0;
+  int64_t offset;
+  int64_t size;
   std::string lastWriteTime;
   std::vector<uint8_t> data;
   OpenVDS::Error error;
@@ -155,7 +161,6 @@ struct DataView
     , m_pos(0)
     , m_size(0)
     , m_ref(0)
-    , m_transfer(std::make_shared<DataTransfer>())
   {
     if (dataProvider.m_file)
     {
@@ -163,9 +168,16 @@ struct DataView
     }
     else if (dataProvider.m_ioManager)
     {
-      m_request = dataProvider.m_ioManager->ReadObject(dataProvider.m_objectName, m_transfer, { pos, pos + size});
       m_pos = pos;
       m_size = size;
+      int64_t end = pos + size;
+      const int chunk_size = 1 << 23; //8 MB
+      for (int64_t i = pos; i < end; i+= chunk_size)
+      {
+        int64_t chunk_end = std::min(i + chunk_size, end);
+        m_transfers.push_back(std::make_shared<DataTransfer>(i - pos));
+        m_requests.push_back(dataProvider.m_ioManager->ReadObject(dataProvider.m_objectName, m_transfers.back(), { i, chunk_end - 1 }));
+      }
     }
     else
     {
@@ -183,13 +195,34 @@ struct DataView
   {
     if (m_fileView)
       return m_fileView->Pointer();
-    if (m_request)
+    if (m_requests.size())
     {
-      m_request->WaitForFinish();
-      if (m_request->IsSuccess(m_error))
-        m_data = std::move(m_transfer->data);
-      m_request.reset();
-      m_transfer.reset();
+      if (m_requests.size() == 1)
+      {
+        m_requests[0]->WaitForFinish();
+        if (m_requests[0]->IsSuccess(m_error))
+          m_data = std::move(m_transfers[0]->data);
+      }
+      else
+      {
+        m_data.resize(m_size);
+        OpenVDS::Error reqError;
+        for (int i = 0; i < m_requests.size(); i++)
+        {
+          m_requests[i]->WaitForFinish();
+          if (!m_requests[i]->IsSuccess(reqError))
+          {
+            m_error = reqError;
+            break;
+          }
+          auto& transfer = *m_transfers[i];
+          assert(transfer.size == transfer.data.size());
+          assert(transfer.offset + transfer.data.size() <= m_data.size());
+          memcpy(m_data.data() + transfer.offset, transfer.data.data(), transfer.data.size());
+        }
+      }
+      m_requests = std::vector<std::shared_ptr<OpenVDS::Request>>();
+      m_transfers = std::vector<std::shared_ptr<DataTransfer>>();
     }
     if (m_error.code)
     {
@@ -228,8 +261,8 @@ struct DataView
   std::vector<uint8_t> m_data;
   int64_t m_pos;
   int64_t m_size;
-  std::shared_ptr<OpenVDS::Request> m_request;
-  std::shared_ptr<DataTransfer> m_transfer;
+  std::vector<std::shared_ptr<OpenVDS::Request>> m_requests;
+  std::vector<std::shared_ptr<DataTransfer>> m_transfers;
   OpenVDS::Error m_error;
   int m_ref;
 };
