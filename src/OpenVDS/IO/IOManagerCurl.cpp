@@ -322,7 +322,7 @@ static void beforeBlockCB(uv_prepare_t *handle)
           case 409: // CONFLICT
           case 500: // INTERNAL_SERVER_ERROR
           case 503: // SERVICE_UNAVAILABLE
-            if (socketContext->shouldRetry(responseCode))
+            if (socketContext->shouldRetry())
             {
               fmt::print(stderr, "CURL respons error {}. Automatic rety {}", responseCode, url);
               curl_multi_remove_handle(eventLoopData->curlMulti, socketContext->curlEasy);
@@ -349,6 +349,19 @@ static void beforeBlockCB(uv_prepare_t *handle)
           error.code = curlCode;
           error.string = CURLErrorMessage(socketContext->curlEasy, code);
         }
+      }
+      else if (code == CURLE_OPERATION_TIMEDOUT && socketContext->shouldRetry())
+      {
+        char* url = NULL;
+        curl_easy_getinfo(socketContext->curlEasy, CURLINFO_EFFECTIVE_URL, &url);
+        fmt::print(stderr, "CURL timeout. Automatic rety {}", url);
+        curl_multi_remove_handle(eventLoopData->curlMulti, socketContext->curlEasy);
+
+        CURL* dup = curl_easy_duphandle(socketContext->curlEasy);
+        curl_easy_cleanup(socketContext->curlEasy);
+        socketContext->curlEasy = dup;
+        curl_multi_add_handle(eventLoopData->curlMulti, dup);
+        continue;
       }
       else
       {
@@ -483,6 +496,14 @@ static int curlTimerCallback(CURLM* multi, long timeout_ms, void* userp)
   return 0;
 }
 
+bool CurlEasyHandler::shouldRetry()
+{
+  retry_count++;
+  if (retry_count < 4)
+    return true;
+  return false;
+}
+
 void CurlDownloadHandler::handleDone(int responseCode, const Error &error)
 {
   auto downloadRequest = request.lock();
@@ -501,8 +522,8 @@ void CurlDownloadHandler::handleDone(int responseCode, const Error &error)
     fmt::print(stderr, "Unexpected Success code: {} -> {}\n", responseCode, downloadRequest->GetObjectName());
   }
   std::unique_lock<std::mutex> lock(downloadRequest->m_mutex);
-  downloadRequest->m_done = true;
   downloadRequest->m_error = error;
+  downloadRequest->m_done = true;
   if (downloadRequest->m_handler)
   {
     if (responseCode < 300 && data.size())
@@ -675,14 +696,6 @@ size_t CurlUploadHandler::handleReadRequest(char* buffer, size_t size)
   memcpy(buffer, data->data() + data_offset, to_copy);
   data_offset += to_copy;
   return to_copy;
-}
-
-bool CurlUploadHandler::shouldRetry(int responseCode)
-{
-  retry_count++;
-  if (retry_count < 4)
-    return true;
-  return false;
 }
 
 struct Barrier

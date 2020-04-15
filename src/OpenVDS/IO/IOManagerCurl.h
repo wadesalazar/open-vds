@@ -72,11 +72,15 @@ struct CurlEasyHandler
   CurlEasyHandler(UVEventLoopData *eventLoopData)
     : eventLoopData(eventLoopData)
     , curlEasy(nullptr)
+    , retry_count(0)
   {}
   UVEventLoopData *eventLoopData;
   CURL* curlEasy;
+  int retry_count;
+  
+  bool shouldRetry();
+
   virtual void handleDone(int responsCode, const Error &error) = 0;
-  virtual bool shouldRetry(int responseCode) { return false; }
   virtual void handleHeaderData(char* buffer, size_t size) = 0;
   virtual void handleWriteData(char* ptr, size_t size) = 0;
   virtual size_t handleReadRequest(char* buffer, size_t size) = 0;
@@ -177,22 +181,18 @@ struct CurlUploadHandler : public CurlEasyHandler
     , headers(std::move(headers))
     , data(data)
     , data_offset(0)
-    , retry_count(0)
   {}
 
   void handleDone(int responsCode, const Error &error) override;
   void handleHeaderData(char* buffer, size_t size) override;
   void handleWriteData(char* ptr, size_t size) override;
   size_t handleReadRequest(char* buffer, size_t size) override;
-  
-  bool shouldRetry(int responseCode) override;
 
   std::weak_ptr<UploadRequestCurl> request;
   std::string url;
   std::vector<std::string> headers;
   std::shared_ptr<std::vector<uint8_t>> data;
   size_t data_offset;
-  int retry_count;
 };
 
 struct UVEventLoopData
