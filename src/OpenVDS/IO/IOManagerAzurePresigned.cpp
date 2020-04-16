@@ -37,6 +37,12 @@ namespace OpenVDS
 
     if (m_base.back() != '/')
       m_base.push_back('/');
+
+    if (m_suffix.size())
+    {
+      if (m_suffix[0] != '?')
+        m_suffix.insert(m_suffix.begin(), '?');
+    }
   }
 
   std::string convertToISO8601(const std::string &value)
