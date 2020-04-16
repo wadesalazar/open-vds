@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.12.0)
-project(OpenVDS)
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
+project(OpenVDS VERSION 0.9.0)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
@@ -121,6 +126,43 @@ if (BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
 
-set(CPACK_GENERATOR "TGZ")
+if (NOT DEFINED CPACK_GENERATOR)
+  if (UNIX)
+    set (CPACK_GENERATOR "TGZ")
+  elseif(WIN32)
+    set (CPACK_GENERATOR "ZIP")
+  endif()
+endif()
+
+if (UNIX)
+    find_program(LSB_RELEASE_EXEC lsb_release)
+    execute_process(COMMAND ${LSB_RELEASE_EXEC} -irs
+        OUTPUT_VARIABLE OS_NAME
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    # OS_NAME is not empty, check for "CentOS" and replace it with "redhat-"
+    if (NOT "${OS_NAME}" STREQUAL "")
+        STRING(REPLACE "CentOS " "redhat-" OS_NAME ${OS_NAME})
+        STRING(REGEX MATCH "(redhat-)[1-9]" OS_NAME ${OS_NAME})
+    endif ()
+
+    # if OS_NAME is still empty, set it to Linux
+    if ("${OS_NAME}" STREQUAL "")
+        set(OS_NAME "Linux")
+    endif()
+else ()
+    # Always set OS_NAME to "win" for windows
+    set(OS_NAME "win")
+endif ()
+
+if (NOT DEFINED PACKAGE_RELEASE)
+   set(PACKAGE_RELEASE "1")
+endif()
+
+set (CPACK_PACKAGE_VERSION "${CMAKE_PROJECT_VERSION}")
+set (CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/package-install")
+set (CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${PACKAGE_RELEASE}-${OS_NAME}")
+
 include(CPack)
 
