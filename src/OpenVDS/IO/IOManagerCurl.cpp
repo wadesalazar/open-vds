@@ -210,8 +210,9 @@ static void addUploadCB(uv_async_t *handle)
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_HEADERDATA, uploadRequest.get());
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_READFUNCTION, &curlReadCallback);
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_READDATA, uploadRequest.get());
-    curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_UPLOAD, 1);
-    curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_INFILESIZE_LARGE, uploadRequest->data->size());
+    curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_UPLOAD, 1L);
+    curl_off_t filesize = curl_off_t(uploadRequest->data->size());
+    curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_INFILESIZE_LARGE, filesize);
   }
   
   eventLoopData->queuedRequests.insert(eventLoopData->queuedRequests.end(), uploadRequests.begin(), uploadRequests.end());
@@ -292,8 +293,7 @@ static void beforeBlockCB(uv_prepare_t *handle)
 
       Error error;
       CURLcode code = message->data.result;
-      int responseCode = 0;
-
+      long responseCode = 0;
 
       if (code == CURLE_OK)
       {
