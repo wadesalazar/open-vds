@@ -20,6 +20,7 @@
 
 #include "IOManager.h"
 
+#include <cctype>
 #include <vector>
 #include <string>
 #include <thread>
