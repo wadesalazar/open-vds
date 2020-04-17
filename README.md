@@ -52,6 +52,9 @@ from the different network storage integrations. Currently these packages are re
 - openssl
 - boost
 - xml2
+- zlib
+- libuv
+- uuid
 
 #### Windows Visual Studio
 Much like on Linux its possible to generate a project in a build folder and build it using native tools.
