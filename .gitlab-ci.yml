@@ -5,8 +5,12 @@ stages:
 
 variables:
     SHA_IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
-    CMAKE_OPTIONS: ""
+    CMAKE_OPTIONS: "-GNinja"
 
+cache:
+  paths:
+    - ccache
+    - 3rdparty
 # --------------------------------------------------------------------------------
 
 devel-container:
@@ -29,11 +33,21 @@ compile:
     expire_in: 1 hr
     paths:
       - build
+  # Use ccache transparently, and print stats before/after
+  before_script:
+    - export CCACHE_BASEDIR="$PWD"
+    - export CCACHE_DIR="$PWD/ccache"
+    - export CCACHE_COMPILERCHECK=content
+    - ccache --zero-stats || true
+    - ccache --show-stats || true
   script:
     - mkdir -p build
     - cd build
     - cmake $CMAKE_OPTIONS ..
-    - make -j8
+    - ninja
+  after_script:
+    - export CCACHE_DIR="$PWD/ccache"
+    - ccache --show-stats
   only: [merge_requests]
 
 # --------------------------------------------------------------------------------
@@ -44,5 +58,5 @@ unit-tests:
   tags: ['docker-runner']
   script:
     - cd build
-    - make test
+    - ninja test
   only: [merge_requests]
