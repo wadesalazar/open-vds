@@ -20,6 +20,7 @@ In order to implement these components there are a number of internal components
 - File (UTF-8 filenames, thread-safe read/write, possibility to create memory-mapped file views)
 
 Licensed under [**Apache 2.0**](https://gitlab.opengroup.org/osdu/open-vds/blob/master/LICENSE)
+[Documentation](https://community.opengroup.org/osdu/open-vds/-/jobs/artifacts/master/file/build/docs/html/index.html?job=publish-docs)
 
 ### Building
 By default OpenVDS builds the Python 3 bindings. To install the required dependencies go into ${OpenVDSFolder}/python folder and run:
