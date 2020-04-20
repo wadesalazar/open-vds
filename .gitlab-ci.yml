@@ -5,7 +5,7 @@ stages:
 
 variables:
     SHA_IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
-    CMAKE_OPTIONS: "-GNinja"
+    CMAKE_OPTIONS: "-DBUILD_DOCS=ON -GNinja"
 
 cache:
   paths:
@@ -60,3 +60,8 @@ unit-tests:
     - cd build
     - ninja test
   only: [merge_requests]
+  artifacts:
+    expire_in: 4 weeks
+    name: docs
+    paths:
+      - build/docs/html/

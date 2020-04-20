@@ -85,10 +85,10 @@ Build options are arguments to cmake. `$ cmake -DBUILD_PYTHON=OFF ..` would turn
 The following tools are needed to build the documentation:
 - Doxygen
 - Sphinx
-- Breath
+- Breathe
 
 On Windows download the Doxygen binary from: http://doxygen.nl/download.html
-Then install Sphinx and Breath with pip:
+Then install Sphinx and Breathe with pip:
 C:\> pip install -U sphinx breathe
 
 Add the -DBUILD_DOCS=ON to the cmake argument list
