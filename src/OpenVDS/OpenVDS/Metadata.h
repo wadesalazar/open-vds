@@ -262,7 +262,7 @@ public:
           SetMetadataIntVector4(key.category, key.name, metadataReadAccess->GetMetadataIntVector4(key.category, key.name));
           break;
         case MetadataType::Float:
-          SetMetadataFloat(key.category, key.name, metadataReadAccess->GetMetadataInt(key.category, key.name));
+          SetMetadataFloat(key.category, key.name, metadataReadAccess->GetMetadataFloat(key.category, key.name));
           break;
         case MetadataType::FloatVector2:
           SetMetadataFloatVector2(key.category, key.name, metadataReadAccess->GetMetadataFloatVector2(key.category, key.name));
