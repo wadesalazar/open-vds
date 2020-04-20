@@ -2,6 +2,7 @@ stages:
   - prepare
   - build
   - test
+  - deploy
 
 variables:
     SHA_IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
@@ -21,7 +22,6 @@ devel-container:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $SHA_IMAGE_TAG -f build-environment.Dockerfile .
     - docker push $SHA_IMAGE_TAG
-  only: [merge_requests]
 
 # --------------------------------------------------------------------------------
 
@@ -48,7 +48,6 @@ compile:
   after_script:
     - export CCACHE_DIR="$PWD/ccache"
     - ccache --show-stats
-  only: [merge_requests]
 
 # --------------------------------------------------------------------------------
 
@@ -59,9 +58,17 @@ unit-tests:
   script:
     - cd build
     - ninja test
-  only: [merge_requests]
+
+publish-docs:
+  stage: deploy
+  image: $SHA_IMAGE_TAG
+  tags: ['docker-runner']
+  script:
+    - echo "Deploying Docs"
   artifacts:
     expire_in: 4 weeks
     name: docs
     paths:
       - build/docs/html/
+  only:
+    - master
