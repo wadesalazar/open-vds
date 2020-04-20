@@ -52,7 +52,7 @@ function(BuildExternal name version depends source_dir install_libs_release runt
 
   set(cmake_arg_complete "${cmake_arg_complete}${CMAKE_BUILD_TYPE_ARG}")
   if (CCACHE_PROGRAM)
-    set(cmake_arg_complete "${cmake_arg_complete}-DCMAKE_CXX_COMPILER_LAUNCHER=ccache;")
+    set(cmake_arg_complete "${cmake_arg_complete}-DCMAKE_C_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER_LAUNCHER=ccache;")
   endif()
   set(cmake_arg_complete "${cmake_arg_complete}-DCMAKE_INSTALL_PREFIX=${INSTALL_INT_CONFIG};-DCMAKE_INSTALL_MESSAGE=LAZY")
   include(ExternalProject)
