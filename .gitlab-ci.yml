@@ -100,16 +100,14 @@ unit-tests:
   rules:
     - if: $CI_MERGE_REQUEST_ID
 
-publish-docs:
+pages:
   stage: deploy
   image: $SHA_IMAGE_TAG
   tags: ['docker-runner']
   script:
-    - echo "Deploying Docs"
+    - mv build/docs/html public
   artifacts:
-    expire_in: 4 weeks
-    name: docs
     paths:
-      - build/docs/html/
+      - public
   rules:
     - if: $CI_COMMIT_BRANCH == 'master'
