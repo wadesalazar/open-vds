@@ -33,8 +33,8 @@ devel-container-merge-request:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $SHA_IMAGE_TAG -f build-environment.Dockerfile .
     - docker push $SHA_IMAGE_TAG
-  rules:
-    - if: $CI_MERGE_REQUEST_ID
+  only:
+    - merge_requests
 
 # --------------------------------------------------------------------------------
 
@@ -85,8 +85,8 @@ compile-merge-request:
   after_script:
     - export CCACHE_DIR="$PWD/ccache"
     - ccache --show-stats
-  rules:
-    - if: $CI_MERGE_REQUEST_ID
+  only:
+    - merge_requests
 
 # --------------------------------------------------------------------------------
 
@@ -97,8 +97,8 @@ unit-tests:
   script:
     - cd build
     - ninja test
-  rules:
-    - if: $CI_MERGE_REQUEST_ID
+  only:
+    - merge_requests
 
 pages:
   stage: deploy
