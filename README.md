@@ -21,7 +21,7 @@ In order to implement these components there are a number of internal components
 
 Licensed under [**Apache 2.0**](https://gitlab.opengroup.org/osdu/open-vds/blob/master/LICENSE)
 
-Latest build of the [**OpenVDS-Documentation**](https://community.opengroup.org/osdu/open-vds/-/jobs/artifacts/master/file/build/docs/html/index.html?job=publish-docs)
+Latest build of the [**OpenVDS-Documentation**](http://osdu.pages.community.opengroup.org/open-vds)
 
 ### Building
 By default OpenVDS builds the Python 3 bindings. To install the required dependencies go into ${OpenVDSFolder}/python folder and run:
