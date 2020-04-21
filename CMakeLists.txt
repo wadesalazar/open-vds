@@ -153,7 +153,7 @@ if (UNIX)
     endif()
 else ()
     # Always set OS_NAME to "win" for windows
-    set(OS_NAME "win")
+    set(OS_NAME "win-${MSVC_TOOLSET_VERSION_LOCAL}")
 endif ()
 
 if (NOT DEFINED PACKAGE_RELEASE)
