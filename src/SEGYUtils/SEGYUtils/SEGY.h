@@ -46,7 +46,7 @@ enum class Endianness
 struct HeaderField
 {
   int        byteLocation;
-  enum FieldWidth fieldWidth;
+  FieldWidth fieldWidth;
 
   HeaderField() = default;
   HeaderField(int byteLocation, FieldWidth fieldWidth) : byteLocation(byteLocation), fieldWidth(fieldWidth) {}
