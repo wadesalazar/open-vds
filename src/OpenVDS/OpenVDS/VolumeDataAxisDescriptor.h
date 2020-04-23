@@ -132,6 +132,17 @@ public:
   /// The sample index of the coordinate
   /// </returns>
   int CoordinateToSampleIndex(float coordinate) { return (coordinate == m_coordinateMin) ? 0 : (int)floorf(((coordinate - m_coordinateMin) / (m_coordinateMax - m_coordinateMin)) * (m_numSamples - 1) + 0.5f); }
+
+  /// <summary>
+  /// Convert a coordinate to a sample position (to use with RequestVolumeSamples or an InterpolatingVolumeDataAccessor)
+  /// </summary>
+  /// <param name="coordinate">
+  /// The coordinate to get the sample position of
+  /// </param>
+  /// <returns>
+  /// The sample position of the coordinate
+  /// </returns>
+  float CoordinateToSamplePosition(float coordinate) { return (coordinate == m_coordinateMin) ? 0.5f : ((coordinate - m_coordinateMin) / (m_coordinateMax - m_coordinateMin)) * (m_numSamples - 1) + 0.5f; }
 };
 }
 #endif //VOLUMEDATAAXISDESCRIPTOR_H

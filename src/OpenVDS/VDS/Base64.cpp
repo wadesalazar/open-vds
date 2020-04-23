@@ -20,8 +20,6 @@
 #include <cctype>
 #include <cstring>
 
-namespace OpenVDS
-{
 class Base64Table
 {
   static const char Alphabet[65];
@@ -158,5 +156,4 @@ void Base64Encode(const unsigned char *data, int64_t len, std::vector<char> &res
 
     len -= 3; data += 3;
   }
-}
 }

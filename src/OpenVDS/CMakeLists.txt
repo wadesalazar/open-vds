@@ -7,9 +7,13 @@ set(SOURCE_FILES
   IO/IOManagerAWS.cpp
   IO/IOManagerAzure.cpp
   IO/IOManagerInMemory.cpp
+  IO/IOManagerVDSFile.cpp
   IO/IOManagerCurl.cpp
   IO/IOManagerAzurePresigned.cpp
   IO/IOManagerGoogle.cpp
+  BulkDataStore/HueBulkDataStore.cpp
+  BulkDataStore/ExtentAllocator.cpp
+  BulkDataStore/VDSObjectParser.cpp
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
@@ -154,8 +158,14 @@ foreach(DEP ${dependency_targets_3rdparty})
 endforeach()
 
 target_include_directories(openvds_objects PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(openvds_objects PRIVATE "VDS")
 target_include_directories(openvds_objects SYSTEM PRIVATE ${include_3rdparty})
 target_compile_definitions(openvds_objects PRIVATE openvds_EXPORTS)
+target_compile_definitions(openvds_objects PRIVATE -DHUEBDS_EXPORTS= ) # We're not building HueBulkDataStore as a shared library
+
+if (WIN32)
+  target_compile_definitions(openvds_objects PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
 
 if (DISABLE_AWS_IOMANAGER)
   target_compile_definitions(openvds_objects PRIVATE OPENVDS_NO_AWS_IOMANAGER)

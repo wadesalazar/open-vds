@@ -43,6 +43,7 @@ PyVolumeDataAxisDescriptor::initModule(py::module& m)
   VolumeDataAxisDescriptor_.def_property_readonly("coordinateStep", &VolumeDataAxisDescriptor::GetCoordinateStep, OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_GetCoordinateStep));
   VolumeDataAxisDescriptor_.def("sampleIndexToCoordinate"     , static_cast<float(VolumeDataAxisDescriptor::*)(int)>(&VolumeDataAxisDescriptor::SampleIndexToCoordinate), py::arg("sampleIndex"), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_SampleIndexToCoordinate));
   VolumeDataAxisDescriptor_.def("coordinateToSampleIndex"     , static_cast<int(VolumeDataAxisDescriptor::*)(float)>(&VolumeDataAxisDescriptor::CoordinateToSampleIndex), py::arg("coordinate"), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_CoordinateToSampleIndex));
+  VolumeDataAxisDescriptor_.def("coordinateToSamplePosition"  , static_cast<float(VolumeDataAxisDescriptor::*)(float)>(&VolumeDataAxisDescriptor::CoordinateToSamplePosition), py::arg("coordinate"), OPENVDS_DOCSTRING(VolumeDataAxisDescriptor_CoordinateToSamplePosition));
 
 //AUTOGEN-END
 }
