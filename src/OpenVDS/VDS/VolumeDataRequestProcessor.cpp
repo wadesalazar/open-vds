@@ -360,6 +360,7 @@ bool VolumeDataRequestProcessor::WaitForCompletion(int64_t jobID, int millisecon
   }
   if (job->done && !job->cancelled)
   {
+    job_it = std::find_if(m_jobs.begin(), m_jobs.end(), [job](const std::unique_ptr<Job>& jobin) { return job == jobin.get(); });
     m_jobs.erase(job_it);
     return true;
   }
