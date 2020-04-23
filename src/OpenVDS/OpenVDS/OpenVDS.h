@@ -45,7 +45,7 @@ struct OpenOptions
     AzurePresigned,
     GoogleStorage,
     Http,
-    File,
+    VDSFile,
     InMemory
   };
 
@@ -216,6 +216,24 @@ struct InMemoryOpenOptions : OpenOptions
     , name(name)
   {}
   std::string name;
+};
+
+/// <summary>
+/// Options for opening a VDS file
+/// </summary>
+struct VDSFileOpenOptions : OpenOptions
+{
+  std::string fileName;
+
+  VDSFileOpenOptions() : OpenOptions(VDSFile) {}
+
+  /// <summary>
+  /// VDSFileOpenOptions constructor
+  /// </summary>
+  /// <param name="fileName">
+  /// The name of the VDS file
+  /// </param>
+  VDSFileOpenOptions(const std::string &fileName) : OpenOptions(VDSFile), fileName(fileName) {}
 };
 
 struct Error
