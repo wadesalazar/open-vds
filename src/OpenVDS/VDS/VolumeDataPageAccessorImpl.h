@@ -33,6 +33,7 @@ namespace OpenVDS
 class VolumeDataPageImpl;
 class VolumeDataLayer;
 class VolumeDataAccessManagerImpl;
+struct Error;
 struct DataBlock;
 
 class VolumeDataPageAccessorImpl : public VolumeDataPageAccessor
@@ -79,7 +80,7 @@ public:
   int   RemoveReference() override;
   int   GetReferenceCount() const { return m_references.load(); }
 
-  VolumeDataPage* PrepareReadPage(int64_t chunk);
+  VolumeDataPage* PrepareReadPage(int64_t chunk, Error &error);
   bool ReadPreparedPaged(VolumeDataPage *page);
   void CancelPreparedReadPage(VolumeDataPage *page);
 

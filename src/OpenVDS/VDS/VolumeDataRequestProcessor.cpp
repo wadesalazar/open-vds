@@ -215,10 +215,10 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
   job->future.reserve(chunks.size());
   for (const auto &c : chunks)
   {
-    job->pages.emplace_back(static_cast<VolumeDataPageImpl *>(pageAccessor->PrepareReadPage(c.index)), c);
+    job->pages.emplace_back(static_cast<VolumeDataPageImpl *>(pageAccessor->PrepareReadPage(c.index, job->completedError)), c);
     if (!job->pages.back().page)
     {
-      job->cancelled;
+      job->cancelled = true;
       break;
     }
   }
@@ -235,6 +235,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
       }
     }
     job->pagesProcessed = job->pagesCount;
+    job->done = true;
     return job->jobId;
   }
 

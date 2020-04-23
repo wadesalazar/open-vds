@@ -205,18 +205,21 @@ VolumeDataPage* VolumeDataPageAccessorImpl::CreatePage(int64_t chunk)
   return page;
 }
 
-VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk)
+VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk, Error &error)
 {
   std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex);
 
   if(!m_layer)
   {
+    error.code = -1;
+    error.string = "PrepareReadPage missing layer";
     return nullptr;
   }
 
   if (m_layer->GetProduceStatus() == VolumeDataLayer::ProduceStatus_Unavailable)
   {
-    fprintf(stderr, "The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)");
+    error.code = -1;
+    error.string = "The accessed dimension group or channel is unavailable (check produce status on VDS before accessing data)";
     return nullptr;
   }
 
@@ -241,6 +244,8 @@ VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk)
     m_commitFinishedCondition.wait_for(pageListMutexLock, std::chrono::milliseconds(1000));
     if(!m_layer)
     {
+      error.code = -1;
+      error.string = "PrepareReadPage loosing layer while waiting for commit";
       return nullptr;
     }
   }
@@ -252,7 +257,6 @@ VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk)
 
   assert(page->IsPinned());
 
-  Error error;
   VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(chunk);
   if (!m_accessManager->PrepareReadChunkData(volumeDataChunk, true, error))
   {
@@ -374,9 +378,15 @@ void VolumeDataPageAccessorImpl::CancelPreparedReadPage(VolumeDataPage* page)
 
 VolumeDataPage* VolumeDataPageAccessorImpl::ReadPage(int64_t chunk)
 {
-  VolumeDataPage *page = PrepareReadPage(chunk);
+  Error error;
+  VolumeDataPage *page = PrepareReadPage(chunk, error);
   if (!page)
     return nullptr;
+  if (error.code)
+  {
+    page->Release();
+    return nullptr;
+  }
   if (!ReadPreparedPaged(page))
   {
     page->Release();
