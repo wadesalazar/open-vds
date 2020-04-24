@@ -22,7 +22,7 @@
 
 #include "IO/File.h"
 
-#include "ThreadPool.h"
+#include "../utils/ThreadPool.h"
 
 #ifdef _WIN32
 #undef WIN32_LEAN_AND_MEAN // avoid warnings if defined on command line

@@ -81,6 +81,10 @@ add_test_executable(openvds_integration_tests
   OpenVDS/WaitForCompletion.cpp
   )
 
+add_test_executable(multithreaded_requests
+  OpenVDS/MultiThreadedRequests.cpp
+)
+
 add_test_executable(openvds_mixed_request
   OpenVDS/RequestVolumeSubsetAndPageAccessor.cpp
   )

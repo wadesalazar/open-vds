@@ -41,7 +41,7 @@ private:
   int32_t m_pitch[Dimensionality_Max];
   std::vector<uint8_t> m_blob;
 
-  int32_t m_pins;
+  std::atomic_int m_pins;
 
   int32_t m_settingData;
 
