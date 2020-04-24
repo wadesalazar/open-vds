@@ -27,13 +27,22 @@
 
 #include <gtest/gtest.h>
 
-static inline void GenerateRandomPosition(std::mt19937 &gen, std::vector<std::uniform_real_distribution<float>> &dimensionDistribution, int dimension, float (&pos)[OpenVDS::Dimensionality_Max])
+static inline void GenerateRandomCoordinate(std::mt19937 &generator, std::vector<std::uniform_real_distribution<float>> &dimensionDistribution, int dimensionality, float (&coordinate)[OpenVDS::Dimensionality_Max])
 {
-  for (int i = 0; i < dimension; i++)
+  for (int dimension = 0; dimension < OpenVDS::Dimensionality_Max; dimension++)
   {
-    pos[i] = dimensionDistribution[size_t(i)](gen);
+    coordinate[dimension] = (dimension < dimensionality) ? dimensionDistribution[dimension](generator) : 0.0f;
   }
 }
+
+static inline void CoordinateToSamplePosition(OpenVDS::VolumeDataLayout *layout, int dimensionality, float (&coordinate)[OpenVDS::Dimensionality_Max])
+{
+  for (int dimension = 0; dimension < dimensionality; dimension++)
+  {
+    coordinate[dimension] = layout->GetAxisDescriptor(dimension).CoordinateToSamplePosition(coordinate[dimension]);
+  }
+}
+
 GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
 {
   OpenVDS::Error error;
@@ -53,12 +62,12 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
 
-  int32_t dimension = layout->GetDimensionality();
+  int32_t dimensionality = layout->GetDimensionality();
 
   std::mt19937 gen(5746);
   std::vector<std::uniform_real_distribution<float>> dimensionDistribution;
   dimensionDistribution.reserve(OpenVDS::Dimensionality_Max);
-  for (int i = 0; i < dimension; i++)
+  for (int i = 0; i < dimensionality; i++)
   {
     float min = layout->GetDimensionMin(i) + 1; 
     float max = layout->GetDimensionMax(i);
@@ -69,11 +78,32 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
 
   for(int i = 0; i < 100; i++)
   {
-    GenerateRandomPosition(gen, dimensionDistribution, dimension, positions[i]);
+    GenerateRandomCoordinate(gen, dimensionDistribution, dimensionality, positions[i]);
+    CoordinateToSamplePosition(layout, dimensionality, positions[i]);
   }
+
   float buffer[100];
   int64_t request = accessManager->RequestVolumeSamples(buffer, layout, OpenVDS::Dimensions_012, 0, 0, positions, 100, OpenVDS::InterpolationMethod::Linear);
-  accessManager->WaitForCompletion(request);
+  bool success = accessManager->WaitForCompletion(request, 10000);
+  if(!success)
+  {
+    if(accessManager->IsCanceled(request))
+    {
+      int errorCode = 0;
+      const char *errorMessage = nullptr;
+      accessManager->GetCurrentDownloadError(&errorCode, &errorMessage);
+      ASSERT_NE(errorCode, 0);
+      ASSERT_NE(errorMessage, nullptr);
+      FAIL() << std::string(errorMessage);
+    }
+    else
+    {
+      // We need to cancel and then wait until we can safely free the buffer
+      accessManager->Cancel(request);
+      accessManager->WaitForCompletion(request);
+      FAIL() << std::string("Timeout waiting for RequestVolumeSamples");
+    }
+  }
 
   OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   OpenVDS::VolumeDataReadAccessor<OpenVDS::FloatVector3, float >* readAccessor = accessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Linear);
