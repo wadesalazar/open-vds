@@ -187,6 +187,7 @@ namespace OpenVDS
           {
             const char *data = reinterpret_cast<const char *>(buffer->Data());
             handler->HandleData(std::vector<uint8_t>(data, data + buffer->Size()));
+            m_dataStore->ReleaseBuffer(buffer);
           }
           else
           {
