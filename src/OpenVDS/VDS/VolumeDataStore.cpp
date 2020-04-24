@@ -548,7 +548,7 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChu
   else if (!Verify(volumeDataChunk, serializedData, compressionMethod, true, volumeDataHashValue))
   {
     error.code = -1;
-    error.string = fmt::format("Invalid header for chunk file. Chunk index: {}.", volumeDataChunk.index);
+    error.string = fmt::format("Invalid header (e.g. unsupported Wavelet compression version) for chunk index: {}.", volumeDataChunk.index);
     return false;
   }
 
