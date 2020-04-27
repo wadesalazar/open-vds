@@ -41,6 +41,7 @@ main(int argc, char *argv[])
 
   std::string bucket;
   std::string region;
+  std::string endpointOverride;
   std::string connectionString;
   std::string container;
   int azureParallelismFactor = 0;
@@ -52,6 +53,7 @@ main(int argc, char *argv[])
 
   options.add_option("", "", "bucket", "AWS S3 bucket to export from.", cxxopts::value<std::string>(bucket), "<string>");
   options.add_option("", "", "region", "AWS region of bucket to export from.", cxxopts::value<std::string>(region), "<string>");
+  options.add_option("", "", "endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(endpointOverride), "<string>");
   options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
   options.add_option("", "", "container", "Azure Blob Storage container to export from .", cxxopts::value<std::string>(container), "<string>");
   options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
@@ -93,7 +95,7 @@ main(int argc, char *argv[])
 
   if(!bucket.empty())
   {
-    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region));
+    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
   }
   else if(!container.empty())
   {

@@ -346,10 +346,10 @@ namespace OpenVDS
     , m_bucket(openOptions.bucket)
     , m_objectId(openOptions.key)
   {
-    if (m_region.empty() || m_bucket.empty())
+    if (m_bucket.empty())
     {
       error.code = -1;
-      error.string = "AWS Config error. Empty bucket or region";
+      error.string = "AWS Config error. Empty bucket";
       return;
     }
 
@@ -409,8 +409,13 @@ namespace OpenVDS
     clientConfig.region = m_region.c_str();
     clientConfig.connectTimeoutMs = 3000;
     clientConfig.requestTimeoutMs = 6000;
-
-    m_s3Client.reset(new Aws::S3::S3Client(credentials, clientConfig));
+    bool useVirtualAddressing = true;
+    if (openOptions.endpointOverride.size())
+    {
+      clientConfig.endpointOverride = convertStdString(openOptions.endpointOverride);
+      useVirtualAddressing = false;
+    }
+    m_s3Client.reset(new Aws::S3::S3Client(credentials, clientConfig, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, useVirtualAddressing));
   }
 
   IOManagerAWS::~IOManagerAWS()
