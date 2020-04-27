@@ -70,7 +70,17 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeTraces)
   }
 
   int64_t requestId = accessManager->RequestVolumeTraces(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, tracePos, 10, OpenVDS::InterpolationMethod::Nearest, 0);
-  accessManager->WaitForCompletion(requestId);
+
+  float previousProgress = -1;
+  while(!accessManager->WaitForCompletion(requestId,1000)){
+      ASSERT_FALSE(accessManager->IsCanceled(requestId));
+
+      float progress = accessManager->GetCompletionFactor(requestId);
+      if (progress != previousProgress) {
+          previousProgress = progress;
+          GTEST_LOG_(INFO) << "Request progress : " << progress * 100. << " %";
+      }
+  }
 
   auto pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   auto valueReader = accessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Nearest);

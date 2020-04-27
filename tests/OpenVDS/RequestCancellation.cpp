@@ -29,7 +29,7 @@
 #include <OpenVDS/IO/IOManager.h>
 #include <OpenVDS/IO/IOManagerInMemory.h>
 
-TEST(WaitForCompletion, waitTimeout)
+TEST(OpenVDS_integration, RequestCancellation)
 {
   OpenVDS::InMemoryOpenOptions options;
   OpenVDS::Error error;
@@ -49,9 +49,14 @@ TEST(WaitForCompletion, waitTimeout)
 
   std::vector<float> bufferFloat;
   bufferFloat.resize(voxelCount);
-  int64_t requestFloat = accessManager->RequestVolumeSubset(bufferFloat.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  ASSERT_FALSE(accessManager->WaitForCompletion(requestFloat, 1));
 
-  ASSERT_TRUE(accessManager->WaitForCompletion(requestFloat, 0));
-  ASSERT_FALSE(accessManager->WaitForCompletion(requestFloat, 0));
+  for (int i = 0; i < 10 ; i++) {
+      int64_t requestFloat = accessManager->RequestVolumeSubset(bufferFloat.data(), layout, OpenVDS::Dimensions_012, 0,
+                                                                0, minPos, maxPos,
+                                                                OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+      accessManager->Cancel(requestFloat);
+      ASSERT_FALSE(accessManager->WaitForCompletion(requestFloat));
+      ASSERT_TRUE(accessManager->IsCanceled(requestFloat));
+      ASSERT_FALSE(accessManager->IsCanceled(requestFloat));
+  }
 }

@@ -79,6 +79,7 @@ add_test_executable(openvds_integration_tests
   OpenVDS/RequestVolumeSubsetFormat.cpp
   OpenVDS/DataAccessorClone.cpp
   OpenVDS/WaitForCompletion.cpp
+  OpenVDS/RequestCancellation.cpp
   )
 
 add_test_executable(multithreaded_requests
