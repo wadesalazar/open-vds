@@ -50,13 +50,19 @@ TEST(OpenVDS_integration, RequestCancellation)
   std::vector<float> bufferFloat;
   bufferFloat.resize(voxelCount);
 
+  std::vector<int64_t> requests;
   for (int i = 0; i < 10 ; i++) {
       int64_t requestFloat = accessManager->RequestVolumeSubset(bufferFloat.data(), layout, OpenVDS::Dimensions_012, 0,
                                                                 0, minPos, maxPos,
                                                                 OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-      accessManager->Cancel(requestFloat);
-      ASSERT_FALSE(accessManager->WaitForCompletion(requestFloat));
-      ASSERT_TRUE(accessManager->IsCanceled(requestFloat));
-      ASSERT_FALSE(accessManager->IsCanceled(requestFloat));
+      requests.emplace_back(requestFloat);
+  }
+  for (auto &req : requests){
+      accessManager->Cancel(req);
+      if (!accessManager->IsCompleted(req)) {
+          ASSERT_FALSE(accessManager->WaitForCompletion(req));
+          ASSERT_TRUE(accessManager->IsCanceled(req));
+          ASSERT_FALSE(accessManager->IsCanceled(req));
+      }
   }
 }
