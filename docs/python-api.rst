@@ -13,6 +13,8 @@ Python API
 
 .. autoclass:: openvds.AzureOpenOptions
 
+.. autoclass:: openvds.GSOpenOptions
+
 .. autofunction:: openvds.getAccessManager
 
 .. autofunction:: openvds.getLayout
