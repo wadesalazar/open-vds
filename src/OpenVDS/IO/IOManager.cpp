@@ -2,6 +2,7 @@
 ** Copyright 2019 The Open Group
 ** Copyright 2019 Bluware, Inc.
 ** Copyright 2020 Microsoft Corp.
+** Copyright 2020 Google, Inc.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@
 
 #include "IOManagerAWS.h"
 #include "IOManagerAzure.h"
+#include "IOManagerGS.h"
 #include "IOManagerInMemory.h"
 #include "IOManagerAzurePresigned.h"
 
@@ -46,6 +48,8 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
     return new IOManagerAzurePresigned(static_cast<const AzurePresignedOpenOptions&>(options).baseUrl, static_cast<const AzurePresignedOpenOptions&>(options).urlSuffix, error);
   case OpenOptions::InMemory:
     return new IOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
+  case OpenOptions::GoogleStorage:
+    return new IOManagerGS(static_cast<const GSOpenOptions &>(options), error);
   default:
     error.code = -1;
     error.string = "Unknwon type for OpenOptions";

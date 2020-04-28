@@ -1,6 +1,7 @@
 /****************************************************************************
 ** Copyright 2019 The Open Group
 ** Copyright 2019 Bluware, Inc.
+** Copyright 2020 Google, Inc.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -15,27 +16,24 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#ifndef IOMANAGERAWS_H
-#define IOMANAGERAWS_H
+#ifndef IOMANAGERGS_H
+#define IOMANAGERGS_H
 
 #include "IOManager.h"
 
 #include <vector>
 #include <string>
-#include <aws/s3/S3Client.h>
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
+		
 namespace OpenVDS
 {
-  class DownloadRequestAWS;
-  class UploadRequestAWS;
-  template<typename> struct AsyncContext;
-  using AsyncDownloadContext = AsyncContext<DownloadRequestAWS>;
-  using AsyncUploadContext = AsyncContext<UploadRequestAWS>;
-
-  class GetOrHeadRequestAWS : public Request
+  class GetOrHeadRequestGS : public Request
   {
   public:
-    GetOrHeadRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
-    ~GetOrHeadRequestAWS() override;
+    GetOrHeadRequestGS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
+    ~GetOrHeadRequestGS() override;
 
 
     void WaitForFinish() override;
@@ -51,53 +49,30 @@ namespace OpenVDS
     mutable std::mutex m_mutex;
   };
 
-  class ReadObjectInfoRequestAWS : public GetOrHeadRequestAWS
+  class ReadObjectInfoRequestGS : public GetOrHeadRequestGS
   {
   public:
-    ReadObjectInfoRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
-    void run(Aws::S3::S3Client& client, const std::string& bucket, std::weak_ptr<ReadObjectInfoRequestAWS> request);
+    ReadObjectInfoRequestGS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
+    void run(const std::string& bucket, std::weak_ptr<ReadObjectInfoRequestGS> request);
   };
 
-  class DownloadRequestAWS : public GetOrHeadRequestAWS
+  class DownloadRequestGS : public GetOrHeadRequestGS
   {
   public:
-    DownloadRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
-    void run(Aws::S3::S3Client& client, const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestAWS> request);
+    DownloadRequestGS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
+    void run(const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestGS> request);
   };
 
-  class VectorBuf : public std::basic_streambuf<char, std::char_traits<char>>
+  class UploadRequestGS : public Request
   {
   public:
-    VectorBuf(std::vector<uint8_t>& vec)
-    {
-      setg((char *) vec.data(), (char *) vec.data(), (char *) vec.data() + vec.size());
-    }
-  };
-
-  class IOStream : public Aws::IOStream
-  {
-  public:
-    IOStream(std::shared_ptr<std::vector<uint8_t>> data)
-      : Aws::IOStream(&m_buffer)
-      , m_data(data)
-      , m_buffer(*data)
-    {}
-    std::shared_ptr<std::vector<uint8_t>> m_data;
-    VectorBuf m_buffer;
-  };
-
-  class UploadRequestAWS : public Request
-  {
-  public:
-    UploadRequestAWS(const std::string &id, std::function<void(const Request & request, const Error & error)> completedCallback);
-    void run(Aws::S3::S3Client& client, const std::string& bucket, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::weak_ptr<UploadRequestAWS> uploadRequest);
+    UploadRequestGS(const std::string &id, std::function<void(const Request & request, const Error & error)> completedCallback);
+    void run(const std::string& bucket, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::weak_ptr<UploadRequestGS> uploadRequest);
     void WaitForFinish() override;
     bool IsDone() const override;
     bool IsSuccess(Error &error) const override;
     void Cancel() override;
 
-    std::function<void(const Request &request, const Error &error)> m_completedCallback;
-    std::shared_ptr<IOStream> m_stream;
     std::atomic_bool m_cancelled;
     bool m_done;
     Error m_error;
@@ -105,20 +80,18 @@ namespace OpenVDS
     mutable std::mutex m_mutex;
   };
 
-  class IOManagerAWS : public IOManager
+  class IOManagerGS : public IOManager
   {
     public:
-      IOManagerAWS(const AWSOpenOptions &openOptions, Error &error);
-      ~IOManagerAWS() override;
+      IOManagerGS(const GSOpenOptions &openOptions, Error &error);
+      ~IOManagerGS() override;
 
       std::shared_ptr<Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler) override;
       std::shared_ptr<Request> ReadObject(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range = IORange()) override;
       std::shared_ptr<Request> WriteObject(const std::string &objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback = nullptr) override;
     private:
-      std::string m_region;
       std::string m_bucket;
       std::string m_objectId;
-      std::unique_ptr<Aws::S3::S3Client> m_s3Client;
   };
 }
-#endif //IOMANAGERAWS_H
+#endif //IOMANAGERGS_H

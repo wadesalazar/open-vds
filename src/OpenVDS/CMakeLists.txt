@@ -9,6 +9,7 @@ set(SOURCE_FILES
   IO/IOManagerInMemory.cpp
   IO/IOManagerCurl.cpp
   IO/IOManagerAzurePresigned.cpp
+  IO/IOManagerGS.cpp
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
@@ -44,6 +45,7 @@ set (PRIVATE_HEADER_FILES
   IO/IOManagerInMemory.h
   IO/IOManagerCurl.h
   IO/IOManagerAzurePresigned.h
+  IO/IOManagerGS.h
   VDS/VDS.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataChannelMapping.h

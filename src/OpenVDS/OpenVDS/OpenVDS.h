@@ -2,6 +2,7 @@
 ** Copyright 2019 The Open Group
 ** Copyright 2019 Bluware, Inc.
 ** Copyright 2020 Microsoft Corp.
+** Copyright 2020 Google, Inc.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -42,6 +43,7 @@ struct OpenOptions
     AWS,
     Azure,
     AzurePresigned,
+    GoogleStorage,
     File,
     InMemory
   };
@@ -147,6 +149,28 @@ struct AzurePresignedOpenOptions : OpenOptions
   /// </param>
   AzurePresignedOpenOptions(const std::string &baseUrl, const std::string &urlSuffix) : OpenOptions(AzurePresigned), baseUrl(baseUrl), urlSuffix(urlSuffix) {}
 };
+
+/// <summary>
+/// Options for opening a VDS in Google Cloud Storage
+/// </summary>
+struct GSOpenOptions : OpenOptions
+{
+  std::string bucket;
+  std::string key;
+
+  GSOpenOptions() : OpenOptions(GoogleStorage) {}
+  /// <summary>
+  /// GSOpenOptions constructor
+  /// </summary>
+  /// <param name="bucket">
+  /// The bucket of the VDS
+  /// </param>
+  /// <param name="key">
+  /// The key prefix of the VDS
+  /// </param>
+  GSOpenOptions(std::string const & bucket, std::string const & key) : OpenOptions(GoogleStorage), bucket(bucket), key(key) {}
+};
+
 /// <summary>
 /// Options for opening a VDS which is stored in memory (for testing)
 /// </summary>
