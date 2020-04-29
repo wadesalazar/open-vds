@@ -25,26 +25,6 @@
 
 #include "../utils/GenerateVDS.h"
 
-void setupIntegrationTestHandle(std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> &handle)
-{
-    OpenVDS::Error error;
-    OpenVDS::AWSOpenOptions options;
-
-    options.region = TEST_AWS_REGION;
-    options.bucket = TEST_AWS_BUCKET;
-    options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
-    options.key = TEST_AWS_OBJECTID;
-
-    if(options.region.empty() || options.bucket.empty() || options.key.empty())
-    {
-      //GTEST_SKIP() << "Environment variables not set";
-    }
-
-    //ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
-    handle.reset(OpenVDS::Open(options, error));
-    //ASSERT_TRUE(handle);
-}
-
 void setupNoiseTestHandle(std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> &handle)
 {
   OpenVDS::Error error;

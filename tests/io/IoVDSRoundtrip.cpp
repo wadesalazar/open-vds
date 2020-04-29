@@ -33,6 +33,8 @@ int handleUploadErrors(OpenVDS::VolumeDataAccessManager *accessManager)
 
 TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
 {
+  GTEST_SKIP() << "This test has to be enabled manually";
+
   auto full_start = std::chrono::high_resolution_clock::now();
   OpenVDS::Error error;
   OpenVDS::IOManagerInMemory *inMemory = new OpenVDS::IOManagerInMemory(OpenVDS::InMemoryOpenOptions(), error);
@@ -61,7 +63,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   options.region = TEST_AWS_REGION;
   options.bucket = TEST_AWS_BUCKET;
   options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
-  options.key = "SIMPLE_NOISE_VDS";
+  options.key = TEST_AWS_OBJECTID;
   if (options.bucket.empty())
   {
     GTEST_SKIP() << "Environment variables not set";

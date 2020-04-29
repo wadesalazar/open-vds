@@ -73,12 +73,13 @@ TEST(IOTests, performance)
   options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
   options.key = "SIMPLE_NOISE_VDS";
 
-  if (options.region.empty() || options.bucket.empty())
+  if (options.bucket.empty())
   {
     GTEST_SKIP() << "Environment variables not set";
   }
 #endif
 
+  GTEST_SKIP() << "This test has to be enabled manually";
   OpenVDS::Error error;
   OpenVDS::IOManager* ioManager = OpenVDS::IOManager::CreateIOManager(options, error);
 
