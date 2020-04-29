@@ -32,6 +32,7 @@ void setupIntegrationTestHandle(std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS:
 
     options.region = TEST_AWS_REGION;
     options.bucket = TEST_AWS_BUCKET;
+    options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
     options.key = TEST_AWS_OBJECTID;
 
     if(options.region.empty() || options.bucket.empty() || options.key.empty())

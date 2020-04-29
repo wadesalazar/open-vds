@@ -60,6 +60,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   OpenVDS::AWSOpenOptions options;
   options.region = TEST_AWS_REGION;
   options.bucket = TEST_AWS_BUCKET;
+  options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
   options.key = "SIMPLE_NOISE_VDS";
   if (options.bucket.empty())
   {

@@ -67,14 +67,11 @@ TEST(IOTests, performance)
   //  GTEST_SKIP() << "Environment variables not set";
   //}
 
-  //OpenVDS::AWSOpenOptions options;
-  //options.region = TEST_AWS_REGION;
-  //options.bucket = TEST_AWS_BUCKET;
-  //options.key = "SIMPLE_NOISE_VDS";
   OpenVDS::AWSOpenOptions options;
   options.region = TEST_AWS_REGION;
   options.bucket = TEST_AWS_BUCKET;
-  options.key = "SIMPLE_NOISE_VDS2";
+  options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
+  options.key = "SIMPLE_NOISE_VDS";
 
   if (options.region.empty() || options.bucket.empty())
   {
