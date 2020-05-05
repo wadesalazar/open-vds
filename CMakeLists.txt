@@ -23,7 +23,7 @@ set (OPENVDS_PYTHON_VERSION "" CACHE STRING "Exact Python 3 version to discover"
 option(FORCE_NO_LIBDIR_SUFFIX "Force there to be no suffix on lib directories linux")
 
 get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
-if ("${LIB64}" STREQUAL "TRUE")
+if ("${LIB64}" STREQUAL "TRUE" AND NOT FORCE_NO_LIBDIR_SUFFIX)
   set(LIBSUFFIX 64)
 else()
   set(LIBSUFFIX "")
