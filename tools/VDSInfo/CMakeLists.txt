@@ -2,6 +2,7 @@ add_executable(VDSInfo VDSInfo.cpp)
 
 target_link_libraries(VDSInfo PUBLIC openvds fmt::fmt jsoncpp_lib_static)
 set_target_properties(VDSInfo PROPERTIES FOLDER tools)
+setWarningFlagsForTarget(VDSInfo)
 
 copyDllForTarget(VDSInfo)
 

@@ -144,8 +144,8 @@ struct Wavelet_FastDecodeInsig
 
   uint16_t subBandPos;
 
-  char iteration;
-  char isDeleteMe;
+  uint8_t iteration;
+  uint8_t padding;
    
   int     GetX() const {return (xyz >> WAVELET_ADAPTIVELL_X_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
   int     GetY() const {return (xyz >> WAVELET_ADAPTIVELL_Y_SHIFT) & WAVELET_ADAPTIVELL_XYZ_AND_MASK; }
@@ -153,13 +153,13 @@ struct Wavelet_FastDecodeInsig
 
   void    SetXYZ(int uX, int uY, int uZ) {xyz = uX | (uY << WAVELET_ADAPTIVELL_Y_SHIFT) | (uZ << WAVELET_ADAPTIVELL_Z_SHIFT); }
  
-  Wavelet_FastDecodeInsig() {}
+  Wavelet_FastDecodeInsig() : xyz(), subBandPos(), iteration(), padding() {}
   Wavelet_FastDecodeInsig(int nX, int nY, int nZ, int nIteration, unsigned short iSubBandPos)
   {
     SetXYZ(nX, nY, nZ);
     iteration = nIteration;
     subBandPos = iSubBandPos;
-    isDeleteMe = 0;
+    padding = 0;
   }
 
 };

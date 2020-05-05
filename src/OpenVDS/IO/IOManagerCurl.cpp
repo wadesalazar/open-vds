@@ -79,7 +79,7 @@ static size_t curlReadCallback(char *buffer, size_t size, size_t nitems, void *u
 static void curlAddRequests(UVEventLoopData *eventLoopData)
 {
   int maxConcurrentRequests = 64;
-  int to_add = maxConcurrentRequests - eventLoopData->processingRequests.size();
+  int to_add = maxConcurrentRequests - int(eventLoopData->processingRequests.size());
   assert(to_add >= 0);
   to_add = std::min(to_add, int(eventLoopData->queuedRequests.size()));
   for (int i = 0; i < to_add; i++)
@@ -531,6 +531,29 @@ void CurlDownloadHandler::handleDone(int responseCode, const Error &error)
     downloadRequest->m_handler->Completed(*downloadRequest, downloadRequest->m_error);
   }
   downloadRequest->m_waitForFinish.notify_all();
+}
+
+static std::string trimInBothEnds(const std::string& str)
+{
+    auto it_begin = std::find_if(str.begin(), str.end(), [](const char a) { return !std::isspace(a); });
+    auto it_end = std::find_if(str.rbegin(), str.rend(), [](const char a) { return !std::isspace(a); }).base();
+    if (it_end < it_begin)
+        return std::string();
+    return std::string(it_begin, it_end);
+}
+
+static void getKeyValueFromLine(const char *line, size_t size, std::string &key, std::string &value, char delimiter)
+{
+  const char *end = line + size;
+  const char *colon = std::find(line, end, delimiter);
+  if (colon >= end - 1 )
+    return;
+
+  std::string k(line, colon);
+  std::string v(colon + 1, end);
+
+  key = trimInBothEnds(k);
+  value = trimInBothEnds(v);
 }
 
 void CurlDownloadHandler::handleHeaderData(char* b, size_t size)

@@ -91,9 +91,9 @@ struct SEGYFileInfo
 
   OPENVDS_EXPORT static uint64_t StaticGetUniqueID();
 
-  SEGYFileInfo() : m_persistentID(), m_headerEndianness(), m_dataSampleFormatCode(), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo() {}
-  SEGYFileInfo(uint64_t persistentID, SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_persistentID(persistentID), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo() {}
-  SEGYFileInfo(SEGY::Endianness headerEndianness) : m_persistentID(StaticGetUniqueID()), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo() {}
+  SEGYFileInfo() : m_persistentID(), m_headerEndianness(), m_dataSampleFormatCode(), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
+  SEGYFileInfo(uint64_t persistentID, SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_persistentID(persistentID), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
+  SEGYFileInfo(SEGY::Endianness headerEndianness) : m_persistentID(StaticGetUniqueID()), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
 
   OPENVDS_EXPORT int  TraceByteSize() const;
 

@@ -7,6 +7,7 @@ add_library(segyutils
     SEGY.cpp
     SEGYFileInfo.cpp
     )
+setWarningFlagsForTarget(segyutils)
 set_target_properties(segyutils
   PROPERTIES
   FRAMEWORK ON
@@ -15,6 +16,8 @@ set_target_properties(segyutils
   PUBLIC_HEADER "${EXPORTED_HEADER_FILES}"
   #OUTPUT_NAME ${PROJECT_NAME}
 )
+
+target_compile_definitions(segyutils PRIVATE openvds_EXPORTS)
 
 target_link_libraries(segyutils PUBLIC openvds)
 

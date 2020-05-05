@@ -33,7 +33,7 @@ class Base64Table
   {
     memset(Table, -1, sizeof(Table));
 
-    for(int i = 0; i < sizeof(Alphabet) - 1; i++)
+    for(int i = 0; i < int(sizeof(Alphabet)) - 1; i++)
     {
       Table[int(Alphabet[i])] = i;
     }
@@ -63,26 +63,79 @@ bool Base64Decode(const char *data, int64_t len, std::vector<unsigned char> &res
 
   result.reserve(result.size() + len / 4 * 3);
 
-  while(len != 0 && !isspace(*data))
+  while (len != 0 && !isspace(*data))
   {
-    int a = Base64Table::Decode(*data++); len--; if(a == -1) { error = true; break; }
+    int a = Base64Table::Decode(*data++); len--;
+    if (a == -1)
+    {
+      error = true;
+      break;
+    }
 
-    if(len == 0 || isspace(*data)) { error = true; break; }
-    int b = Base64Table::Decode(*data++); len--; if(b == -1) { error = true; break; }
+    if (len == 0 || isspace(*data))
+    {
+      error = true;
+      break;
+    }
+
+    int b = Base64Table::Decode(*data++);
+    len--;
+    if (b == -1) {
+      error = true;
+      break;
+    }
     result.push_back((a << 2) | (b >> 4));
 
-    if(len == 0 || isspace(*data)) break; if(*data == '=') { data++; len--; if(len==0 || *data++ != '=') { error = true; break; } len--; break; }
-    int c = Base64Table::Decode(*data++); len--; if(c == -1) { error = true; break; }
+    if (len == 0 || isspace(*data))
+      break;
+    if (*data == '=')
+    {
+      data++;
+      len--;
+      if(len==0 || *data++ != '=')
+      {
+        error = true; break;
+      } len--;
+      break;
+    }
+    int c = Base64Table::Decode(*data++);
+    len--;
+    if (c == -1)
+    {
+      error = true;
+      break;
+    }
     result.push_back(((b & 0xf) << 4) | (c >> 2));
 
-    if(len == 0 || isspace(*data)) break; if(*data == '=') { data++; len--; break; }
-    int d = Base64Table::Decode(*data++); len--; if(d == -1) { error = true; break; }
+    if (len == 0 || isspace(*data))
+      break;
+    if(*data == '=')
+    {
+      data++;
+      len--;
+      break;
+    }
+    int d = Base64Table::Decode(*data++);
+    len--;
+    if (d == -1)
+    {
+      error = true;
+      break;
+    }
     result.push_back(((c & 0x3) << 6) | d);
   }
 
   // skip trailing whitespace
-  while(len && isspace(*data)) len--, data++;
-  if(len != 0) { error = true; }
+  while (len && isspace(*data))
+  {
+    len--;
+    data++;
+  }
+
+  if(len != 0)
+  {
+    error = true;
+  }
 
   return !error;
 }

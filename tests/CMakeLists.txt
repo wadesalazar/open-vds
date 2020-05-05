@@ -9,6 +9,10 @@ set_target_properties(gtest PROPERTIES
 set_target_properties(gtest_main PROPERTIES
   FOLDER ExternalProjectTargets/GoogleTest)
 
+add_executable(TestRootTarget RootTestExecutable.cpp)
+set_target_properties(TestRootTarget PROPERTIES FOLDER tests)
+copyDllForTarget(TestRootTarget)
+
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/src)
 
 get_property(include_3rdparty      GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES)
@@ -18,7 +22,7 @@ function(add_test_executable name)
   target_link_libraries(${name} PRIVATE openvds_objects gtest gtest_main)
   target_include_directories(${name} SYSTEM PRIVATE ${include_3rdparty})
   target_compile_definitions(${name} PRIVATE openvds_EXPORTS)
-  copyDllForTarget(${name})
+  add_dependencies(${name} TestRootTarget)
   gtest_discover_tests(${name})
   set_target_properties(${name} PROPERTIES FOLDER tests)
   get_target_property(fmt_INCLUDE fmt::fmt INTERFACE_INCLUDE_DIRECTORIES)
@@ -81,6 +85,7 @@ add_test_executable(openvds_integration_tests
   OpenVDS/DataAccessorClone.cpp
   OpenVDS/WaitForCompletion.cpp
   OpenVDS/RequestCancellation.cpp
+  OpenVDS/VolumeIndexerSymbols.cpp
   )
 
 add_test_executable(multithreaded_requests

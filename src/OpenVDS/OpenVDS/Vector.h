@@ -20,6 +20,16 @@
 #include <stddef.h>
 #include <tuple>
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#endif
+
 namespace OpenVDS
 {
 
@@ -160,4 +170,12 @@ using FloatVector = Vector<float, N>;
 template<size_t N>
 using DoubleVector = Vector<double, N>;
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 

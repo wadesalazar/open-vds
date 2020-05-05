@@ -50,6 +50,7 @@ public:
   uint64_t  CalculateHash() const { return m_dataHash; }
 
   VolumeDataHash & operator= (uint64_t dataHash) { m_dataHash = dataHash; return *this; }
+  VolumeDataHash & operator= (VolumeDataHash const &volumeDataHash) { m_dataHash = volumeDataHash.m_dataHash; return *this; }
   VolumeDataHash() : m_dataHash(UNKNOWN) {}
   VolumeDataHash(VolumeDataHash const &volumeDataHash) : m_dataHash(volumeDataHash.m_dataHash) {}
   VolumeDataHash(uint64_t dataHash) : m_dataHash(dataHash) {}

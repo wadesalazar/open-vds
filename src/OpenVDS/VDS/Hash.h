@@ -19,6 +19,7 @@
 #define HASH_H_INCLUDE
 
 #include <string>
+#include <cstring>
 #include <OpenVDS/Range.h>
 
 namespace OpenVDS
@@ -33,13 +34,17 @@ inline uint64_t ConvertToIntForHashing(T tValue)
 template <>
 inline uint64_t ConvertToIntForHashing(float rValue)
 {
-  return *(uint32_t *)&rValue;
+  uint64_t ret = 0;
+  memcpy(&ret, &rValue, sizeof(rValue));
+  return ret;
 }
 
 template <>
 inline uint64_t ConvertToIntForHashing(double rValue)
 {
-  return *(uint64_t *)&rValue;
+  uint64_t ret = 0;
+  memcpy(&ret, &rValue, sizeof(rValue));
+  return ret;
 }
 
 

@@ -82,8 +82,8 @@ void VolumeDataAccessorBase::Cancel()
 
 VolumeDataAccessorBase::VolumeDataAccessorBase(VolumeDataPageAccessor &volumeDataPageAccessor)
   : m_volumeDataPageAccessor(static_cast<VolumeDataPageAccessorImpl *>(&volumeDataPageAccessor))
-  , m_canceled(false)
   , m_currentPage(nullptr)
+  , m_canceled(false)
   , m_min{0,0,0,0}
   , m_max{0,0,0,0}
   , m_validRegion(AccessorRegion({0, 0, 0, 0}, {0, 0, 0, 0}))

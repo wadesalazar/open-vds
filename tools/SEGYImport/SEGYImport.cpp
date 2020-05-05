@@ -15,6 +15,7 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#define _CRT_SECURE_NO_WARNINGS 1
 #include <SEGYUtils/SEGYFileInfo.h>
 #include "IO/File.h"
 #include "VDS/Hash.h"
@@ -355,7 +356,7 @@ ParseHeaderFormatFile(OpenVDS::File const& file, std::map<std::string, SEGY::Hea
       }
     }
   }
-  catch (Json::Exception e)
+  catch (Json::Exception &e)
   {
     error.code = -1;
     error.string = e.what();
@@ -398,7 +399,7 @@ findRepresentativeSegment(SEGYFileInfo const& fileInfo, int& primaryStep)
 
   int segmentPrimaryStep = 0;
 
-  for (int i = 0; i < fileInfo.m_segmentInfo.size(); i++)
+  for (int i = 0; i < int(fileInfo.m_segmentInfo.size()); i++)
   {
     int64_t
       numTraces = (fileInfo.m_segmentInfo[i].m_traceStop - fileInfo.m_segmentInfo[i].m_traceStart);
@@ -562,7 +563,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
 
       for (int sample = 0; sample < fileInfo.m_sampleCount; sample++)
       {
-        if (minHeap.size() < heapSizeMax)
+        if (int(minHeap.size()) < heapSizeMax)
         {
           minHeap.push_back(samples[sample]);
           std::push_heap(minHeap.begin(), minHeap.end(), std::less<float>());
@@ -574,7 +575,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
           std::push_heap(minHeap.begin(), minHeap.end(), std::less<float>());
         }
 
-        if (maxHeap.size() < heapSizeMax)
+        if (int(maxHeap.size()) < heapSizeMax)
         {
           maxHeap.push_back(samples[sample]);
           std::push_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
@@ -820,7 +821,7 @@ parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
       fileInfo.m_segmentInfo.push_back(segmentInfoFromJson(jsonSegmentInfo));
     }
   }
-  catch (Json::Exception e)
+  catch (Json::Exception &e)
   {
     std::cerr << "Failed to parse JSON SEG-Y file info file: " << e.what();
     return false;
@@ -1075,7 +1076,7 @@ main(int argc, char* argv[])
 #else
   bool is_tty = isatty(fileno(stdout));
 #endif
-  auto start_time = std::chrono::high_resolution_clock::now();
+  //auto start_time = std::chrono::high_resolution_clock::now();
   cxxopts::Options options("SEGYImport", "SEGYImport - A tool to scan and import a SEG-Y file to a volume data store (VDS)");
   options.positional_help("<input file>");
 
@@ -1155,7 +1156,7 @@ main(int argc, char* argv[])
   {
     options.parse(argc, argv);
   }
-  catch (cxxopts::OptionParseException e)
+  catch (cxxopts::OptionParseException &e)
   {
     std::cerr << e.what();
     return EXIT_FAILURE;
@@ -1677,7 +1678,7 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
   fmt::print("\r100% done processing {}.\n", persistentID);
-  double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
+  //double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
   //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 
   return EXIT_SUCCESS;

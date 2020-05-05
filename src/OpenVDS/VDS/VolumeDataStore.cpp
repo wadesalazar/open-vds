@@ -79,7 +79,7 @@ bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::
       int32_t dimensions     = waveletHeader[5];
 
       isValid = dataVersion == WAVELET_DATA_VERSION_1_4 &&
-                (compressedSize <= serializedData.size() || !isFullyRead) &&
+                (compressedSize <= int32_t(serializedData.size()) || !isFullyRead) &&
                 (createSizeX == voxelSize[0]                  ) &&
                 (createSizeY == voxelSize[1] || dimensions < 2) &&
                 (createSizeZ == voxelSize[2] || dimensions < 3) &&
@@ -149,6 +149,7 @@ static bool CopyDataBlockIntoLinearBuffer(const DataBlock &dataBlock, const void
   {
   default:
     fprintf(stderr, "Illegal format\n");
+    return true;
   case VolumeDataChannelDescriptor::Format_1Bit:
     isConstant = (reinterpret_cast<const uint8_t*>(sourceBuffer)[0] == 0x00 || reinterpret_cast<const uint8_t*>(sourceBuffer)[0] == 0xff);
     // Fall through
@@ -255,7 +256,7 @@ bool DeserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
     const void *data = serializedData.data();
 
     int32_t dataVersion = ((int32_t *)data)[0];
-
+    (void)dataVersion;
     assert(dataVersion == WAVELET_DATA_VERSION_1_4);
 
     bool isNormalize = false;
@@ -308,6 +309,7 @@ bool DeserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
     std::unique_ptr<uint8_t[]>buffer(new uint8_t[byteSize]);
 
     int32_t decompressedSize = RleDecompress((uint8_t *)buffer.get(), byteSize, (uint8_t *)source);
+    (void)decompressedSize;
     assert(decompressedSize == byteSize);
 
     int allocatedSize = GetAllocatedByteSize(dataBlock);
@@ -480,11 +482,9 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChu
 {
   uint64_t volumeDataHashValue = VolumeDataHash::UNKNOWN;
 
-  bool isWaveletAdaptive = false;
-
   if (CompressionMethodIsWavelet(compressionMethod) && metadata.size() == sizeof(uint64_t) + sizeof(uint8_t[WAVELET_ADAPTIVE_LEVELS]) && VolumeDataStore::Verify(volumeDataChunk, serializedData, compressionMethod, false))
   {
-    isWaveletAdaptive = true;
+    ;
   }
   else if (metadata.size() != sizeof(uint64_t) || !Verify(volumeDataChunk, serializedData, compressionMethod, true))
   {

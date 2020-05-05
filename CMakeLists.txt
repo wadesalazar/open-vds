@@ -42,7 +42,6 @@ else()
 endif()
 
 if (Python3_FOUND)
-    message(${Python3_EXECUTABLE})
     set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 else()
   message("Failed to find Python3 interpreter. Disabling Python build")
@@ -56,6 +55,7 @@ option(BUILD_EXAMPLES "Build OpenVDS example projects" ON)
 option(BUILD_TESTS "Build OpenVDS tests" ON)
 option(BUILD_DOCS  "Build OpenVDS docs" OFF)
 option(ENABLE_RUNPATH_ORIGIN "On Linux make the install have ORIGIN as RUNPATH" ON)
+option(DISABLE_STRICT_WARNINGS "Disable strict warnings settings. This includes making warnings to errors." OFF)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -66,6 +66,7 @@ define_property(GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_DEBUG   BRIEF_DOCS "Runtime
 define_property(GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_RELEASE BRIEF_DOCS "OpenVDS link libraries" FULL_DOCS "Files OpenVDS will link with")
 define_property(GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_DEBUG   BRIEF_DOCS "OpenVDS link libraries" FULL_DOCS "Files OpenVDS will link with")
 define_property(GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES BRIEF_DOCS "OpenVDS include libraries" FULL_DOCS "Include paths for 3rdparty")
+define_property(GLOBAL PROPERTY OPENVDS_DEPENDENCY_TARGETS BRIEF_DOCS "Dependency targets for OpenVDS" FULL_DOCS "Targets that OpenVDS needs to build first")
 
 if(CMAKE_VS_PLATFORM_TOOLSET)
   string(REGEX REPLACE "^v" "" MSVC_TOOLSET_VERSION_LOCAL "${CMAKE_VS_PLATFORM_TOOLSET}")
@@ -98,6 +99,8 @@ endif()
 option(BUILD_ZLIB "Build zlib" ${DEFAULT_BUILD_ZLIB})
 option(BUILD_CURL "Build libcurl as part of the openVDS build" ${DEFAULT_BUILD_CURL})
 option(BUILD_UV   "Build libuv as part of the openVDS build" ${DEFAULT_BUILD_UV})
+
+include(CMake/SetWarnings.cmake)
 
 include(CMake/Fetch3rdPartyInBuild.cmake)
 Fetch3rdParty()

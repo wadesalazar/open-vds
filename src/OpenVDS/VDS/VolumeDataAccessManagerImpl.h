@@ -143,8 +143,8 @@ struct RetryInfo
 struct PendingUploadRequest
 {
   RetryInfo retryInfo;
-  uint32_t attempts;
   std::shared_ptr<Request> request;
+  uint32_t attempts;
 
   PendingUploadRequest()
     : request()

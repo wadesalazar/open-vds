@@ -20,23 +20,35 @@
 #include <json/json.h>
 
 static const char simple_serialize_data[] = R"json({
-   "a" : 44.5,
-   "b" : {
-      "a" : 89,
-      "b" : "some text",
-      "c" : false
-   },
-   "c" : "more text",
-   "d" : [ 1, 2, 3, 4, 5, 6, 7 ],
-   "enull" : null
-}
-)json";
+    "a" : 44.5,
+    "b" :
+    {
+        "a" : 89,
+        "b" : "some text",
+        "c" : false
+    },
+    "c" : "more text",
+    "d" : [ 1, 2, 3, 4, 5, 6, 7 ],
+    "enull" : null
+})json";
 
 GTEST_TEST(JsonCppSerialize, simple_serialize)
 {
   Json::Value root;
-  EXPECT_TRUE(Json::Reader().parse(simple_serialize_data, root));
+  Json::CharReaderBuilder rbuilder;
+  rbuilder["collectComments"] = false;
+
+  std::string errs;
+
+  std::unique_ptr<Json::CharReader> reader(rbuilder.newCharReader());
+  EXPECT_TRUE(reader->parse(simple_serialize_data, simple_serialize_data + sizeof(simple_serialize_data), &root, &errs));
   
-  std::string data = Json::StyledWriter().write(root);
-  EXPECT_TRUE(data == simple_serialize_data);
+  std::stringstream stream;
+  Json::StreamWriterBuilder builder;
+  builder["commentStyle"] = "None";
+  builder["indentation"] = "    ";  // or whatever you like
+  std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+  writer->write(root, &stream);
+  auto str = stream.str();
+  EXPECT_TRUE(strncmp(str.c_str(), simple_serialize_data, sizeof(simple_serialize_data)));
 }

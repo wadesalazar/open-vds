@@ -4,6 +4,7 @@ add_executable(SEGYExport
 
 target_link_libraries(SEGYExport PUBLIC Threads::Threads openvds segyutils jsoncpp_lib_static fmt::fmt)
 set_target_properties(SEGYExport PROPERTIES FOLDER tools)
+setWarningFlagsForTarget(SEGYExport)
 
 copyDllForTarget(SEGYExport)
 

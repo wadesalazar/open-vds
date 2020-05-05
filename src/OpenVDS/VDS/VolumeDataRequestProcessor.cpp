@@ -122,7 +122,7 @@ struct MarkJobAsDoneOnExit
   int index;
 };
 
-static Error ProcessPageInJob(Job *job, size_t pageIndex, VolumeDataPageAccessorImpl *pageAccessor, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, Error &error)> processor)
+static Error ProcessPageInJob(Job *job, int pageIndex, VolumeDataPageAccessorImpl *pageAccessor, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, Error &error)> processor)
 {
   MarkJobAsDoneOnExit jobDone(job, pageIndex);
   Error error;
@@ -208,7 +208,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
 
   pageAccessor->AddReference();
 
-  m_jobs.emplace_back(new Job(GenJobId(), m_jobNotification, *pageAccessor, chunks.size(), m_mutex));
+  m_jobs.emplace_back(new Job(GenJobId(), m_jobNotification, *pageAccessor, int(chunks.size()), m_mutex));
   auto &job = m_jobs.back();
 
   job->pages.reserve(chunks.size());
@@ -222,7 +222,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
       break;
     }
   }
-  job->pagesCount = job->pages.size();
+  job->pagesCount = int(job->pages.size());
 
   if (job->cancelled)
   {
@@ -250,7 +250,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
       {
         if (error.code == 0)
         {
-          error = ProcessPageInJob(job_ptr, size_t(i), pageAccessor, processor);
+          error = ProcessPageInJob(job_ptr, i, pageAccessor, processor);
           if (error.code)
           {
             job_ptr->cancelled = true;
@@ -271,7 +271,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
   else
   {
     auto job_ptr = job.get();
-    for (int i = 0; i < job->pages.size(); i++)
+    for (int i = 0; i < int(job->pages.size()); i++)
     {
       job->future.push_back(m_threadPool.Enqueue([job_ptr, i, pageAccessor, processor]
         {

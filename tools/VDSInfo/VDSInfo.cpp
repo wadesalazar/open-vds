@@ -92,7 +92,7 @@ template<typename T, size_t N>
 Json::Value getJsonFromVector(const OpenVDS::Vector<T, N> &vec)
 {
   Json::Value ret;
-  for (int i = 0; i < N; i++)
+  for (int i = 0; i < int(N); i++)
   {
     ret.append(vec[i]);
   }
@@ -155,7 +155,11 @@ Json::Value getJsonFromMetadata(const OpenVDS::MetadataKey &key, OpenVDS::Volume
 static std::string convertToString(const Json::Value &value)
 {
   std::stringstream stream;
-  Json::StyledStreamWriter("  ").write(stream, value);
+  Json::StreamWriterBuilder builder;
+  builder["commentStyle"] = "None";
+  builder["indentation"] = "   ";  // or whatever you like
+  std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+  writer->write(value, &stream);
   return stream.str();
 }
 
@@ -234,7 +238,7 @@ int main(int argc, char **argv)
   {
     options.parse(argc, argv);
   }
-  catch(cxxopts::OptionParseException e)
+  catch(cxxopts::OptionParseException &e)
   {
     fmt::print(stderr, "{}", e.what());
     return EXIT_FAILURE;
@@ -308,7 +312,6 @@ int main(int argc, char **argv)
   if (metaKeys)
   {
     Json::Value metaKeysInfo;
-    auto keys = layout->GetMetadataKeys();
     for (auto &key : layout->GetMetadataKeys())
     {
       Json::Value jsonKey;
@@ -353,7 +356,7 @@ int main(int argc, char **argv)
           decodedEbcdic(vector);
         }
         int i = 0;
-        while(i < vector.size())
+        while(i < int(vector.size()))
         {
           int to_copy = std::min(textDecodeWidth, int(vector.size() - i));
           fwrite(vector.data() + i, 1, to_copy, stdout);

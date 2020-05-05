@@ -4,6 +4,7 @@ add_executable(SEGYImport
 
 target_link_libraries(SEGYImport PRIVATE Threads::Threads openvds segyutils jsoncpp_lib_static fmt::fmt)
 set_target_properties(SEGYImport PROPERTIES FOLDER tools)
+setWarningFlagsForTarget(SEGYImport)
 
 copyDllForTarget(SEGYImport)
 

@@ -41,6 +41,11 @@ class VolumeDataLayout;
 
 struct OPENVDS_EXPORT VolumeIndexerData
 {
+  VolumeIndexerData()
+    : valueRangeMin(0)
+    , valueRangeMax(0)
+  {}
+
   VolumeIndexerData(const VolumeDataPage *page,
                     int32_t channelIndex,
                     int32_t lod,
@@ -804,6 +809,8 @@ struct VolumeIndexerBase : public VolumeIndexerData
 
 ///////////////////////////// Constructors /////////////////////////////
 
+  VolumeIndexerBase()
+  {}
 
   VolumeIndexerBase(const VolumeDataPage *page,
                     int32_t channelIndex,
@@ -821,20 +828,21 @@ struct VolumeIndexerBase : public VolumeIndexerData
   /// @param iLOD the LOD for this indexer
   /// @return the created indexer
   ///
-  static VolumeIndexerBase<N> CreateTempBufferIndexer(int anVoxelMin[6], int anVoxelMax[6], int iLOD = 0)
+  static VolumeIndexerBase<N> CreateTempBufferIndexer(int (&anVoxelMin)[6], int (&anVoxelMax)[6], int iLOD = 0)
   {
     VolumeIndexerBase<N> newIndexer;
 
-    newIndexer.lod = iLOD;
-    newIndexer.valueRangeMin = 0;
-    newIndexer.valueRangeMax = 0;
+    //All of these static casts are to work around a bug in gcc
+    static_cast<VolumeIndexerData &>(newIndexer).lod = iLOD;
+    static_cast<VolumeIndexerData &>(newIndexer).valueRangeMin = 0;
+    static_cast<VolumeIndexerData &>(newIndexer).valueRangeMax = 0;
 
     //initialize datablock info
     for (int iDataBlockDim = 0; iDataBlockDim < DataBlockDimensionality_Max; iDataBlockDim++)
     {
-      newIndexer.dimensionMap[iDataBlockDim] = -1;
-      newIndexer.dataBlockSamples[iDataBlockDim] = 1;
-      newIndexer.dataBlockAllocatedSize[iDataBlockDim] = 1;
+      static_cast<VolumeIndexerData &>(newIndexer).dimensionMap[iDataBlockDim] = -1;
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockSamples[iDataBlockDim] = 1;
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockAllocatedSize[iDataBlockDim] = 1;
     }
 
     {
@@ -843,32 +851,32 @@ struct VolumeIndexerBase : public VolumeIndexerData
       int iDataBlockDim = 0;
       for (int iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
       {
-        newIndexer.voxelMin[iDimension] = anVoxelMin[iDimension];
-        newIndexer.voxelMax[iDimension] = anVoxelMax[iDimension];
-        newIndexer.axisNumSamples[iDimension] = anVoxelMax[iDimension] - anVoxelMin[iDimension];
-        newIndexer.pitch[iDimension] = pitch;
-        newIndexer.bitPitch[iDimension] = bitPitch;
+        static_cast<VolumeIndexerData &>(newIndexer).voxelMin[iDimension] = anVoxelMin[iDimension];
+        static_cast<VolumeIndexerData &>(newIndexer).voxelMax[iDimension] = anVoxelMax[iDimension];
+        static_cast<VolumeIndexerData &>(newIndexer).axisNumSamples[iDimension] = anVoxelMax[iDimension] - anVoxelMin[iDimension];
+        static_cast<VolumeIndexerData &>(newIndexer).pitch[iDimension] = pitch;
+        static_cast<VolumeIndexerData &>(newIndexer).bitPitch[iDimension] = bitPitch;
         pitch *= (anVoxelMax[iDimension] - anVoxelMin[iDimension] + (1 << iLOD) - 1) >> iLOD;
         bitPitch = pitch * 8;
 
-        newIndexer.coordinateMin[iDimension] = 0;
-        newIndexer.coordinateMax[iDimension] = 0;
+        static_cast<VolumeIndexerData &>(newIndexer).coordinateMin[iDimension] = 0;
+        static_cast<VolumeIndexerData &>(newIndexer).coordinateMax[iDimension] = 0;
 
-        newIndexer.isDimensionLODDecimated[iDimension] = false;
+        static_cast<VolumeIndexerData &>(newIndexer).isDimensionLODDecimated[iDimension] = false;
 
-        newIndexer.localChunkSamples[iDimension] = (anVoxelMax[iDimension] - anVoxelMin[iDimension] + (1 << iLOD) - 1) >> iLOD;
-        newIndexer.localChunkAllocatedSize[iDimension] = newIndexer.localChunkSamples[iDimension];
+        static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension] = (anVoxelMax[iDimension] - anVoxelMin[iDimension] + (1 << iLOD) - 1) >> iLOD;
+        static_cast<VolumeIndexerData &>(newIndexer).localChunkAllocatedSize[iDimension] = static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension];
 
-        if (newIndexer.localChunkSamples[iDimension] > 1)
+        if (static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension] > 1)
         {
           //Don't allow temp buffers with more than 4D data blocks
           assert(iDataBlockDim < DataBlockDimensionality_Max);
 
           // dimension has size, make sure it's mapped
-          newIndexer.dataBlockSamples[iDataBlockDim] = newIndexer.localChunkSamples[iDimension];
-          newIndexer.dataBlockAllocatedSize[iDataBlockDim] = newIndexer.localChunkSamples[iDimension];
-          newIndexer.dimensionMap[iDataBlockDim] = iDimension;
-          newIndexer.isDimensionLODDecimated[iDimension] = true;
+          static_cast<VolumeIndexerData &>(newIndexer).dataBlockSamples[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension];
+          static_cast<VolumeIndexerData &>(newIndexer).dataBlockAllocatedSize[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension];
+          static_cast<VolumeIndexerData &>(newIndexer).dimensionMap[iDataBlockDim] = iDimension;
+          static_cast<VolumeIndexerData &>(newIndexer).isDimensionLODDecimated[iDimension] = true;
 
           iDataBlockDim++;
         }
@@ -876,12 +884,12 @@ struct VolumeIndexerBase : public VolumeIndexerData
     }
 
     //set pitches
-    newIndexer.dataBlockPitch[0] = 1;
-    newIndexer.dataBlockBitPitch[0] = 1;
+    static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[0] = 1;
+    static_cast<VolumeIndexerData &>(newIndexer).dataBlockBitPitch[0] = 1;
     for (int iDataBlockDim = 1; iDataBlockDim < DataBlockDimensionality_Max; iDataBlockDim++)
     {
-      newIndexer.dataBlockPitch[iDataBlockDim] = newIndexer.dataBlockPitch[iDataBlockDim - 1] * newIndexer.dataBlockSamples[iDataBlockDim - 1];
-      newIndexer.dataBlockBitPitch[iDataBlockDim] = newIndexer.dataBlockPitch[iDataBlockDim] * 8;
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[iDataBlockDim - 1] * static_cast<VolumeIndexerData &>(newIndexer).dataBlockSamples[iDataBlockDim - 1];
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockBitPitch[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[iDataBlockDim] * 8;
     }
 
 
@@ -895,26 +903,27 @@ struct VolumeIndexerBase : public VolumeIndexerData
   ///
   static VolumeIndexerBase<N> CreateTempBufferIndexer(const VolumeIndexerBase<N> &indexer)
   {
-    VolumeIndexerBase<N> newIndexer(indexer);
+    VolumeIndexerBase<N> newIndexer;
 
+    //All of these static casts are to work around a bug in gcc
     // reset pitches
-    newIndexer.dataBlockPitch[0] = 1;
-    newIndexer.dataBlockBitPitch[0] = 1;
+    static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[0] = 1;
+    static_cast<VolumeIndexerData &>(newIndexer).dataBlockBitPitch[0] = 1;
     for (int iDataBlockDim = 1; iDataBlockDim < DataBlockDimensionality_Max; iDataBlockDim++)
     {
-      newIndexer.dataBlockPitch[iDataBlockDim] = newIndexer.dataBlockPitch[iDataBlockDim - 1] * indexer.dataBlockSamples[iDataBlockDim - 1];
-      newIndexer.dataBlockBitPitch[iDataBlockDim] = newIndexer.dataBlockPitch[iDataBlockDim] * 8;
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[iDataBlockDim - 1] * indexer.dataBlockSamples[iDataBlockDim - 1];
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockBitPitch[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[iDataBlockDim] * 8;
     }
 
     for (int iDataBlockDim = 0; iDataBlockDim < DataBlockDimensionality_Max; iDataBlockDim++)
     {
-      newIndexer.dataBlockAllocatedSize[iDataBlockDim] = newIndexer.dataBlockSamples[iDataBlockDim];
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockAllocatedSize[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).dataBlockSamples[iDataBlockDim];
       int iDimension = indexer.dimensionMap[iDataBlockDim];
       if (iDimension >= 0 && iDimension < Dimensionality_Max)
       {
-        newIndexer.pitch[iDimension] = newIndexer.dataBlockPitch[iDataBlockDim];
-        newIndexer.bitPitch[iDimension] = newIndexer.dataBlockBitPitch[iDataBlockDim];
-        newIndexer.localChunkAllocatedSize[iDimension] = newIndexer.dataBlockSamples[iDataBlockDim];
+        static_cast<VolumeIndexerData &>(newIndexer).pitch[iDimension] = static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[iDataBlockDim];
+        static_cast<VolumeIndexerData &>(newIndexer).bitPitch[iDimension] = static_cast<VolumeIndexerData &>(newIndexer).dataBlockBitPitch[iDataBlockDim];
+        static_cast<VolumeIndexerData &>(newIndexer).localChunkAllocatedSize[iDimension] = static_cast<VolumeIndexerData &>(newIndexer).dataBlockSamples[iDataBlockDim];
       }
     }
 
@@ -930,14 +939,15 @@ struct VolumeIndexerBase : public VolumeIndexerData
   ///
   static VolumeIndexerBase<N> CreateTempBufferIndexer(const VolumeIndexerBase<N> &indexer, int anNewVoxelMin[6], int anNewVoxelMax[6])
   {
-    VolumeIndexerBase<N> newIndexer(indexer);
+    VolumeIndexerBase<N> newIndexer;
 
+    //All of these static casts are to work around a bug in gcc
     //initialize datablock info
     for (int iDataBlockDim = 0; iDataBlockDim < DataBlockDimensionality_Max; iDataBlockDim++)
     {
-      newIndexer.dimensionMap[iDataBlockDim] = -1;
-      newIndexer.dataBlockSamples[iDataBlockDim] = 1;
-      newIndexer.dataBlockAllocatedSize[iDataBlockDim] = 1;
+      static_cast<VolumeIndexerData &>(newIndexer).dimensionMap[iDataBlockDim] = -1;
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockSamples[iDataBlockDim] = 1;
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockAllocatedSize[iDataBlockDim] = 1;
     }
 
     {
@@ -945,42 +955,42 @@ struct VolumeIndexerBase : public VolumeIndexerData
       int iDataBlockDim = 0;
       for (int iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
       {
-        newIndexer.voxelMin[iDimension] = anNewVoxelMin[iDimension];
-        newIndexer.voxelMax[iDimension] = anNewVoxelMax[iDimension];
-        newIndexer.pitch[iDimension] = pitch;
-        newIndexer.bitPitch[iDimension] = bitPitch;
-        newIndexer.isDimensionLODDecimated[iDimension] = true;
+        static_cast<VolumeIndexerData &>(newIndexer).voxelMin[iDimension] = anNewVoxelMin[iDimension];
+        static_cast<VolumeIndexerData &>(newIndexer).voxelMax[iDimension] = anNewVoxelMax[iDimension];
+        static_cast<VolumeIndexerData &>(newIndexer).pitch[iDimension] = pitch;
+        static_cast<VolumeIndexerData &>(newIndexer).bitPitch[iDimension] = bitPitch;
+        static_cast<VolumeIndexerData &>(newIndexer).isDimensionLODDecimated[iDimension] = true;
 
         if (indexer.localChunkSamples[iDimension] == indexer.voxelMax[iDimension] - indexer.voxelMin[iDimension])
         {
-          newIndexer.localChunkSamples[iDimension] = anNewVoxelMax[iDimension] - anNewVoxelMin[iDimension];
+          static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension] = anNewVoxelMax[iDimension] - anNewVoxelMin[iDimension];
         }
         else
         {
-          newIndexer.localChunkSamples[iDimension] = (anNewVoxelMax[iDimension] - anNewVoxelMin[iDimension] + (1 << newIndexer.lod) - 1) >> newIndexer.lod;
+          static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension] = (anNewVoxelMax[iDimension] - anNewVoxelMin[iDimension] + (1 << static_cast<VolumeIndexerData &>(newIndexer).lod) - 1) >> static_cast<VolumeIndexerData &>(newIndexer).lod;
         }
 
-        newIndexer.localChunkAllocatedSize[iDimension] = newIndexer.localChunkSamples[iDimension];
+        static_cast<VolumeIndexerData &>(newIndexer).localChunkAllocatedSize[iDimension] = static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension];
 
-        pitch *= newIndexer.localChunkSamples[iDimension];
+        pitch *= static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension];
         bitPitch = pitch * 8;
 
-        if (newIndexer.localChunkSamples[iDimension] > 1)
+        if (static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension] > 1)
         {
           //Don't allow temp buffers with more than 4D data blocks
           assert(iDataBlockDim < DataBlockDimensionality_Max);
 
           // dimension has size, make sure it's mapped
-          newIndexer.dimensionMap[iDataBlockDim] = iDimension;
+          static_cast<VolumeIndexerData &>(newIndexer).dimensionMap[iDataBlockDim] = iDimension;
 
           // check for LOD decimation, and copy that (Dimension Maps may be different, so don't use that)
-          if (newIndexer.localChunkSamples[iDimension] == newIndexer.voxelMax[iDimension] - newIndexer.voxelMin[iDimension])
+          if (static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension] == static_cast<VolumeIndexerData &>(newIndexer).voxelMax[iDimension] - static_cast<VolumeIndexerData &>(newIndexer).voxelMin[iDimension])
           {
-            newIndexer.isDimensionLODDecimated[iDimension] = false;
+            static_cast<VolumeIndexerData &>(newIndexer).isDimensionLODDecimated[iDimension] = false;
           }
 
-          newIndexer.dataBlockSamples[iDataBlockDim] = newIndexer.localChunkSamples[iDimension];
-          newIndexer.dataBlockAllocatedSize[iDataBlockDim] = newIndexer.localChunkSamples[iDimension];
+          static_cast<VolumeIndexerData &>(newIndexer).dataBlockSamples[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension];
+          static_cast<VolumeIndexerData &>(newIndexer).dataBlockAllocatedSize[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).localChunkSamples[iDimension];
 
           iDataBlockDim++;
         }
@@ -988,12 +998,12 @@ struct VolumeIndexerBase : public VolumeIndexerData
     }
 
     //set pitches
-    newIndexer.dataBlockPitch[0] = 1;
-    newIndexer.dataBlockBitPitch[0] = 1;
+    static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[0] = 1;
+    static_cast<VolumeIndexerData &>(newIndexer).dataBlockBitPitch[0] = 1;
     for (int iDataBlockDim = 1; iDataBlockDim < DataBlockDimensionality_Max; iDataBlockDim++)
     {
-      newIndexer.dataBlockPitch[iDataBlockDim] = newIndexer.dataBlockPitch[iDataBlockDim - 1] * newIndexer.dataBlockSamples[iDataBlockDim - 1];
-      newIndexer.dataBlockBitPitch[iDataBlockDim] = newIndexer.dataBlockPitch[iDataBlockDim] * 8;
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[iDataBlockDim - 1] * static_cast<VolumeIndexerData &>(newIndexer).dataBlockSamples[iDataBlockDim - 1];
+      static_cast<VolumeIndexerData &>(newIndexer).dataBlockBitPitch[iDataBlockDim] = static_cast<VolumeIndexerData &>(newIndexer).dataBlockPitch[iDataBlockDim] * 8;
     }
 
     return newIndexer;

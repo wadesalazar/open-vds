@@ -304,6 +304,7 @@ WaveletAdaptiveLL_DecodeIterator WaveletAdaptiveLL_CreateDecodeIterator(uint8_t*
   bool isAllNormal = true;
 
   int compiledTransformData = CompileTransformData((uint8_t*)decodeIterator.compiledTransformData, decodeIterator.firstSubBand, pixelSetChildren, pixelSetChildrenCount, transformData, transformDataCount, transformMask, &isAllNormal);
+  (void) compiledTransformData;
 
 
   // Write where we find initial uncompressed values (Lowest Band)
@@ -953,6 +954,7 @@ static void DecodeAllBits(const WaveletAdaptiveLL_DecodeIterator& decodeIterator
   // Alternatively, we want to use fewer than 8 threads if OMP
   // max threads is less than that.
   int threads = std::min(8, omp_get_max_threads());
+  (void)threads;
 
 #pragma omp parallel for schedule(dynamic, 256) num_threads(threads)
   for (int32_t parentValue = 0; parentValue < values; parentValue++)
@@ -1076,7 +1078,7 @@ int32_t WaveletAdaptiveLL_DecompressAdaptive(WaveletAdaptiveLL_DecodeIterator de
     ;
   }
 
-  memset(decodeIterator.picture, 0, decodeIterator.sizeX * decodeIterator.sizeY * decodeIterator.sizeZ * sizeof(float));
+  memset(decodeIterator.picture, 0, size_t(decodeIterator.sizeX) * size_t(decodeIterator.sizeY) * size_t(decodeIterator.sizeZ) * sizeof(float));
 
   ReadWriteStartValues(decodeIterator, decodeIterator.pixelSetPixelInSignificant, decodeIterator.pixelSetPixelInsignificantCount, decodeIterator.pixelSetChildren, decodeIterator.pixelSetChildrenCount);
 
@@ -1128,10 +1130,10 @@ int32_t WaveletAdaptiveLL_DecompressLossless(uint8_t *in, float *pic, int32_t si
   int
     nPixels = sizeX * sizeY * sizeZ;
 
-  count[0] = (unsigned char *)malloc(sizeX * sizeY * sizeZ * sizeof(char));
-  count[1] = (unsigned char *)malloc(sizeX * sizeY * sizeZ * sizeof(char));
-  count[2] = (unsigned char *)malloc(sizeX * sizeY * sizeZ * sizeof(char));
-  count[3] = (unsigned char *)malloc(sizeX * sizeY * sizeZ * sizeof(char));
+  count[0] = (unsigned char *)malloc(size_t(sizeX) * (sizeY) * (sizeZ) * sizeof(unsigned char));
+  count[1] = (unsigned char *)malloc(size_t(sizeX) * (sizeY) * (sizeZ) * sizeof(unsigned char));
+  count[2] = (unsigned char *)malloc(size_t(sizeX) * (sizeY) * (sizeZ) * sizeof(unsigned char));
+  count[3] = (unsigned char *)malloc(size_t(sizeX) * (sizeY) * (sizeZ) * sizeof(unsigned char));
 
   uint8_t *compressedData[4];
 
