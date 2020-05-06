@@ -70,7 +70,6 @@ add_test_executable(segy_tests
   ../src/SEGYUtils/SEGY.cpp
   ../src/SEGYUtils/SEGYFileInfo.cpp
   ../src/SEGYUtils/SEGYUtils/SEGYFileInfo.h)
-target_compile_definitions(segy_tests PRIVATE -DTEST_DATA_PATH="${TEST_DATA_PATH}")
 target_include_directories(segy_tests PRIVATE ../src/SEGYUtils)
 
 add_test_executable(vds_integration_tests

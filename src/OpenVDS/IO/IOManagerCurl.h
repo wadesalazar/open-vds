@@ -52,6 +52,8 @@ struct CurlEasyHandler
     , curlEasy(nullptr)
     , retry_count(0)
   {}
+  virtual ~CurlEasyHandler() {}
+
   UVEventLoopData *eventLoopData;
   CURL* curlEasy;
   int retry_count;

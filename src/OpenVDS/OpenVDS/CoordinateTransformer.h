@@ -295,10 +295,10 @@ private:
     ijkToWorldTranslation[2] = (float)vdsIjkGridDefinition.origin.Z;
 
     M4 matrix = {
-      {vdsIjkGridDefinition.iUnitStep.X, vdsIjkGridDefinition.iUnitStep.Y, vdsIjkGridDefinition.iUnitStep.Z, 0},
-      {vdsIjkGridDefinition.jUnitStep.X, vdsIjkGridDefinition.jUnitStep.Y, vdsIjkGridDefinition.jUnitStep.Z, 0},
-      {vdsIjkGridDefinition.kUnitStep.X, vdsIjkGridDefinition.kUnitStep.Y, vdsIjkGridDefinition.kUnitStep.Z, 0},
-      {vdsIjkGridDefinition.origin.X,    vdsIjkGridDefinition.origin.Y,    vdsIjkGridDefinition.origin.Z,    1}
+      DoubleVector4 {vdsIjkGridDefinition.iUnitStep.X, vdsIjkGridDefinition.iUnitStep.Y, vdsIjkGridDefinition.iUnitStep.Z, 0},
+      DoubleVector4 {vdsIjkGridDefinition.jUnitStep.X, vdsIjkGridDefinition.jUnitStep.Y, vdsIjkGridDefinition.jUnitStep.Z, 0},
+      DoubleVector4 {vdsIjkGridDefinition.kUnitStep.X, vdsIjkGridDefinition.kUnitStep.Y, vdsIjkGridDefinition.kUnitStep.Z, 0},
+      DoubleVector4 {vdsIjkGridDefinition.origin.X,    vdsIjkGridDefinition.origin.Y,    vdsIjkGridDefinition.origin.Z,    1}
     };
 
     fastInvert(matrix);

@@ -48,7 +48,7 @@ template<> struct MetadataTraits<BLOB>          { static native::MetadataType da
 class PyMetadataVariant
 {
 public:
-  PyMetadataVariant() : m_Type(MetadataType::Int), m_IntVector4Value(0, 0, 0, 0)
+  PyMetadataVariant() : m_IntVector4Value(0, 0, 0, 0), m_Type(MetadataType::Int)
   {
   }
 

@@ -65,8 +65,8 @@ template<typename T1, typename T2>
 inline typename std::enable_if<std::numeric_limits<T1>::is_integer && !std::is_same<T1,bool>::value && !std::numeric_limits<T2>::is_integer, T1>::type
 ConvertValue(T2 value)
 {
-  if(value < ((std::numeric_limits<T1>::min)())) return ((std::numeric_limits<T1>::min)());
-  if(value > ((std::numeric_limits<T1>::max)())) return ((std::numeric_limits<T1>::max)());
+  if(value < T2((std::numeric_limits<T1>::min)())) return ((std::numeric_limits<T1>::min)());
+  if(value > T2((std::numeric_limits<T1>::max)())) return ((std::numeric_limits<T1>::max)());
   if(std::numeric_limits<T1>::is_signed)
   {
     return (T1)std::floor(value + 0.5f);

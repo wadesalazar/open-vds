@@ -405,7 +405,7 @@ findRepresentativeSegment(SEGYFileInfo const& fileInfo, int& primaryStep)
       numTraces = (fileInfo.m_segmentInfo[i].m_traceStop - fileInfo.m_segmentInfo[i].m_traceStart);
 
     float
-      multiplier = 1.5f - abs(i - (float)fileInfo.m_segmentInfo.size() / 2) / (float)fileInfo.m_segmentInfo.size(); // give 50% more importance to a segment in the middle of the dataset
+      multiplier = 1.5f - std::abs(i - (float)fileInfo.m_segmentInfo.size() / 2) / (float)fileInfo.m_segmentInfo.size(); // give 50% more importance to a segment in the middle of the dataset
 
     float
       score = float(numTraces) * multiplier;
