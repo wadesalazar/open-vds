@@ -62,7 +62,7 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
     return new IOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
   default:
     error.code = -1;
-    error.string = "Unknwon type for OpenOptions";
+    error.string = "Unknown type for OpenOptions";
     return nullptr;
   }
 }
