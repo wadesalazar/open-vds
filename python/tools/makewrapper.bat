@@ -1,7 +1,7 @@
 @echo off
 md generated 2>NUL
 ECHO Generating...
-python mkwrapper.py -I..\..\src ..\..\src\OpenVDS\*.h
+python mkwrapper.py -I..\..\src\OpenVDS ..\..\src\OpenVDS\OpenVDS\*.h
 IF ERRORLEVEL 1 GOTO end
 del generated\Global.h
 rename generated\OpenVDS.h Global.h
