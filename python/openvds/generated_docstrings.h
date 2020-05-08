@@ -23,25 +23,77 @@
 #endif
 
 
-static const char *__doc_OpenVDS_AWSOpenOptions = R"doc()doc";
+static const char *__doc_OpenVDS_AWSOpenOptions = R"doc(Options for opening a VDS in AWS)doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_AWSOpenOptions = R"doc()doc";
 
-static const char *__doc_OpenVDS_AWSOpenOptions_AWSOpenOptions_2 = R"doc()doc";
+static const char *__doc_OpenVDS_AWSOpenOptions_AWSOpenOptions_2 =
+R"doc(AWSOpenOptions constructor
+
+Parameters:
+-----------
+
+bucket :
+    The bucket of the VDS
+
+key :
+    The key prefix of the VDS
+
+region :
+    The region of the bucket of the VDS
+
+endpointOverride :
+    This parameter allows to override the endpoint url)doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_bucket = R"doc()doc";
+
+static const char *__doc_OpenVDS_AWSOpenOptions_endpointOverride = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_key = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_region = R"doc()doc";
 
-static const char *__doc_OpenVDS_AzureOpenOptions = R"doc()doc";
+static const char *__doc_OpenVDS_AzureOpenOptions = R"doc(Options for opening a VDS in Azure)doc";
 
 static const char *__doc_OpenVDS_AzureOpenOptions_AzureOpenOptions = R"doc()doc";
 
-static const char *__doc_OpenVDS_AzureOpenOptions_AzureOpenOptions_2 = R"doc()doc";
+static const char *__doc_OpenVDS_AzureOpenOptions_AzureOpenOptions_2 =
+R"doc(AzureOpenOptions constructor
 
-static const char *__doc_OpenVDS_AzureOpenOptions_AzureOpenOptions_3 = R"doc()doc";
+Parameters:
+-----------
+
+connectionString :
+    The connectionString for the VDS
+
+container :
+    The container of the VDS
+
+blob :
+    The blob prefix of the VDS)doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_AzureOpenOptions_3 =
+R"doc(AzureOpenOptions constructor
+
+Parameters:
+-----------
+
+connectionString :
+    The connectionString for the VDS
+
+container :
+    The container of the VDS
+
+blob :
+    The blob prefix of the VDS
+
+parallelism_factor :
+    The parallelism factor setting for the Azure Blob Storage library
+
+max_execution_time :
+    The max execution time setting for the Azure Blob Storage library)doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_blob = R"doc()doc";
 
 static const char *__doc_OpenVDS_AzureOpenOptions_connectionString = R"doc()doc";
 
@@ -50,6 +102,26 @@ static const char *__doc_OpenVDS_AzureOpenOptions_container = R"doc()doc";
 static const char *__doc_OpenVDS_AzureOpenOptions_max_execution_time = R"doc()doc";
 
 static const char *__doc_OpenVDS_AzureOpenOptions_parallelism_factor = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzurePresignedOpenOptions = R"doc(Options for opening a VDS with presigned Azure url)doc";
+
+static const char *__doc_OpenVDS_AzurePresignedOpenOptions_AzurePresignedOpenOptions = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzurePresignedOpenOptions_AzurePresignedOpenOptions_2 =
+R"doc(AzurePresignedOpenOptions constructor
+
+Parameters:
+-----------
+
+baseUrl :
+    The base url for the VDS
+
+urlSuffix :
+    The suffix of the presigned url)doc";
+
+static const char *__doc_OpenVDS_AzurePresignedOpenOptions_baseUrl = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzurePresignedOpenOptions_urlSuffix = R"doc()doc";
 
 static const char *__doc_OpenVDS_CalculateNoise2D = R"doc()doc";
 
@@ -386,7 +458,7 @@ static const char *__doc_OpenVDS_IJKGridDefinition_origin = R"doc()doc";
 
 static const char *__doc_OpenVDS_IOManager = R"doc()doc";
 
-static const char *__doc_OpenVDS_InMemoryOpenOptions = R"doc()doc";
+static const char *__doc_OpenVDS_InMemoryOpenOptions = R"doc(Options for opening a VDS which is stored in memory (for testing))doc";
 
 static const char *__doc_OpenVDS_InMemoryOpenOptions_InMemoryOpenOptions = R"doc()doc";
 
@@ -722,17 +794,9 @@ static const char *__doc_OpenVDS_MetadataWriteAccess_SetMetadataString = R"doc()
 
 static const char *__doc_OpenVDS_MetadataWriteAccess_SetMetadataString_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_Noise2DKernel = R"doc()doc";
+static const char *__doc_OpenVDS_NoiseKernel = R"doc()doc";
 
-static const char *__doc_OpenVDS_Noise2DKernel_Do = R"doc()doc";
-
-static const char *__doc_OpenVDS_Noise3DKernel = R"doc()doc";
-
-static const char *__doc_OpenVDS_Noise3DKernel_Do = R"doc()doc";
-
-static const char *__doc_OpenVDS_Noise4DKernel = R"doc()doc";
-
-static const char *__doc_OpenVDS_Noise4DKernel_Do = R"doc()doc";
+static const char *__doc_OpenVDS_NoiseKernel_Do = R"doc()doc";
 
 static const char *__doc_OpenVDS_Open =
 R"doc(Open an existing VDS
@@ -778,6 +842,8 @@ static const char *__doc_OpenVDS_OpenOptions_ConnectionType = R"doc()doc";
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_AWS = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Azure = R"doc()doc";
+
+static const char *__doc_OpenVDS_OpenOptions_ConnectionType_AzurePresigned = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_File = R"doc()doc";
 
@@ -929,6 +995,14 @@ static const char *__doc_OpenVDS_VDSIJKGridDefinition_VDSIJKGridDefinition = R"d
 static const char *__doc_OpenVDS_VDSIJKGridDefinition_VDSIJKGridDefinition_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VDSIJKGridDefinition_dimensionMap = R"doc()doc";
+
+static const char *__doc_OpenVDS_VDSProduceStatus = R"doc()doc";
+
+static const char *__doc_OpenVDS_VDSProduceStatus_Normal = R"doc()doc";
+
+static const char *__doc_OpenVDS_VDSProduceStatus_Remapped = R"doc()doc";
+
+static const char *__doc_OpenVDS_VDSProduceStatus_Unavailable = R"doc()doc";
 
 static const char *__doc_OpenVDS_Vector = R"doc()doc";
 
@@ -1102,6 +1176,8 @@ Returns:
     A factor (between 0 and 1) indicating how much of the request has
     been completed.)doc";
 
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentDownloadError = R"doc()doc";
+
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentUploadError = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetProjectedVolumeSubsetBufferSize =
@@ -1135,6 +1211,31 @@ lod :
 Returns:
 --------
     The buffer size needed)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVDSProduceStatus =
+R"doc(Get the produce status for the specific DimensionsND/LOD/Channel
+combination.
+
+Parameters:
+-----------
+
+volumeDataLayout :
+    The VolumeDataLayout object associated with the VDS that we're
+    getting the produce status for.
+
+dimensionsND :
+    The dimensions group we're getting the produce status for.
+
+lod :
+    The LOD level we're getting the produce status for.
+
+channel :
+    The channel index we're getting the produce status for.
+
+Returns:
+--------
+    The produce status for the specific DimensionsND/LOD/Channel
+    combination.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeDataLayout =
 R"doc(Get the VolumeDataLayout object for a VDS.
@@ -2629,6 +2730,8 @@ the volume dimension @return the voxel index)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase_VolumeIndexerBase = R"doc(////////////////////////// Constructors /////////////////////////////)doc";
 
+static const char *__doc_OpenVDS_VolumeIndexerBase_VolumeIndexerBase_2 = R"doc()doc";
+
 static const char *__doc_OpenVDS_VolumeIndexerBase_VoxelIndexFloatToCoordinate =
 R"doc(Converts a float voxel index for a specific volume dimension to a
 coordinate value @param rVoxelIndex the voxel index to convert @param
@@ -2715,6 +2818,8 @@ the float voxel index)doc";
 static const char *__doc_OpenVDS_VolumeIndexerData = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerData_VolumeIndexerData = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_VolumeIndexerData_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerData_axisNumSamples =
 R"doc(< Total number of samples in volume dimensions for whole volume (not

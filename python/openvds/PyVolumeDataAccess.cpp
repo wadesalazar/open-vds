@@ -107,6 +107,13 @@ void
 PyVolumeDataAccess::initModule(py::module& m)
 {
 //AUTOGEN-BEGIN
+  py::enum_<VDSProduceStatus> 
+    VDSProduceStatus_(m,"VDSProduceStatus", OPENVDS_DOCSTRING(VDSProduceStatus));
+
+  VDSProduceStatus_.value("Normal"                      , VDSProduceStatus::Normal                , OPENVDS_DOCSTRING(VDSProduceStatus_Normal));
+  VDSProduceStatus_.value("Remapped"                    , VDSProduceStatus::Remapped              , OPENVDS_DOCSTRING(VDSProduceStatus_Remapped));
+  VDSProduceStatus_.value("Unavailable"                 , VDSProduceStatus::Unavailable           , OPENVDS_DOCSTRING(VDSProduceStatus_Unavailable));
+
   // VolumeDataAccessor
   py::class_<VolumeDataAccessor, std::unique_ptr<VolumeDataAccessor, py::nodelete>> 
     VolumeDataAccessor_(m,"VolumeDataAccessor", OPENVDS_DOCSTRING(VolumeDataAccessor));
@@ -124,6 +131,7 @@ PyVolumeDataAccess::initModule(py::module& m)
     VolumeDataAccessManager_(m,"VolumeDataAccessManager", OPENVDS_DOCSTRING(VolumeDataAccessManager));
 
   VolumeDataAccessManager_.def("getVolumeDataLayout"         , static_cast<const native::VolumeDataLayout *(VolumeDataAccessManager::*)() const>(&VolumeDataAccessManager::GetVolumeDataLayout), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetVolumeDataLayout));
+  VolumeDataAccessManager_.def("getVDSProduceStatus"         , static_cast<native::VDSProduceStatus(VolumeDataAccessManager::*)(const native::VolumeDataLayout *, native::DimensionsND, int, int) const>(&VolumeDataAccessManager::GetVDSProduceStatus), py::arg("volumeDataLayout"), py::arg("dimensionsND"), py::arg("lod"), py::arg("channel"), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetVDSProduceStatus));
   VolumeDataAccessManager_.def("createVolumeDataPageAccessor", static_cast<native::VolumeDataPageAccessor *(VolumeDataAccessManager::*)(const native::VolumeDataLayout *, native::DimensionsND, int, int, int, native::VolumeDataAccessManager::AccessMode)>(&VolumeDataAccessManager::CreateVolumeDataPageAccessor), py::arg("volumeDataLayout"), py::arg("dimensionsND"), py::arg("lod"), py::arg("channel"), py::arg("maxPages"), py::arg("accessMode"), OPENVDS_DOCSTRING(VolumeDataAccessManager_CreateVolumeDataPageAccessor));
   VolumeDataAccessManager_.def("destroyVolumeDataPageAccessor", static_cast<void(VolumeDataAccessManager::*)(native::VolumeDataPageAccessor *)>(&VolumeDataAccessManager::DestroyVolumeDataPageAccessor), py::arg("volumeDataPageAccessor"), OPENVDS_DOCSTRING(VolumeDataAccessManager_DestroyVolumeDataPageAccessor));
   VolumeDataAccessManager_.def("destroyVolumeDataAccessor"   , static_cast<void(VolumeDataAccessManager::*)(native::VolumeDataAccessor *)>(&VolumeDataAccessManager::DestroyVolumeDataAccessor), py::arg("accessor"), OPENVDS_DOCSTRING(VolumeDataAccessManager_DestroyVolumeDataAccessor));
@@ -177,6 +185,7 @@ PyVolumeDataAccess::initModule(py::module& m)
   VolumeDataAccessManager_.def("forceClearAllUploadErrors"   , static_cast<void(VolumeDataAccessManager::*)()>(&VolumeDataAccessManager::ForceClearAllUploadErrors), OPENVDS_DOCSTRING(VolumeDataAccessManager_ForceClearAllUploadErrors));
   VolumeDataAccessManager_.def("uploadErrorCount"            , static_cast<int32_t(VolumeDataAccessManager::*)()>(&VolumeDataAccessManager::UploadErrorCount), OPENVDS_DOCSTRING(VolumeDataAccessManager_UploadErrorCount));
 // AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("getCurrentUploadError"       , static_cast<void(VolumeDataAccessManager::*)(const char **, int32_t *, const char **)>(&VolumeDataAccessManager::GetCurrentUploadError), py::arg("objectId"), py::arg("errorCode"), py::arg("errorString"), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentUploadError));
+// AUTOGENERATE FAIL :   VolumeDataAccessManager_.def("getCurrentDownloadError"     , static_cast<void(VolumeDataAccessManager::*)(int *, const char **)>(&VolumeDataAccessManager::GetCurrentDownloadError), py::arg("code"), py::arg("errorString"), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentDownloadError));
 
   py::enum_<VolumeDataAccessManager::AccessMode> 
     VolumeDataAccessManager_AccessMode_(VolumeDataAccessManager_,"AccessMode", OPENVDS_DOCSTRING(VolumeDataAccessManager_AccessMode));
@@ -353,6 +362,19 @@ PyVolumeDataAccess::initModule(py::module& m)
       self->GetCurrentUploadError(&pObjectID, &errorCode, &pErrorString);
       return std::make_tuple(std::string(pObjectID), errorCode, std::string(pErrorString));
     }, OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentUploadError));
+
+  // IMPLEMENTED :   VolumeDataAccessManager_.def("getCurrentDownloadError"     , static_cast<void(VolumeDataAccessManager::*)(int *, const char **)>(&VolumeDataAccessManager::GetCurrentDownloadError), py::arg("code"), py::arg("errorString"), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentDownloadError));
+  VolumeDataAccessManager_.def("getCurrentDownloadError"       , [](VolumeDataAccessManager* self)
+    {
+      const char
+        *pErrorString = nullptr;
+
+      int32_t
+        errorCode = 0;
+
+      self->GetCurrentDownloadError(&errorCode, &pErrorString);
+      return std::make_tuple(errorCode, std::string(pErrorString));
+    }, OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentDownloadError));
 
   // Register region types
   RegisterVolumeDataRegions<native::IntVector2>      (m, "VolumeDataRegionsIntVector2");
