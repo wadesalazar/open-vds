@@ -17,3 +17,6 @@ python/tools/WrapperReport.txt
 /**/aws_sdk*.log
 /**/.ipynb_checkpoints
 /python/openvds.egg-info
+.idea
+java/cpp/generated
+cmake-build*

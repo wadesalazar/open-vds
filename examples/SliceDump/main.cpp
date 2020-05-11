@@ -236,7 +236,7 @@ int main(int argc, char **argv)
   bool finished = accessManager->WaitForCompletion(request);
   if (!finished)
   {
-    fmt::print(stderr, "Failed to download reuqest. Failing\n");
+    fmt::print(stderr, "Failed to download request. Failing\n");
     return -2;
   }
 

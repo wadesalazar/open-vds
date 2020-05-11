@@ -1,0 +1,61 @@
+
+include(UseJava)
+
+set(OPENVDS_JAVA_VERSION 0.0.6)
+set(CPP_LIBRARY_NAME openvdsjava)
+set(JAVA_LIBRARY_NAME openvds-java)
+set(GENERATED_HEADER_TARGET_NAME generatedHeadersTarget)
+
+#set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
+
+set(GENERATED_JNI_HEADERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cpp/generated)
+#file(REMOVE_RECURSE ${GENERATED_JNI_HEADERS_DIR})
+file(MAKE_DIRECTORY ${GENERATED_JNI_HEADERS_DIR})
+
+set(JAVA_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/java/src)
+set(JAVA_DEMO_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/java/demo)
+set(JAVA_EXPERIMENTAL_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/java/experimental)
+
+file (GLOB_RECURSE JAVA_SOURCES_FILES CONFIGURE_DEPENDS
+        ${JAVA_SOURCES_DIR}/*.java
+        ${JAVA_DEMO_SOURCES_DIR}/*.java
+        ${JAVA_EXPERIMENTAL_SOURCES_DIR}/*.java)
+
+message(STATUS "Compiling Java files")
+foreach(FILE ${JAVA_SOURCES_FILES})
+    message(STATUS ${FILE})
+endforeach()
+
+# Java compilation
+# Enable JNI header generation for java >=8
+if (WIN32)
+	add_jar(${JAVA_LIBRARY_NAME}
+            SOURCES ${JAVA_SOURCES_FILES}
+            GENERATE_NATIVE_HEADERS ${GENERATED_HEADER_TARGET_NAME} DESTINATION ${GENERATED_JNI_HEADERS_DIR}
+            ENTRY_POINT OpenVdsDemo)
+else()
+	add_jar(${JAVA_LIBRARY_NAME}
+            SOURCES ${JAVA_SOURCES_FILES}
+            VERSION ${OPENVDS_JAVA_VERSION}
+            GENERATE_NATIVE_HEADERS ${GENERATED_HEADER_TARGET_NAME} DESTINATION ${GENERATED_JNI_HEADERS_DIR}
+            ENTRY_POINT OpenVdsDemo)
+endif()
+
+# C++ compilation
+file (GLOB_RECURSE CPP_SOURCES_FILES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/cpp/src/*.cpp)
+message(STATUS "Compiling cpp")
+foreach(FILE ${CPP_SOURCES_FILES})
+  message(STATUS ${FILE})
+endforeach()
+
+add_library(${CPP_LIBRARY_NAME} ${CPP_SOURCES_FILES})
+set_target_properties(${CPP_LIBRARY_NAME} PROPERTIES FOLDER java)
+set_target_properties(${CPP_LIBRARY_NAME} PROPERTIES VERSION ${OPENVDS_JAVA_VERSION})
+copyDllForTarget(${CPP_LIBRARY_NAME})
+target_include_directories(${CPP_LIBRARY_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cpp/include)
+target_include_directories(${CPP_LIBRARY_NAME} PUBLIC ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
+target_link_libraries(${CPP_LIBRARY_NAME} PRIVATE openvds ${GENERATED_HEADER_TARGET_NAME})
+
+# Install jar and natives
+install(TARGETS ${CPP_LIBRARY_NAME} LIBRARY DESTINATION java)
+install_jar(${JAVA_LIBRARY_NAME} DESTINATION java)
