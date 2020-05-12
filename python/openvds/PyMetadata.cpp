@@ -272,6 +272,7 @@ PyMetadata::initModule(py::module& m)
   MetadataReadAccess_.def("getMetadataDoubleVector4"    , [](MetadataReadAccess* self, const char * category, const char * name) { return (DoubleVector4Adapter::AdaptedType)(self->GetMetadataDoubleVector4(category, name)); }, py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataReadAccess_GetMetadataDoubleVector4));
   MetadataReadAccess_.def("getMetadataString"           , static_cast<const char *(MetadataReadAccess::*)(const char *, const char *) const>(&MetadataReadAccess::GetMetadataString), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataReadAccess_GetMetadataString));
   MetadataReadAccess_.def("getMetadataKeys"             , static_cast<native::MetadataKeyRange(MetadataReadAccess::*)() const>(&MetadataReadAccess::GetMetadataKeys), OPENVDS_DOCSTRING(MetadataReadAccess_GetMetadataKeys));
+  MetadataReadAccess_.def_property_readonly("metadataKeys", &MetadataReadAccess::GetMetadataKeys, OPENVDS_DOCSTRING(MetadataReadAccess_GetMetadataKeys));
 
   // MetadataWriteAccess
   py::class_<MetadataWriteAccess, std::unique_ptr<MetadataWriteAccess, py::nodelete>> 
@@ -344,6 +345,7 @@ PyMetadata::initModule(py::module& m)
   MetadataContainer_.def("clearMetadata"               , static_cast<void(MetadataContainer::*)(const char *)>(&MetadataContainer::ClearMetadata), py::arg("category"), OPENVDS_DOCSTRING(MetadataContainer_ClearMetadata_2));
 // AUTOGENERATE FAIL :   MetadataContainer_.def("getMetadataBLOB"             , static_cast<void(MetadataContainer::*)(const char *, const char *, const void **, size_t *) const>(&MetadataContainer::GetMetadataBLOB), py::arg("category"), py::arg("name"), py::arg("data"), py::arg("size"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB));
   MetadataContainer_.def("getMetadataKeys"             , static_cast<native::MetadataKeyRange(MetadataContainer::*)() const>(&MetadataContainer::GetMetadataKeys), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataKeys));
+  MetadataContainer_.def_property_readonly("metadataKeys", &MetadataContainer::GetMetadataKeys, OPENVDS_DOCSTRING(MetadataContainer_GetMetadataKeys));
 
 //AUTOGEN-END
 

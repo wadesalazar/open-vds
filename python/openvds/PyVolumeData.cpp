@@ -95,7 +95,9 @@ PyVolumeData::initModule(py::module& m)
   CompressionInfo_.def(py::init<                              >(), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo));
   CompressionInfo_.def(py::init<native::CompressionMethod, int>(), py::arg("compressionMethod"), py::arg("adaptiveLevel"), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo_2));
   CompressionInfo_.def("getCompressionMethod"        , static_cast<native::CompressionMethod(CompressionInfo::*)() const>(&CompressionInfo::GetCompressionMethod), OPENVDS_DOCSTRING(CompressionInfo_GetCompressionMethod));
+  CompressionInfo_.def_property_readonly("compressionMethod", &CompressionInfo::GetCompressionMethod, OPENVDS_DOCSTRING(CompressionInfo_GetCompressionMethod));
   CompressionInfo_.def("getAdaptiveLevel"            , static_cast<int(CompressionInfo::*)() const>(&CompressionInfo::GetAdaptiveLevel), OPENVDS_DOCSTRING(CompressionInfo_GetAdaptiveLevel));
+  CompressionInfo_.def_property_readonly("adaptiveLevel", &CompressionInfo::GetAdaptiveLevel, OPENVDS_DOCSTRING(CompressionInfo_GetAdaptiveLevel));
 
   py::enum_<Dimensionality> 
     Dimensionality_(m,"Dimensionality", OPENVDS_DOCSTRING(Dimensionality));

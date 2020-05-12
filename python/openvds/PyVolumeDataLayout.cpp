@@ -28,11 +28,15 @@ PyVolumeDataLayout::initModule(py::module& m)
     VolumeDataLayout_(m,"VolumeDataLayout", OPENVDS_DOCSTRING(VolumeDataLayout));
 
   VolumeDataLayout_.def("getContentsHash"             , static_cast<uint64_t(VolumeDataLayout::*)() const>(&VolumeDataLayout::GetContentsHash), OPENVDS_DOCSTRING(VolumeDataLayout_GetContentsHash));
+  VolumeDataLayout_.def_property_readonly("contentsHash", &VolumeDataLayout::GetContentsHash, OPENVDS_DOCSTRING(VolumeDataLayout_GetContentsHash));
   VolumeDataLayout_.def("getDimensionality"           , static_cast<int(VolumeDataLayout::*)() const>(&VolumeDataLayout::GetDimensionality), OPENVDS_DOCSTRING(VolumeDataLayout_GetDimensionality));
+  VolumeDataLayout_.def_property_readonly("dimensionality", &VolumeDataLayout::GetDimensionality, OPENVDS_DOCSTRING(VolumeDataLayout_GetDimensionality));
   VolumeDataLayout_.def("getChannelCount"             , static_cast<int(VolumeDataLayout::*)() const>(&VolumeDataLayout::GetChannelCount), OPENVDS_DOCSTRING(VolumeDataLayout_GetChannelCount));
+  VolumeDataLayout_.def_property_readonly("channelCount", &VolumeDataLayout::GetChannelCount, OPENVDS_DOCSTRING(VolumeDataLayout_GetChannelCount));
   VolumeDataLayout_.def("isChannelAvailable"          , static_cast<bool(VolumeDataLayout::*)(const char *) const>(&VolumeDataLayout::IsChannelAvailable), py::arg("channelName"), OPENVDS_DOCSTRING(VolumeDataLayout_IsChannelAvailable));
   VolumeDataLayout_.def("getChannelIndex"             , static_cast<int(VolumeDataLayout::*)(const char *) const>(&VolumeDataLayout::GetChannelIndex), py::arg("channelName"), OPENVDS_DOCSTRING(VolumeDataLayout_GetChannelIndex));
   VolumeDataLayout_.def("getLayoutDescriptor"         , static_cast<native::VolumeDataLayoutDescriptor(VolumeDataLayout::*)() const>(&VolumeDataLayout::GetLayoutDescriptor), OPENVDS_DOCSTRING(VolumeDataLayout_GetLayoutDescriptor));
+  VolumeDataLayout_.def_property_readonly("layoutDescriptor", &VolumeDataLayout::GetLayoutDescriptor, OPENVDS_DOCSTRING(VolumeDataLayout_GetLayoutDescriptor));
   VolumeDataLayout_.def("getChannelDescriptor"        , static_cast<native::VolumeDataChannelDescriptor(VolumeDataLayout::*)(int) const>(&VolumeDataLayout::GetChannelDescriptor), py::arg("channel"), OPENVDS_DOCSTRING(VolumeDataLayout_GetChannelDescriptor));
   VolumeDataLayout_.def("getAxisDescriptor"           , static_cast<native::VolumeDataAxisDescriptor(VolumeDataLayout::*)(int) const>(&VolumeDataLayout::GetAxisDescriptor), py::arg("dimension"), OPENVDS_DOCSTRING(VolumeDataLayout_GetAxisDescriptor));
   VolumeDataLayout_.def("getChannelFormat"            , static_cast<VolumeDataChannelDescriptor::Format(VolumeDataLayout::*)(int) const>(&VolumeDataLayout::GetChannelFormat), py::arg("channel"), OPENVDS_DOCSTRING(VolumeDataLayout_GetChannelFormat));
@@ -57,8 +61,7 @@ PyVolumeDataLayout::initModule(py::module& m)
   VolumeDataLayout_.def("getChannelIntegerOffset"     , static_cast<float(VolumeDataLayout::*)(int) const>(&VolumeDataLayout::GetChannelIntegerOffset), py::arg("channel"), OPENVDS_DOCSTRING(VolumeDataLayout_GetChannelIntegerOffset));
 
 //AUTOGEN-END
-  VolumeDataLayout_.def_property_readonly("dimensions"           , static_cast<int(VolumeDataLayout::*)() const>(&VolumeDataLayout::GetDimensionality), OPENVDS_DOCSTRING(VolumeDataLayout_GetDimensionality));
-  VolumeDataLayout_.def_property_readonly("shape"                , [](VolumeDataLayout* self) 
+  VolumeDataLayout_.def_property_readonly("numSamples"                , [](VolumeDataLayout* self) 
     {
       int dimensions = self->GetDimensionality();
       int anVoxelCount[6];

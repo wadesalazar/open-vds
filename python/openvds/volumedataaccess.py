@@ -51,12 +51,10 @@ def _ndarrayarray(tuples: List[Tuple[float]]):
 class VolumeDataRequest(object):
     def __init__(self, accessManager: openvds.core.VolumeDataAccessManager, layout: openvds.core.VolumeDataLayout, data_out: np.array = None, dimensionsND: DimensionsND = DimensionsND.Dimensions_012, lod: int = 0, channel: int = 0, min: Tuple[int] = None, max: Tuple[int] = None, format: VoxelFormat = VoxelFormat.Format_R32, replacementNoValue = None):
         array_interface = None
-        if hasattr(data_out, "__cuda_array_interface__"):
-            array_interface = data_out.__cuda_array_interface__
-        elif hasattr(data_out, "__array_interface__"):
+        if hasattr(data_out, "__array_interface__"):
             array_interface = data_out.__array_interface__
         elif not data_out is None:
-            raise TypeError("data_out: Invalid type: Only numpy.ndarray and numba.cuda.devicearray are supported")
+            raise TypeError("data_out: Invalid type: Only numpy.ndarray is supported")
         if array_interface:
             dtype = np.dtype(array_interface["typestr"])
             ptr, readonly = array_interface["data"]
@@ -213,7 +211,7 @@ class VolumeDataSamplesRequest(VolumeDataRequest):
         self.samplePositions        = samplePositions
         self.interpolationMethod    = interpolationMethod
         self.sampleCount            = len(samplePositions)
-        min_, max_ = layout.shape
+        min_, max_ = layout.numSamples
         super().__init__(accessManager, layout, data_out, dimensionsND, lod, channel, min_, max_, VoxelFormat.Format_R32, replacementNoValue)
         if self._data_out is None:
             self._data_out = np.zeros((self.sampleCount), dtype=np.float32)
@@ -244,7 +242,7 @@ class VolumeDataTracesRequest(VolumeDataRequest):
         self.interpolationMethod    = interpolationMethod
         self.traceCount             = len(tracePositions)
         self.traceDimension         = traceDimension
-        min_, max_ = layout.shape
+        min_, max_ = layout.numSamples
         super().__init__(accessManager, layout, data_out, dimensionsND, lod, channel, min_, max_, VoxelFormat.Format_R32, replacementNoValue)
         if self._data_out is None:
             self._data_out = np.zeros(self._accessManager.getVolumeTracesBufferSize(self._layout, traceCount, traceDimension, lod), dtype=np.int8)
@@ -256,7 +254,7 @@ class VolumeDataTracesRequest(VolumeDataRequest):
 class VolumeDataAccessManager(object):
     """Interface class for VDS data access.
     
-    This class has functions for making asynchronous data requests on a VDS object using numpy arrays or cuda devicearrays.
+    This class has functions for making asynchronous data requests on a VDS object using numpy arrays.
     
     Parameters:
     -----------
@@ -305,7 +303,7 @@ class VolumeDataAccessManager(object):
             Specifies the minimum voxel coordinates of the request (inclusive)
         max : tuple
             Specifies the maximum voxel coordinates of the request (exclusive)
-        data_out : numpy.ndarray or numba.cuda.devicearray, optional
+        data_out : numpy.ndarray, optional
             If specified, the data requested is copied to this array. Otherwise, a suitable numpy array is allocated.
         dimensionsND : DimensionsND, optional
             If specified, determine the dimensiongroup requested. Defaults to DimensionGroup012
@@ -359,7 +357,7 @@ class VolumeDataAccessManager(object):
             Specifies the minimum voxel coordinates of the request (inclusive)
         max : tuple
             Specifies the maximum voxel coordinates of the request (exclusive)
-        data_out : numpy.ndarray or numba.cuda.devicearray, optional
+        data_out : numpy.ndarray, optional
             If specified, the data requested is copied to this array. Otherwise, a suitable numpy array is allocated.
         dimensionsND : DimensionsND, optional
             If specified, determine the dimensiongroup requested. Defaults to DimensionGroup012
@@ -518,7 +516,7 @@ class VolumeDataAccessManager(object):
     def _createVolumeDataAccessor(self, factoryName: str, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=None):
         if pageAccessor is None:
             defaultDimensions = { 2: DimensionsND.Dimensions_01, 3: DimensionsND.Dimensions_012, 4: DimensionsND.Dimensions_012 }
-            pageAccessor = self.manager.createVolumeDataPageAccessor(self.layout, defaultDimensions[self.layout.dimensions], 0, 0, 8, self.manager.AccessMode.AccessMode_ReadOnly)
+            pageAccessor = self.manager.createVolumeDataPageAccessor(self.layout, defaultDimensions[self.layout.dimensionality], 0, 0, 8, self.manager.AccessMode.AccessMode_ReadOnly)
         return VolmeDataAccessorManager(factoryName.strip(), self.manager, pageAccessor, replacementNoValue, interpolationMethod)
         
     def create2DVolumeDataAccessor1Bit            (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessor1Bit", pageAccessor, replacementNoValue)
