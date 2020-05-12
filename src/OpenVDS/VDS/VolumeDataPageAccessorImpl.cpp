@@ -343,7 +343,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
   }
 
   LimitPageListSize(m_maxPages, pageListMutexLock);
-  return m_layer;
+  return m_layer != nullptr;
 }
 
 void VolumeDataPageAccessorImpl::CancelPreparedReadPage(VolumeDataPage* page)

@@ -1072,7 +1072,7 @@ int
 main(int argc, char* argv[])
 {
 #if defined(WIN32)
-  bool is_tty = _isatty(_fileno(stdout));
+  bool is_tty = _isatty(_fileno(stdout)) != 0;
 #else
   bool is_tty = isatty(fileno(stdout));
 #endif

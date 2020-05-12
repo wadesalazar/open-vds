@@ -794,7 +794,7 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
     ApplyNoValues(floatReadWriteData, noValueBitBuffer.data(), localWaveletNoValue);
   }
 
-  if (isAnyNoValue) *isAnyNoValue = noValueBitBuffer.size();
+  if (isAnyNoValue) *isAnyNoValue = noValueBitBuffer.size() != 0;
   if (waveletNoValue) *waveletNoValue = localWaveletNoValue;
 
 // DeNormalize?
