@@ -401,7 +401,7 @@ private:
   {
     auto category_it = m_categories.emplace(category).first;
     auto name_it = m_names.emplace(name).first;
-    MetadataKey key(type, category, name);
+    MetadataKey key(type, category_it->c_str(), name_it->c_str());
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end())
       m_keys.push_back(key);
     return key;
