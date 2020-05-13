@@ -233,8 +233,8 @@ PyMetadata::initModule(py::module& m)
   MetadataKey_.def("type"                        , static_cast<native::MetadataType(MetadataKey::*)() const>(&MetadataKey::Type), OPENVDS_DOCSTRING(MetadataKey_Type));
   MetadataKey_.def("category"                    , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::Category), OPENVDS_DOCSTRING(MetadataKey_Category));
   MetadataKey_.def("name"                        , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::Name), OPENVDS_DOCSTRING(MetadataKey_Name));
-  MetadataKey_.def("operator_eq"                 , static_cast<bool(MetadataKey::*)(const native::MetadataKey &) const>(&MetadataKey::operator==), py::arg("other"), OPENVDS_DOCSTRING(MetadataKey_operator_eq));
-  MetadataKey_.def("operator_ne"                 , static_cast<bool(MetadataKey::*)(const native::MetadataKey &) const>(&MetadataKey::operator!=), py::arg("other"), OPENVDS_DOCSTRING(MetadataKey_operator_ne));
+  MetadataKey_.def(py::self == py::self);
+  MetadataKey_.def(py::self != py::self);
 
   // MetadataKeyRange
   py::class_<MetadataKeyRange, std::unique_ptr<MetadataKeyRange>> 

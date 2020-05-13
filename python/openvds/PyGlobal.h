@@ -67,6 +67,7 @@ private:
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 #include <pybind11/attr.h>
+#include <pybind11/operators.h>
 
 namespace py = pybind11;
 namespace native = OpenVDS;
