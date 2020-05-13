@@ -867,7 +867,7 @@ Json::Value SerializeVector(T const &vector)
 Json::Value SerializeBLOB(MetadataKey const &key, MetadataReadAccess const &readAccess)
 {
   std::vector<uint8_t> blob;
-  readAccess.GetMetadataBLOB(key.category, key.name, blob);
+  readAccess.GetMetadataBLOB(key.Category(), key.Name(), blob);
   std::vector<char> base64;
   Base64Encode(blob.data(), blob.size(), base64);
 
@@ -883,27 +883,27 @@ Json::Value SerializeMetadata(MetadataContainer const &metadataContainer)
   {
     Json::Value  metadataJson;
 
-    metadataJson["category"] = metadataKey.category;
-    metadataJson["name"] = metadataKey.name;
+    metadataJson["category"] = metadataKey.Category();
+    metadataJson["name"] = metadataKey.Name();
 
-    switch(metadataKey.type)
+    switch(metadataKey.Type())
     {
-    case MetadataType::Int:        metadataJson["type"] = "Int";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataInt(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::IntVector2: metadataJson["type"] = "IntVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector2(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::IntVector3: metadataJson["type"] = "IntVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector3(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::IntVector4: metadataJson["type"] = "IntVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector4(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::Int:        metadataJson["type"] = "Int";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataInt(metadataKey.Category(), metadataKey.Name())); break;
+    case MetadataType::IntVector2: metadataJson["type"] = "IntVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector2(metadataKey.Category(), metadataKey.Name())); break;
+    case MetadataType::IntVector3: metadataJson["type"] = "IntVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector3(metadataKey.Category(), metadataKey.Name())); break;
+    case MetadataType::IntVector4: metadataJson["type"] = "IntVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector4(metadataKey.Category(), metadataKey.Name())); break;
 
-    case MetadataType::Float:        metadataJson["type"] = "Float";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataFloat(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::FloatVector2: metadataJson["type"] = "FloatVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector2(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::FloatVector3: metadataJson["type"] = "FloatVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector3(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::FloatVector4: metadataJson["type"] = "FloatVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector4(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::Float:        metadataJson["type"] = "Float";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataFloat(metadataKey.Category(), metadataKey.Name())); break;
+    case MetadataType::FloatVector2: metadataJson["type"] = "FloatVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector2(metadataKey.Category(), metadataKey.Name())); break;
+    case MetadataType::FloatVector3: metadataJson["type"] = "FloatVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector3(metadataKey.Category(), metadataKey.Name())); break;
+    case MetadataType::FloatVector4: metadataJson["type"] = "FloatVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector4(metadataKey.Category(), metadataKey.Name())); break;
 
-    case MetadataType::Double:        metadataJson["type"] = "Double";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataDouble(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::DoubleVector2: metadataJson["type"] = "DoubleVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector2(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::DoubleVector3: metadataJson["type"] = "DoubleVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector3(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::DoubleVector4: metadataJson["type"] = "DoubleVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector4(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::Double:        metadataJson["type"] = "Double";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataDouble(metadataKey.Category(), metadataKey.Name())); break;
+    case MetadataType::DoubleVector2: metadataJson["type"] = "DoubleVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector2(metadataKey.Category(), metadataKey.Name())); break;
+    case MetadataType::DoubleVector3: metadataJson["type"] = "DoubleVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector3(metadataKey.Category(), metadataKey.Name())); break;
+    case MetadataType::DoubleVector4: metadataJson["type"] = "DoubleVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector4(metadataKey.Category(), metadataKey.Name())); break;
 
-    case MetadataType::String: metadataJson["type"] = "String"; metadataJson["value"] = Json::Value(metadataContainer.GetMetadataString(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::String: metadataJson["type"] = "String"; metadataJson["value"] = Json::Value(metadataContainer.GetMetadataString(metadataKey.Category(), metadataKey.Name())); break;
 
     case MetadataType::BLOB: metadataJson["type"] = "BLOB"; metadataJson["value"] = SerializeBLOB(metadataKey, metadataContainer); break;
     }

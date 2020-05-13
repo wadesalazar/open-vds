@@ -177,14 +177,14 @@ void CreateVolumeDataLayout(VDS &vds)
 
 static void copyMetadataToContainer(MetadataContainer &container, const MetadataReadAccess &readAccess)
 {
-  std::unordered_set<std::string> copied;
+  std::unordered_set<std::string> categories;
   for (auto &key : readAccess.GetMetadataKeys())
   {
-    if (copied.count(key.category))
-    {
-      continue;
-    }
-    container.CopyMetadata(key.category, &readAccess);
+    categories.insert(key.Category());
+  }
+  for (auto &category : categories)
+  {
+    container.CopyMetadata(category.c_str(), &readAccess);
   }
 }
 

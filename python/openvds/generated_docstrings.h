@@ -494,6 +494,180 @@ static const char *__doc_OpenVDS_InterpolationMethod_Nearest = R"doc(< Snap to t
 
 static const char *__doc_OpenVDS_InterpolationMethod_Triangular = R"doc(< Triangular interpolation used to interpolate heightmap data)doc";
 
+static const char *__doc_OpenVDS_KnownMetadata = R"doc()doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameCrossline =
+R"doc(String representing the name of the axis corresponding to the
+crossline spacing.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameDepth =
+R"doc(String representing the name of the axis corresponding to the negative
+z direction.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameI =
+R"doc(String representing the name of the axis corresponding to the I step
+vector (SurveyCoordinateSystemIStep))doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameInline =
+R"doc(String representing the name of the axis corresponding to the inline
+spacing.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameJ =
+R"doc(String representing the name of the axis corresponding to the J step
+vector (SurveyCoordinateSystemIStep))doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameK =
+R"doc(String representing the name of the axis corresponding to the K step
+vector (SurveyCoordinateSystemKStep))doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameSample =
+R"doc(String representing the name of the axis corresponding to the negative
+z direction.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameTime =
+R"doc(String representing the name of the axis corresponding to the negative
+z direction.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameX =
+R"doc(String representing the name of the axis that maps directly to the X
+coordinate in the XYZ coordinate system)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameY =
+R"doc(String representing the name of the axis that maps directly to the Y
+coordinate in the XYZ coordinate system)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_AxisNameZ =
+R"doc(String representing the name of the axis that maps directly to the Z
+coordinate in the XYZ coordinate system)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_CategoryImportInformation =
+R"doc(The metadata in the ImportInformation category contains information
+about the initial import to VDS. That is, information about the
+original file (file name, last modification time etc.) and when/how it
+was imported. The intended use is e.g. to give a default file name for
+an export operation or to inform the user about whether the VDS was
+imported from some particular file.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_CategorySEGY =
+R"doc(The metadata in the SEGY category is intended to capture information
+required to re-create the original SEG-Y file. It is only present if
+the VDS was imported from a SEG-Y file.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_CategorySurveyCoordinateSystem =
+R"doc(The metadata in the survey coordinate system category contains either
+information used to transform from an Inline/Crossline annotation
+system to XY (Easting, Northing) coordinates or information used to
+transform from an I/J/K annotation system to XYZ coordinates. <para>
+In the Inline/Crossline system, the step vector for dimension 0 (Which
+can be named either Time, Depth or Sample) is always negative Z
+direction. The origin is the position of (inline, crossline) (0, 0),
+the inline spacing is the (X, Y) step when the inline position
+increments by 1 and the crossline spacing is the (X, Y) step when the
+crossline position increments by 1. </para> <para> In the I/J/K
+system, all three dimensions have 3D step vectors allowing for any
+affine tranform to XYZ coordinates. The IJK origin is the position of
+(I, J, K) (0, 0, 0), the I step vector is the (X, Y, Z) step when the
+I position increments by 1, the J step vector is the (X, Y, Z) step
+when the J position increments by 1 and the K step vector is the (X,
+Y, Z) step when the K position increments by 1. </para> <para> It is
+also possible to define the X, Y, Z coordinates directly by using
+X/Y/Z as the axis names. </para> <para> Any dimensions which have
+names that are not recognized or are missing the Spacing metadata will
+be given a unit vector perpendicular to the recognized dimensions.
+</para>)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_CategoryTraceCoordinates =
+R"doc(The metadata in the TraceCoordinates category is used for positioning
+of 2D seismic. It relates to the 'Trace' dimension of the VDS where
+the annotation coordinate is used to look up in the arrays in this
+category. This allows using the same positions with subsetted and
+interpolated or decimated data.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_CategoryWrittenRegion =
+R"doc(The metadata in the WrittenRegion category is used to indicate which
+area is written in a sparsely populated VDS. The guarantee is that
+values outside the written area will be NoValue if UseNoValue is True,
+and ValueRange.Min if UseNoValue is False.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_EnergySourcePointNumbers =
+R"doc(An array of scalar int32 values defining the energy source point
+number for each trace.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_EnsembleNumbers =
+R"doc(An array of scalar int32 values defining the ensemble number for each
+trace.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_ImportInformationDisplayName =
+R"doc(An informative name that can be displayed to a user but is not
+necessarily a valid file name.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_ImportInformationImportTimeStamp = R"doc(The time in ISO8601 format when the data was imported to VDS.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_ImportInformationInputFileName =
+R"doc(The original input file name. In cases where the input is not a simple
+file this should still be a valid file name that can be used as the
+default for a subsequent export operation.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_ImportInformationInputFileSize =
+R"doc(The total size (in bytes) of the input file(s), which is an integer
+stored as a double because there is no 64-bit integer metadata type.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_ImportInformationInputTimeStamp = R"doc(The last modified time of the input in ISO8601 format.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SEGYBinaryHeader = R"doc(The original binary header of the SEG-Y file)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SEGYDataEndianness =
+R"doc(The endianness of the data samples in the SEG-Y file if different from
+the header endianness. This is a non-standard feature, but some SEG-Y
+files use it. (0=BigEndian)(1=LittleEndian))doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SEGYDataSampleFormatCode =
+R"doc(The data sample format code of the data samples imported from the
+SEG-Y file. (0=Unknown)(1=IBMFloat)(2=Int32)(3=Int16)(4=FixedPoint)(5=
+IEEEFloat)(6=IEEEDouble)(7=Int24)(8=Int8)(9=Int64)(10=UInt32)(11=UInt1
+6)(12=UInt64)(15=UInt24)(16=UInt8))doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SEGYEndianness = R"doc(The endianness of the SEG-Y file (0=BigEndian)(1=LittleEndian))doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SEGYPrimaryKey =
+R"doc(The primary key (i.e. sort order) of the original SEG-Y file. VDSs are
+expected to transpose crossline-oriented seismic to use the standard
+(Sample, Crossline, Inline) axis triple, so in order to export the
+file in the original order we need to know which dimension to loop
+over.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SEGYTextHeader = R"doc(The original text header of the SEG-Y file)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemCrosslineSpacing = R"doc(The XY spacing between units in the Crossline annotation dimension.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemIJKOrigin =
+R"doc(The XYZ position of the origin of the annotation (I/J/K) coordinate
+system.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemIStepVector = R"doc(The step vector corresponding to dimension named 'I')doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemInlineSpacing = R"doc(The XY spacing between units in the Inline annotation dimension.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemJStepVector = R"doc(The step vector corresponding to dimension named 'J')doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemKStepVector = R"doc(The step vector corresponding to dimension named 'K')doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemOrigin =
+R"doc(The XY position of the origin of the annotation
+(Inline/Crossline/Time) coordinate system.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_TracePositions =
+R"doc(An array of DoubleVector2 defining the position for each trace, where
+(0, 0) is treated as an undefined position.)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_TraceVerticalOffsets =
+R"doc(An array of doubles defining the offset for each trace from the
+vertical start position in the Time/Depth/Sample dimension of the VDS)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_WrittenRegion =
+R"doc(An array of scalar int32 values defining the 6D min and max (NDBox) of
+the written region)doc";
+
 static const char *__doc_OpenVDS_M4 = R"doc()doc";
 
 static const char *__doc_OpenVDS_M4_data = R"doc()doc";
@@ -630,7 +804,7 @@ static const char *__doc_OpenVDS_MetadataContainer_m_names = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataContainer_m_stringData = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataKey = R"doc(A metadata key uniquely identifies a piece of metadata)doc";
+static const char *__doc_OpenVDS_MetadataKey = R"doc(A metadata key uniquely identifies a metadata item)doc";
 
 static const char *__doc_OpenVDS_MetadataKeyRange =
 R"doc(A range of metadata keys that can be iterated over using range-based
@@ -646,11 +820,58 @@ static const char *__doc_OpenVDS_MetadataKeyRange_m_begin = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataKeyRange_m_end = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataKey_category = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataKey_Category =
+R"doc(Get the category of metadata that this key identifies
 
-static const char *__doc_OpenVDS_MetadataKey_name = R"doc()doc";
+Returns:
+--------
+    The category of the metadata that this key identifies)doc";
 
-static const char *__doc_OpenVDS_MetadataKey_type = R"doc()doc";
+static const char *__doc_OpenVDS_MetadataKey_MetadataKey = R"doc(Default constructor)doc";
+
+static const char *__doc_OpenVDS_MetadataKey_MetadataKey_2 =
+R"doc(Constructor
+
+Parameters:
+-----------
+
+type :
+    The type of the metadata that this key identifies. The possible
+    types are (Int, Float, Double, {Int,Float,Double}Vector{2,3,4},
+    String or BLOB).
+
+category :
+    The category of the metadata that this key identifies. A category
+    is a collection of related metadata items, e.g.
+    SurveyCoordinateSystem consists of Origin, InlineSpacing,
+    CrosslineSpacing and Unit metadata.
+
+name :
+    The name of the metadata that this key identifies)doc";
+
+static const char *__doc_OpenVDS_MetadataKey_Name =
+R"doc(Get the name of metadata that this key identifies
+
+Returns:
+--------
+    The name of the metadata that this key identifies)doc";
+
+static const char *__doc_OpenVDS_MetadataKey_Type =
+R"doc(Get the type of metadata that this key identifies
+
+Returns:
+--------
+    The type of the metadata that this key identifies)doc";
+
+static const char *__doc_OpenVDS_MetadataKey_m_category = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataKey_m_name = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataKey_m_type = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataKey_operator_eq = R"doc()doc";
+
+static const char *__doc_OpenVDS_MetadataKey_operator_ne = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataReadAccess = R"doc(Interface for read access to Metadata)doc";
 
@@ -2977,8 +3198,6 @@ static const char *__doc_OpenVDS_fastInvert = R"doc()doc";
 static const char *__doc_OpenVDS_operator_bor = R"doc()doc";
 
 static const char *__doc_OpenVDS_operator_bor_2 = R"doc()doc";
-
-static const char *__doc_OpenVDS_operator_eq = R"doc()doc";
 
 static const char *__doc_OpenVDS_rangeSize = R"doc()doc";
 

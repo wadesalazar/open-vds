@@ -85,29 +85,29 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   }
 
   OpenVDS::MetadataContainer metadata;
-  for (auto &meta : inMemoryLayout->GetMetadataKeys())
+  for (auto &key : inMemoryLayout->GetMetadataKeys())
   {
-    switch(meta.type)
+    switch(key.Type())
     {
-    case OpenVDS::MetadataType::Int:        metadata.SetMetadataInt(meta.category, meta.name, inMemoryLayout->GetMetadataInt(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::IntVector2: metadata.SetMetadataIntVector2(meta.category, meta.name, inMemoryLayout->GetMetadataIntVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::IntVector3: metadata.SetMetadataIntVector2(meta.category, meta.name, inMemoryLayout->GetMetadataIntVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::IntVector4: metadata.SetMetadataIntVector2(meta.category, meta.name, inMemoryLayout->GetMetadataIntVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::Float:        metadata.SetMetadataFloat(meta.category, meta.name, inMemoryLayout->GetMetadataFloat(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::FloatVector2: metadata.SetMetadataFloatVector2(meta.category, meta.name, inMemoryLayout->GetMetadataFloatVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::FloatVector3: metadata.SetMetadataFloatVector2(meta.category, meta.name, inMemoryLayout->GetMetadataFloatVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::FloatVector4: metadata.SetMetadataFloatVector2(meta.category, meta.name, inMemoryLayout->GetMetadataFloatVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::Double:        metadata.SetMetadataDouble(meta.category, meta.name, inMemoryLayout->GetMetadataDouble(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::DoubleVector2: metadata.SetMetadataDoubleVector2(meta.category, meta.name, inMemoryLayout->GetMetadataDoubleVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::DoubleVector3: metadata.SetMetadataDoubleVector2(meta.category, meta.name, inMemoryLayout->GetMetadataDoubleVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::DoubleVector4: metadata.SetMetadataDoubleVector2(meta.category, meta.name, inMemoryLayout->GetMetadataDoubleVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::String: metadata.SetMetadataString(meta.category, meta.name, std::string(inMemoryLayout->GetMetadataString(meta.category, meta.name))); break;
+    case OpenVDS::MetadataType::Int:        metadata.SetMetadataInt(key.Category(), key.Name(), inMemoryLayout->GetMetadataInt(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::IntVector2: metadata.SetMetadataIntVector2(key.Category(), key.Name(), inMemoryLayout->GetMetadataIntVector2(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::IntVector3: metadata.SetMetadataIntVector2(key.Category(), key.Name(), inMemoryLayout->GetMetadataIntVector2(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::IntVector4: metadata.SetMetadataIntVector2(key.Category(), key.Name(), inMemoryLayout->GetMetadataIntVector2(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::Float:        metadata.SetMetadataFloat(key.Category(), key.Name(), inMemoryLayout->GetMetadataFloat(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::FloatVector2: metadata.SetMetadataFloatVector2(key.Category(), key.Name(), inMemoryLayout->GetMetadataFloatVector2(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::FloatVector3: metadata.SetMetadataFloatVector2(key.Category(), key.Name(), inMemoryLayout->GetMetadataFloatVector2(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::FloatVector4: metadata.SetMetadataFloatVector2(key.Category(), key.Name(), inMemoryLayout->GetMetadataFloatVector2(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::Double:        metadata.SetMetadataDouble(key.Category(), key.Name(), inMemoryLayout->GetMetadataDouble(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::DoubleVector2: metadata.SetMetadataDoubleVector2(key.Category(), key.Name(), inMemoryLayout->GetMetadataDoubleVector2(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::DoubleVector3: metadata.SetMetadataDoubleVector2(key.Category(), key.Name(), inMemoryLayout->GetMetadataDoubleVector2(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::DoubleVector4: metadata.SetMetadataDoubleVector2(key.Category(), key.Name(), inMemoryLayout->GetMetadataDoubleVector2(key.Category(), key.Name())); break;
+    case OpenVDS::MetadataType::String: metadata.SetMetadataString(key.Category(), key.Name(), std::string(inMemoryLayout->GetMetadataString(key.Category(), key.Name()))); break;
 
     case OpenVDS::MetadataType::BLOB:
     {
       std::vector<uint8_t> blob;
-      inMemoryLayout->GetMetadataBLOB(meta.category, meta.name, blob);
-      metadata.SetMetadataBLOB(meta.category, meta.name, blob);
+      inMemoryLayout->GetMetadataBLOB(key.Category(), key.Name(), blob);
+      metadata.SetMetadataBLOB(key.Category(), key.Name(), blob);
       break;
     }
     }

@@ -18,6 +18,8 @@
 #ifndef KNOWNMETADATA_H
 #define KNOWNMETADATA_H
 
+#include "Metadata.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // <copyright>
 // Copyright (c) 2016 Hue AS. All rights reserved.
@@ -82,7 +84,7 @@
    The Inline/Crossline system has flexibility for only two dimensions. In order to have more freedom, the 3DIJK metadata is defined.
    A Hue::Util::DoubleVector3 is used to represent the origin (\ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_ORIGIN3D) and three step vectors 
    (\ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_I_STEPVECTOR, \ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_J_STEPVECTOR and 
-   \ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR) that corresponded to the dimensions named "I", "J" and "K" respectively.
+   \ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR) that corresponding to the dimensions named "I", "J" and "K" respectively.
    
    <li>The default system:
    
@@ -136,7 +138,7 @@
 /// <ul>
 /// <li>Data type   : Hue::Util::DoubleVector3
 /// <li>Name        : "IStepVector"
-/// <li>Description : The step vector corresponded to dimension named 'I'
+/// <li>Description : The step vector corresponding to dimension named 'I'
 /// </ul>
 #define KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_I_STEPVECTOR         "IStepVector"
 
@@ -144,7 +146,7 @@
 /// <ul>
 /// <li>Data type   : Hue::Util::DoubleVector3
 /// <li>Name        : "JStepVector"
-/// <li>Description : The step vector corresponded to dimension named 'J'
+/// <li>Description : The step vector corresponding to dimension named 'J'
 /// </ul>
 #define KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_J_STEPVECTOR         "JStepVector"
 
@@ -152,48 +154,58 @@
 /// <ul>
 /// <li>Data type   : Hue::Util::DoubleVector3
 /// <li>Name        : "KStepVector"
-/// <li>Description : The step vector corresponded to dimension named 'K'
+/// <li>Description : The step vector corresponding to dimension named 'K'
 /// </ul>
 #define KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR         "KStepVector"
 
 // Dimension names //////////////////////////////////////////////////////////
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE
-/// String representing the name of dimension corresponded to the inline spacing.
+/// String representing the name of the axis corresponding to the inline spacing.
 #define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE      "Inline"
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE
-/// String representing the name of dimension corresponded to the crossline spacing.
+/// String representing the name of the axis corresponding to the crossline spacing.
 #define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE   "Crossline"
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_TIME
-/// String representing the name of dimension corresponded to the negative z direction.
+/// String representing the name of the axis corresponding to the negative z direction.
 #define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_TIME        "Time"
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_DEPTH
-/// String representing the name of dimension corresponded to the negative z direction.
+/// String representing the name of the axis corresponding to the negative z direction.
 #define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_DEPTH       "Depth"
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE
-/// String representing the name of dimension corresponded to the negative z direction.
+/// String representing the name of the axis corresponding to the negative z direction.
 #define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE      "Sample"
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_I
-/// String representing the name of dimension corresponded to the direction represented 
+/// String representing the name of the axis corresponding to the direction represented 
 /// by step vector in I direction (\ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_I_STEPVECTOR)
 #define KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_I              "I"
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_J
-/// String representing the name of dimension corresponded to the direction represented 
+/// String representing the name of the axis corresponding to the direction represented 
 /// by step vector in J direction (\ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_J_STEPVECTOR)
 #define KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_J              "J"
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_K
-/// String representing the name of dimension corresponded to the direction represented 
+/// String representing the name of the axis corresponding to the direction represented 
 /// by step vector in K direction (\ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR)
 #define KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_K              "K"
 
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_X
+/// String representing the name of the axis mapped directly to the X coordinate
+#define KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_X              "X"
 
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Y
+/// String representing the name of the axis mapped directly to the Y coordinate
+#define KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Y              "Y"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Z
+/// String representing the name of the axis mapped directly to the Z coordinate
+#define KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Z              "Z"
 
 // Trace coordinate metadata ////////////////////////////////////////////////
 /*! \def KNOWNMETADATA_TRACECOORDINATES
@@ -318,5 +330,256 @@ to inform the user about whether the VDS was imported from some particular file.
 /// </ul>
 
 #define KNOWNMETADATA_IMPORTINFORMATION_IMPORTTIMESTAMP "ImportTimeStamp"
+
+// SEG-Y metadata ///////////////////////////////////////////////////////////
+/*! \def KNOWNMETADATA_CATEGORY_SEGY
+This metadata is intended to capture information necessary required to re-create the original SEG-Y file.
+*/
+#define KNOWNMETADATA_CATEGORY_SEGY "SEGY"
+
+/// \def KNOWNMETADATA_SEGY_TEXTHEADER
+/// <ul>
+/// <li>Data type   : BLOB
+/// <li>Name        : "TextHeader"
+/// <li>Description : The original text header of the SEG-Y file
+/// </ul>
+
+#define KNOWNMETADATA_SEGY_TEXTHEADER "TextHeader"
+
+/// \def KNOWNMETADATA_SEGY_BINARYHEADER
+/// <ul>
+/// <li>Data type   : BLOB
+/// <li>Name        : "BinaryHeader"
+/// <li>Description : The original binary header of the SEG-Y file
+/// </ul>
+
+#define KNOWNMETADATA_SEGY_BINARYHEADER "BinaryHeader"
+
+/// \def KNOWNMETADATA_SEGY_ENDIANNESS
+/// <ul>
+/// <li>Data type   : Int
+/// <li>Name        : "Endianness"
+/// <li>Description : The endianness of the SEG-Y file (0=BigEndian)(1=LittleEndian)
+/// </ul>
+
+#define KNOWNMETADATA_SEGY_ENDIANNESS "Endianness"
+
+/// \def KNOWNMETADATA_SEGY_DATAENDIANNESS
+/// <ul>
+/// <li>Data type   : Int
+/// <li>Name        : "DataEndianness"
+/// <li>Description : The endianness of the data samples in the SEG-Y file if different from the header endianness. This is a non-standard feature, but some SEG-Y files use it. (0=BigEndian)(1=LittleEndian)
+/// </ul>
+
+#define KNOWNMETADATA_SEGY_DATAENDIANNESS "DataEndianness"
+
+/// \def KNOWNMETADATA_SEGY_DATASAMPLEFORMATCODE
+/// <ul>
+/// <li>Data type   : Int
+/// <li>Name        : "DataSampleFormatCode"
+/// <li>Description : The data sample format code of the data samples imported from the SEG-Y file. (0=Unknown)(1=IBMFloat)(2=Int32)(3=Int16)(4=FixedPoint)(5=IEEEFloat)(6=IEEEDouble)(7=Int24)(8=Int8)(9=Int64)(10=UInt32)(11=UInt16)(12=UInt64)(15=UInt24)(16=UInt8)
+/// </ul>
+
+#define KNOWNMETADATA_SEGY_DATASAMPLEFORMATCODE "DataSampleFormatCode"
+
+/// \def KNOWNMETADATA_SEGY_PRIMARYKEY
+/// <ul>
+/// <li>Data type   : String
+/// <li>Name        : "PrimaryKey"
+/// <li>Description : The primary key (i.e. sort order) of the original SEG-Y file. This is expected to be the same as the name of one of the dimensions of the VDS. VDSs are expected to transpose crossline-oriented seismic to use the standard (Sample, Crossline, Inline) dimensions, so in order to export the file in the original order we need to know which dimension to loop over.
+/// </ul>
+
+#define KNOWNMETADATA_SEGY_PRIMARYKEY "PrimaryKey"
+
+namespace OpenVDS
+{
+
+class KnownMetadata
+{
+public:
+  /// <summary>
+  /// The metadata in the survey coordinate system category contains either information used to transform from an Inline/Crossline annotation system to XY (Easting, Northing) coordinates
+  /// or information used to transform from an I/J/K annotation system to XYZ coordinates.
+  /// <para>
+  /// In the Inline/Crossline system, the step vector for dimension 0 (Which can be named either Time, Depth or Sample) is always negative Z direction. The origin is the position of (inline, crossline) (0, 0), the inline spacing is the (X, Y) step
+  /// when the inline position increments by 1 and the crossline spacing is the (X, Y) step when the crossline position increments by 1.
+  /// </para>
+  /// <para>
+  /// In the I/J/K system, all three dimensions have 3D step vectors allowing for any affine tranform to XYZ coordinates. The IJK origin is the position of (I, J, K) (0, 0, 0), the I step vector is the (X, Y, Z) step when the I position increments by 1,
+  /// the J step vector is the (X, Y, Z) step when the J position increments by 1 and the K step vector is the (X, Y, Z) step when the K position increments by 1.
+  /// </para>
+  /// <para>
+  /// It is also possible to define the X, Y, Z coordinates directly by using X/Y/Z as the axis names.
+  /// </para>
+  /// <para>
+  /// Any dimensions which have names that are not recognized or are missing the Spacing metadata will be given a unit vector
+  /// perpendicular to the recognized dimensions.
+  /// </para>
+  /// </summary>
+  static const char *CategorySurveyCoordinateSystem() { return KNOWNMETADATA_SURVEYCOORDINATESYSTEM; }
+  /// <summary>
+  /// The XY position of the origin of the annotation (Inline/Crossline/Time) coordinate system.
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemOrigin() { return MetadataKey(MetadataType::DoubleVector2, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_ORIGIN); }
+  /// <summary>
+  /// The XY spacing between units in the Inline annotation dimension.
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemInlineSpacing() { return MetadataKey(MetadataType::DoubleVector2, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_INLINESPACING); }
+  /// <summary>
+  /// The XY spacing between units in the Crossline annotation dimension.
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemCrosslineSpacing() { return MetadataKey(MetadataType::DoubleVector2, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_CROSSLINESPACING); }
+  /// <summary>
+  /// The XYZ position of the origin of the annotation (I/J/K) coordinate system.
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemIJKOrigin() { return MetadataKey(MetadataType::DoubleVector3, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_ORIGIN3D); }
+  /// <summary>
+  /// The step vector corresponding to dimension named 'I'
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemIStepVector() { return MetadataKey(MetadataType::DoubleVector3, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_I_STEPVECTOR); }
+  /// <summary>
+  /// The step vector corresponding to dimension named 'J'
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemJStepVector() { return MetadataKey(MetadataType::DoubleVector3, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_J_STEPVECTOR); }
+  /// <summary>
+  /// The step vector corresponding to dimension named 'K'
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemKStepVector() { return MetadataKey(MetadataType::DoubleVector3, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR); }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the inline spacing.
+  /// </summary>
+  static const char *AxisNameInline() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the crossline spacing.
+  /// </summary>
+  static const char *AxisNameCrossline() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the negative z direction.
+  /// </summary>
+  static const char *AxisNameTime() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_TIME; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the negative z direction.
+  /// </summary>
+  static const char *AxisNameDepth() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_DEPTH; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the negative z direction.
+  /// </summary>
+  static const char *AxisNameSample() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the I step vector (\ref SurveyCoordinateSystemIStep)
+  /// </summary>
+  static const char *AxisNameI() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_I; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the J step vector (\ref SurveyCoordinateSystemIStep)
+  /// </summary>
+  static const char *AxisNameJ() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_J; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the K step vector (\ref SurveyCoordinateSystemKStep)
+  /// </summary>
+  static const char *AxisNameK() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_K; }
+  /// <summary>
+  /// String representing the name of the axis that maps directly to the X coordinate in the XYZ coordinate system
+  /// </summary>
+  static const char *AxisNameX() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_X; }
+  /// <summary>
+  /// String representing the name of the axis that maps directly to the Y coordinate in the XYZ coordinate system
+  /// </summary>
+  static const char *AxisNameY() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Y; }
+  /// <summary>
+  /// String representing the name of the axis that maps directly to the Z coordinate in the XYZ coordinate system
+  /// </summary>
+  static const char *AxisNameZ() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Z; }
+  /// <summary>
+  /// The metadata in the TraceCoordinates category is used for positioning of 2D seismic. It relates to the 'Trace' dimension of the VDS where the annotation coordinate is used to look up in the arrays in this category.
+  /// This allows using the same positions with subsetted and interpolated or decimated data.
+  /// </summary>
+  static const char *CategoryTraceCoordinates() { return KNOWNMETADATA_TRACECOORDINATES; }
+  /// <summary>
+  /// An array of DoubleVector2 defining the position for each trace, where (0, 0) is treated as an undefined position.
+  /// </summary>
+  static MetadataKey TracePositions() { return MetadataKey(MetadataType::BLOB, KNOWNMETADATA_TRACECOORDINATES, KNOWNMETADATA_TRACEPOSITIONS); }
+  /// <summary>
+  /// An array of doubles defining the offset for each trace from the vertical start position in the Time/Depth/Sample dimension of the VDS
+  /// </summary>
+  static MetadataKey TraceVerticalOffsets() { return MetadataKey(MetadataType::BLOB, KNOWNMETADATA_TRACECOORDINATES, KNOWNMETADATA_TRACEVERTICALOFFSETS); }
+  /// <summary>
+  /// An array of scalar int32 values defining the energy source point number for each trace.
+  /// </summary>
+  static MetadataKey EnergySourcePointNumbers() { return MetadataKey(MetadataType::BLOB, KNOWNMETADATA_TRACECOORDINATES, KNOWNMETADATA_ENERGYSOURCEPOINTNUMBERS); }
+  /// <summary>
+  /// An array of scalar int32 values defining the ensemble number for each trace.
+  /// </summary>
+  static MetadataKey EnsembleNumbers() { return MetadataKey(MetadataType::BLOB, KNOWNMETADATA_TRACECOORDINATES, KNOWNMETADATA_ENSEMBLENUMBERS); }
+
+  /// <summary>
+  /// The metadata in the WrittenRegion category is used to indicate which area is written in a sparsely populated VDS.
+  /// The guarantee is that values outside the written area will be NoValue if UseNoValue is true, and ValueRange.Min if UseNoValue is false.
+  /// </summary>
+  static const char *CategoryWrittenRegion() { return KNOWNMETADATA_CATEGORY_WRITTENREGION; }
+  /// <summary>
+  /// An array of scalar int32 values defining the 6D min and max (NDBox) of the written region
+  /// </summary>
+  static MetadataKey WrittenRegion() { return MetadataKey(MetadataType::BLOB, KNOWNMETADATA_CATEGORY_WRITTENREGION, KNOWNMETADATA_WRITTENREGION); }
+
+  /// <summary>
+  /// The metadata in the ImportInformation category contains information about the initial import to VDS. That is,
+  /// information about the original file (file name, last modification time etc.) and when/how it
+  /// was imported. The intended use is e.g. to give a default file name for an export operation or
+  /// to inform the user about whether the VDS was imported from some particular file.
+  /// </summary>
+  static const char *CategoryImportInformation() { return KNOWNMETADATA_CATEGORY_IMPORTINFORMATION; }
+  /// <summary>
+  /// An informative name that can be displayed to a user but is not necessarily a valid file name.
+  /// </summary>
+  static MetadataKey ImportInformationDisplayName() { return MetadataKey(MetadataType::String, KNOWNMETADATA_CATEGORY_IMPORTINFORMATION, KNOWNMETADATA_IMPORTINFORMATION_DISPLAYNAME); }
+  /// <summary>
+  /// The original input file name. In cases where the input is not a simple file this should still be a valid file name that can be used as the default for a subsequent export operation.
+  /// </summary>
+  static MetadataKey ImportInformationInputFileName() { return MetadataKey(MetadataType::String, KNOWNMETADATA_CATEGORY_IMPORTINFORMATION, KNOWNMETADATA_IMPORTINFORMATION_INPUTFILENAME); }
+  /// <summary>
+  /// The total size (in bytes) of the input file(s), which is an integer stored as a double because there is no 64-bit integer metadata type.
+  /// </summary>
+  static MetadataKey ImportInformationInputFileSize() { return MetadataKey(MetadataType::Double, KNOWNMETADATA_CATEGORY_IMPORTINFORMATION, KNOWNMETADATA_IMPORTINFORMATION_INPUTFILESIZE); }
+  /// <summary>
+  /// The last modified time of the input in ISO8601 format.
+  /// </summary>
+  static MetadataKey ImportInformationInputTimeStamp() { return MetadataKey(MetadataType::String, KNOWNMETADATA_CATEGORY_IMPORTINFORMATION, KNOWNMETADATA_IMPORTINFORMATION_INPUTTIMESTAMP); }
+  /// <summary>
+  /// The time in ISO8601 format when the data was imported to VDS.
+  /// </summary>
+  static MetadataKey ImportInformationImportTimeStamp() { return MetadataKey(MetadataType::String, KNOWNMETADATA_CATEGORY_IMPORTINFORMATION, KNOWNMETADATA_IMPORTINFORMATION_IMPORTTIMESTAMP); }
+
+  /// <summary>
+  /// The metadata in the SEGY category is intended to capture information required to re-create the original SEG-Y file. It is only present if the VDS was imported from a SEG-Y file.
+  /// </summary>
+  static const char *CategorySEGY() { return KNOWNMETADATA_CATEGORY_SEGY; }
+  /// <summary>
+  /// The original text header of the SEG-Y file
+  /// </summary>
+  static MetadataKey SEGYTextHeader() { return MetadataKey(MetadataType::BLOB, KNOWNMETADATA_CATEGORY_SEGY, KNOWNMETADATA_SEGY_TEXTHEADER); }
+  /// <summary>
+  /// The original binary header of the SEG-Y file
+  /// </summary>
+  static MetadataKey SEGYBinaryHeader() { return MetadataKey(MetadataType::BLOB, KNOWNMETADATA_CATEGORY_SEGY, KNOWNMETADATA_SEGY_BINARYHEADER); }
+  /// <summary>
+  /// The endianness of the SEG-Y file (0=BigEndian)(1=LittleEndian)
+  /// </summary>
+  static MetadataKey SEGYEndianness() { return MetadataKey(MetadataType::Int, KNOWNMETADATA_CATEGORY_SEGY, KNOWNMETADATA_SEGY_ENDIANNESS); }
+  /// <summary>
+  /// The endianness of the data samples in the SEG-Y file if different from the header endianness. This is a non-standard feature, but some SEG-Y files use it. (0=BigEndian)(1=LittleEndian)
+  /// </summary>
+  static MetadataKey SEGYDataEndianness() { return MetadataKey(MetadataType::Int, KNOWNMETADATA_CATEGORY_SEGY, KNOWNMETADATA_SEGY_DATAENDIANNESS); }
+  /// <summary>
+  /// The data sample format code of the data samples imported from the SEG-Y file. (0=Unknown)(1=IBMFloat)(2=Int32)(3=Int16)(4=FixedPoint)(5=IEEEFloat)(6=IEEEDouble)(7=Int24)(8=Int8)(9=Int64)(10=UInt32)(11=UInt16)(12=UInt64)(15=UInt24)(16=UInt8)
+  /// </summary>
+  static MetadataKey SEGYDataSampleFormatCode() { return MetadataKey(MetadataType::Int, KNOWNMETADATA_CATEGORY_SEGY, KNOWNMETADATA_SEGY_DATASAMPLEFORMATCODE); }
+  /// <summary>
+  /// The primary key (i.e. sort order) of the original SEG-Y file. VDSs are expected to transpose crossline-oriented seismic to use the standard (Sample, Crossline, Inline) axis triple, so in order to export the file in the original order we need to know which dimension to loop over.
+  /// </summary>
+  static MetadataKey SEGYPrimaryKey() { return MetadataKey(MetadataType::String, KNOWNMETADATA_CATEGORY_SEGY, KNOWNMETADATA_SEGY_PRIMARYKEY); }
+};
+
+} // end namespace OpenVDS
+
 
 #endif // !KNOWNMETADATA_H

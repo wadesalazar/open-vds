@@ -24,6 +24,7 @@
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/VolumeData.h>
 #include <OpenVDS/VolumeDataAccess.h>
+#include <OpenVDS/KnownMetadata.h>
 
 #include "generated_docstrings.h"
 
