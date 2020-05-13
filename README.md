@@ -21,7 +21,7 @@ In order to implement these components there are a number of internal components
 
 Licensed under [**Apache 2.0**](https://gitlab.opengroup.org/osdu/open-vds/blob/master/LICENSE)
 
-Latest build of the [**OpenVDS-Documentation**](http://osdu.pages.community.opengroup.org/open-vds)
+Latest build of the [**OpenVDS-Documentation**](http://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds)
 
 ### Building
 By default OpenVDS builds the Python 3 bindings. To install the required dependencies go into ${OpenVDSFolder}/python folder and run:
