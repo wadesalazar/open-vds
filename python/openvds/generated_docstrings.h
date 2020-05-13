@@ -494,51 +494,53 @@ static const char *__doc_OpenVDS_InterpolationMethod_Nearest = R"doc(< Snap to t
 
 static const char *__doc_OpenVDS_InterpolationMethod_Triangular = R"doc(< Triangular interpolation used to interpolate heightmap data)doc";
 
-static const char *__doc_OpenVDS_KnownMetadata = R"doc()doc";
+static const char *__doc_OpenVDS_KnownAxisNames = R"doc()doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameCrossline =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameCrossline =
 R"doc(String representing the name of the axis corresponding to the
 crossline spacing.)doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameDepth =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameDepth =
 R"doc(String representing the name of the axis corresponding to the negative
 z direction.)doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameI =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameI =
 R"doc(String representing the name of the axis corresponding to the I step
 vector (SurveyCoordinateSystemIStep))doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameInline =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameInline =
 R"doc(String representing the name of the axis corresponding to the inline
 spacing.)doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameJ =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameJ =
 R"doc(String representing the name of the axis corresponding to the J step
 vector (SurveyCoordinateSystemIStep))doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameK =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameK =
 R"doc(String representing the name of the axis corresponding to the K step
 vector (SurveyCoordinateSystemKStep))doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameSample =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameSample =
 R"doc(String representing the name of the axis corresponding to the negative
 z direction.)doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameTime =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameTime =
 R"doc(String representing the name of the axis corresponding to the negative
 z direction.)doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameX =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameX =
 R"doc(String representing the name of the axis that maps directly to the X
 coordinate in the XYZ coordinate system)doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameY =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameY =
 R"doc(String representing the name of the axis that maps directly to the Y
 coordinate in the XYZ coordinate system)doc";
 
-static const char *__doc_OpenVDS_KnownMetadata_AxisNameZ =
+static const char *__doc_OpenVDS_KnownAxisNames_AxisNameZ =
 R"doc(String representing the name of the axis that maps directly to the Z
 coordinate in the XYZ coordinate system)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata = R"doc()doc";
 
 static const char *__doc_OpenVDS_KnownMetadata_CategoryImportInformation =
 R"doc(The metadata in the ImportInformation category contains information

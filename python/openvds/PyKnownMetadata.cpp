@@ -23,6 +23,10 @@ void
 PyKnownMetadata::initModule(py::module& m)
 {
 //AUTOGEN-BEGIN
+  // KnownAxisNames
+  py::class_<KnownAxisNames, std::unique_ptr<KnownAxisNames>> 
+    KnownAxisNames_(m,"KnownAxisNames", OPENVDS_DOCSTRING(KnownAxisNames));
+
   // KnownMetadata
   py::class_<KnownMetadata, std::unique_ptr<KnownMetadata>> 
     KnownMetadata_(m,"KnownMetadata", OPENVDS_DOCSTRING(KnownMetadata));
@@ -35,17 +39,6 @@ PyKnownMetadata::initModule(py::module& m)
   KnownMetadata_.def_static("surveyCoordinateSystemIStepVector", static_cast<native::MetadataKey(*)()>(&KnownMetadata::SurveyCoordinateSystemIStepVector), OPENVDS_DOCSTRING(KnownMetadata_SurveyCoordinateSystemIStepVector));
   KnownMetadata_.def_static("surveyCoordinateSystemJStepVector", static_cast<native::MetadataKey(*)()>(&KnownMetadata::SurveyCoordinateSystemJStepVector), OPENVDS_DOCSTRING(KnownMetadata_SurveyCoordinateSystemJStepVector));
   KnownMetadata_.def_static("surveyCoordinateSystemKStepVector", static_cast<native::MetadataKey(*)()>(&KnownMetadata::SurveyCoordinateSystemKStepVector), OPENVDS_DOCSTRING(KnownMetadata_SurveyCoordinateSystemKStepVector));
-  KnownMetadata_.def_static("axisNameInline"              , static_cast<const char *(*)()>(&KnownMetadata::AxisNameInline), OPENVDS_DOCSTRING(KnownMetadata_AxisNameInline));
-  KnownMetadata_.def_static("axisNameCrossline"           , static_cast<const char *(*)()>(&KnownMetadata::AxisNameCrossline), OPENVDS_DOCSTRING(KnownMetadata_AxisNameCrossline));
-  KnownMetadata_.def_static("axisNameTime"                , static_cast<const char *(*)()>(&KnownMetadata::AxisNameTime), OPENVDS_DOCSTRING(KnownMetadata_AxisNameTime));
-  KnownMetadata_.def_static("axisNameDepth"               , static_cast<const char *(*)()>(&KnownMetadata::AxisNameDepth), OPENVDS_DOCSTRING(KnownMetadata_AxisNameDepth));
-  KnownMetadata_.def_static("axisNameSample"              , static_cast<const char *(*)()>(&KnownMetadata::AxisNameSample), OPENVDS_DOCSTRING(KnownMetadata_AxisNameSample));
-  KnownMetadata_.def_static("axisNameI"                   , static_cast<const char *(*)()>(&KnownMetadata::AxisNameI), OPENVDS_DOCSTRING(KnownMetadata_AxisNameI));
-  KnownMetadata_.def_static("axisNameJ"                   , static_cast<const char *(*)()>(&KnownMetadata::AxisNameJ), OPENVDS_DOCSTRING(KnownMetadata_AxisNameJ));
-  KnownMetadata_.def_static("axisNameK"                   , static_cast<const char *(*)()>(&KnownMetadata::AxisNameK), OPENVDS_DOCSTRING(KnownMetadata_AxisNameK));
-  KnownMetadata_.def_static("axisNameX"                   , static_cast<const char *(*)()>(&KnownMetadata::AxisNameX), OPENVDS_DOCSTRING(KnownMetadata_AxisNameX));
-  KnownMetadata_.def_static("axisNameY"                   , static_cast<const char *(*)()>(&KnownMetadata::AxisNameY), OPENVDS_DOCSTRING(KnownMetadata_AxisNameY));
-  KnownMetadata_.def_static("axisNameZ"                   , static_cast<const char *(*)()>(&KnownMetadata::AxisNameZ), OPENVDS_DOCSTRING(KnownMetadata_AxisNameZ));
   KnownMetadata_.def_static("categoryTraceCoordinates"    , static_cast<const char *(*)()>(&KnownMetadata::CategoryTraceCoordinates), OPENVDS_DOCSTRING(KnownMetadata_CategoryTraceCoordinates));
   KnownMetadata_.def_static("tracePositions"              , static_cast<native::MetadataKey(*)()>(&KnownMetadata::TracePositions), OPENVDS_DOCSTRING(KnownMetadata_TracePositions));
   KnownMetadata_.def_static("traceVerticalOffsets"        , static_cast<native::MetadataKey(*)()>(&KnownMetadata::TraceVerticalOffsets), OPENVDS_DOCSTRING(KnownMetadata_TraceVerticalOffsets));

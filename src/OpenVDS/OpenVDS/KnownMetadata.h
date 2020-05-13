@@ -394,6 +394,54 @@ This metadata is intended to capture information necessary required to re-create
 namespace OpenVDS
 {
 
+class KnownAxisNames
+{
+  /// <summary>
+  /// String representing the name of the axis corresponding to the inline spacing.
+  /// </summary>
+  static const char *AxisNameInline() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the crossline spacing.
+  /// </summary>
+  static const char *AxisNameCrossline() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the negative z direction.
+  /// </summary>
+  static const char *AxisNameTime() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_TIME; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the negative z direction.
+  /// </summary>
+  static const char *AxisNameDepth() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_DEPTH; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the negative z direction.
+  /// </summary>
+  static const char *AxisNameSample() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the I step vector (\ref SurveyCoordinateSystemIStep)
+  /// </summary>
+  static const char *AxisNameI() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_I; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the J step vector (\ref SurveyCoordinateSystemIStep)
+  /// </summary>
+  static const char *AxisNameJ() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_J; }
+  /// <summary>
+  /// String representing the name of the axis corresponding to the K step vector (\ref SurveyCoordinateSystemKStep)
+  /// </summary>
+  static const char *AxisNameK() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_K; }
+  /// <summary>
+  /// String representing the name of the axis that maps directly to the X coordinate in the XYZ coordinate system
+  /// </summary>
+  static const char *AxisNameX() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_X; }
+  /// <summary>
+  /// String representing the name of the axis that maps directly to the Y coordinate in the XYZ coordinate system
+  /// </summary>
+  static const char *AxisNameY() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Y; }
+  /// <summary>
+  /// String representing the name of the axis that maps directly to the Z coordinate in the XYZ coordinate system
+  /// </summary>
+  static const char *AxisNameZ() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Z; }
+};
+
 class KnownMetadata
 {
 public:
@@ -445,50 +493,6 @@ public:
   /// The step vector corresponding to dimension named 'K'
   /// </summary>
   static MetadataKey SurveyCoordinateSystemKStepVector() { return MetadataKey(MetadataType::DoubleVector3, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR); }
-  /// <summary>
-  /// String representing the name of the axis corresponding to the inline spacing.
-  /// </summary>
-  static const char *AxisNameInline() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE; }
-  /// <summary>
-  /// String representing the name of the axis corresponding to the crossline spacing.
-  /// </summary>
-  static const char *AxisNameCrossline() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE; }
-  /// <summary>
-  /// String representing the name of the axis corresponding to the negative z direction.
-  /// </summary>
-  static const char *AxisNameTime() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_TIME; }
-  /// <summary>
-  /// String representing the name of the axis corresponding to the negative z direction.
-  /// </summary>
-  static const char *AxisNameDepth() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_DEPTH; }
-  /// <summary>
-  /// String representing the name of the axis corresponding to the negative z direction.
-  /// </summary>
-  static const char *AxisNameSample() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE; }
-  /// <summary>
-  /// String representing the name of the axis corresponding to the I step vector (\ref SurveyCoordinateSystemIStep)
-  /// </summary>
-  static const char *AxisNameI() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_I; }
-  /// <summary>
-  /// String representing the name of the axis corresponding to the J step vector (\ref SurveyCoordinateSystemIStep)
-  /// </summary>
-  static const char *AxisNameJ() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_J; }
-  /// <summary>
-  /// String representing the name of the axis corresponding to the K step vector (\ref SurveyCoordinateSystemKStep)
-  /// </summary>
-  static const char *AxisNameK() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_K; }
-  /// <summary>
-  /// String representing the name of the axis that maps directly to the X coordinate in the XYZ coordinate system
-  /// </summary>
-  static const char *AxisNameX() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_X; }
-  /// <summary>
-  /// String representing the name of the axis that maps directly to the Y coordinate in the XYZ coordinate system
-  /// </summary>
-  static const char *AxisNameY() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Y; }
-  /// <summary>
-  /// String representing the name of the axis that maps directly to the Z coordinate in the XYZ coordinate system
-  /// </summary>
-  static const char *AxisNameZ() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Z; }
   /// <summary>
   /// The metadata in the TraceCoordinates category is used for positioning of 2D seismic. It relates to the 'Trace' dimension of the VDS where the annotation coordinate is used to look up in the arrays in this category.
   /// This allows using the same positions with subsetted and interpolated or decimated data.
