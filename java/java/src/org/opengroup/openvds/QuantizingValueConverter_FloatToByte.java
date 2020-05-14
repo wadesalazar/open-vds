@@ -18,7 +18,7 @@
 package org.opengroup.openvds;
 
 /**
- * JNI wrapper for QuantizingValueConverterWithNoValue<uint8_t, float, false>.
+ * JNI wrapper for QuantizingValueConverterWithNoValue&lt;uint8_t, float, false&gt;.
  */
 public class QuantizingValueConverter_FloatToByte extends JniPointer {
 

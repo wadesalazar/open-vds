@@ -465,9 +465,9 @@ extern "C" {
             int i = 0;
             for( MetadataKey key : keys ) {
                 jobject jKey = env->NewObject( keyClass, initMethod,
-                        (jint) key.type,
-                        NewJString( env, key.category ),
-                        NewJString( env, key.name ) );
+                        (jint) key.Type(),
+                        NewJString( env, key.Category() ),
+                        NewJString( env, key.Name() ) );
                 env->SetObjectArrayElement( jKeysArray, i, jKey );
                 ++i;
             }
