@@ -822,12 +822,26 @@ static const char *__doc_OpenVDS_MetadataKeyRange_m_begin = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataKeyRange_m_end = R"doc()doc";
 
-static const char *__doc_OpenVDS_MetadataKey_Category =
+static const char *__doc_OpenVDS_MetadataKey_GetCategory =
 R"doc(Get the category of metadata that this key identifies
 
 Returns:
 --------
     The category of the metadata that this key identifies)doc";
+
+static const char *__doc_OpenVDS_MetadataKey_GetName =
+R"doc(Get the name of metadata that this key identifies
+
+Returns:
+--------
+    The name of the metadata that this key identifies)doc";
+
+static const char *__doc_OpenVDS_MetadataKey_GetType =
+R"doc(Get the type of metadata that this key identifies
+
+Returns:
+--------
+    The type of the metadata that this key identifies)doc";
 
 static const char *__doc_OpenVDS_MetadataKey_MetadataKey = R"doc(Default constructor)doc";
 
@@ -850,20 +864,6 @@ category :
 
 name :
     The name of the metadata that this key identifies)doc";
-
-static const char *__doc_OpenVDS_MetadataKey_Name =
-R"doc(Get the name of metadata that this key identifies
-
-Returns:
---------
-    The name of the metadata that this key identifies)doc";
-
-static const char *__doc_OpenVDS_MetadataKey_Type =
-R"doc(Get the type of metadata that this key identifies
-
-Returns:
---------
-    The type of the metadata that this key identifies)doc";
 
 static const char *__doc_OpenVDS_MetadataKey_m_category = R"doc()doc";
 

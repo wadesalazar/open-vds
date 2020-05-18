@@ -102,49 +102,49 @@ Json::Value getJsonFromVector(const OpenVDS::Vector<T, N> &vec)
 Json::Value getJsonFromMetadata(const OpenVDS::MetadataKey &key, OpenVDS::VolumeDataLayout *layout)
 {
   Json::Value value;
-  value["category"] = key.Category();
-  value["name"] = key.Name();
-  value["type"] = MetadataTypeToString(key.Type());
-  switch (key.Type())
+  value["category"] = key.GetCategory();
+  value["name"] = key.GetName();
+  value["type"] = MetadataTypeToString(key.GetType());
+  switch (key.GetType())
   {
   case OpenVDS::MetadataType::Int:
-    value["value"] = layout->GetMetadataInt(key.Category(), key.Name());
+    value["value"] = layout->GetMetadataInt(key.GetCategory(), key.GetName());
     break;
   case OpenVDS::MetadataType::IntVector2:
-    value["value"] = getJsonFromVector(layout->GetMetadataIntVector2(key.Category(), key.Name()));
+    value["value"] = getJsonFromVector(layout->GetMetadataIntVector2(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::IntVector3:
-    value["value"] = getJsonFromVector(layout->GetMetadataIntVector3(key.Category(), key.Name()));
+    value["value"] = getJsonFromVector(layout->GetMetadataIntVector3(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::IntVector4:
-    value["value"] = getJsonFromVector(layout->GetMetadataIntVector4(key.Category(), key.Name()));
+    value["value"] = getJsonFromVector(layout->GetMetadataIntVector4(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::Float:
-    value["value"] = layout->GetMetadataFloat(key.Category(), key.Name());
+    value["value"] = layout->GetMetadataFloat(key.GetCategory(), key.GetName());
     break;
   case OpenVDS::MetadataType::FloatVector2:
-    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector2(key.Category(), key.Name()));
+    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector2(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::FloatVector3:
-    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector3(key.Category(), key.Name()));
+    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector3(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::FloatVector4:
-    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector4(key.Category(), key.Name()));
+    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector4(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::Double:
-    value["value"] = layout->GetMetadataDouble(key.Category(), key.Name());
+    value["value"] = layout->GetMetadataDouble(key.GetCategory(), key.GetName());
     break;
   case OpenVDS::MetadataType::DoubleVector2:
-    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector2(key.Category(), key.Name()));
+    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector2(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::DoubleVector3:
-    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector3(key.Category(), key.Name()));
+    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector3(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::DoubleVector4:
-    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector4(key.Category(), key.Name()));
+    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector4(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::String:
-    value["value"] = layout->GetMetadataString(key.Category(), key.Name());
+    value["value"] = layout->GetMetadataString(key.GetCategory(), key.GetName());
     break;
   default:
     break;
@@ -315,9 +315,9 @@ int main(int argc, char **argv)
     for (auto &key : layout->GetMetadataKeys())
     {
       Json::Value jsonKey;
-      jsonKey["type"] = MetadataTypeToString(key.Type());
-      jsonKey["category"] = key.Category();
-      jsonKey["name"] = key.Name();
+      jsonKey["type"] = MetadataTypeToString(key.GetType());
+      jsonKey["category"] = key.GetCategory();
+      jsonKey["name"] = key.GetName();
       metaKeysInfo.append(jsonKey);
     }
     root["metaKeysInfo"] = metaKeysInfo;
@@ -329,11 +329,11 @@ int main(int argc, char **argv)
     std::vector<OpenVDS::MetadataKey> to_print_blobs;
     for (auto &key : layout->GetMetadataKeys())
     {
-      if (metadataPrintName.size() && metadataPrintName != key.Name())
+      if (metadataPrintName.size() && metadataPrintName != key.GetName())
         continue;
-      if (metadataPrintCategory.size() && metadataPrintCategory != key.Category())
+      if (metadataPrintCategory.size() && metadataPrintCategory != key.GetCategory())
         continue;
-      if (key.Type() == OpenVDS::MetadataType::BLOB)
+      if (key.GetType() == OpenVDS::MetadataType::BLOB)
         to_print_blobs.push_back(key);
       else
         to_print.push_back(key);
@@ -345,7 +345,7 @@ int main(int argc, char **argv)
       {
         auto &key = to_print_blobs.front();
         std::vector<uint8_t> vector;
-        layout->GetMetadataBLOB(key.Category(), key.Name(), vector);
+        layout->GetMetadataBLOB(key.GetCategory(), key.GetName(), vector);
         bool decodeEBCDIC = false;
         if (metadataAutoDecodeEBCDIC)
         {

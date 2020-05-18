@@ -230,9 +230,12 @@ PyMetadata::initModule(py::module& m)
 
   MetadataKey_.def(py::init<                              >(), OPENVDS_DOCSTRING(MetadataKey_MetadataKey));
   MetadataKey_.def(py::init<native::MetadataType, const char *, const char *>(), py::arg("type"), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataKey_MetadataKey_2));
-  MetadataKey_.def("type"                        , static_cast<native::MetadataType(MetadataKey::*)() const>(&MetadataKey::Type), OPENVDS_DOCSTRING(MetadataKey_Type));
-  MetadataKey_.def("category"                    , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::Category), OPENVDS_DOCSTRING(MetadataKey_Category));
-  MetadataKey_.def("name"                        , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::Name), OPENVDS_DOCSTRING(MetadataKey_Name));
+  MetadataKey_.def("getType"                     , static_cast<native::MetadataType(MetadataKey::*)() const>(&MetadataKey::GetType), OPENVDS_DOCSTRING(MetadataKey_GetType));
+  MetadataKey_.def_property_readonly("type", &MetadataKey::GetType, OPENVDS_DOCSTRING(MetadataKey_GetType));
+  MetadataKey_.def("getCategory"                 , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::GetCategory), OPENVDS_DOCSTRING(MetadataKey_GetCategory));
+  MetadataKey_.def_property_readonly("category", &MetadataKey::GetCategory, OPENVDS_DOCSTRING(MetadataKey_GetCategory));
+  MetadataKey_.def("getName"                     , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::GetName), OPENVDS_DOCSTRING(MetadataKey_GetName));
+  MetadataKey_.def_property_readonly("name", &MetadataKey::GetName, OPENVDS_DOCSTRING(MetadataKey_GetName));
   MetadataKey_.def(py::self == py::self);
   MetadataKey_.def(py::self != py::self);
 
@@ -362,7 +365,7 @@ PyMetadata::initModule(py::module& m)
 
   MetadataReadAccess_.def("getMetadata", [](MetadataReadAccess* self, native::MetadataKey const& key)
     {
-      return GetMetadata(self, key.Category(), key.Name(), key.Type());
+      return GetMetadata(self, key.GetCategory(), key.GetName(), key.GetType());
     }, py::arg("key"));
   MetadataReadAccess_.def("getMetadata", [](MetadataReadAccess* self, const char* category, const char* name, native::MetadataType type)
     {
@@ -381,7 +384,7 @@ PyMetadata::initModule(py::module& m)
   MetadataKey_.def("__repr__", [](MetadataKey* self)
     {
       const char* type = "unknown";
-      switch(self->Type())
+      switch(self->GetType())
       {
       case MetadataType::Int          : type = "Int"           ; break;
       case MetadataType::IntVector2   : type = "IntVector2"    ; break;
@@ -398,7 +401,7 @@ PyMetadata::initModule(py::module& m)
       case MetadataType::String       : type = "String"        ; break;
       case MetadataType::BLOB         : type = "BLOB"          ; break;
       }
-      return std::string("MetadataKey(category='") + self->Category() + "', name='" + self->Name() + "', type=MetadataType." + type + ")";
+      return std::string("MetadataKey(category='") + self->GetCategory() + "', name='" + self->GetName() + "', type=MetadataType." + type + ")";
     });
 }
 

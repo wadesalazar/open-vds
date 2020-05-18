@@ -180,7 +180,7 @@ static void copyMetadataToContainer(MetadataContainer &container, const Metadata
   std::unordered_set<std::string> categories;
   for (auto &key : readAccess.GetMetadataKeys())
   {
-    categories.insert(key.Category());
+    categories.insert(key.GetCategory());
   }
   for (auto &category : categories)
   {
