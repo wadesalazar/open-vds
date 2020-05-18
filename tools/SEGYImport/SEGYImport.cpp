@@ -29,7 +29,7 @@
 #include <OpenVDS/VolumeDataAccess.h>
 #include <OpenVDS/Range.h>
 #include <OpenVDS/VolumeDataLayout.h>
-#include <OpenVDS/GlobalMetadataCommon.h>
+#include <OpenVDS/KnownMetadata.h>
 
 #include <mutex>
 #include <cstdlib>
@@ -612,7 +612,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
 }
 
 bool
-createSEGYHeadersMetadata(DataProvider &dataProvider, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error& error)
+createSEGYMetadata(DataProvider &dataProvider, SEGYFileInfo const &fileInfo, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error& error)
 {
   std::vector<uint8_t> textHeader(SEGY::TextualFileHeaderSize);
   std::vector<uint8_t> binaryHeader(SEGY::BinaryFileHeaderSize);
@@ -628,6 +628,8 @@ createSEGYHeadersMetadata(DataProvider &dataProvider, OpenVDS::MetadataContainer
 
   metadataContainer.SetMetadataBLOB("SEGY", "BinaryHeader", binaryHeader);
 
+  metadataContainer.SetMetadataInt("SEGY", "Endianness", int(fileInfo.m_headerEndianness));
+  metadataContainer.SetMetadataInt("SEGY", "DataSampleFormatCode", int(fileInfo.m_dataSampleFormatCode));
   return success;
 }
 
@@ -1453,7 +1455,7 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  createSEGYHeadersMetadata(dataProvider, metadataContainer, error);
+  createSEGYMetadata(dataProvider, fileInfo, metadataContainer, error);
 
   if (error.code != 0)
   {
