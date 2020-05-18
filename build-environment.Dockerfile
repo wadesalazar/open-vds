@@ -1,7 +1,7 @@
 FROM alpine:latest
 
 # Install the various required packages
-RUN apk add python3 python3-dev gcc g++ cmake make ninja git ccache doxygen \
+RUN apk add python3 python3-dev gcc g++ cmake make ninja git ccache doxygen openjdk8 \
             libxml2-dev boost-dev zlib-dev openssl-dev curl-dev libuv-dev \
             util-linux-dev # This package contains the uuid development headers
 
