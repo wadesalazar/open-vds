@@ -22,10 +22,29 @@ package org.opengroup.openvds;
  */
 public class VolumeDataAxisDescriptor {
 
-    public int m_numSamples;
-    public String m_name;
-    public String m_unit;
-    public float m_coordinateMin;
-    public float m_coordinateMax;
+    private int numSamples;
+    private String name;
+    private String unit;
+    private float coordinateMin;
+    private float coordinateMax;
 
+    public int getNumSamples() {
+        return numSamples;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public float getCoordinateMin() {
+        return coordinateMin;
+    }
+
+    public float getCoordinateMax() {
+        return coordinateMax;
+    }
 }

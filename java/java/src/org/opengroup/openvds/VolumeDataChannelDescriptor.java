@@ -106,87 +106,87 @@ public class VolumeDataChannelDescriptor {
         }
     }
 
-    public int m_format;
-    public int m_components;
-    public String m_name;
-    public String m_unit;
-    public float m_valueRangeMin;
-    public float m_valueRangeMax;
-    public long m_mapping;
-    public int m_mappedValueCount;
+    private int format;
+    private int components;
+    private String name;
+    private String unit;
+    private float valueRangeMin;
+    private float valueRangeMax;
+    private long mapping;
+    private int mappedValueCount;
 
     // bits of m_flags
-    public boolean m_isDiscrete;
-    public boolean m_isRenderable;
-    public boolean m_isAllowLossyCompression;
-    public boolean m_isUseZipForLosslessCompression;
+    private boolean isDiscrete;
+    private boolean isRenderable;
+    private boolean isAllowLossyCompression;
+    private boolean isUseZipForLosslessCompression;
 
-    public boolean m_useNoValue;
-    public float m_noValue;
-    public float m_integerScale;
-    public float m_integerOffset;
+    private boolean useNoValue;
+    private float noValue;
+    private float integerScale;
+    private float integerOffset;
 
     public int getFormat() {
-        return m_format;
+        return format;
     }
 
     public int getComponents() {
-        return m_components;
+        return components;
     }
 
     public String getName() {
-        return m_name;
+        return name;
     }
 
     public String getUnit() {
-        return m_unit;
+        return unit;
     }
 
     public float getValueRangeMin() {
-        return m_valueRangeMin;
+        return valueRangeMin;
     }
 
     public float getValueRangeMax() {
-        return m_valueRangeMax;
+        return valueRangeMax;
     }
 
     public long getMapping() {
-        return m_mapping;
+        return mapping;
     }
 
     public int getMappedValueCount() {
-        return m_mappedValueCount;
+        return mappedValueCount;
     }
 
     public boolean isDiscrete() {
-        return m_isDiscrete;
+        return isDiscrete;
     }
 
     public boolean isRenderable() {
-        return m_isRenderable;
+        return isRenderable;
     }
 
     public boolean isAllowLossyCompression() {
-        return m_isAllowLossyCompression;
+        return isAllowLossyCompression;
     }
 
     public boolean isUseZipForLosslessCompression() {
-        return m_isUseZipForLosslessCompression;
+        return isUseZipForLosslessCompression;
     }
 
     public boolean isUseNoValue() {
-        return m_useNoValue;
+        return useNoValue;
     }
 
     public float getNoValue() {
-        return m_noValue;
+        return noValue;
     }
 
     public float getIntegerScale() {
-        return m_integerScale;
+        return integerScale;
     }
 
     public float getIntegerOffset() {
-        return m_integerOffset;
+        return integerOffset;
     }
 }

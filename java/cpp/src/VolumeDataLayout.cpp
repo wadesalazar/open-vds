@@ -144,25 +144,25 @@ extern "C" {
             jclass cls = env->FindClass( "Lorg/opengroup/openvds/VolumeDataChannelDescriptor;" );
             jobject result = env->NewObject( cls, env->GetMethodID( cls, "<init>", "()V" ) );
 
-            env->SetIntField( result, env->GetFieldID( cls, "m_format", "I" ), descr.GetFormat() );
-            env->SetIntField( result, env->GetFieldID( cls, "m_components", "I" ), descr.GetComponents() );
-            env->SetObjectField( result, env->GetFieldID( cls, "m_name", StringClassId ), NewJString( env, descr.GetName() ) );
-            env->SetObjectField( result, env->GetFieldID( cls, "m_unit", StringClassId ), NewJString( env, descr.GetUnit() ) );
-            env->SetFloatField( result, env->GetFieldID( cls, "m_valueRangeMin", "F" ), descr.GetValueRangeMin() );
-            env->SetFloatField( result, env->GetFieldID( cls, "m_valueRangeMax", "F" ), descr.GetValueRangeMax() );
-            env->SetLongField( result, env->GetFieldID( cls, "m_mapping", "J" ), (jlong)descr.GetMapping() );
-            env->SetIntField( result, env->GetFieldID( cls, "m_mappedValueCount", "I" ), descr.GetMappedValueCount() );
+            env->SetIntField( result, env->GetFieldID( cls, "format", "I" ), descr.GetFormat() );
+            env->SetIntField( result, env->GetFieldID( cls, "components", "I" ), descr.GetComponents() );
+            env->SetObjectField( result, env->GetFieldID( cls, "name", StringClassId ), NewJString( env, descr.GetName() ) );
+            env->SetObjectField( result, env->GetFieldID( cls, "unit", StringClassId ), NewJString( env, descr.GetUnit() ) );
+            env->SetFloatField( result, env->GetFieldID( cls, "valueRangeMin", "F" ), descr.GetValueRangeMin() );
+            env->SetFloatField( result, env->GetFieldID( cls, "valueRangeMax", "F" ), descr.GetValueRangeMax() );
+            env->SetLongField( result, env->GetFieldID( cls, "mapping", "J" ), (jlong)descr.GetMapping() );
+            env->SetIntField( result, env->GetFieldID( cls, "mappedValueCount", "I" ), descr.GetMappedValueCount() );
 
             // bits of m_flags
-            env->SetBooleanField( result, env->GetFieldID( cls, "m_isDiscrete", "Z" ), descr.IsDiscrete() );
-            env->SetBooleanField( result, env->GetFieldID( cls, "m_isRenderable", "Z" ), descr.IsRenderable() );
-            env->SetBooleanField( result, env->GetFieldID( cls, "m_isAllowLossyCompression", "Z" ), descr.IsAllowLossyCompression() );
-            env->SetBooleanField( result, env->GetFieldID( cls, "m_isUseZipForLosslessCompression", "Z" ), descr.IsUseZipForLosslessCompression() );
+            env->SetBooleanField( result, env->GetFieldID( cls, "isDiscrete", "Z" ), descr.IsDiscrete() );
+            env->SetBooleanField( result, env->GetFieldID( cls, "isRenderable", "Z" ), descr.IsRenderable() );
+            env->SetBooleanField( result, env->GetFieldID( cls, "isAllowLossyCompression", "Z" ), descr.IsAllowLossyCompression() );
+            env->SetBooleanField( result, env->GetFieldID( cls, "isUseZipForLosslessCompression", "Z" ), descr.IsUseZipForLosslessCompression() );
 
-            env->SetBooleanField( result, env->GetFieldID( cls, "m_useNoValue", "Z" ), descr.IsUseNoValue() );
-            env->SetFloatField( result, env->GetFieldID( cls, "m_noValue", "F" ), descr.GetNoValue() );
-            env->SetFloatField( result, env->GetFieldID( cls, "m_integerScale", "F" ), descr.GetIntegerScale() );
-            env->SetFloatField( result, env->GetFieldID( cls, "m_integerOffset", "F" ), descr.GetIntegerOffset() );
+            env->SetBooleanField( result, env->GetFieldID( cls, "useNoValue", "Z" ), descr.IsUseNoValue() );
+            env->SetFloatField( result, env->GetFieldID( cls, "noValue", "F" ), descr.GetNoValue() );
+            env->SetFloatField( result, env->GetFieldID( cls, "integerScale", "F" ), descr.GetIntegerScale() );
+            env->SetFloatField( result, env->GetFieldID( cls, "integerOffset", "F" ), descr.GetIntegerOffset() );
 
             return result;
         }
@@ -183,11 +183,11 @@ extern "C" {
             jclass cls = env->FindClass( "Lorg/opengroup/openvds/VolumeDataAxisDescriptor;" );
             jobject result = env->NewObject( cls, env->GetMethodID( cls, "<init>", "()V" ) );
 
-            env->SetIntField( result, env->GetFieldID( cls, "m_numSamples", "I" ), descr.GetNumSamples() );
-            env->SetObjectField( result, env->GetFieldID( cls, "m_name", StringClassId ), NewJString( env, descr.GetName() ) );
-            env->SetObjectField( result, env->GetFieldID( cls, "m_unit", StringClassId ), NewJString( env, descr.GetUnit() ) );
-            env->SetFloatField( result, env->GetFieldID( cls, "m_coordinateMin", "F" ), descr.GetCoordinateMin() );
-            env->SetFloatField( result, env->GetFieldID( cls, "m_coordinateMax", "F" ), descr.GetCoordinateMax() );
+            env->SetIntField( result, env->GetFieldID( cls, "numSamples", "I" ), descr.GetNumSamples() );
+            env->SetObjectField( result, env->GetFieldID( cls, "name", StringClassId ), NewJString( env, descr.GetName() ) );
+            env->SetObjectField( result, env->GetFieldID( cls, "unit", StringClassId ), NewJString( env, descr.GetUnit() ) );
+            env->SetFloatField( result, env->GetFieldID( cls, "coordinateMin", "F" ), descr.GetCoordinateMin() );
+            env->SetFloatField( result, env->GetFieldID( cls, "coordinateMax", "F" ), descr.GetCoordinateMax() );
 
             return result;
         }

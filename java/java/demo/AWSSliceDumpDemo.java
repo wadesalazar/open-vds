@@ -20,7 +20,6 @@ import org.opengroup.openvds.*;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.FloatBuffer;
@@ -274,31 +273,31 @@ public class AWSSliceDumpDemo {
 
     static void printChannelDescriptor(String title, VolumeDataChannelDescriptor descr) {
         System.out.println("\nVolumeDataChannelDescriptor " + title);
-        System.out.println("m_format = " + descr.m_format);
-        System.out.println("m_components = " + descr.m_components);
-        System.out.println("m_name = " + descr.m_name);
-        System.out.println("m_unit = " + descr.m_unit);
-        System.out.println("m_valueRangeMin = " + descr.m_valueRangeMin);
-        System.out.println("m_valueRangeMax = " + descr.m_valueRangeMax);
-        System.out.println("m_mapping = " + descr.m_mapping);
-        System.out.println("m_mappedValueCount = " + descr.m_mappedValueCount);
-        System.out.println("m_isDiscrete = " + descr.m_isDiscrete);
-        System.out.println("m_isRenderable = " + descr.m_isRenderable);
-        System.out.println("m_isAllowLossyCompression = " + descr.m_isAllowLossyCompression);
-        System.out.println("m_isUseZipForLosslessCompression = " + descr.m_isUseZipForLosslessCompression);
-        System.out.println("m_useNoValue = " + descr.m_useNoValue);
-        System.out.println("m_noValue = " + descr.m_noValue);
-        System.out.println("m_integerScale = " + descr.m_integerScale);
-        System.out.println("m_integerOffset = " + descr.m_integerOffset);
+        System.out.println("m_format = " + descr.getFormat());
+        System.out.println("m_components = " + descr.getComponents());
+        System.out.println("m_name = " + descr.getName());
+        System.out.println("m_unit = " + descr.getUnit());
+        System.out.println("m_valueRangeMin = " + descr.getValueRangeMin());
+        System.out.println("m_valueRangeMax = " + descr.getValueRangeMax());
+        System.out.println("m_mapping = " + descr.getMapping());
+        System.out.println("m_mappedValueCount = " + descr.getMappedValueCount());
+        System.out.println("m_isDiscrete = " + descr.isDiscrete());
+        System.out.println("m_isRenderable = " + descr.isRenderable());
+        System.out.println("m_isAllowLossyCompression = " + descr.isAllowLossyCompression());
+        System.out.println("m_isUseZipForLosslessCompression = " + descr.isUseZipForLosslessCompression());
+        System.out.println("m_useNoValue = " + descr.isUseNoValue());
+        System.out.println("m_noValue = " + descr.getNoValue());
+        System.out.println("m_integerScale = " + descr.getIntegerScale());
+        System.out.println("m_integerOffset = " + descr.getIntegerOffset());
     }
 
     static void printAxisDescriptor(String title, VolumeDataAxisDescriptor descr) {
         System.out.println("\nVolumeDataAxisDescriptor " + title);
-        System.out.println("m_numSamples = " + descr.m_numSamples);
-        System.out.println("m_name = " + descr.m_name);
-        System.out.println("m_unit = " + descr.m_unit);
-        System.out.println("m_coordinateMin = " + descr.m_coordinateMin);
-        System.out.println("m_coordinateMax = " + descr.m_coordinateMax);
+        System.out.println("m_numSamples = " + descr.getNumSamples());
+        System.out.println("m_name = " + descr.getName());
+        System.out.println("m_unit = " + descr.getUnit());
+        System.out.println("m_coordinateMin = " + descr.getCoordinateMin());
+        System.out.println("m_coordinateMax = " + descr.getCoordinateMax());
     }
 
     private static double interpolate(double a, double b, double ratio) {
