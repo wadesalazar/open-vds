@@ -3,15 +3,15 @@
 C++ API
 *******
 
-.. doxygenfunction:: OpenVDS::Open(const  OpenOptions  &, Error  &)
+.. doxygenfunction:: OpenVDS::Open(const OpenOptions &options, Error &error)
 
-.. doxygenfunction:: OpenVDS::Open(IOManager *, Error  &)
+.. doxygenfunction:: OpenVDS::Open(IOManager *ioManager, Error &error)
 
-.. doxygenfunction:: OpenVDS::Create(const  OpenOptions  &, VolumeDataLayoutDescriptor  const &, VectorWrapper <  VolumeDataAxisDescriptor  >, VectorWrapper <  VolumeDataChannelDescriptor  >, MetadataReadAccess  const &, Error  &)
+.. doxygenfunction:: OpenVDS::Create(const OpenOptions &options, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, Error &error)
 
-.. doxygenfunction:: OpenVDS::Create(IOManager *, VolumeDataLayoutDescriptor  const &, VectorWrapper <  VolumeDataAxisDescriptor  >, VectorWrapper <  VolumeDataChannelDescriptor  >, MetadataReadAccess  const &, Error  &)
+.. doxygenfunction:: OpenVDS::Create(IOManager *ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, Error &error)
 
-.. doxygenfunction:: OpenVDS::Close
+.. doxygenfunction:: OpenVDS::Close(VDSHandle handle)
 
 .. doxygenstruct:: OpenVDS::AWSOpenOptions
   :members:
@@ -19,9 +19,9 @@ C++ API
 .. doxygenstruct:: OpenVDS::AzureOpenOptions
   :members:
 
-.. doxygenfunction:: OpenVDS::GetAccessManager
+.. doxygenfunction:: OpenVDS::GetAccessManager(VDSHandle handle)
 
-.. doxygenfunction:: OpenVDS::GetLayout
+.. doxygenfunction:: OpenVDS::GetLayout(VDSHandle handle)
 
 .. doxygenclass:: OpenVDS::VolumeDataAccessManager
   :members:
