@@ -18,5 +18,6 @@ python/tools/WrapperReport.txt
 /**/.ipynb_checkpoints
 /python/openvds.egg-info
 .idea
+*.iml
 java/cpp/generated
 cmake-build*

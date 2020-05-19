@@ -20,7 +20,7 @@ package org.opengroup.openvds;
 import java.io.IOException;
 
 public class OpenVDS extends VdsHandle{
-    private static native long cpOpenAWS(String bucket, String key, String region) throws IOException;
+    private static native long cpOpenAWS(String bucket, String key, String region, String endpointoverhide) throws IOException;
 
     private static native long cpOpenAzure(String pConnectionString, String pContainer, String pBlob,
                                            int pParallelismFactor, int pMaxExecutionTime) throws IOException;
@@ -33,7 +33,7 @@ public class OpenVDS extends VdsHandle{
 
     public static OpenVDS open(AWSOpenOptions o) throws IOException {
         if (o == null) throw new IllegalArgumentException("open option can't be null");
-        return new OpenVDS(cpOpenAWS(o.bucket, o.key, o.region), true);
+        return new OpenVDS(cpOpenAWS(o.bucket, o.key, o.region, o.endpointoverhide), true);
     }
 
     public static OpenVDS open(AzureOpenOptions o) throws IOException {

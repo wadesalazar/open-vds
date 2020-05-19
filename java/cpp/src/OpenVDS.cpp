@@ -41,12 +41,13 @@ jlong openVDSOrThrowJavaIOException(JNIEnv *env, const OpenVDS::OpenOptions &ope
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J
  */
 jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenAWS
-        (JNIEnv *env, jclass, jstring jbucket, jstring jkey, jstring jregion) {
+        (JNIEnv *env, jclass, jstring jbucket, jstring jkey, jstring jregion, jstring jEndPointOverride) {
     OpenVDS::AWSOpenOptions openOptions;
 
     openOptions.key = JStringToString(env, jkey);
     openOptions.bucket = JStringToString(env, jbucket);
     openOptions.region = JStringToString(env, jregion);
+    openOptions.endpointOverride = JStringToString(env, jEndPointOverride);
 
     return openVDSOrThrowJavaIOException(env, openOptions);
 }

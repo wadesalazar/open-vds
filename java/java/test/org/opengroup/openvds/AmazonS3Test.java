@@ -21,10 +21,8 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.text.NumberFormat;
 import java.util.stream.IntStream;
 
-import static org.opengroup.openvds.VolumeDataChannelDescriptor.Format.FORMAT_R32;
 import static org.testng.Assert.*;
 
 public class AmazonS3Test {

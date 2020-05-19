@@ -23,7 +23,7 @@ package org.opengroup.openvds;
  */
 public class AWSOpenOptions extends OpenOptions {
 
-    public String bucket, key, region;
+    public String bucket, key, region, endpointoverhide;
 
     /**
      * Default constructor.
@@ -35,14 +35,27 @@ public class AWSOpenOptions extends OpenOptions {
     /**
      * Constructor.
      *
+     * @param pBucket           the bucket of the VDS
+     * @param pKey              the key prefix of the VDS
+     * @param pRegion           the region of the bucket of the VDS
+     * @param pEndpointOverride This parameter allows to override the endpoint url
+     */
+    public AWSOpenOptions(String pBucket, String pKey, String pRegion, String pEndpointOverride) {
+        super(ConnectionType.AWS);
+        bucket = pBucket;
+        key = pKey;
+        region = pRegion;
+        endpointoverhide = pEndpointOverride;
+    }
+
+    /**
+     * Constructor.
+     *
      * @param pBucket the bucket of the VDS
      * @param pKey    the key prefix of the VDS
      * @param pRegion the region of the bucket of the VDS
      */
     public AWSOpenOptions(String pBucket, String pKey, String pRegion) {
-        super(ConnectionType.AWS);
-        bucket = pBucket;
-        key = pKey;
-        region = pRegion;
+        this(pBucket, pKey, pRegion, null);
     }
 }

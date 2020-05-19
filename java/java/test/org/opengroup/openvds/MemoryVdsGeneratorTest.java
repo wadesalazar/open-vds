@@ -25,13 +25,15 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.LinkedList;
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.IntStream;
 
 import static org.opengroup.openvds.Dimensionality.DIMENSIONALITY_MAX;
 import static org.opengroup.openvds.VolumeDataChannelDescriptor.Format.*;
 import static org.opengroup.openvds.VolumeDataLayoutDescriptor.BrickSize.BRICK_SIZE_32;
-import static org.opengroup.openvds.VolumeDataLayoutDescriptor.LODLevels.LOD_LEVELS_1;
 import static org.opengroup.openvds.VolumeDataLayoutDescriptor.LODLevels.LOD_LEVELS_NONE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
