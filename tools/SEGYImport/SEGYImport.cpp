@@ -30,6 +30,7 @@
 #include <OpenVDS/Range.h>
 #include <OpenVDS/VolumeDataLayout.h>
 #include <OpenVDS/KnownMetadata.h>
+#include <OpenVDS/GlobalMetadataCommon.h>
 
 #include <mutex>
 #include <cstdlib>
