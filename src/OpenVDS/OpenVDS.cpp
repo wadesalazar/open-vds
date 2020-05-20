@@ -139,14 +139,17 @@ void CreateVolumeDataLayout(VDS &vds)
     return;
   }
 
+  const int actualValueRangeChannel = -1;
+  const FloatRange actualValueRange = FloatRange(1, 0);
+
   vds.volumeDataLayout.reset(
     new VolumeDataLayoutImpl(
       vds,
       vds.layoutDescriptor,
       vds.axisDescriptors,
       vds.channelDescriptors,
-      0, //MIA for now
-      { 1, 0 }, //MIA for now
+      actualValueRangeChannel,
+      actualValueRange,
       VolumeDataHash::GetUniqueHash(),
       CompressionMethod::None,
       0,
