@@ -71,7 +71,7 @@ VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDS &vds,
   , m_compressionTolerance(compressionTolerance)
   , m_isZipLosslessChannels(isZipLosslessChannels)
   , m_waveletAdaptiveLoadLevel(waveletAdaptiveLoadLevel)
-  , m_fullResolutionDimension(layoutDescriptor.GetFullResolutionDimension())
+  , m_fullResolutionDimension(layoutDescriptor.IsForceFullResolutionDimension() ? layoutDescriptor.GetFullResolutionDimension() : -1)
 {
 
   for(int32_t dimension = 0; dimension < ArraySize(m_dimensionNumSamples); dimension++)
