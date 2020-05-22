@@ -1,6 +1,6 @@
 /****************************************************************************
-** Copyright 2019 The Open Group
-** Copyright 2019 Bluware, Inc.
+** Copyright 2020 The Open Group
+** Copyright 2020 Bluware, Inc.
 ** Copyright 2020 Google, Inc.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,143 +18,73 @@
 
 #include "IOManagerGS.h"
 
+#include <fmt/format.h>
+#include <sstream>
+#include <iomanip>
+
 namespace OpenVDS
 {
-  GetOrHeadRequestGS::GetOrHeadRequestGS(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
-    : Request(id)
-    , m_handler(handler)
-    , m_cancelled(false)
-    , m_done(false)
-  {
-  }
-
-  GetOrHeadRequestGS::~GetOrHeadRequestGS()
-  {
-    GetOrHeadRequestGS::Cancel();
-  }
-
-  void GetOrHeadRequestGS::WaitForFinish()
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_waitForFinish.wait(lock, [this]{ return m_done; });
-  }
-  bool GetOrHeadRequestGS::IsDone() const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    return m_done;
-  }
-
-  bool GetOrHeadRequestGS::IsSuccess(Error& error) const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    if (!m_done)
-    {
-      error.code = -1;
-      error.string = "Download not done.";
-      return false;
-    }
-    error = m_error;
-    return m_error.code == 0;
-  }
-
-  void GetOrHeadRequestGS::Cancel()
-  {
-    m_cancelled = true;
-  }
-
-  ReadObjectInfoRequestGS::ReadObjectInfoRequestGS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler)
-    : GetOrHeadRequestGS(id, handler)
-  {
-  }
-
-  void ReadObjectInfoRequestGS::run(const std::string& bucket, std::weak_ptr<ReadObjectInfoRequestGS> readObjectInfoRequest)
-  {
-  }
-
-  DownloadRequestGS::DownloadRequestGS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler)
-    : GetOrHeadRequestGS(id, handler)
-  {
-  }
-
-  void DownloadRequestGS::run(const std::string& bucket, const IORange& range, std::weak_ptr<DownloadRequestGS> downloadRequest)
-  {
-  }
-
-  UploadRequestGS::UploadRequestGS(const std::string& id, std::function<void(const Request & request, const Error & error)> completedCallback)
-    : Request(id)
-    , m_cancelled(false)
-    , m_done(false)
-  {
-  }
- 
-  void UploadRequestGS::run(const std::string& bucket, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::weak_ptr<UploadRequestGS> uploadRequest)
-  {
-  }
-
-  void UploadRequestGS::WaitForFinish()
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_waitForFinish.wait(lock, [this]{ return this->m_done; });
-  }
-  bool UploadRequestGS::IsDone() const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    return m_done;
-  }
-  bool UploadRequestGS::IsSuccess(Error& error) const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    if (!m_done)
-    {
-      error.code = -1;
-      error.string = "Download not done.";
-      return false;
-    }
-    error = m_error;
-    return m_error.code == 0;
-  }
-  void UploadRequestGS::Cancel()
-  {
-    m_cancelled = true;
-  }
+  const char *GOOGLEAPIS = "https://storage.googleapis.com/";
 
   IOManagerGS::IOManagerGS(const GSOpenOptions& openOptions, Error &error)
-    : m_bucket(openOptions.bucket)
-    , m_objectId(openOptions.key)
+    : m_curlHandler(error)
+    , m_bucket(openOptions.bucket)
+    , m_token(openOptions.key)
   {
     if (m_bucket.empty())
     {
       error.code = -1;
-      error.string = "GS Config error. Empty bucket or region";
+      error.string = "GS Config error. Empty bucket";
       return;
     }
   }
 
-  IOManagerGS::~IOManagerGS()
+  std::string convertToISO8601(const std::string& value);
+
+  std::shared_ptr<Request> IOManagerGS::ReadObjectInfo(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler)
   {
+    std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
+    std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
+    std::vector<std::string> headers;
+    headers.push_back(fmt::format("Authorization: Bearer {}", m_token));
+    m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", convertToISO8601, CurlDownloadHandler::HEADER);
+    return request;
   }
 
-  std::shared_ptr<Request> IOManagerGS::ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler)
+  std::shared_ptr<Request> IOManagerGS::ReadObject(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
   {
-    std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    auto ret = std::make_shared<ReadObjectInfoRequestGS>(id, handler);
-    ret->run(m_bucket, ret);
-    return ret;
+    std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
+    std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
+    std::vector<std::string> headers;
+    headers.push_back(fmt::format("Authorization: Bearer {}", m_token));
+    if (range.start != range.end)
+    {
+      headers.emplace_back();
+      auto& header = headers.back();
+      header = fmt::format("x-ms-range: bytes={}-{}", range.start, range.end);
+    }
+    m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", convertToISO8601, CurlDownloadHandler::GET);
+    return request;
   }
 
-  std::shared_ptr<Request> IOManagerGS::ReadObject(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range)
+  std::shared_ptr<Request> IOManagerGS::WriteObject(const std::string& objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request& request, const Error& error)> completedCallback)
   {
-    std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    auto ret = std::make_shared<DownloadRequestGS>(id, handler);
-    ret->run(m_bucket, range, ret);
-    return ret;
-  }
-
-  std::shared_ptr<Request> IOManagerGS::WriteObject(const std::string &objectName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
-  {
-    std::string id = objectName.empty()? m_objectId : m_objectId + "/" + objectName;
-    auto ret = std::make_shared<UploadRequestGS>(id, completedCallback);
-    ret->run(m_bucket, contentDispositionFilename, contentType, metadataHeader, data, ret);
-    return ret;
+    std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
+    std::shared_ptr<UploadRequestCurl> request = std::make_shared<UploadRequestCurl>(objectName, completedCallback);
+    std::vector<std::string> headers;
+    //headers.emplace_back("x-ms-blob-type: BlockBlob");
+    headers.push_back(fmt::format("Authorization: Bearer {}", m_token));
+    if (contentDispostionFilename.size())
+      headers.push_back(fmt::format("content-disposition: attachment; filename=\"{}\"", contentDispostionFilename));
+    if (contentType.size())
+      headers.push_back(fmt::format("content-type: {}", contentType));
+    if (data->size())
+      headers.push_back(fmt::format("content-length: {}", data->size()));
+    for (auto metaTag : metadataHeader)
+    {
+      headers.push_back(fmt::format("{}{}: {}", "x-ms-meta-", metaTag.first, metaTag.second));
+    }
+    m_curlHandler.addUploadRequest(request, url, headers, data);
+    return request;
   }
 }
