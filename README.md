@@ -1,11 +1,30 @@
-## OpenVDS
-OpenVDS is a specification and an open source reference implementation of a storage format for fast random access to multi-dimensional (up to 6D) volumetric data stored in an object storage cloud service (e.g. Amazon S3 or Azure Blob storage). The specification is based on, but not similar to, the existing Volume Data Store (VDS) file format. The VDS format is a Bluware Inc. proprietary format, which has seen extensive industrial deployments over the last two decades. The design of the VDS format is contributed by Bluware Inc. to the Open Group Open Subsurface Data Universe Forum (OSDU) (The Open Group, u.d.).
+## OpenVDS OpenVDS is a specification and an open source reference
+implementation of a storage format for fast random access to multi-dimensional
+(up to 6D) volumetric data stored in an object storage cloud service (e.g.
+Amazon S3 or Azure Blob storage). The specification is based on, but not
+similar to, the existing Volume Data Store (VDS) file format. The VDS format is
+a Bluware Inc. proprietary format, which has seen extensive industrial
+deployments over the last two decades. The design of the VDS format is
+contributed by Bluware Inc. to the Open Group Open Subsurface Data Universe
+Forum (OSDU) (The Open Group, u.d.).
 
-OpenVDS has been designed to handle extremely large volumes, up to petabytes in size, with variable sized compressed bricks. The OpenVDS format is very flexible and can store any kind data representable as arrays with key/value-pair metadata. In particular, data commonly used in seismic processing can be stored along with all necessary metadata. This makes it possible to go from legacy formats to OpenVDS and back, while retaining all metadata.
+OpenVDS has been designed to handle extremely large volumes, up to petabytes in
+size, with variable sized compressed bricks. The OpenVDS format is very
+flexible and can store any kind data representable as arrays with
+key/value-pair metadata. In particular, data commonly used in seismic
+processing can be stored along with all necessary metadata. This makes it
+possible to go from legacy formats to OpenVDS and back, while retaining all
+metadata.
 
-OpenVDS may be used to store E&P data types such as regularized single-Z horizons/height-maps (2D), seismic lines (2D), pre-stack volumes (3D-5D), post-stack volumes (3D), geobody volumes (3D-5D), and attribute volumes of any dimensionality up to 6D.
+OpenVDS may be used to store E&P data types such as regularized single-Z
+horizons/height-maps (2D), seismic lines (2D), pre-stack volumes (3D-5D),
+post-stack volumes (3D), geobody volumes (3D-5D), and attribute volumes of any
+dimensionality up to 6D.
 
-The format has been designed primarily to support random access and on-demand fetching of data, this enables applications that are responsive and interactive as well as efficient I/O for high-performance computing or machine learning workloads.
+The format has been designed primarily to support random access and on-demand
+fetching of data, this enables applications that are responsive and interactive
+as well as efficient I/O for high-performance computing or machine learning
+workloads.
 
 The OpenVDS implementation is made up of the following components:
 - SEG-Y indexing (scanning the file to figure out where the traces go in the volume)
@@ -24,7 +43,8 @@ Licensed under [**Apache 2.0**](https://gitlab.opengroup.org/osdu/open-vds/blob/
 Latest build of the [**OpenVDS-Documentation**](http://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds)
 
 ### Building
-By default OpenVDS builds the Python 3 bindings. To install the required dependencies go into ${OpenVDSFolder}/python folder and run:
+By default OpenVDS builds the Python 3 bindings. To install the required
+dependencies go into ${OpenVDSFolder}/python folder and run:
 `$ python -m pip install -r requirements-dev.txt`
 To disable building the Python 3 bindings use the -DBUILD_PYTHON=OFF cmake argument.
 
@@ -59,10 +79,14 @@ from the different network storage integrations. Currently these packages are re
 - uuid
 
 #### Windows Visual Studio
-Much like on Linux its possible to generate a project in a build folder and build it using native tools.
-To generate a Visual Studio solution make a build directory in the OpenVDS folder and change current directory to the build folder. Either use `$ cmake ..` or launch cmake-gui and generate a visual studio solution.
+Much like on Linux its possible to generate a project in a build folder and
+build it using native tools.  To generate a Visual Studio solution make a build
+directory in the OpenVDS folder and change current directory to the build
+folder. Either use `$ cmake ..` or launch cmake-gui and generate a visual
+studio solution.
 
-OpenVDS also supports using the cmake integration in Visual Studio. Open Visual Studio and use the "Open a local folder" to open the OpenVDS folder.
+OpenVDS also supports using the cmake integration in Visual Studio. Open Visual
+Studio and use the "Open a local folder" to open the OpenVDS folder.
 
 This works with default settings with Visual Studio 2019, but there are some
 limitations using Visual Studio 2017. Before opening the project for the first
