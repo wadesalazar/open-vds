@@ -420,6 +420,7 @@ namespace OpenVDS
 
   IOManagerAWS::~IOManagerAWS()
   {
+    m_s3Client.reset();
     deinitializeAWSSDK();
   }
 
