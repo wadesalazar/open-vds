@@ -1,5 +1,5 @@
 scikit-build
-pybind11
 numpy
 sphinx
 breathe
+m2r
