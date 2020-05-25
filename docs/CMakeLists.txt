@@ -75,9 +75,10 @@ add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
                    ${CMAKE_CURRENT_SOURCE_DIR}/getting-started.rst
                    ${CMAKE_CURRENT_SOURCE_DIR}/python-api.rst
                    ${CMAKE_CURRENT_SOURCE_DIR}/cpp-api.rst
-                   ${CMAKE_CURRENT_SOURCE_DIR}/segyexport_readme.rst
-                   ${CMAKE_CURRENT_SOURCE_DIR}/segyimport_readme.rst
-                   ${CMAKE_CURRENT_SOURCE_DIR}/vdsinfo_readme.rst
+                   ${CMAKE_CURRENT_SOURCE_DIR}/tools/tools.rst
+                   ${CMAKE_CURRENT_SOURCE_DIR}/tools/segyexport_readme.rst
+                   ${CMAKE_CURRENT_SOURCE_DIR}/tools/segyimport_readme.rst
+                   ${CMAKE_CURRENT_SOURCE_DIR}/tools/vdsinfo_readme.rst
                    MAIN_DEPENDENCY ${SPHINX_SOURCE}/conf.py
                    COMMENT "Generating documentation with Sphinx")
 
