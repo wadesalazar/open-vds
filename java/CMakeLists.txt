@@ -1,45 +1,18 @@
-
 include(UseJava)
 
 set(OPENVDS_JAVA_VERSION 0.0.6)
-set(CPP_LIBRARY_NAME openvdsjava)
-set(JAVA_LIBRARY_NAME openvds-java)
-set(JAVA_LIBRARY_DOC_NAME openvds-java-javadoc)
-set(GENERATED_HEADER_TARGET_NAME generatedHeadersTarget)
 
 set(JAVA_TEST_ENABLED ON)
-if(JAVA_TEST_ENABLED)
-    set(JAVA_TEST_LIBRARY_NAME openvds-java-test)
-endif()
-
 #set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
 
 set(GENERATED_JNI_HEADERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cpp/generated)
 #file(REMOVE_RECURSE ${GENERATED_JNI_HEADERS_DIR})
 file(MAKE_DIRECTORY ${GENERATED_JNI_HEADERS_DIR})
 
-set(JAVA_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/java/src)
-set(JAVA_DEMO_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/java/demo)
-set(JAVA_EXPERIMENTAL_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/java/experimental)
-if(JAVA_TEST_ENABLED)
-    set(JAVA_TEST_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/java/test)
-endif()
-
-file (GLOB_RECURSE JAVA_SOURCES_FILES CONFIGURE_DEPENDS
-        ${JAVA_SOURCES_DIR}/*.java
-        ${JAVA_DEMO_SOURCES_DIR}/*.java
-        #        ${JAVA_EXPERIMENTAL_SOURCES_DIR}/*.java
-        )
-
 if(JAVA_TEST_ENABLED)
     file (GLOB_RECURSE JAVA_TEST_SOURCES_FILES CONFIGURE_DEPENDS
-            ${JAVA_TEST_SOURCES_DIR}/*.java)
+            ${CMAKE_CURRENT_SOURCE_DIR}/java/test/*.java)
 endif()
-
-message(STATUS "Compiling Java files")
-foreach(FILE ${JAVA_SOURCES_FILES})
-    message(STATUS ${FILE})
-endforeach()
 
 if(JAVA_TEST_ENABLED)
     foreach(FILE ${JAVA_TEST_SOURCES_FILES})
@@ -47,23 +20,67 @@ if(JAVA_TEST_ENABLED)
     endforeach()
 endif()
 
+set(JAVA_SOURCE_FILES
+  java/src/org/opengroup/openvds/AWSOpenOptions.java
+  java/src/org/opengroup/openvds/AzureOpenOptions.java
+  java/src/org/opengroup/openvds/AzurePresignedOpenOptions.java
+  java/src/org/opengroup/openvds/B.java
+  java/src/org/opengroup/openvds/BufferUtils.java
+  java/src/org/opengroup/openvds/Cleaner.java
+  java/src/org/opengroup/openvds/CompressionMethod.java
+  java/src/org/opengroup/openvds/Dimensionality.java
+  java/src/org/opengroup/openvds/DimensionsND.java
+  java/src/org/opengroup/openvds/experimental/VariousJavaTests.java
+  java/src/org/opengroup/openvds/IndexRegionFloat.java
+  java/src/org/opengroup/openvds/IndexRegionLong.java
+  java/src/org/opengroup/openvds/InMemoryOpenOptions.java
+  java/src/org/opengroup/openvds/InterpolationMethod.java
+  java/src/org/opengroup/openvds/JniPointer.java
+  java/src/org/opengroup/openvds/JniPointerWithoutDeletion.java
+  java/src/org/opengroup/openvds/MemoryVdsGenerator.java
+  java/src/org/opengroup/openvds/MetadataKey.java
+  java/src/org/opengroup/openvds/MetadataReadAccess.java
+  java/src/org/opengroup/openvds/MetadataType.java
+  java/src/org/opengroup/openvds/NDBox.java
+  java/src/org/opengroup/openvds/NDPos.java
+  java/src/org/opengroup/openvds/OpenOptions.java
+  java/src/org/opengroup/openvds/OpenVDS.java
+  java/src/org/opengroup/openvds/QuantizingValueConverter_FloatToByte.java
+  java/src/org/opengroup/openvds/VdsHandle.java
+  java/src/org/opengroup/openvds/VDSProduceStatus.java
+  java/src/org/opengroup/openvds/VolumeDataAccessManager.java
+  java/src/org/opengroup/openvds/VolumeDataAccessor.java
+  java/src/org/opengroup/openvds/VolumeDataAxisDescriptor.java
+  java/src/org/opengroup/openvds/VolumeDataChannelDescriptor.java
+  java/src/org/opengroup/openvds/VolumeDataLayout.java
+  java/src/org/opengroup/openvds/VolumeDataLayoutDescriptor.java
+  java/src/org/opengroup/openvds/VolumeDataMapping.java
+  java/src/org/opengroup/openvds/VolumeDataPage.java
+  java/src/org/opengroup/openvds/VolumeDataPageAccessor.java
+
+  java/demo/AWSSliceDumpDemo.java
+  java/demo/OpenVdsDemo.java
+
+  #java/experimental/OpenVdsDemoWithArrayIntoBuffers.java
+  #java/experimental/OpenVdsDemoWithBuffers.java
+  #java/experimental/OpenVdsDemoWithSubset.java
+  #java/experimental/OpenVdsDemoWithSubsetAndBytes.java
+  #java/experimental/TestVariousAllocationAndTransmissionMethods.java
+)
+
+
 # Java compilation
 # Enable JNI header generation for java >=8
-if (WIN32)
-    add_jar(${JAVA_LIBRARY_NAME}
-            SOURCES ${JAVA_SOURCES_FILES}
-            GENERATE_NATIVE_HEADERS ${GENERATED_HEADER_TARGET_NAME} DESTINATION ${GENERATED_JNI_HEADERS_DIR}
-            ENTRY_POINT OpenVdsDemo)
-else()
-    add_jar(${JAVA_LIBRARY_NAME}
-            SOURCES ${JAVA_SOURCES_FILES}
-            VERSION ${OPENVDS_JAVA_VERSION}
-            GENERATE_NATIVE_HEADERS ${GENERATED_HEADER_TARGET_NAME} DESTINATION ${GENERATED_JNI_HEADERS_DIR}
-            ENTRY_POINT OpenVdsDemo)
-endif()
+add_jar(openvds-java
+        SOURCES ${JAVA_SOURCE_FILES}
+        VERSION ${OPENVDS_JAVA_VERSION}
+        GENERATE_NATIVE_HEADERS openvds-java-generated-headers DESTINATION ${GENERATED_JNI_HEADERS_DIR}
+        ENTRY_POINT OpenVdsDemo)
+
+get_property(BUILT_JAR_FILE TARGET openvds-java PROPERTY JAR_FILE)
 
 create_javadoc(openvds-java-javadoc
-  FILES ${JAVA_SOURCES_FILES}
+  FILES ${JAVA_SOURCE_FILES}
   WINDOWTITLE \"OpenVDS-Java\"
   DOCTITLE \"<h1>OpenVDS-Java</h1>\"
   AUTHOR TRUE
@@ -72,39 +89,61 @@ create_javadoc(openvds-java-javadoc
   )
 
 if(JAVA_TEST_ENABLED)
-    get_property(BUILT_JAR_FILE TARGET ${JAVA_LIBRARY_NAME} PROPERTY JAR_FILE)
-    message(STATUS "Found built library :" ${BUILT_JAR_FILE})
-
     file(DOWNLOAD https://repo1.maven.org/maven2/org/testng/testng/6.14.3/testng-6.14.3.jar
             ${CMAKE_CURRENT_BINARY_DIR}/testng-6.14.3.jar
             SHOW_PROGRESS
             EXPECTED_HASH MD5=9f17a8f9e99165e148c42b21f4b63d7c)
-    add_jar(${JAVA_TEST_LIBRARY_NAME}
+    add_jar(openvds-java-test
             SOURCES ${JAVA_TEST_SOURCES_FILES}
+            VERSION ${OPENVDS_JAVA_VERSION}
             INCLUDE_JARS
             ${CMAKE_CURRENT_BINARY_DIR}/testng-6.14.3.jar
             ${BUILT_JAR_FILE}
-            VERSION ${OPENVDS_JAVA_VERSION})
+    )
 endif()
 
-# C++ compilation
-file (GLOB_RECURSE CPP_SOURCES_FILES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/cpp/src/*.cpp)
-message(STATUS "Compiling cpp")
-foreach(FILE ${CPP_SOURCES_FILES})
-    message(STATUS ${FILE})
-endforeach()
+add_library(openvds-javacpp 
+  cpp/src/Common.cpp
+  cpp/src/CommonJni.cpp
+  cpp/src/JniPointer.cpp
+  cpp/src/MemoryVdsGenerator.cpp
+  cpp/src/MetadataReadAccess.cpp
+  cpp/src/OpenVDS.cpp
+  cpp/src/QuantizingValueConverter_FloatToByte.cpp
+  cpp/src/VariousJavaTests.cpp
+  cpp/src/VdsHandle.cpp
+  cpp/src/VolumeDataAccessManager.cpp
+  cpp/src/VolumeDataAccessor.cpp
+  cpp/src/VolumeDataLayout.cpp
+  cpp/src/VolumeDataPage.cpp
+  cpp/src/VolumeDataPageAccessor.cpp
+  )
 
-add_library(${CPP_LIBRARY_NAME} ${CPP_SOURCES_FILES})
-set_target_properties(${CPP_LIBRARY_NAME} PROPERTIES FOLDER java)
-set_target_properties(${CPP_LIBRARY_NAME} PROPERTIES VERSION ${OPENVDS_JAVA_VERSION})
-copyDllForTarget(${CPP_LIBRARY_NAME})
-target_include_directories(${CPP_LIBRARY_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cpp/include)
-target_include_directories(${CPP_LIBRARY_NAME} PUBLIC ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
-target_link_libraries(${CPP_LIBRARY_NAME} PRIVATE openvds ${GENERATED_HEADER_TARGET_NAME})
+set_target_properties(openvds-javacpp PROPERTIES FOLDER java)
+set_target_properties(openvds-javacpp PROPERTIES VERSION ${OPENVDS_JAVA_VERSION})
+copyDllForTarget(openvds-javacpp)
+target_include_directories(openvds-javacpp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cpp/include)
+target_include_directories(openvds-javacpp PUBLIC ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
+target_link_libraries(openvds-javacpp PRIVATE openvds openvds-java-generated-headers)
 
 # Install jar and natives
-install(TARGETS ${CPP_LIBRARY_NAME} LIBRARY DESTINATION java)
-install_jar(${JAVA_LIBRARY_NAME} DESTINATION java)
+if (${MSVC_TOOLSET_VERSION_LOCAL})
+  set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION_LOCAL}")
+endif()
+install(TARGETS openvds-javacpp
+  RUNTIME
+    DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR}
+  LIBRARY 
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR}
+  ARCHIVE 
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR}
+)
+
+if (WIN32)
+   install(FILES ${BUILT_JAR_FILE} DESTINATION java)
+else()
+  install_jar(openvds-java DESTINATION java)
+endif()
 if(JAVA_TEST_ENABLED)
-    install_jar(${JAVA_TEST_LIBRARY_NAME} DESTINATION java)
+    #install_jar(openvds-java-test DESTINATION java)
 endif()
