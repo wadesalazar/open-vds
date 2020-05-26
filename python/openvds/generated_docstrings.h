@@ -383,6 +383,26 @@ static const char *__doc_OpenVDS_Error_code = R"doc()doc";
 
 static const char *__doc_OpenVDS_Error_string = R"doc()doc";
 
+static const char *__doc_OpenVDS_GSOpenOptions = R"doc(Options for opening a VDS in Google Cloud Storage)doc";
+
+static const char *__doc_OpenVDS_GSOpenOptions_GSOpenOptions = R"doc()doc";
+
+static const char *__doc_OpenVDS_GSOpenOptions_GSOpenOptions_2 =
+R"doc(GSOpenOptions constructor
+
+Parameters:
+-----------
+
+bucket :
+    The bucket of the VDS
+
+key :
+    The key prefix of the VDS)doc";
+
+static const char *__doc_OpenVDS_GSOpenOptions_bucket = R"doc()doc";
+
+static const char *__doc_OpenVDS_GSOpenOptions_key = R"doc()doc";
+
 static const char *__doc_OpenVDS_GenericDispatcher = R"doc()doc";
 
 static const char *__doc_OpenVDS_GenericDispatcher_1 = R"doc()doc";
@@ -1069,6 +1089,8 @@ static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Azure = R"doc()doc";
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_AzurePresigned = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_File = R"doc()doc";
+
+static const char *__doc_OpenVDS_OpenOptions_ConnectionType_GoogleStorage = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_InMemory = R"doc()doc";
 

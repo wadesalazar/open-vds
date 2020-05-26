@@ -42,6 +42,7 @@ PyGlobal::initModule(py::module& m)
   OpenOptions_ConnectionType_.value("AWS"                         , OpenOptions::ConnectionType::AWS        , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_AWS));
   OpenOptions_ConnectionType_.value("Azure"                       , OpenOptions::ConnectionType::Azure      , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_Azure));
   OpenOptions_ConnectionType_.value("AzurePresigned"              , OpenOptions::ConnectionType::AzurePresigned, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_AzurePresigned));
+  OpenOptions_ConnectionType_.value("GoogleStorage"               , OpenOptions::ConnectionType::GoogleStorage, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_GoogleStorage));
   OpenOptions_ConnectionType_.value("File"                        , OpenOptions::ConnectionType::File       , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_File));
   OpenOptions_ConnectionType_.value("InMemory"                    , OpenOptions::ConnectionType::InMemory   , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_InMemory));
 
@@ -77,6 +78,15 @@ PyGlobal::initModule(py::module& m)
   AzurePresignedOpenOptions_.def(py::init<const std::string &, const std::string &>(), py::arg("baseUrl"), py::arg("urlSuffix"), OPENVDS_DOCSTRING(AzurePresignedOpenOptions_AzurePresignedOpenOptions_2));
   AzurePresignedOpenOptions_.def_readwrite("baseUrl"                     , &AzurePresignedOpenOptions::baseUrl, OPENVDS_DOCSTRING(AzurePresignedOpenOptions_baseUrl));
   AzurePresignedOpenOptions_.def_readwrite("urlSuffix"                   , &AzurePresignedOpenOptions::urlSuffix, OPENVDS_DOCSTRING(AzurePresignedOpenOptions_urlSuffix));
+
+  // GSOpenOptions
+  py::class_<GSOpenOptions, OpenOptions, std::unique_ptr<GSOpenOptions>> 
+    GSOpenOptions_(m,"GSOpenOptions", OPENVDS_DOCSTRING(GSOpenOptions));
+
+  GSOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(GSOpenOptions_GSOpenOptions));
+  GSOpenOptions_.def(py::init<const std::string &, const std::string &>(), py::arg("bucket"), py::arg("key"), OPENVDS_DOCSTRING(GSOpenOptions_GSOpenOptions_2));
+  GSOpenOptions_.def_readwrite("bucket"                      , &GSOpenOptions::bucket         , OPENVDS_DOCSTRING(GSOpenOptions_bucket));
+  GSOpenOptions_.def_readwrite("key"                         , &GSOpenOptions::key            , OPENVDS_DOCSTRING(GSOpenOptions_key));
 
   // InMemoryOpenOptions
   py::class_<InMemoryOpenOptions, OpenOptions, std::unique_ptr<InMemoryOpenOptions>> 
