@@ -20,6 +20,17 @@
 
 #include <cstdint>
 #include <assert.h>
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#endif
+
 namespace OpenVDS
 {
 class VolumeDataHash
@@ -50,6 +61,7 @@ public:
   uint64_t  CalculateHash() const { return m_dataHash; }
 
   VolumeDataHash & operator= (uint64_t dataHash) { m_dataHash = dataHash; return *this; }
+  VolumeDataHash & operator= (VolumeDataHash const &volumeDataHash) { m_dataHash = volumeDataHash.m_dataHash; return *this; }
   VolumeDataHash() : m_dataHash(UNKNOWN) {}
   VolumeDataHash(VolumeDataHash const &volumeDataHash) : m_dataHash(volumeDataHash.m_dataHash) {}
   VolumeDataHash(uint64_t dataHash) : m_dataHash(dataHash) {}
@@ -60,4 +72,13 @@ public:
 };
 
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
 #endif //VOLUMEDATAHASH_H

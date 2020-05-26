@@ -1,0 +1,671 @@
+/*
+ * Copyright 2019 The Open Group
+ * Copyright 2019 INT, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.opengroup.openvds;
+
+import java.nio.*;
+
+import static org.opengroup.openvds.VolumeDataChannelDescriptor.Format.*;
+
+/**
+ * JNI wrapper for OpenVDS::VolumeDataAccessManager class.
+ */
+public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
+
+    private static native long cpGetVolumeDataLayout(long handle);
+
+    private static native int cpGetVDSProduceStatus(long managerHandle,
+            long layoutHandle, int dimensionsND, int lod, int channel);
+
+    private static native long cpCreateVolumeDataPageAccessor(long managerHandle,
+            long layoutHandle, int dimensionsND, int lod, int channel, int maxPages, int accessMode);
+
+    private static native void cpDestroyVolumeDataPageAccessor(long managerHandle, long pageAccessorHandle);
+
+    private static native void cpDestroyVolumeDataAccessor(long managerHandle, long dataAccessorHandle);
+
+    private static native long cpCloneVolumeDataAccessor(long managerHandle, long dataAccessorHandle);
+
+    private static native long cpGetVolumeSubsetBufferSize(long managerHandle, long layoutHandle,
+            int[] minVoxelCoordinates, int[] maxVoxelCoordinates, int format, int lod);
+
+    private static native long cpRequestVolumeSubset(long managerHandle, Buffer outBuf,
+                                                     long layoutHandle, int dimensionsND, int lod, int channel,
+                                                     int[] minVoxelCoordinates, int[] maxVoxelCoordinates, int formatCode);
+
+    private static native long cpRequestVolumeSubsetR(long managerHandle, Buffer outBuf,
+                                                      long layoutHandle, int dimensionsND, int lod, int channel,
+                                                      int[] minVoxelCoordinates, int[] maxVoxelCoordinates, int formatCode,
+                                                      float replacementValue);
+
+    private static native long cpGetProjectedVolumeSubsetBufferSize(long managerHandle, long layoutHandle,
+            int[] minVoxelCoordinates, int[] maxVoxelCoordinates, int projectedDimensions, int format, int lod);
+
+    private static native long cpRequestProjectedVolumeSubset(long handle, FloatBuffer outBuf, long handle1, int dimensionsND, int lod, int channel,
+            int[] minVoxelCoordinates, int[] maxVoxelCoordinates, float voxelPlane0, float voxelPlane1, float voxelPlane2, float voxelPlane3,
+            int projectedDimensions, int format, int interpolation);
+
+    private static native long cpRequestProjectedVolumeSubsetR(long handle, FloatBuffer outBuf, long handle1, int dimensionsND, int lod, int channel,
+            int[] minVoxelCoordinates, int[] maxVoxelCoordinates, float voxelPlane0, float voxelPlane1, float voxelPlane2, float voxelPlane3,
+            int projectedDimensions, int format, int interpolation, float replacementNoValue);
+
+    private static native long cpRequestVolumeSamples(
+            long managerHandle, FloatBuffer bufHandle,
+            long layoutHandle, int dimensionsND, int lod, int channel,
+            FloatBuffer samplePositions, int sampleCount, int interpolationMethod);
+
+    private static native long cpRequestVolumeSamplesR(
+            long managerHandle, FloatBuffer outBufHandle,
+            long layoutHandle, int dimensionsND, int lod, int channel,
+            FloatBuffer samplePositions, int sampleCount, int interpolationMethod, float replacementNoValue);
+
+    private static native long cpGetVolumeTracesBufferSize(long managerHandle, long layoutHandle,
+            int traceCount, int traceDimension, int lod);
+
+    private static native long cpRequestVolumeTraces(long managerHandle, FloatBuffer outBuf,
+                                                     long layoutHandle, int dimensionsND, int lod, int channel,
+                                                     FloatBuffer tracePositions, int traceCount, int interpolationMethod, int traceDimension);
+
+    private static native long cpRequestVolumeTraces(long managerHandle, FloatBuffer outBuf,
+                                                     long layoutHandle, int dimensionsND, int lod, int channel,
+                                                     FloatBuffer tracePositions, int traceCount, int interpolationMethod, int traceDimension,
+                                                     float replacementNoValue);
+
+    private static native long cpPrefetchVolumeChunk(long managerHandle, long layoutHandle,
+            int dimensionsND, int lod, int channel, long chunk);
+
+    private static native boolean cpIsCompleted(long handle, long requestID);
+
+    private static native boolean cpIsCanceled(long handle, long requestID);
+
+    private static native boolean cpWaitForCompletion(long handle, long requestID, int millisecondsBeforeTimeout);
+
+    private static native void cpCancel(long handle, long requestID);
+
+    private static native float cpGetCompletionFactor(long handle, long requestID);
+
+    private static native void cpFlushUploadQueue(long handle);
+
+    private static native void cpClearUploadErrors(long handle);
+
+    private static native void cpForceClearAllUploadErrors(long handle);
+
+    private static native int cpUploadErrorCount(long handle);
+
+    public VolumeDataAccessManager(long handle) {
+        super(handle);
+    }
+
+    /**
+     * Get the VolumeDataLayout object for a VDS.
+     *
+     * @return the VolumeDataLayout object associated with the VDS or null if
+     * there is no valid VolumeDataLayout.
+     */
+    VolumeDataLayout getVolumeDataLayout() {
+        return new VolumeDataLayout(cpGetVolumeDataLayout(_handle));
+    }
+
+    /**
+     * Get the produce status for the specific DimensionsND/LOD/Channel
+     * combination.
+     *
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * VDS that we're getting the produce status for.
+     * @param dimensionsND the dimensions group we're getting the produce status
+     * for.
+     * @param lod the LOD level we're getting the produce status for.
+     * @param channel the channel index we're getting the produce status for.
+     * @return The produce status for the specific DimensionsND/LOD/Channel
+     * combination.
+     */
+    VDSProduceStatus getVDSProduceStatus(VolumeDataLayout volumeDataLayout, DimensionsND dimensionsND, int lod, int channel) {
+        return VDSProduceStatus.values()[cpGetVDSProduceStatus(_handle, volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel)];
+    }
+
+    /**
+     * Create a volume data page accessor object for the VDS associated with the
+     * given VolumeDataLayout object.
+     *
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * VDS that the volume data page accessor will access.
+     * @param dimensionsND the dimensions group that the volume data page
+     * accessor will access.
+     * @param lod the LOD level that the volume data page accessor will access.
+     * @param channel the channel index that the volume data page accessor will
+     * access.
+     * @param maxPages the maximum number of pages that the volume data page
+     * accessor will cache.
+     * @param accessMode this specifies the access mode
+     * (ReadOnly/ReadWrite/Create) of the volume data page accessor.
+     * @return a VolumeDataPageAccessor object for the VDS associated with the
+     * given VolumeDataLayout object.
+     */
+    VolumeDataPageAccessor createVolumeDataPageAccessor(VolumeDataLayout volumeDataLayout,
+            int dimensionsND, int lod, int channel, int maxPages, int accessMode) {
+        return new VolumeDataPageAccessor(cpCreateVolumeDataPageAccessor(
+                _handle, volumeDataLayout.handle(),
+                dimensionsND, lod, channel, maxPages, accessMode));
+    }
+
+    /**
+     * Destroy a volume data page accessor object.
+     *
+     * @param volumeDataPageAccessor the VolumeDataPageAccessor object to
+     * destroy.
+     */
+    void destroyVolumeDataPageAccessor(VolumeDataPageAccessor volumeDataPageAccessor) {
+        cpDestroyVolumeDataPageAccessor(_handle, volumeDataPageAccessor.handle());
+    }
+
+    /**
+     * Destroy a volume data accessor object.
+     *
+     * @param accessor the VolumeDataAccessor object to destroy.
+     */
+    void destroyVolumeDataAccessor(VolumeDataAccessor accessor) {
+        cpDestroyVolumeDataAccessor(_handle, accessor.handle());
+    }
+
+    /**
+     * Clone a volume data accessor object.
+     *
+     * @param accessor the VolumeDataAccessor object to clone.
+     * @return a clone of supplied VolumeDataAccessor object
+     */
+    VolumeDataAccessor cloneVolumeDataAccessor(VolumeDataAccessor accessor) {
+        return new VolumeDataAccessor(cpCloneVolumeDataAccessor(_handle, accessor.handle()), true);
+    }
+
+    /**
+     * Compute the buffer size for a volume subset request.
+     *
+     * @param layout the VolumeDataLayout object associated with the input VDS.
+     * @param box the box describing the volume subset coordinates.
+     * @param format voxel format of the destination buffer.
+     * @param lod the LOD level the requested data is read from.
+     * @return the buffer size needed
+     */
+    long getVolumeSubsetBufferSize(VolumeDataLayout layout,
+                                   NDBox box, VolumeDataChannelDescriptor.Format format, int lod) {
+        return cpGetVolumeSubsetBufferSize(_handle, layout.handle(),
+                box.getMin(), box.getMax(), format.getCode(), lod);
+    }
+
+    /**
+     * Request a subset of the input VDS.
+     *
+     * @param outBuf preallocated buffer holding at least as many elements of
+     * format as indicated by minVoxelCoordinates and maxVoxelCoordinates.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * input VDS.
+     * @param dimensionsND the dimensiongroup the requested data is read from.
+     * @param lod the LOD level the requested data is read from.
+     * @param channel the channel index the requested data is read from.
+     * @param box the box describing the volume subset coordinates.
+     * @return the requestID which can be used to query the status of the
+     * request, cancel the request or wait for the request to complete.
+     */
+    public long requestVolumeSubset(FloatBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                    DimensionsND dimensionsND, int lod, int channel,
+                                    NDBox box) {
+        B.checkDirectBuffer(outBuf);
+        if (B.getCapacityInBytes(outBuf) < getVolumeSubsetBufferSize(volumeDataLayout, box, FORMAT_R32, lod))
+            throwBufferTooSmallException();
+        return cpRequestVolumeSubset(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                box.getMin(), box.getMax(), FORMAT_R32.getCode());
+    }
+    public long requestVolumeSubset(ByteBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                    DimensionsND dimensionsND, int lod, int channel,
+                                    NDBox box) {
+        B.checkDirectBuffer(outBuf);
+        if (B.getCapacityInBytes(outBuf) < getVolumeSubsetBufferSize(volumeDataLayout, box, FORMAT_U8, lod))
+            throwBufferTooSmallException();
+        return cpRequestVolumeSubset(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                box.getMin(), box.getMax(), FORMAT_U8.getCode());
+    }
+    public long requestVolumeSubset(IntBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                    DimensionsND dimensionsND, int lod, int channel,
+                                    NDBox box) {
+        B.checkDirectBuffer(outBuf);
+        if (B.getCapacityInBytes(outBuf) < getVolumeSubsetBufferSize(volumeDataLayout, box, FORMAT_U32, lod))
+            throwBufferTooSmallException();
+        return cpRequestVolumeSubset(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                box.getMin(), box.getMax(), FORMAT_U32.getCode());
+    }
+
+    /**
+     * Request a subset of the input VDS.
+     *
+     * @param outBuf preallocated buffer holding at least as many elements of
+     * format as indicated by minVoxelCoordinates and maxVoxelCoordinates.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * input VDS.
+     * @param dimensionsND the dimensiongroup the requested data is read from.
+     * @param lod the LOD level the requested data is read from.
+     * @param channel the channel index the requested data is read from.
+     * @param box the box describing the volume subset coordinates.
+     * @param replacementNoValue value used to replace region of the input VDS
+     * that has no data.
+     * @return the requestID which can be used to query the status of the
+     * request, cancel the request or wait for the request to complete.
+     */
+    public long requestVolumeSubset(FloatBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                    DimensionsND dimensionsND, int lod, int channel,
+                                    NDBox box,
+                                    float replacementNoValue) {
+        B.checkDirectBuffer(outBuf);
+        if (B.getCapacityInBytes(outBuf) < getVolumeSubsetBufferSize(volumeDataLayout, box, FORMAT_R32, lod))
+            throwBufferTooSmallException();
+        return cpRequestVolumeSubsetR(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                box.getMin(), box.getMax(), FORMAT_R32.getCode(), replacementNoValue);
+    }
+    public long requestVolumeSubset(ByteBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                    DimensionsND dimensionsND, int lod, int channel,
+                                    NDBox box,
+                                    float replacementNoValue) {
+        B.checkDirectBuffer(outBuf);
+        if (B.getCapacityInBytes(outBuf)< getVolumeSubsetBufferSize(volumeDataLayout, box, FORMAT_U8, lod))
+            throwBufferTooSmallException();
+        return cpRequestVolumeSubsetR(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                box.getMin(), box.getMax(), FORMAT_U8.getCode(), replacementNoValue);
+    }
+    public long requestVolumeSubset(IntBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                    DimensionsND dimensionsND, int lod, int channel,
+                                    NDBox box,
+                                    float replacementNoValue) {
+        B.checkDirectBuffer(outBuf);
+        if (B.getCapacityInBytes(outBuf) < getVolumeSubsetBufferSize(volumeDataLayout, box, FORMAT_U32, lod))
+            throwBufferTooSmallException();
+        return cpRequestVolumeSubsetR(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                box.getMin(), box.getMax(), FORMAT_U32.getCode(), replacementNoValue);
+    }
+
+    /**
+     * Compute the buffer size for a projected volume subset request.
+     *
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * input VDS.
+     * @param projectedDimensions the 2D dimension group that the plane in the
+     * source dimensiongroup is projected into. It must be a 2D subset of the
+     * source dimensions.
+     * @param format voxel format of the destination buffer.
+     * @param lod the LOD level the requested data is read from.
+     * @return the buffer size needed
+     */
+    long getProjectedVolumeSubsetBufferSize(VolumeDataLayout volumeDataLayout,
+                                            NDBox box, DimensionsND projectedDimensions,
+                                            VolumeDataChannelDescriptor.Format format, int lod) {
+        return cpGetProjectedVolumeSubsetBufferSize(_handle, volumeDataLayout.handle(),
+                box.getMin(), box.getMax(), projectedDimensions.ordinal(), format.getCode(), lod);
+    }
+
+    /**
+     * Request a subset projected from an arbitrary 3D plane through the subset
+     * onto one of the sides of the subset.
+     *
+     * @param outBuf preallocated buffer holding at least as many elements of
+     * format as indicated by minVoxelCoordinates and maxVoxelCoordinates for
+     * the projected dimensions.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * input VDS.
+     * @param dimensionsND the dimensiongroup the requested data is read from.
+     * @param lod the LOD level the requested data is read from.
+     * @param channel the channel index the requested data is read from.
+     * @param voxelPlane0 1st component of the plane equation for the projection from the
+     * dimension source to the projected dimensions (which must be a 2D subset
+     * of the source dimensions).
+     * @param voxelPlane1 2nd component of the plane equation for the projection from the
+     * dimension source to the projected dimensions (which must be a 2D subset
+     * of the source dimensions).
+     * @param voxelPlane2 3rd component of the plane equation for the projection from the
+     * dimension source to the projected dimensions (which must be a 2D subset
+     * of the source dimensions).
+     * @param voxelPlane3 4th component of the plane equation for the projection from the
+     * dimension source to the projected dimensions (which must be a 2D subset
+     * of the source dimensions).
+     * @param projectedDimensions the 2D dimension group that the plane in the
+     * source dimensiongroup is projected into. It must be a 2D subset of the
+     * source dimensions.
+     * @param interpolationMethod Interpolation method to use when sampling the
+     * buffer.
+     * @return the requestID which can be used to query the status of the
+     * request, cancel the request or wait for the request to complete.
+     */
+    long requestProjectedVolumeSubset(FloatBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                      DimensionsND dimensionsND, int lod, int channel,
+                                      NDBox box, float voxelPlane0, float voxelPlane1, float voxelPlane2, float voxelPlane3,
+                                      DimensionsND projectedDimensions, InterpolationMethod interpolationMethod) {
+        return cpRequestProjectedVolumeSubset(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                box.getMin(), box.getMax(), voxelPlane0, voxelPlane1, voxelPlane2, voxelPlane3,
+                projectedDimensions.ordinal(), FORMAT_R32.getCode(), interpolationMethod.ordinal());
+    }
+
+    /**
+     * Request a subset projected from an arbitrary 3D plane through the subset
+     * onto one of the sides of the subset.
+     *
+     * @param outBuf preallocated buffer holding at least as many elements of
+     * format as indicated by minVoxelCoordinates and maxVoxelCoordinates for
+     * the projected dimensions.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * input VDS.
+     * @param dimensionsND the dimensiongroup the requested data is read from.
+     * @param lod the LOD level the requested data is read from.
+     * @param channel the channel index the requested data is read from.
+     * @param voxelPlane0 1st component of the plane equation for the projection from the
+     * dimension source to the projected dimensions (which must be a 2D subset
+     * of the source dimensions).
+     * @param voxelPlane1 2nd component of the plane equation for the projection from the
+     * dimension source to the projected dimensions (which must be a 2D subset
+     * of the source dimensions).
+     * @param voxelPlane2 3rd component of the plane equation for the projection from the
+     * dimension source to the projected dimensions (which must be a 2D subset
+     * of the source dimensions).
+     * @param voxelPlane3 4th component of the plane equation for the projection from the
+     * dimension source to the projected dimensions (which must be a 2D subset
+     * of the source dimensions).
+     * @param projectedDimensions the 2D dimension group that the plane in the
+     * source dimensiongroup is projected into. It must be a 2D subset of the
+     * source dimensions.
+     * @param interpolationMethod Interpolation method to use when sampling the
+     * buffer.
+     * @param replacementNoValue value used to replace region of the input VDS
+     * that has no data.
+     * @return the requestID which can be used to query the status of the
+     * request, cancel the request or wait for the request to complete.
+     */
+    long requestProjectedVolumeSubset(FloatBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                      DimensionsND dimensionsND, int lod, int channel,
+                                      NDBox box, float voxelPlane0, float voxelPlane1, float voxelPlane2, float voxelPlane3,
+                                      DimensionsND projectedDimensions, InterpolationMethod interpolationMethod, float replacementNoValue) {
+        return cpRequestProjectedVolumeSubsetR(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                box.getMin(), box.getMax(), voxelPlane0, voxelPlane1, voxelPlane2, voxelPlane3,
+                projectedDimensions.ordinal(), FORMAT_R32.getCode(), interpolationMethod.ordinal(), replacementNoValue);
+    }
+
+    /**
+     * Request sampling of the input VDS at the specified coordinates.
+     *
+     * @param outBuf preallocated buffer holding at least sampleCount elements.
+     * @param layout the VolumeDataLayout object associated with the input VDS.
+     * @param dimensiongroup the dimensiongroup the requested data is read from.
+     * @param lod the LOD level the requested data is read from.
+     * @param channel the channel index the requested data is read from.
+     * @param samplePositions array containing groups of
+     * Dimensionality.Dimensionality_Max elements indicating the positions to
+     * sample. May be deleted once requestVolumeSamples return, as OpenVDS makes
+     * a deep copy of the data.
+     * @param sampleCount number of samples to request.
+     * @param interpolationMethod interpolation method to use when sampling the
+     * buffer.
+     * @return the requestID which can be used to query the status of the
+     * request, cancel the request or wait for the request to complete.
+     */
+    public long requestVolumeSamples(FloatBuffer outBuf, VolumeDataLayout layout, DimensionsND dimensiongroup,
+            int lod, int channel, FloatBuffer samplePositions, int sampleCount, InterpolationMethod interpolationMethod) {
+        B.checkDirectBuffer(outBuf);
+        B.checkDirectBuffer(samplePositions);
+        return cpRequestVolumeSamples(_handle, outBuf, layout.handle(), dimensiongroup.ordinal(), lod, channel,
+                samplePositions, sampleCount, interpolationMethod.ordinal());
+    }
+
+    /**
+     * Request sampling of the input VDS at the specified coordinates.
+     *
+     * @param outBuf preallocated buffer holding at least sampleCount elements.
+     * @param layout the VolumeDataLayout object associated with the input VDS.
+     * @param dimensiongroup the dimensiongroup the requested data is read from.
+     * @param lod the LOD level the requested data is read from.
+     * @param channel the channel index the requested data is read from.
+     * @param samplePositions array containing groups of
+     * Dimensionality.Dimensionality_Max elements indicating the positions to
+     * sample. May be deleted once requestVolumeSamples return, as OpenVDS makes
+     * a deep copy of the data.
+     * @param sampleCount number of samples to request.
+     * @param interpolationMethod interpolation method to use when sampling the
+     * buffer.
+     * @param replacementNoValue value used to replace region of the input VDS
+     * that has no data.
+     * @return the requestID which can be used to query the status of the
+     * request, cancel the request or wait for the request to complete.
+     */
+    public long requestVolumeSamples(FloatBuffer outBuf, VolumeDataLayout layout, DimensionsND dimensiongroup,
+                                     int lod, int channel, FloatBuffer samplePositions, int sampleCount,
+                                     InterpolationMethod interpolationMethod, float replacementNoValue) {
+        B.checkDirectBuffer(outBuf);
+        B.checkDirectBuffer(samplePositions);
+        return cpRequestVolumeSamplesR(_handle, outBuf, layout.handle(), dimensiongroup.ordinal(), lod, channel,
+                samplePositions, sampleCount, interpolationMethod.ordinal(), replacementNoValue);
+    }
+
+    /**
+     * Compute the buffer size for a volume traces request.
+     *
+     * @param layout the VolumeDataLayout object associated with the input VDS.
+     * @param traceCount number of traces to request.
+     * @param traceDimension the dimension to trace
+     * @param lod the LOD level the requested data is read from.
+     * @return
+     */
+    public long getVolumeTracesBufferSize(VolumeDataLayout layout,
+            int traceCount, int traceDimension, int lod) {
+        return cpGetVolumeTracesBufferSize(_handle, layout.handle(),
+                traceCount, traceDimension, lod);
+    }
+
+    /**
+     * Request traces from the input VDS.
+     *
+     * @param outBuf preallocated buffer holding at least traceCount * number of
+     * samples in the traceDimension.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * input VDS.
+     * @param dimensionsND the dimensiongroup the requested data is read from.
+     * @param lod the LOD level the requested data is read from.
+     * @param channel the channel index the requested data is read from.
+     * @param tracePositions array containing groups of
+     * Dimensionality.Dimensionality_Max elements indicating the trace
+     * positions.
+     * @param traceCount number of traces to request.
+     * @param interpolationMethod interpolation method to use when sampling the
+     * buffer.
+     * @param traceDimension the dimension to trace
+     * @return the requestID which can be used to query the status of the
+     * request, cancel the request or wait for the request to complete.
+     */
+    public long requestVolumeTraces(FloatBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                    DimensionsND dimensionsND, int lod, int channel,
+                                    FloatBuffer tracePositions,
+                                    int traceCount, InterpolationMethod interpolationMethod, int traceDimension) {
+        B.checkDirectBuffer(outBuf);
+        B.checkDirectBuffer(tracePositions);
+        if (B.getCapacityInBytes(outBuf) < getVolumeTracesBufferSize(volumeDataLayout, traceCount, traceDimension, lod)) {
+            return throwBufferTooSmallException();
+        }
+        return cpRequestVolumeTraces(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                tracePositions,
+                traceCount, interpolationMethod.ordinal(), traceDimension);
+    }
+
+    private long throwBufferTooSmallException() {
+        throw new IllegalArgumentException("Buffer is too small");
+    }
+
+    /**
+     * Request traces from the input VDS.
+     *
+     * @param outBuf preallocated buffer holding at least traceCount * number of
+     * samples in the traceDimension.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * input VDS.
+     * @param dimensionsND the dimensiongroup the requested data is read from.
+     * @param lod the LOD level the requested data is read from.
+     * @param channel the channel index the requested data is read from.
+     * @param tracePositions array containing groups of
+     * Dimensionality.Dimensionality_Max elements indicating the trace
+     * positions.
+     * @param traceCount number of traces to request.
+     * @param interpolationMethod interpolation method to use when sampling the
+     * buffer.
+     * @param traceDimension the dimension to trace
+     * @param replacementNoValue value used to replace region of the input VDS
+     * that has no data.
+     * @return the requestID which can be used to query the status of the
+     * request, cancel the request or wait for the request to complete.
+     */
+    public long requestVolumeTraces(FloatBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                    DimensionsND dimensionsND, int lod, int channel,
+                                    FloatBuffer tracePositions,
+                                    int traceCount, InterpolationMethod interpolationMethod, int traceDimension, float replacementNoValue) {
+        B.checkDirectBuffer(outBuf);
+        B.checkDirectBuffer(tracePositions);
+        if (B.getCapacityInBytes(outBuf) < getVolumeTracesBufferSize(volumeDataLayout, traceCount, traceDimension, lod))
+            throwBufferTooSmallException();
+        return cpRequestVolumeTraces(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                tracePositions,
+                traceCount, interpolationMethod.ordinal(), traceDimension, replacementNoValue);
+    }
+
+    /**
+     * Force production of a specific volume data chunk.
+     *
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * input VDS.
+     * @param dimensionsND the dimensiongroup the requested chunk belongs to.
+     * @param lod the LOD level the requested chunk belongs to.
+     * @param channel the channel index the requested chunk belongs to.
+     * @param chunk the index of the chunk to prefetch.
+     * @return the requestID which can be used to query the status of the
+     * request, cancel the request or wait for the request to complete.
+     */
+    public long prefetchVolumeChunk(VolumeDataLayout volumeDataLayout, int dimensionsND,
+            int lod, int channel, long chunk) {
+        return cpPrefetchVolumeChunk(_handle, volumeDataLayout.handle(),
+                dimensionsND, lod, channel, chunk);
+    }
+
+    /**
+     * Check if a request completed successfully. If the request completed, the
+     * buffer now contains valid data.
+     *
+     * @param requestID the requestID to check for completion.
+     * @return either IsCompleted, IsCanceled or WaitForCompletion will return
+     * true a single time, after that the request is taken out of the system.
+     */
+    public boolean isCompleted(long requestID) {
+        return cpIsCompleted(_handle, requestID);
+    }
+
+    /**
+     * Check if a request was canceled (e.g. the VDS was invalidated before the
+     * request was processed). If the request was canceled, the buffer does not
+     * contain valid data.
+     *
+     * @param requestID the requestID to check for cancellation.
+     * @return either IsCompleted, IsCanceled or WaitForCompletion will return
+     * true a single time, after that the request is taken out of the system.
+     */
+    public boolean isCanceled(long requestID) {
+        return cpIsCanceled(_handle, requestID);
+    }
+
+    /**
+     * Wait for a request to complete successfully. If the request completed,
+     * the buffer now contains valid data.
+     *
+     * @param requestID the requestID to wait for completion of.
+     * @return Either IsCompleted, IsCanceled or WaitForCompletion will return
+     * true a single time, after that the request is taken out of the system.
+     * Whenever WaitForCompletion returns false you need to call IsCanceled() to
+     * know if that was because of a timeout or if the request was canceled.
+     */
+    public boolean waitForCompletion(long requestID) {
+        return waitForCompletion(requestID, 0);
+    }
+
+    /**
+     * Wait for a request to complete successfully. If the request completed,
+     * the buffer now contains valid data.
+     *
+     * @param requestID the requestID to wait for completion of.
+     * @param millisecondsBeforeTimeout the number of milliseconds to wait
+     * before timing out. A value of 0 indicates there is no timeout and we will
+     * wait for however long it takes. Note that the request is not
+     * automatically canceled if the wait times out, you can also use this
+     * mechanism to e.g. update a progress bar while waiting. If you want to
+     * cancel the request you have to explicitly call CancelRequest() and then
+     * wait for the request to stop writing to the buffer.
+     * @return either IsCompleted, IsCanceled or WaitForCompletion will return
+     * true a single time, after that the request is taken out of the system.
+     * Whenever WaitForCompletion returns false you need to call IsCanceled() to
+     * know if that was because of a timeout or if the request was canceled.
+     */
+    public boolean waitForCompletion(long requestID, int millisecondsBeforeTimeout) {
+        return cpWaitForCompletion(_handle, requestID, millisecondsBeforeTimeout);
+    }
+
+    /**
+     * Try to cancel the request. You still have to call
+     * WaitForCompletion/IsCanceled to make sure the buffer is not being written
+     * to and to take the job out of the system. It is possible that the request
+     * has completed concurrently with the call to Cancel in which case
+     * WaitForCompletion will return true.
+     *
+     * @param requestID the requestID to cancel.
+     */
+    public void cancel(long requestID) {
+        cpCancel(_handle, requestID);
+    }
+
+    /**
+     * Get the completion factor (between 0 and 1) of the request.
+     *
+     * @param requestID the requestID to get the completion factor of.
+     * @return a factor (between 0 and 1) indicating how much of the request has
+     * been completed.
+     */
+    public float getCompletionFactor(long requestID) {
+        return cpGetCompletionFactor(_handle, requestID);
+    }
+
+    public void flushUploadQueue() {
+        cpFlushUploadQueue(_handle);
+    }
+
+    public void clearUploadErrors() {
+        cpClearUploadErrors(_handle);
+    }
+
+    public void forceClearAllUploadErrors() {
+        cpForceClearAllUploadErrors(_handle);
+    }
+
+    public int uploadErrorCount() {
+        return cpUploadErrorCount(_handle);
+    }
+}

@@ -109,7 +109,7 @@ int32_t RleDecompress(uint8_t *target_parameter, int32_t nTargetSize, uint8_t *s
     // We don't need to encode runs of 0 length, so we store one less than the actual run length
     runLength++;
 
-    bool isUnique = u0 & HUERLE_UNIQUE_RUN_FLAG;
+    bool isUnique = (u0 & HUERLE_UNIQUE_RUN_FLAG) != 0;
 
     if(isUnique)
     {

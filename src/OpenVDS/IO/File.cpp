@@ -68,7 +68,7 @@ bool File::IsWriteable() const
 
 bool File::IsOpen() const
 {
-  return _pxPlatformHandle;
+  return _pxPlatformHandle != nullptr;
 }
 
 std::string File::FileName() const

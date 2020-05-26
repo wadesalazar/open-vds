@@ -54,23 +54,24 @@ VolumeDataLayoutImpl::VolumeDataLayoutImpl(VDS &vds,
                    bool isZipLosslessChannels,
                    int32_t waveletAdaptiveLoadLevel)
   : m_vds(vds)
+  , m_volumeDataChannelDescriptor(volumeDataChannelDescriptor)
+  , m_isReadOnly(false)
+  , m_contentsHash(volumeDataHash)
   , m_dimensionality(int32_t(axisDescriptor.size()))
   , m_baseBrickSize(int32_t(1) << layoutDescriptor.GetBrickSize())
   , m_negativeRenderMargin(layoutDescriptor.GetNegativeMargin())
   , m_positiveRenderMargin(layoutDescriptor.GetPositiveMargin())
   , m_brickSize2DMultiplier(layoutDescriptor.GetBrickSizeMultiplier2D())
   , m_maxLOD(layoutDescriptor.GetLODLevels())
-  , m_volumeDataChannelDescriptor(volumeDataChannelDescriptor)
   , m_isCreate2DLODs(layoutDescriptor.IsCreate2DLODs())
-  , m_actualValueRangeChannel(actualValueRangeChannel)
-  , m_contentsHash(volumeDataHash)
   , m_pendingWriteRequests(0)
+  , m_actualValueRangeChannel(actualValueRangeChannel)
   , m_actualValueRange(actualValueRange)
   , m_compressionMethod(compressionMethod)
   , m_compressionTolerance(compressionTolerance)
   , m_isZipLosslessChannels(isZipLosslessChannels)
   , m_waveletAdaptiveLoadLevel(waveletAdaptiveLoadLevel)
-  , m_fullResolutionDimension(layoutDescriptor.GetFullResolutionDimension())
+  , m_fullResolutionDimension(layoutDescriptor.IsForceFullResolutionDimension() ? layoutDescriptor.GetFullResolutionDimension() : -1)
 {
 
   for(int32_t dimension = 0; dimension < ArraySize(m_dimensionNumSamples); dimension++)
@@ -138,7 +139,7 @@ int32_t VolumeDataLayoutImpl::GetChannelMappedValueCount(int32_t channel) const
 
 const VolumeDataChannelMapping* VolumeDataLayoutImpl::GetVolumeDataChannelMapping(int32_t channel) const
 {
-  assert(channel >= 0 && channel < m_volumeDataChannelDescriptor.size());
+  assert(channel >= 0 && channel < int32_t(m_volumeDataChannelDescriptor.size()));
   return VolumeDataChannelMapping::GetVolumeDataChannelMapping(m_volumeDataChannelDescriptor[channel].GetMapping());
 }
 

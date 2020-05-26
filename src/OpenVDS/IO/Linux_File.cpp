@@ -18,7 +18,9 @@
 #include "File.h"
 
 #ifdef HAVE_SYNCFS
-  #define _GNU_SOURCE
+  #ifndef _GNU_SOURCE
+    #define _GNU_SOURCE
+  #endif
 #endif
 
 #include <sys/mman.h>
@@ -40,18 +42,6 @@ namespace OpenVDS
 static std::string ErrorToString(int error)
 {
   return std::string(strerror(error));
-}
-
-static void SetIoError(int error, Error &io_error)
-{
-  io_error.code = error;
-  io_error.string = ErrorToString(error);
-}
-
-static void SetIoError(int error, std::string &error_string_prefix, Error &io_error)
-{
-  io_error.code = error;
-  io_error.string = error_string_prefix + ErrorToString(error);
 }
 
 template<size_t N>
@@ -93,14 +83,14 @@ private:
       m_SigactionNew.sa_handler = SystemFileView::SIGBUSHandler;
 
       int iRetval = sigaction(SIGBUS, &m_SigactionNew, &m_SigactionOld);
-
+      (void)iRetval;
       assert(iRetval == 0);
     }
 
     ~SignalHandlerInstaller()
     {
       int iRetval = sigaction(SIGBUS, &m_SigactionOld, NULL);
-
+      (void)iRetval;
       assert(iRetval == 0);
     }
   };
@@ -125,7 +115,8 @@ public:
 
     off_t nAdjustedOffset = nPos - nDelta;
 
-    int iFD = *reinterpret_cast<int*>(&pFileMappingObject);
+    int iFD;
+    memcpy(&iFD, &pFileMappingObject, sizeof(iFD));
 
     int iFlags = MAP_PRIVATE;
 
@@ -227,7 +218,7 @@ void File::Close()
   assert(IsOpen());
 
   int fd  = (int)(intptr_t)_pxPlatformHandle;
-  bool isOK = ::close(fd) == 0;
+  ::close(fd);
 
   _pxPlatformHandle = 0;
   _cFileName.clear();
@@ -352,6 +343,7 @@ FileView *File::CreateFileView(int64_t nPos, int64_t nSize, bool isPopulate, Err
   if (error.code)
   {
     bool deleted = FileView::RemoveReference(ret);
+    (void)deleted;
     assert(deleted);
     ret = nullptr;
   }

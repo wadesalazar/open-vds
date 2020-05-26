@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 namespace SEGY
@@ -98,7 +99,8 @@ Ibm2ieee(void *to, const void *from, size_t len)
         rValue = float (fr);
 
       uint32_t
-        uValue = reinterpret_cast<uint32_t&> (rValue);
+        uValue;
+      memcpy(&uValue, &rValue, sizeof(uValue));
 
       // Then mod the exponent on the IEEE number, and we are done.
 
@@ -293,6 +295,8 @@ int FormatSize(BinaryHeader::DataSampleFormatCode dataSampleFormatCode)
     case BinaryHeader::DataSampleFormatCode::Int64:
     case BinaryHeader::DataSampleFormatCode::UInt64:
       return 8;
+    case BinaryHeader::DataSampleFormatCode::Unknown:
+      return 0;
   }
   return 0;
 }

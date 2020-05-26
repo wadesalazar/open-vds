@@ -53,4 +53,5 @@ TEST(WaitForCompletion, waitTimeout)
   ASSERT_FALSE(accessManager->WaitForCompletion(requestFloat, 1));
 
   ASSERT_TRUE(accessManager->WaitForCompletion(requestFloat, 0));
+  ASSERT_FALSE(accessManager->WaitForCompletion(requestFloat, 0));
 }

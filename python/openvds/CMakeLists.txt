@@ -1,4 +1,4 @@
-pybind11_add_module(core MODULE
+pybind11_add_module(core MODULE SYSTEM
     core.cpp
     PyGlobal.cpp
     PyGlobal.h
@@ -49,11 +49,7 @@ add_custom_command(TARGET core
   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${pythonsources} $<TARGET_FILE_DIR:core>)
 
 copyDllForTarget(core)
-
-target_include_directories(core
-    PRIVATE
-        ${PYBIND11_INCLUDE_DIRS}
-)
+setWarningFlagsForTarget(core)
 
 target_link_libraries(core PRIVATE openvds)
 set_target_properties(core PROPERTIES INSTALL_RPATH "\\$\{ORIGIN\}/../lib")

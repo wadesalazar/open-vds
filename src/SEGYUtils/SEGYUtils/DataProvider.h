@@ -207,7 +207,7 @@ struct DataView
       {
         m_data.resize(m_size);
         OpenVDS::Error reqError;
-        for (int i = 0; i < m_requests.size(); i++)
+        for (int i = 0; i < int(m_requests.size()); i++)
         {
           m_requests[i]->WaitForFinish();
           if (!m_requests[i]->IsSuccess(reqError))
@@ -216,7 +216,7 @@ struct DataView
             break;
           }
           auto& transfer = *m_transfers[i];
-          assert(transfer.size == transfer.data.size());
+          assert(transfer.size == int64_t(transfer.data.size()));
           assert(transfer.offset + transfer.data.size() <= m_data.size());
           memcpy(m_data.data() + transfer.offset, transfer.data.data(), transfer.data.size());
         }
@@ -318,8 +318,6 @@ public:
       return nullptr;
     }
 
-    DataView* dataView = nullptr;
-
     auto it = m_dataViewMap.lower_bound(dataRequestInfo);
     if (it == m_dataViewMap.end() || it->first != dataRequestInfo)
     {
@@ -367,7 +365,7 @@ private:
     if (m_usage >= m_memoryLimit)
       return;
     int i;
-    for (i = 0; i < m_requests.size() && m_usage < m_memoryLimit && m_error.code == 0; i++)
+    for (i = 0; i < int(m_requests.size()) && m_usage < m_memoryLimit && m_error.code == 0; i++)
     {
       auto &req = m_requests[i];
       auto it = m_dataViewMap.find(req);

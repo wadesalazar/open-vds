@@ -9,6 +9,10 @@ set_target_properties(gtest PROPERTIES
 set_target_properties(gtest_main PROPERTIES
   FOLDER ExternalProjectTargets/GoogleTest)
 
+add_executable(TestRootTarget RootTestExecutable.cpp)
+set_target_properties(TestRootTarget PROPERTIES FOLDER tests)
+copyDllForTarget(TestRootTarget)
+
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/src)
 
 get_property(include_3rdparty      GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES)
@@ -18,7 +22,7 @@ function(add_test_executable name)
   target_link_libraries(${name} PRIVATE openvds_objects gtest gtest_main)
   target_include_directories(${name} SYSTEM PRIVATE ${include_3rdparty})
   target_compile_definitions(${name} PRIVATE openvds_EXPORTS)
-  copyDllForTarget(${name})
+  add_dependencies(${name} TestRootTarget)
   gtest_discover_tests(${name})
   set_target_properties(${name} PROPERTIES FOLDER tests)
   get_target_property(fmt_INCLUDE fmt::fmt INTERFACE_INCLUDE_DIRECTORIES)
@@ -27,6 +31,7 @@ function(add_test_executable name)
   target_compile_definitions(${name} PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
   target_compile_definitions(${name} PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
   target_compile_definitions(${name} PRIVATE -DTEST_AWS_BUCKET="${TEST_AWS_BUCKET}")
+  target_compile_definitions(${name} PRIVATE -DTEST_AWS_ENDPOINT_OVERRIDE="${TEST_AWS_ENDPOINT_OVERRIDE}")
   target_compile_definitions(${name} PRIVATE -DTEST_AWS_OBJECTID="${TEST_AWS_OBJECTID}")
   string(REPLACE ";" "\\\\;" TEST_AZURE_CONNECTION_ESCAPED "${TEST_AZURE_CONNECTION}")
   target_compile_definitions(${name} PRIVATE -DTEST_AZURE_CONNECTION="${TEST_AZURE_CONNECTION_ESCAPED}")
@@ -37,6 +42,9 @@ add_test_executable(io_tests
   io/InMemoryIo.cpp
   io/AzureIo.cpp
   )
+if (DISABLE_AZURE_IOMANAGER)
+  set_source_files_properties(io/AzureIo.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
+endif()
 
 add_test_executable(io_performance_test
   io/IoPerformance.cpp
@@ -62,7 +70,6 @@ add_test_executable(segy_tests
   ../src/SEGYUtils/SEGY.cpp
   ../src/SEGYUtils/SEGYFileInfo.cpp
   ../src/SEGYUtils/SEGYUtils/SEGYFileInfo.h)
-target_compile_definitions(segy_tests PRIVATE -DTEST_DATA_PATH="${TEST_DATA_PATH}")
 target_include_directories(segy_tests PRIVATE ../src/SEGYUtils)
 
 add_test_executable(vds_integration_tests
@@ -79,6 +86,8 @@ add_test_executable(openvds_integration_tests
   OpenVDS/RequestVolumeSubsetFormat.cpp
   OpenVDS/DataAccessorClone.cpp
   OpenVDS/WaitForCompletion.cpp
+  OpenVDS/RequestCancellation.cpp
+  OpenVDS/VolumeIndexerSymbols.cpp
   )
 
 add_test_executable(multithreaded_requests

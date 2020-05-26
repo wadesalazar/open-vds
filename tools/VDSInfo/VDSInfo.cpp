@@ -92,7 +92,7 @@ template<typename T, size_t N>
 Json::Value getJsonFromVector(const OpenVDS::Vector<T, N> &vec)
 {
   Json::Value ret;
-  for (int i = 0; i < N; i++)
+  for (int i = 0; i < int(N); i++)
   {
     ret.append(vec[i]);
   }
@@ -102,49 +102,49 @@ Json::Value getJsonFromVector(const OpenVDS::Vector<T, N> &vec)
 Json::Value getJsonFromMetadata(const OpenVDS::MetadataKey &key, OpenVDS::VolumeDataLayout *layout)
 {
   Json::Value value;
-  value["category"] = key.category;
-  value["name"] = key.name;
-  value["type"] = MetadataTypeToString(key.type);
-  switch (key.type)
+  value["category"] = key.GetCategory();
+  value["name"] = key.GetName();
+  value["type"] = MetadataTypeToString(key.GetType());
+  switch (key.GetType())
   {
   case OpenVDS::MetadataType::Int:
-    value["value"] = layout->GetMetadataInt(key.category, key.name);
+    value["value"] = layout->GetMetadataInt(key.GetCategory(), key.GetName());
     break;
   case OpenVDS::MetadataType::IntVector2:
-    value["value"] = getJsonFromVector(layout->GetMetadataIntVector2(key.category, key.name));
+    value["value"] = getJsonFromVector(layout->GetMetadataIntVector2(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::IntVector3:
-    value["value"] = getJsonFromVector(layout->GetMetadataIntVector3(key.category, key.name));
+    value["value"] = getJsonFromVector(layout->GetMetadataIntVector3(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::IntVector4:
-    value["value"] = getJsonFromVector(layout->GetMetadataIntVector4(key.category, key.name));
+    value["value"] = getJsonFromVector(layout->GetMetadataIntVector4(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::Float:
-    value["value"] = layout->GetMetadataFloat(key.category, key.name);
+    value["value"] = layout->GetMetadataFloat(key.GetCategory(), key.GetName());
     break;
   case OpenVDS::MetadataType::FloatVector2:
-    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector2(key.category, key.name));
+    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector2(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::FloatVector3:
-    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector3(key.category, key.name));
+    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector3(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::FloatVector4:
-    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector4(key.category, key.name));
+    value["value"] = getJsonFromVector(layout->GetMetadataFloatVector4(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::Double:
-    value["value"] = layout->GetMetadataDouble(key.category, key.name);
+    value["value"] = layout->GetMetadataDouble(key.GetCategory(), key.GetName());
     break;
   case OpenVDS::MetadataType::DoubleVector2:
-    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector2(key.category, key.name));
+    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector2(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::DoubleVector3:
-    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector3(key.category, key.name));
+    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector3(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::DoubleVector4:
-    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector4(key.category, key.name));
+    value["value"] = getJsonFromVector(layout->GetMetadataDoubleVector4(key.GetCategory(), key.GetName()));
     break;
   case OpenVDS::MetadataType::String:
-    value["value"] = layout->GetMetadataString(key.category, key.name);
+    value["value"] = layout->GetMetadataString(key.GetCategory(), key.GetName());
     break;
   default:
     break;
@@ -155,7 +155,11 @@ Json::Value getJsonFromMetadata(const OpenVDS::MetadataKey &key, OpenVDS::Volume
 static std::string convertToString(const Json::Value &value)
 {
   std::stringstream stream;
-  Json::StyledStreamWriter("  ").write(stream, value);
+  Json::StreamWriterBuilder builder;
+  builder["commentStyle"] = "None";
+  builder["indentation"] = "   ";  // or whatever you like
+  std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+  writer->write(value, &stream);
   return stream.str();
 }
 
@@ -185,6 +189,7 @@ int main(int argc, char **argv)
 
   std::string bucket;
   std::string region;
+  std::string endpointOverride;
   std::string connectionString;
   std::string container;
   int azureParallelismFactor = 0;
@@ -204,6 +209,7 @@ int main(int argc, char **argv)
 //connection options
   options.add_option("", "", "bucket", "AWS S3 bucket to connect to.", cxxopts::value<std::string>(bucket), "<string>");
   options.add_option("", "", "region", "AWS region of bucket to connect to.", cxxopts::value<std::string>(region), "<string>");
+  options.add_option("", "", "endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(endpointOverride), "<string>");
   options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
   options.add_option("", "", "container", "Azure Blob Storage container to connect to.", cxxopts::value<std::string>(container), "<string>");
   options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
@@ -232,7 +238,7 @@ int main(int argc, char **argv)
   {
     options.parse(argc, argv);
   }
-  catch(cxxopts::OptionParseException e)
+  catch(cxxopts::OptionParseException &e)
   {
     fmt::print(stderr, "{}", e.what());
     return EXIT_FAILURE;
@@ -245,7 +251,7 @@ int main(int argc, char **argv)
 
   if(!bucket.empty())
   {
-    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region));
+    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
   }
   else if(!container.empty())
   {
@@ -306,13 +312,12 @@ int main(int argc, char **argv)
   if (metaKeys)
   {
     Json::Value metaKeysInfo;
-    auto keys = layout->GetMetadataKeys();
     for (auto &key : layout->GetMetadataKeys())
     {
       Json::Value jsonKey;
-      jsonKey["type"] = MetadataTypeToString(key.type);
-      jsonKey["category"] = key.category;
-      jsonKey["name"] = key.name;
+      jsonKey["type"] = MetadataTypeToString(key.GetType());
+      jsonKey["category"] = key.GetCategory();
+      jsonKey["name"] = key.GetName();
       metaKeysInfo.append(jsonKey);
     }
     root["metaKeysInfo"] = metaKeysInfo;
@@ -324,11 +329,11 @@ int main(int argc, char **argv)
     std::vector<OpenVDS::MetadataKey> to_print_blobs;
     for (auto &key : layout->GetMetadataKeys())
     {
-      if (metadataPrintName.size() && metadataPrintName != key.name)
+      if (metadataPrintName.size() && metadataPrintName != key.GetName())
         continue;
-      if (metadataPrintCategory.size() && metadataPrintCategory != key.category)
+      if (metadataPrintCategory.size() && metadataPrintCategory != key.GetCategory())
         continue;
-      if (key.type == OpenVDS::MetadataType::BLOB)
+      if (key.GetType() == OpenVDS::MetadataType::BLOB)
         to_print_blobs.push_back(key);
       else
         to_print.push_back(key);
@@ -340,7 +345,7 @@ int main(int argc, char **argv)
       {
         auto &key = to_print_blobs.front();
         std::vector<uint8_t> vector;
-        layout->GetMetadataBLOB(key.category, key.name, vector);
+        layout->GetMetadataBLOB(key.GetCategory(), key.GetName(), vector);
         bool decodeEBCDIC = false;
         if (metadataAutoDecodeEBCDIC)
         {
@@ -351,7 +356,7 @@ int main(int argc, char **argv)
           decodedEbcdic(vector);
         }
         int i = 0;
-        while(i < vector.size())
+        while(i < int(vector.size()))
         {
           int to_copy = std::min(textDecodeWidth, int(vector.size() - i));
           fwrite(vector.data() + i, 1, to_copy, stdout);

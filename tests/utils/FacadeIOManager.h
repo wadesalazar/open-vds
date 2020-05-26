@@ -23,21 +23,26 @@
 #include <IO/IOManager.h>
 #include <VDS/ThreadPool.h>
 
+#include <atomic>
+
 class FacadeRequest : public OpenVDS::Request
 {
 public:
   FacadeRequest(const std::string &objectName, const OpenVDS::Error &error)
     : Request(objectName)
     , m_error(error)
+    , m_done(false)
   {
 
   }
   void WaitForFinish() override
   {
+    while(!m_done)
+      ;
   }
   bool IsDone() const override
   {
-    return true;
+    return m_done;
   }
   bool IsSuccess(OpenVDS::Error &error) const override
   {
@@ -46,8 +51,10 @@ public:
   }
   void Cancel() override
   {
+    m_done = true;
   }
 
+  std::atomic_bool m_done;
 private:
   OpenVDS::Error m_error;
 };
@@ -109,6 +116,7 @@ public:
       threadPool.Enqueue([handler, error, request]
         {
           handler->Completed(*request, error);
+          request->m_done = true;
         });
       return request;
     }
@@ -135,6 +143,7 @@ public:
       threadPool.Enqueue([handler, error, request]
         {
           handler->Completed(*request, error);
+          request->m_done = true;
         });
       return request;
     }
@@ -153,7 +162,15 @@ public:
       auto request = std::make_shared<FacadeRequest>(objectName, error);
       if (completedCallback)
       {
-        threadPool.Enqueue([completedCallback, error, request] { completedCallback(*request, error); });
+        threadPool.Enqueue([completedCallback, error, request]
+          {
+            completedCallback(*request, error); 
+            request->m_done = true;
+          });
+      }
+      else
+      {
+        request->m_done = true;
       }
       return request;
     }

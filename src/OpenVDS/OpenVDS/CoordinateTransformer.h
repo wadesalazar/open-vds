@@ -15,7 +15,7 @@ struct M4
   DoubleVector4 data[4];
 };
 
-static void fastInvert(M4 &m)
+inline void fastInvert(M4 &m)
 {
     DoubleVector3 cT(m.data[3].X, m.data[3].Y, m.data[3].Z);
 
@@ -35,7 +35,7 @@ static void fastInvert(M4 &m)
 
     if (fabs(fDet) <= rEpsilon)
     {
-      memset(&m, 0, sizeof(m));
+      m = {};
       return;
     }
 
@@ -295,10 +295,10 @@ private:
     ijkToWorldTranslation[2] = (float)vdsIjkGridDefinition.origin.Z;
 
     M4 matrix = {
-      {vdsIjkGridDefinition.iUnitStep.X, vdsIjkGridDefinition.iUnitStep.Y, vdsIjkGridDefinition.iUnitStep.Z, 0},
-      {vdsIjkGridDefinition.jUnitStep.X, vdsIjkGridDefinition.jUnitStep.Y, vdsIjkGridDefinition.jUnitStep.Z, 0},
-      {vdsIjkGridDefinition.kUnitStep.X, vdsIjkGridDefinition.kUnitStep.Y, vdsIjkGridDefinition.kUnitStep.Z, 0},
-      {vdsIjkGridDefinition.origin.X,    vdsIjkGridDefinition.origin.Y,    vdsIjkGridDefinition.origin.Z,    1}
+      DoubleVector4 {vdsIjkGridDefinition.iUnitStep.X, vdsIjkGridDefinition.iUnitStep.Y, vdsIjkGridDefinition.iUnitStep.Z, 0},
+      DoubleVector4 {vdsIjkGridDefinition.jUnitStep.X, vdsIjkGridDefinition.jUnitStep.Y, vdsIjkGridDefinition.jUnitStep.Z, 0},
+      DoubleVector4 {vdsIjkGridDefinition.kUnitStep.X, vdsIjkGridDefinition.kUnitStep.Y, vdsIjkGridDefinition.kUnitStep.Z, 0},
+      DoubleVector4 {vdsIjkGridDefinition.origin.X,    vdsIjkGridDefinition.origin.Y,    vdsIjkGridDefinition.origin.Z,    1}
     };
 
     fastInvert(matrix);

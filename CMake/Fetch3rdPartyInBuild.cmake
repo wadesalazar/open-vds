@@ -32,6 +32,10 @@ function(Fetch3rdParty)
   Fetch3rdParty_Package(curl        7.68.0      https://github.com/curl/curl/releases/download/curl-7_68_0/curl-7.68.0.tar.gz                         SHA256=1dd7604e418b0b9a9077f62f763f6684c1b092a7bc17e3f354b8ad5c964d7358)
   Fetch3rdParty_Package(libuv       1.34.1      https://github.com/libuv/libuv/archive/v1.34.1.tar.gz                                                 SHA256=e3e0105c9b26e181e0547607cb6893462beb0c652674c3795766b2e5555288b3)
 
+#  if (BUILD_JAVA)
+#    Fetch3rdParty_Package(junit4      4.13.0      https://github.com/junit-team/junit4/archive/r4.13.tar.gz                                             SHA256=c4e8f5681ad387a386a5aebe05ed4b73ffbfff963e154fbc4d77090f230777c7)
+#  endif()
+
   if (BUILD_ZLIB)
     Fetch3rdParty_Package(zlib      1.2.11     http://zlib.net/zlib-1.2.11.tar.gz                                                                     SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1)
   endif()

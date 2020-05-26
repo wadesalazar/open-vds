@@ -36,7 +36,14 @@ static const char simple_parse_data[] = R"json(
 GTEST_TEST(JsonCppParse, simple_parse)
 {
   Json::Value root;
-  EXPECT_TRUE(Json::Reader().parse(simple_parse_data, root));
+  Json::CharReaderBuilder rbuilder;
+  rbuilder["collectComments"] = false;
+
+  std::string errs;
+
+  std::unique_ptr<Json::CharReader> reader(rbuilder.newCharReader());
+  reader->parse(simple_parse_data, simple_parse_data + sizeof(simple_parse_data), &root, &errs);
+
   EXPECT_TRUE(root["a"] == 44.5);
   EXPECT_TRUE(root["b"].isObject());
   EXPECT_TRUE(root["b"]["a"] == 89);

@@ -343,7 +343,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
   }
 
   LimitPageListSize(m_maxPages, pageListMutexLock);
-  return m_layer;
+  return m_layer != nullptr;
 }
 
 void VolumeDataPageAccessorImpl::CancelPreparedReadPage(VolumeDataPage* page)
@@ -397,7 +397,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::ReadPage(int64_t chunk)
 
 void VolumeDataPageAccessorImpl::LimitPageListSize(int maxPages, std::unique_lock<std::mutex>& pageListMutexLock)
 {
-  while(m_pages.size() > m_maxPages)
+  while(int(m_pages.size()) > m_maxPages)
   {
     // Wait for commit to finish before deleting a page
     while(m_isCommitInProgress)

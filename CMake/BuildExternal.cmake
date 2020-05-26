@@ -45,6 +45,7 @@ function(BuildExternal name version depends source_dir install_libs_release runt
   endforeach()
 
   set_property(GLOBAL APPEND PROPERTY OPENVDS_INCLUDE_LIBRARIES "${INSTALL_INT_CONFIG}/include")
+  set_property(GLOBAL APPEND PROPERTY OPENVDS_DEPENDENCY_TARGETS "${name}")
 
   if (cmake_args)
     set(cmake_arg_complete "${cmake_args};")

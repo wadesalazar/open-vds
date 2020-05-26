@@ -174,7 +174,7 @@ static IORange CalculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, co
     int range = WaveletAdaptiveLevelsMetadataDecode(parsedMetadata.m_chunkSize, *adaptiveLevel, parsedMetadata.m_adaptiveLevels.data());
     if (range && range != parsedMetadata.m_chunkSize)
     {
-    return { size_t(0) , size_t(range - 1 ) };
+    return { int64_t(0) , int64_t(range - 1 ) };
     }
   }
 
@@ -220,8 +220,8 @@ static VolumeDataLayer *GetVolumeDataLayer(VolumeDataLayoutImpl const *layout, D
 VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDS &vds)
   : m_vds(vds)
   , m_ioManager(vds.ioManager.get())
-  , m_currentErrorIndex(0)
   , m_requestProcessor(*this)
+  , m_currentErrorIndex(0)
 {
 }
 
@@ -555,6 +555,7 @@ void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPa
       int32_t pageIndex = (int)(volumeDataChunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
       int32_t entryIndex = (int)(volumeDataChunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
+      (void)pageIndex;
       assert(pageIndex == metadataPage->PageIndex());
 
       if (error.code != 0)

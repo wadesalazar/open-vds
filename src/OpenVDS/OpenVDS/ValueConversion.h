@@ -65,8 +65,8 @@ template<typename T1, typename T2>
 inline typename std::enable_if<std::numeric_limits<T1>::is_integer && !std::is_same<T1,bool>::value && !std::numeric_limits<T2>::is_integer, T1>::type
 ConvertValue(T2 value)
 {
-  if(value < ((std::numeric_limits<T1>::min)())) return ((std::numeric_limits<T1>::min)());
-  if(value > ((std::numeric_limits<T1>::max)())) return ((std::numeric_limits<T1>::max)());
+  if(value < T2((std::numeric_limits<T1>::min)())) return ((std::numeric_limits<T1>::min)());
+  if(value > T2((std::numeric_limits<T1>::max)())) return ((std::numeric_limits<T1>::max)());
   if(std::numeric_limits<T1>::is_signed)
   {
     return (T1)std::floor(value + 0.5f);
@@ -93,21 +93,21 @@ inline T ConvertNoValue(float noValue)
 
 // Conversion of NoValue that takes quantized types into account
 template <>
-inline bool ConvertNoValue<bool>(float noValue)
+inline bool ConvertNoValue<bool>(float /*noValue*/)
 {
   return false;
 }
 
 // Conversion of NoValue that takes quantized types into account
 template <>
-inline uint8_t ConvertNoValue<uint8_t>(float noValue)
+inline uint8_t ConvertNoValue<uint8_t>(float /*noValue*/)
 {
   return 0xff;
 }
 
 // Conversion of NoValue that takes quantized types into account
 template <>
-inline uint16_t ConvertNoValue<uint16_t>(float noValue)
+inline uint16_t ConvertNoValue<uint16_t>(float /*noValue*/)
 {
   return 0xffff;
 }
@@ -121,21 +121,21 @@ inline T ConvertNoValue(double noValue)
 
 // Conversion of NoValue that takes quantized types into account
 template <>
-inline bool ConvertNoValue<bool>(double noValue)
+inline bool ConvertNoValue<bool>(double /*noValue*/)
 {
   return false;
 }
 
 // Conversion of NoValue that takes quantized types into account
 template <>
-inline uint8_t ConvertNoValue<uint8_t>(double noValue)
+inline uint8_t ConvertNoValue<uint8_t>(double /*noValue*/)
 {
   return 0xff;
 }
 
 // Conversion of NoValue that takes quantized types into account
 template <>
-inline uint16_t ConvertNoValue<uint16_t>(double noValue)
+inline uint16_t ConvertNoValue<uint16_t>(double /*noValue*/)
 {
   return 0xffff;
 }
@@ -189,7 +189,7 @@ struct QuantizedTypesToFloatConverter
 {
   QuantizedTypesToFloatConverter()
   {}
-  QuantizedTypesToFloatConverter(float integerScale, float integerOffset, bool isRangeScale)
+  QuantizedTypesToFloatConverter(float /*integerScale*/, float /*integerOffset*/, bool /*isRangeScale*/)
   {}
 
   T ConvertValue(T value) const
@@ -206,7 +206,7 @@ struct QuantizedTypesToFloatConverter<uint8_t, isUseNoValue>
 
   QuantizedTypesToFloatConverter() : m_integerScale(1), m_integerOffset(0)
   {}
-  
+
   QuantizedTypesToFloatConverter(float integerScale, float integerOffset, bool isRangeScale)
     : m_integerScale(integerScale / (isRangeScale ? 255.0f - isUseNoValue : 1.0f))
     , m_integerOffset(integerOffset)
@@ -258,7 +258,7 @@ public:
     , m_noValue(0)
     , m_replacementNoValue(0)
   {}
-  
+
   QuantizingValueConverterWithNoValue(float valueRangeMin, float valueRangeMax, float integerScale, float integerOffset, float noValue, float replacementNoValue)
     : m_integerOffset(valueRangeMin)
     , m_reciprocalScale(ResultConverter<T1, isUseNoValue>::ReciprocalScale(valueRangeMin, valueRangeMax))

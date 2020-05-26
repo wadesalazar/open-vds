@@ -31,7 +31,7 @@ namespace OpenVDS
 class VolumeDataChannelMapping;
 
 template<typename T, size_t N>
-constexpr size_t ArraySize(const T (&)[N])
+constexpr int ArraySize(const T (&)[N])
 {
   return N;
 }

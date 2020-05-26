@@ -31,9 +31,19 @@ file. |
 |     --persistentID \<ID>          | A globally unique ID for the VDS, usually an 8-digit hexadecimal number.
 |     --uniqueID                    | Generate a new globally unique ID when scanning the input SEG-Y file.
 
-To create a valid VDS from a SEG-Y file, SEGYImport needs to scan the file to determine the extents of the dataset (e.g. number of samples, number of crosslines, number of inlines). During the scanning process we read from a number of fields in the trace headers, most importantly the primary and secondary keys that are used as the axes of the VDS. 
+To create a valid VDS from a SEG-Y file, SEGYImport needs to scan the file to
+determine the extents of the dataset (e.g. number of samples, number of
+crosslines, number of inlines). During the scanning process we read from a
+number of fields in the trace headers, most importantly the primary and
+secondary keys that are used as the axes of the VDS. 
 
-For inline-sorted poststack data the inline number is the primary key and the crossline number is the secondary key (this is the default setting). If these are not in the 'standard' byte locations in the header, you can override the trace header format using a JSON file that contains definitions of the SEG-Y header fields (that are not in the standard locations) using the --header-format command line option. You can also specify the header field endianness in this file. This is an example of such a JSON file:
+For inline-sorted poststack data the inline number is the primary key and the
+crossline number is the secondary key (this is the default setting). If these
+are not in the 'standard' byte locations in the header, you can override the
+trace header format using a JSON file that contains definitions of the SEG-Y
+header fields (that are not in the standard locations) using the
+--header-format command line option. You can also specify the header field
+endianness in this file. This is an example of such a JSON file:
 
 ```
 {
@@ -43,20 +53,28 @@ For inline-sorted poststack data the inline number is the primary key and the cr
 }
 ```
 
-For other data types (or crossline-sorted poststack data) it is possible to specify which trace header fields the file is sorted on by using the `--primary-key` and `--secondary-key` options. 
+For other data types (or crossline-sorted poststack data) it is possible to
+specify which trace header fields the file is sorted on by using the
+`--primary-key` and `--secondary-key` options. 
 
-  The result of the scanning process is the 'file info' and can optionally be saved to a separate file using the `--scan` option. Such a file can be used later when importing the data by using the
+  The result of the scanning process is the 'file info' and can optionally be
+saved to a separate file using the `--scan` option. Such a file can be used
+later when importing the data by using the
 `--file-info` command line option.
 
-If `--scan` is specified then `--file-info` argument can be used to specify the output
-file. If no output file is given, the file info will be printed to stdout.
+If `--scan` is specified then `--file-info` argument can be used to specify the
+output file. If no output file is given, the file info will be printed to
+stdout.
 
 When SEGYImport is either done generating a "file-info" or it is supplied with
-a file, it will start generating VDS chunks that will be uploaded to the destination VDS using the
+a file, it will start generating VDS chunks that will be uploaded to the
+destination VDS using the
 connection parameters.
 
-During the scanning stage SEGYImport will also read the binary header of
-the SEG-Y file and extract some keys at certain predefined positions. These are not possible to override, since it's not common practice to store these in a different place.
+During the scanning stage SEGYImport will also read the binary header of the
+SEG-Y file and extract some keys at certain predefined positions. These are not
+possible to override, since it's not common practice to store these in a
+different place.
 
 | Name                           | Offset | Width |
 |--------------------------------|--------|-------|
@@ -86,7 +104,8 @@ The default trace header fields (that can be overridden with a header format JSO
 | GroupYCoordinate      | Group-Y, ReceiverYCoordinate, Receiver-Y |  85    | 4     |
 | CoordinateScale       | Scalar                                   |  71    | 2     |
 
-Either a `--container` (for Azure) or a `--bucket` (for AWS) argument and an input SEG-Y file must be specified.
+Either a `--container` (for Azure) or a `--bucket` (for AWS) argument and an
+input SEG-Y file must be specified.
 
 Example usage:
 ```

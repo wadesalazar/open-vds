@@ -20,7 +20,7 @@
 #include "VolumeDataLayoutImpl.h"
 #include "VolumeDataHash.h"
 #include "MetadataManager.h"
-
+#include "CompilerDefines.h"
 #include <OpenVDS/Vector.h>
 
 #include <json/json.h>
@@ -350,69 +350,69 @@ static VolumeDataMapping ChannelMappingFromJson(Json::Value const &jsonChannelMa
   throw Json::Exception("Illegal channel mapping");
 }
 
-static MetadataType MetadataTypeFromJson(Json::Value const &jsonMetadataType)
-{
-  std::string metadataTypeString = jsonMetadataType.asString();
-
-  if(metadataTypeString == "Int")
-  {
-    return MetadataType::Int;
-  }
-  else if(metadataTypeString == "IntVector2")
-  {
-    return MetadataType::IntVector2;
-  }
-  else if(metadataTypeString == "IntVector3")
-  {
-    return MetadataType::IntVector3;
-  }
-  else if(metadataTypeString == "IntVector4")
-  {
-    return MetadataType::IntVector4;
-  }
-  else if(metadataTypeString == "Float")
-  {
-    return MetadataType::Float;
-  }
-  else if(metadataTypeString == "FloatVector2")
-  {
-    return MetadataType::FloatVector2;
-  }
-  else if(metadataTypeString == "FloatVector3")
-  {
-    return MetadataType::FloatVector3;
-  }
-  else if(metadataTypeString == "FloatVector4")
-  {
-    return MetadataType::FloatVector4;
-  }
-  else if(metadataTypeString == "Double")
-  {
-    return MetadataType::Double;
-  }
-  else if(metadataTypeString == "DoubleVector2")
-  {
-    return MetadataType::DoubleVector2;
-  }
-  else if(metadataTypeString == "DoubleVector3")
-  {
-    return MetadataType::DoubleVector3;
-  }
-  else if(metadataTypeString == "DoubleVector4")
-  {
-    return MetadataType::DoubleVector4;
-  }
-  else if(metadataTypeString == "String")
-  {
-    return MetadataType::String;
-  }
-  else if(metadataTypeString == "BLOB")
-  {
-    return MetadataType::BLOB;
-  }
-
-  throw Json::Exception("Illegal metadata type");
-}
+//static MetadataType MetadataTypeFromJson(Json::Value const &jsonMetadataType)
+//{
+//  std::string metadataTypeString = jsonMetadataType.asString();
+//
+//  if(metadataTypeString == "Int")
+//  {
+//    return MetadataType::Int;
+//  }
+//  else if(metadataTypeString == "IntVector2")
+//  {
+//    return MetadataType::IntVector2;
+//  }
+//  else if(metadataTypeString == "IntVector3")
+//  {
+//    return MetadataType::IntVector3;
+//  }
+//  else if(metadataTypeString == "IntVector4")
+//  {
+//    return MetadataType::IntVector4;
+//  }
+//  else if(metadataTypeString == "Float")
+//  {
+//    return MetadataType::Float;
+//  }
+//  else if(metadataTypeString == "FloatVector2")
+//  {
+//    return MetadataType::FloatVector2;
+//  }
+//  else if(metadataTypeString == "FloatVector3")
+//  {
+//    return MetadataType::FloatVector3;
+//  }
+//  else if(metadataTypeString == "FloatVector4")
+//  {
+//    return MetadataType::FloatVector4;
+//  }
+//  else if(metadataTypeString == "Double")
+//  {
+//    return MetadataType::Double;
+//  }
+//  else if(metadataTypeString == "DoubleVector2")
+//  {
+//    return MetadataType::DoubleVector2;
+//  }
+//  else if(metadataTypeString == "DoubleVector3")
+//  {
+//    return MetadataType::DoubleVector3;
+//  }
+//  else if(metadataTypeString == "DoubleVector4")
+//  {
+//    return MetadataType::DoubleVector4;
+//  }
+//  else if(metadataTypeString == "String")
+//  {
+//    return MetadataType::String;
+//  }
+//  else if(metadataTypeString == "BLOB")
+//  {
+//    return MetadataType::BLOB;
+//  }
+//
+//  throw Json::Exception("Illegal metadata type");
+//}
 
 bool ParseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Error &error)
 {
@@ -421,15 +421,13 @@ bool ParseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Er
     Json::CharReaderBuilder rbuilder;
     rbuilder["collectComments"] = false;
 
-    std::string errs;
-
     std::unique_ptr<Json::CharReader> reader(rbuilder.newCharReader());
     const char *json_begin = reinterpret_cast<const char *>(json.data());
     reader->parse(json_begin, json_begin + json.size(), &root, &error.string);
 
     return true;
   }
-  catch(Json::Exception e)
+  catch(Json::Exception &e)
   {
     error.code = -1;
     error.string = e.what() + std::string(" : ") + error.string;
@@ -654,36 +652,36 @@ static CompressionMethod CompressionMethodFromJson(Json::Value const &jsonCompre
   }
 }
 
-static MetadataStatus MetadataStatusFromJSON(Json::Value const &metadataStatusJson)
-{
-  if(metadataStatusJson.empty())
-  {
-    return MetadataStatus();
-  }
-
-  MetadataStatus metadataStatus = MetadataStatus();
-
-  metadataStatus.m_chunkIndexCount       = metadataStatusJson["chunkCount"].asInt();
-  metadataStatus.m_chunkMetadataPageSize = metadataStatusJson["chunkMetadataPageSize"].asInt();
-  metadataStatus.m_chunkMetadataByteSize = metadataStatusJson["chunkMetadataByteSize"].asInt();
-  metadataStatus.m_compressionMethod     = CompressionMethodFromJson(metadataStatusJson["compressionMethod"]);
-  metadataStatus.m_compressionTolerance  = metadataStatusJson["compressionTolerance"].asFloat();
-
-  metadataStatus.m_uncompressedSize = metadataStatusJson["uncompressedSize"].asInt64();
-
-  Json::Value
-    adaptiveLevelSizesJson = metadataStatusJson["adaptiveLevelSizes"];
-
-  if(!adaptiveLevelSizesJson.empty())
-  {
-    for(int i = 0; i < WAVELET_ADAPTIVE_LEVELS; i++)
-    {
-      metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJson[i].asInt64();
-    }
-  }
-
-  return metadataStatus;
-}
+//static MetadataStatus MetadataStatusFromJSON(Json::Value const &metadataStatusJson)
+//{
+//  if(metadataStatusJson.empty())
+//  {
+//    return MetadataStatus();
+//  }
+//
+//  MetadataStatus metadataStatus = MetadataStatus();
+//
+//  metadataStatus.m_chunkIndexCount       = metadataStatusJson["chunkCount"].asInt();
+//  metadataStatus.m_chunkMetadataPageSize = metadataStatusJson["chunkMetadataPageSize"].asInt();
+//  metadataStatus.m_chunkMetadataByteSize = metadataStatusJson["chunkMetadataByteSize"].asInt();
+//  metadataStatus.m_compressionMethod     = CompressionMethodFromJson(metadataStatusJson["compressionMethod"]);
+//  metadataStatus.m_compressionTolerance  = metadataStatusJson["compressionTolerance"].asFloat();
+//
+//  metadataStatus.m_uncompressedSize = metadataStatusJson["uncompressedSize"].asInt64();
+//
+//  Json::Value
+//    adaptiveLevelSizesJson = metadataStatusJson["adaptiveLevelSizes"];
+//
+//  if(!adaptiveLevelSizesJson.empty())
+//  {
+//    for(int i = 0; i < WAVELET_ADAPTIVE_LEVELS; i++)
+//    {
+//      metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJson[i].asInt64();
+//    }
+//  }
+//
+//  return metadataStatus;
+//}
 
 bool ParseLayerStatus(const std::vector<uint8_t> &json, VDS &vds, Error &error)
 {
@@ -758,7 +756,7 @@ bool ParseLayerStatus(const std::vector<uint8_t> &json, VDS &vds, Error &error)
       }
     }
   }
-  catch(Json::Exception e)
+  catch(Json::Exception &e)
   {
     error.string = e.what();
     error.code = -1;
@@ -855,10 +853,10 @@ Json::Value SerializeVector(T const &vector)
   Json::Value vectorJson(Json::arrayValue);
 
   int i = 0;
-  switch(T::element_count)
+  switch (int(T::element_count))
   {
-  case 4: vectorJson.append(vector[i++]);
-  case 3: vectorJson.append(vector[i++]);
+  case 4: vectorJson.append(vector[i++]); FALLTHROUGH;
+  case 3: vectorJson.append(vector[i++]); FALLTHROUGH;
   case 2: vectorJson.append(vector[i++]);
           vectorJson.append(vector[i++]);
   }
@@ -869,7 +867,7 @@ Json::Value SerializeVector(T const &vector)
 Json::Value SerializeBLOB(MetadataKey const &key, MetadataReadAccess const &readAccess)
 {
   std::vector<uint8_t> blob;
-  readAccess.GetMetadataBLOB(key.category, key.name, blob);
+  readAccess.GetMetadataBLOB(key.GetCategory(), key.GetName(), blob);
   std::vector<char> base64;
   Base64Encode(blob.data(), blob.size(), base64);
 
@@ -885,27 +883,27 @@ Json::Value SerializeMetadata(MetadataContainer const &metadataContainer)
   {
     Json::Value  metadataJson;
 
-    metadataJson["category"] = metadataKey.category;
-    metadataJson["name"] = metadataKey.name;
+    metadataJson["category"] = metadataKey.GetCategory();
+    metadataJson["name"] = metadataKey.GetName();
 
-    switch(metadataKey.type)
+    switch(metadataKey.GetType())
     {
-    case MetadataType::Int:        metadataJson["type"] = "Int";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataInt(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::IntVector2: metadataJson["type"] = "IntVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector2(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::IntVector3: metadataJson["type"] = "IntVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector3(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::IntVector4: metadataJson["type"] = "IntVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector4(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::Int:        metadataJson["type"] = "Int";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataInt(metadataKey.GetCategory(), metadataKey.GetName())); break;
+    case MetadataType::IntVector2: metadataJson["type"] = "IntVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector2(metadataKey.GetCategory(), metadataKey.GetName())); break;
+    case MetadataType::IntVector3: metadataJson["type"] = "IntVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector3(metadataKey.GetCategory(), metadataKey.GetName())); break;
+    case MetadataType::IntVector4: metadataJson["type"] = "IntVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataIntVector4(metadataKey.GetCategory(), metadataKey.GetName())); break;
 
-    case MetadataType::Float:        metadataJson["type"] = "Float";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataFloat(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::FloatVector2: metadataJson["type"] = "FloatVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector2(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::FloatVector3: metadataJson["type"] = "FloatVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector3(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::FloatVector4: metadataJson["type"] = "FloatVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector4(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::Float:        metadataJson["type"] = "Float";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataFloat(metadataKey.GetCategory(), metadataKey.GetName())); break;
+    case MetadataType::FloatVector2: metadataJson["type"] = "FloatVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector2(metadataKey.GetCategory(), metadataKey.GetName())); break;
+    case MetadataType::FloatVector3: metadataJson["type"] = "FloatVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector3(metadataKey.GetCategory(), metadataKey.GetName())); break;
+    case MetadataType::FloatVector4: metadataJson["type"] = "FloatVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataFloatVector4(metadataKey.GetCategory(), metadataKey.GetName())); break;
 
-    case MetadataType::Double:        metadataJson["type"] = "Double";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataDouble(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::DoubleVector2: metadataJson["type"] = "DoubleVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector2(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::DoubleVector3: metadataJson["type"] = "DoubleVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector3(metadataKey.category, metadataKey.name)); break;
-    case MetadataType::DoubleVector4: metadataJson["type"] = "DoubleVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector4(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::Double:        metadataJson["type"] = "Double";        metadataJson["value"] = Json::Value(metadataContainer.GetMetadataDouble(metadataKey.GetCategory(), metadataKey.GetName())); break;
+    case MetadataType::DoubleVector2: metadataJson["type"] = "DoubleVector2"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector2(metadataKey.GetCategory(), metadataKey.GetName())); break;
+    case MetadataType::DoubleVector3: metadataJson["type"] = "DoubleVector3"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector3(metadataKey.GetCategory(), metadataKey.GetName())); break;
+    case MetadataType::DoubleVector4: metadataJson["type"] = "DoubleVector4"; metadataJson["value"] = SerializeVector(metadataContainer.GetMetadataDoubleVector4(metadataKey.GetCategory(), metadataKey.GetName())); break;
 
-    case MetadataType::String: metadataJson["type"] = "String"; metadataJson["value"] = Json::Value(metadataContainer.GetMetadataString(metadataKey.category, metadataKey.name)); break;
+    case MetadataType::String: metadataJson["type"] = "String"; metadataJson["value"] = Json::Value(metadataContainer.GetMetadataString(metadataKey.GetCategory(), metadataKey.GetName())); break;
 
     case MetadataType::BLOB: metadataJson["type"] = "BLOB"; metadataJson["value"] = SerializeBLOB(metadataKey, metadataContainer); break;
     }

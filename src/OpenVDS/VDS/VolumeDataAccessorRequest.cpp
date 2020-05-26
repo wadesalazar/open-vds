@@ -21,26 +21,13 @@
 #include "VolumeDataRequestProcessor.h"
 #include "DataBlock.h"
 #include "DimensionGroup.h"
+#include "CompilerDefines.h"
 #include <OpenVDS/ValueConversion.h>
 #include <OpenVDS/VolumeSampler.h>
 
 #include <inttypes.h>
 
 #include <fmt/format.h>
-
-#ifdef _DEBUG
-#   define force_inline inline
-#else
-#   if defined _MSC_VER
-#      define force_inline __forceinline
-#   elif defined __GNUC__
-#      define force_inline __attribute__((always_inline)) inline
-#   else
-#      define force_inline inline
-#   endif
-#endif
-
-#define CALC_BIT_SHIFT(IVAL)       (FIND_SHIFT<IVAL>::RET)
 
 namespace OpenVDS
 {
@@ -288,13 +275,13 @@ static force_inline void CopyBytesT(T* __restrict target, const T* __restrict so
       int32_t iTail = 0;
       switch (nTail)
       {
-      case 7: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
-      case 6: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
-      case 5: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
-      case 4: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
-      case 3: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
-      case 2: targetTail [iTail] = sourceTail [iTail]; iTail++; [[clang::fallthrough]];
-      case 1: targetTail [iTail] = sourceTail [iTail];
+      case 7: targetTail[iTail] = sourceTail[iTail]; iTail++; FALLTHROUGH;
+      case 6: targetTail[iTail] = sourceTail[iTail]; iTail++; FALLTHROUGH;
+      case 5: targetTail[iTail] = sourceTail[iTail]; iTail++; FALLTHROUGH;
+      case 4: targetTail[iTail] = sourceTail[iTail]; iTail++; FALLTHROUGH;
+      case 3: targetTail[iTail] = sourceTail[iTail]; iTail++; FALLTHROUGH;
+      case 2: targetTail[iTail] = sourceTail[iTail]; iTail++; FALLTHROUGH;
+      case 1: targetTail[iTail] = sourceTail[iTail]; 
       }
     }
   }
@@ -302,11 +289,11 @@ static force_inline void CopyBytesT(T* __restrict target, const T* __restrict so
 
 static force_inline void CopyBytes(void* target, const void* source, int32_t size)
 {
-  if (size >= sizeof (int64_t) && !((intptr_t) source & (sizeof (int64_t)-1)) && !((intptr_t) target & (sizeof (int64_t)-1)))
+  if (size >= int32_t(sizeof (int64_t)) && !((intptr_t) source & (sizeof (int64_t)-1)) && !((intptr_t) target & (sizeof (int64_t)-1)))
     CopyBytesT ((int64_t*) target, (int64_t*) source, size);
-  else if (size >= sizeof (int32_t) && !((intptr_t) source & (sizeof (int32_t)-1)) && !((intptr_t) target & (sizeof (int32_t)-1)))
+  else if (size >= int32_t(sizeof (int32_t)) && !((intptr_t) source & (sizeof (int32_t)-1)) && !((intptr_t) target & (sizeof (int32_t)-1)))
     CopyBytesT ((int32_t*) target, (int32_t*) source, size);
-  else if (size >= sizeof (int16_t) && !((intptr_t) source & (sizeof (int16_t)-1)) && !((intptr_t) target & (sizeof (int16_t)-1)))
+  else if (size >= int32_t(sizeof (int16_t)) && !((intptr_t) source & (sizeof (int16_t)-1)) && !((intptr_t) target & (sizeof (int16_t)-1)))
     CopyBytesT ((int16_t*) target, (int16_t*) source, size);
   else
     CopyBytesT ((int8_t*) target, (int8_t*) source, size);
@@ -1011,7 +998,7 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
   std::vector<VolumeDataChunk> chunksInRegion;
 
   int32_t projectionDimension = -1;
-  int32_t projectionDimensionPosition;
+  int32_t projectionDimensionPosition = -1;
   int32_t projectedDimensionsPair[2] = { -1, -1 };
 
   int32_t layerDimensionGroup = DimensionGroupUtil::GetDimensionality(volumeDataLayer->GetChunkDimensionGroup());
@@ -1065,6 +1052,7 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
   //Swap components of VoxelPlane based on projection dimension
   FloatVector4 voxelPlaneSwapped(voxelPlane);
 
+  assert(projectionDimensionPosition != -1);
   if (projectionDimensionPosition < 2)
   {
     //need to swap
@@ -1094,7 +1082,7 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
                                      boxRequested.max,
                                      &chunksInProjectedRegion);
 
-  for (int iChunk = 0; iChunk < chunksInProjectedRegion.size(); iChunk++)
+  for (int iChunk = 0; iChunk < int(chunksInProjectedRegion.size()); iChunk++)
   {
     int32_t min[Dimensionality_Max];
     int32_t max[Dimensionality_Max];
@@ -1140,7 +1128,7 @@ static int64_t StaticRequestProjectedVolumeSubset(VolumeDataRequestProcessor &re
                                        boxProjected.max,
                                             &chunksIntersectingPlane);
 
-    for (int iChunkInPlane = 0; iChunkInPlane < chunksIntersectingPlane.size(); iChunkInPlane++)
+    for (int iChunkInPlane = 0; iChunkInPlane < int(chunksIntersectingPlane.size()); iChunkInPlane++)
     {
       VolumeDataChunk &chunkInIntersectingPlane = chunksIntersectingPlane[iChunkInPlane];
       auto chunk_it = std::find_if(chunksInRegion.begin(), chunksInRegion.end(), [&chunkInIntersectingPlane] (const VolumeDataChunk &a) { return a.index == chunkInIntersectingPlane.index && a.layer == chunkInIntersectingPlane.layer; });
@@ -1184,8 +1172,6 @@ static void SampleVolume(VolumeDataPageImpl *page, const VolumeDataLayer *volume
   int32_t chunkDimension2 = volumeDataLayer->GetChunkDimension(2);
 
   assert(chunkDimension0 >= 0 && chunkDimension1 >= 0);
-
-  VolumeDataChunk volumeDataChunk = { volumeDataLayer, chunkIndex };
 
   int32_t min[Dimensionality_Max];
   int32_t max[Dimensionality_Max];
@@ -1338,6 +1324,10 @@ static bool RequestVolumeSamplesProcessPage(VolumeDataPageImpl *page, VolumeData
   case VolumeDataChannelDescriptor::Format_R64:
     SampleVolumeInit<double>(page, dataChunk.layer, volumeDataSamplePositions, interpolationMethod, iStartSamplePos, samplePosCount, replacementNoValue, buffer);
     break;
+  case VolumeDataChannelDescriptor::Format_Any:
+    error.code = -1;
+    error.string = "Illigal format";
+    return false;
   }
 
   return true;
@@ -1369,7 +1359,7 @@ int64_t StaticRequestVolumeSamples(VolumeDataRequestProcessor &request_processor
   std::vector<VolumeDataChunk> volumeDataChunks;
   int64_t currentChunkIndex = -1;
 
-  for (int32_t samplePos = 0; samplePos < volumeDataSamplePositions->size(); samplePos++)
+  for (int32_t samplePos = 0; samplePos < int32_t(volumeDataSamplePositions->size()); samplePos++)
   {
     VolumeDataSamplePos &volumeDataSamplePos = volumeDataSamplePositions->at(samplePos);
     if (volumeDataSamplePos.chunkIndex != currentChunkIndex)
@@ -1565,6 +1555,10 @@ static bool RequestVolumeTracesProcessPage (VolumeDataPageImpl *page, VolumeData
   case VolumeDataChannelDescriptor::Format_R64:
     TraceVolumeInit<double>(page, dataChunk, volumeDataSamplePositions, interpolationMethod, traceDimension, noValue, buffer);
     break;
+  case VolumeDataChannelDescriptor::Format_Any:
+    error.code = -1;
+    error.string = "Illigal format";
+    return false;
   }
   return true;
 }

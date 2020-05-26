@@ -26,7 +26,7 @@
 
 namespace OpenVDS
 {
-template <typename INDEX> INDEX NdPosToVector(const int (&pos)[Dimensionality_Max]){ assert(false); } ;
+template <typename INDEX> INDEX NdPosToVector(const int (&pos)[Dimensionality_Max]){ assert(false); }
 
 template <> IntVector2 NdPosToVector<IntVector2>(const int (&pos)[Dimensionality_Max]) { return { pos[1], pos[0]}; }
 template <> IntVector3 NdPosToVector<IntVector3>(const int (&pos)[Dimensionality_Max]) { return { pos[2], pos[1], pos[0]}; }
@@ -35,7 +35,7 @@ template <> FloatVector2 NdPosToVector<FloatVector2>(const int (&pos)[Dimensiona
 template <> FloatVector3 NdPosToVector<FloatVector3>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[2], (float)pos[1], (float)pos[0]}; }
 template <> FloatVector4 NdPosToVector<FloatVector4>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[3], (float)pos[2], (float)pos[1], (float)pos[0]}; }
 
-template <typename INDEX> void VectorToNDPos(INDEX const &index, int (&pos)[Dimensionality_Max]) { assert(false); };
+template <typename INDEX> void VectorToNDPos(INDEX const &index, int (&pos)[Dimensionality_Max]) { assert(false); }
 template <> void VectorToNDPos(IntVector2 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; }
 template <> void VectorToNDPos(IntVector3 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; pos[2] = index[2]; }
 template <> void VectorToNDPos(IntVector4 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; pos[2] = index[2]; pos[3] = index[3]; }

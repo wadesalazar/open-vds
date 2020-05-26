@@ -101,10 +101,6 @@ static int32_t findTransformMethod(IntVector3 (&bandSize)[TRANSFORM_MAX_ITERATIO
 {
   int i = 0;
 
-  int32_t bandPosX = 0;
-  int32_t bandPosY = 0;
-  int32_t bandPosZ = 0;
-
   while (sizeX >= WAVELET_BAND_MIN_SIZE ||
          sizeY >= WAVELET_BAND_MIN_SIZE ||
          sizeZ >= WAVELET_BAND_MIN_SIZE)
@@ -124,10 +120,6 @@ static int32_t findTransformMethod(IntVector3 (&bandSize)[TRANSFORM_MAX_ITERATIO
     splitMask[i] = mask;
 
     i++;
-
-    bandPosX = sizeX;
-    bandPosY = sizeY;
-    bandPosZ = sizeZ;
   }
 
   bandSize[i] = {sizeX, sizeY, sizeZ};
@@ -780,6 +772,7 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
       m_allocatedHalfSizeX, m_allocatedHalfSizeX * m_allocatedHalfSizeY, cpuTempData.data(), m_allocatedHalfSizeX * m_allocatedHalfSizeY * m_allocatedHalfSizeZ, m_allocatedSizeX * m_allocatedSizeY * m_allocatedSizeZ, decompressLevel);
 
   int size = WaveletAdaptiveLL_DecompressAdaptive(decodeIterator);
+  (void)size;
 
   if (isLossless)
   {
@@ -801,7 +794,7 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
     ApplyNoValues(floatReadWriteData, noValueBitBuffer.data(), localWaveletNoValue);
   }
 
-  if (isAnyNoValue) *isAnyNoValue = noValueBitBuffer.size();
+  if (isAnyNoValue) *isAnyNoValue = noValueBitBuffer.size() != 0;
   if (waveletNoValue) *waveletNoValue = localWaveletNoValue;
 
 // DeNormalize?
@@ -908,6 +901,7 @@ void Wavelet::InverseTransform(float *source)
     float *read = source;
     float *write = tempBuffer.data();
     const int32_t threadCount = WAVELET_SSE_THREADS;
+    (void)threadCount;
 
     if (transformMask == 7)
     {

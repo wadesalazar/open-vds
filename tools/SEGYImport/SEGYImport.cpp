@@ -15,6 +15,7 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#define _CRT_SECURE_NO_WARNINGS 1
 #include <SEGYUtils/SEGYFileInfo.h>
 #include "IO/File.h"
 #include "VDS/Hash.h"
@@ -28,6 +29,7 @@
 #include <OpenVDS/VolumeDataAccess.h>
 #include <OpenVDS/Range.h>
 #include <OpenVDS/VolumeDataLayout.h>
+#include <OpenVDS/KnownMetadata.h>
 #include <OpenVDS/GlobalMetadataCommon.h>
 
 #include <mutex>
@@ -355,7 +357,7 @@ ParseHeaderFormatFile(OpenVDS::File const& file, std::map<std::string, SEGY::Hea
       }
     }
   }
-  catch (Json::Exception e)
+  catch (Json::Exception &e)
   {
     error.code = -1;
     error.string = e.what();
@@ -398,13 +400,13 @@ findRepresentativeSegment(SEGYFileInfo const& fileInfo, int& primaryStep)
 
   int segmentPrimaryStep = 0;
 
-  for (int i = 0; i < fileInfo.m_segmentInfo.size(); i++)
+  for (int i = 0; i < int(fileInfo.m_segmentInfo.size()); i++)
   {
     int64_t
       numTraces = (fileInfo.m_segmentInfo[i].m_traceStop - fileInfo.m_segmentInfo[i].m_traceStart);
 
     float
-      multiplier = 1.5f - abs(i - (float)fileInfo.m_segmentInfo.size() / 2) / (float)fileInfo.m_segmentInfo.size(); // give 50% more importance to a segment in the middle of the dataset
+      multiplier = 1.5f - std::abs(i - (float)fileInfo.m_segmentInfo.size() / 2) / (float)fileInfo.m_segmentInfo.size(); // give 50% more importance to a segment in the middle of the dataset
 
     float
       score = float(numTraces) * multiplier;
@@ -562,7 +564,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
 
       for (int sample = 0; sample < fileInfo.m_sampleCount; sample++)
       {
-        if (minHeap.size() < heapSizeMax)
+        if (int(minHeap.size()) < heapSizeMax)
         {
           minHeap.push_back(samples[sample]);
           std::push_heap(minHeap.begin(), minHeap.end(), std::less<float>());
@@ -574,7 +576,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
           std::push_heap(minHeap.begin(), minHeap.end(), std::less<float>());
         }
 
-        if (maxHeap.size() < heapSizeMax)
+        if (int(maxHeap.size()) < heapSizeMax)
         {
           maxHeap.push_back(samples[sample]);
           std::push_heap(maxHeap.begin(), maxHeap.end(), std::greater<float>());
@@ -611,7 +613,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
 }
 
 bool
-createSEGYHeadersMetadata(DataProvider &dataProvider, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error& error)
+createSEGYMetadata(DataProvider &dataProvider, SEGYFileInfo const &fileInfo, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error& error)
 {
   std::vector<uint8_t> textHeader(SEGY::TextualFileHeaderSize);
   std::vector<uint8_t> binaryHeader(SEGY::BinaryFileHeaderSize);
@@ -627,6 +629,8 @@ createSEGYHeadersMetadata(DataProvider &dataProvider, OpenVDS::MetadataContainer
 
   metadataContainer.SetMetadataBLOB("SEGY", "BinaryHeader", binaryHeader);
 
+  metadataContainer.SetMetadataInt("SEGY", "Endianness", int(fileInfo.m_headerEndianness));
+  metadataContainer.SetMetadataInt("SEGY", "DataSampleFormatCode", int(fileInfo.m_dataSampleFormatCode));
   return success;
 }
 
@@ -820,7 +824,7 @@ parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
       fileInfo.m_segmentInfo.push_back(segmentInfoFromJson(jsonSegmentInfo));
     }
   }
-  catch (Json::Exception e)
+  catch (Json::Exception &e)
   {
     std::cerr << "Failed to parse JSON SEG-Y file info file: " << e.what();
     return false;
@@ -1002,7 +1006,7 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, c
 }
 
 static std::unique_ptr<OpenVDS::OpenOptions> CreateOpenOptions(const std::string &prefix, const std::string &persistentID,
-                                                          const std::string &bucket, const std::string &region,
+                                                          const std::string &bucket, const std::string &region, const std::string &endpointOverride,
                                                           const std::string &container, const std::string &connectionString, int azureParallelismFactor,
                                                           const std::string &azurePresignBase, const std::string &azurePresignSuffix, 
                                                           OpenVDS::Error &error)
@@ -1015,7 +1019,7 @@ static std::unique_ptr<OpenVDS::OpenOptions> CreateOpenOptions(const std::string
 
   if(!bucket.empty())
   {
-    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region));
+    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
   }
   else if(!container.empty())
   {
@@ -1052,12 +1056,12 @@ static std::unique_ptr<OpenVDS::OpenOptions> CreateOpenOptions(const std::string
 
 static DataProvider CreateDataProvider(const std::string &fileName,
                                        const std::string &prefix, const std::string &persistentID,
-                                       const std::string &bucket, const std::string &region,
+                                       const std::string &bucket, const std::string &region, const std::string &endpointOverride,
                                        const std::string &container, const std::string &connectionString, int azureParallelismFactor,
                                        const std::string &azurePresignBase, const std::string &azurePresignSuffix,
                                        OpenVDS::Error &error)
 {
-  auto openOptions = CreateOpenOptions(prefix, persistentID, bucket, region, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, error);
+  auto openOptions = CreateOpenOptions(prefix, persistentID, bucket, region, endpointOverride, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, error);
   if (error.code || !openOptions)
   {
     error = OpenVDS::Error();
@@ -1071,11 +1075,11 @@ int
 main(int argc, char* argv[])
 {
 #if defined(WIN32)
-  bool is_tty = _isatty(_fileno(stdout));
+  bool is_tty = _isatty(_fileno(stdout)) != 0;
 #else
   bool is_tty = isatty(fileno(stdout));
 #endif
-  auto start_time = std::chrono::high_resolution_clock::now();
+  //auto start_time = std::chrono::high_resolution_clock::now();
   cxxopts::Options options("SEGYImport", "SEGYImport - A tool to scan and import a SEG-Y file to a volume data store (VDS)");
   options.positional_help("<input file>");
 
@@ -1092,6 +1096,9 @@ main(int argc, char* argv[])
   std::string bucket;
   std::string sourceBucket;
   std::string region;
+  std::string sourceRegion;
+  std::string endpointOverride;
+  std::string sourceEndpointOverride;
   std::string connectionString;
   std::string container;
   std::string sourceConnectionString;
@@ -1122,6 +1129,9 @@ main(int argc, char* argv[])
   options.add_option("", "", "bucket", "AWS S3 bucket to upload to.", cxxopts::value<std::string>(bucket), "<string>");
   options.add_option("", "", "source-bucket", "AWS S3 bucket to download from.", cxxopts::value<std::string>(sourceBucket), "<string>");
   options.add_option("", "", "region", "AWS region of bucket to upload to.", cxxopts::value<std::string>(region), "<string>");
+  options.add_option("", "", "source-region", "AWS region of bucket to download from.", cxxopts::value<std::string>(sourceRegion), "<string>");
+  options.add_option("", "", "endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(endpointOverride), "<string>");
+  options.add_option("", "", "source-endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(sourceEndpointOverride), "<string>");
   options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
   options.add_option("", "", "container", "Azure Blob Storage container to upload to.", cxxopts::value<std::string>(container), "<string>");
   options.add_option("", "", "source-connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(sourceConnectionString), "<string>");
@@ -1149,7 +1159,7 @@ main(int argc, char* argv[])
   {
     options.parse(argc, argv);
   }
-  catch (cxxopts::OptionParseException e)
+  catch (cxxopts::OptionParseException &e)
   {
     std::cerr << e.what();
     return EXIT_FAILURE;
@@ -1244,7 +1254,7 @@ main(int argc, char* argv[])
   OpenVDS::Error
     error;
 
-  DataProvider dataProvider = CreateDataProvider(fileNames[0], sourcePrefix, persistentID, sourceBucket, region, sourceContainer, sourceConnectionString, azureParallelismFactor, azurePresignSourceBase, azurePresignSourceSuffix, error);
+  DataProvider dataProvider = CreateDataProvider(fileNames[0], sourcePrefix, persistentID, sourceBucket, sourceRegion, sourceEndpointOverride, sourceContainer, sourceConnectionString, azureParallelismFactor, azurePresignSourceBase, azurePresignSourceSuffix, error);
   if (error.code != 0)
   {
     fmt::print(stderr, "Could not open: {} - {}\n", fileNames[0], error.string);
@@ -1446,7 +1456,7 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  createSEGYHeadersMetadata(dataProvider, metadataContainer, error);
+  createSEGYMetadata(dataProvider, fileInfo, metadataContainer, error);
 
   if (error.code != 0)
   {
@@ -1459,7 +1469,7 @@ main(int argc, char* argv[])
   OpenVDS::Error
     createError;
 
-  auto openOptions = CreateOpenOptions(prefix, persistentID, bucket, region, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, createError);
+  auto openOptions = CreateOpenOptions(prefix, persistentID, bucket, region, endpointOverride, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, createError);
 
   if (createError.code)
     fmt::print(stderr, "{}\n", createError.code);
@@ -1671,7 +1681,7 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
   fmt::print("\r100% done processing {}.\n", persistentID);
-  double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
+  //double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
   //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 
   return EXIT_SUCCESS;

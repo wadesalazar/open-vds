@@ -34,13 +34,14 @@
 int
 main(int argc, char *argv[])
 {
-  auto start_time = std::chrono::high_resolution_clock::now();
+  //auto start_time = std::chrono::high_resolution_clock::now();
 
   cxxopts::Options options("SEGYExport", "SEGYExport - A tool to export a volume data store (VDS) to a SEG-Y file");
   options.positional_help("<output file>");
 
   std::string bucket;
   std::string region;
+  std::string endpointOverride;
   std::string connectionString;
   std::string container;
   int azureParallelismFactor = 0;
@@ -52,6 +53,7 @@ main(int argc, char *argv[])
 
   options.add_option("", "", "bucket", "AWS S3 bucket to export from.", cxxopts::value<std::string>(bucket), "<string>");
   options.add_option("", "", "region", "AWS region of bucket to export from.", cxxopts::value<std::string>(region), "<string>");
+  options.add_option("", "", "endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(endpointOverride), "<string>");
   options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
   options.add_option("", "", "container", "Azure Blob Storage container to export from .", cxxopts::value<std::string>(container), "<string>");
   options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
@@ -73,7 +75,7 @@ main(int argc, char *argv[])
   {
     options.parse(argc, argv);
   }
-  catch(cxxopts::OptionParseException e)
+  catch(cxxopts::OptionParseException &e)
   {
     fmt::print(stderr, "{}", e.what());
     return EXIT_FAILURE;
@@ -93,7 +95,7 @@ main(int argc, char *argv[])
 
   if(!bucket.empty())
   {
-    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region));
+    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
   }
   else if(!container.empty())
   {
@@ -153,7 +155,7 @@ main(int argc, char *argv[])
     if(dimensionality == 4 && outerDimension == 2)
     {
       if(accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_013, 0, 0) == OpenVDS::VDSProduceStatus::Normal || 
-        accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_013, 0, 0) == OpenVDS::VDSProduceStatus::Remapped && accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable)
+        (accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_013, 0, 0) == OpenVDS::VDSProduceStatus::Remapped && accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable))
       {
         dimensionGroup = OpenVDS::Dimensions_013;
       }
@@ -161,7 +163,7 @@ main(int argc, char *argv[])
     else
     {
       if(accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_012, 0, 0) == OpenVDS::VDSProduceStatus::Normal || 
-        accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_012, 0, 0) == OpenVDS::VDSProduceStatus::Remapped && accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable)
+        (accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_012, 0, 0) == OpenVDS::VDSProduceStatus::Remapped && accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable))
       {
         dimensionGroup = OpenVDS::Dimensions_012;
       }
@@ -225,7 +227,7 @@ main(int argc, char *argv[])
                   220,221,222,223,234,235,236,237,238,239,250,251,252,253,254,255 };
 
     // Convert to EBCDIC
-    for(int i = 0; i < textHeader.size(); i++) textHeader[i] = a2e[textHeader[i]];
+    for(int i = 0; i < int(textHeader.size()); i++) textHeader[i] = a2e[textHeader[i]];
   }
 
   SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian;
@@ -265,7 +267,7 @@ main(int argc, char *argv[])
     // Convert to big-endian
     if(headerEndianness == SEGY::Endianness::BigEndian)
     {
-      for(int i = 0; i < littleEndianBinaryHeader.size(); i++) binaryHeader[i] = littleEndianBinaryHeader[(i < 3 * 4) ? (i ^ 3) : (i ^ 1)];
+      for(int i = 0; i < int(littleEndianBinaryHeader.size()); i++) binaryHeader[i] = littleEndianBinaryHeader[(i < 3 * 4) ? (i ^ 3) : (i ^ 1)];
     }
   }
 
@@ -452,7 +454,7 @@ main(int argc, char *argv[])
   }
   fmt::print(stdout, "\33[2K\r 100% Done.\n", percentage);
 
-  double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
+  //double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
   //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 
   return EXIT_SUCCESS;

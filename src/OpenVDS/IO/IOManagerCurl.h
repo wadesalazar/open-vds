@@ -42,29 +42,6 @@
 namespace OpenVDS
 {
 
-static std::string trimInBothEnds(const std::string& str)
-{
-    auto it_begin = std::find_if(str.begin(), str.end(), [](const char a) { return !std::isspace(a); });
-    auto it_end = std::find_if(str.rbegin(), str.rend(), [](const char a) { return !std::isspace(a); }).base();
-    if (it_end < it_begin)
-        return std::string(); 
-    return std::string(it_begin, it_end);
-}
-
-static void getKeyValueFromLine(const char *line, size_t size, std::string &key, std::string &value, char delimiter)
-{
-  const char *end = line + size;
-  const char *colon = std::find(line, end, delimiter);
-  if (colon >= end - 1 )
-    return;
-
-  std::string k(line, colon);
-  std::string v(colon + 1, end);
-
-  key = trimInBothEnds(k);
-  value = trimInBothEnds(v);
-}
-
 class IOManagerCurl;
 
 struct UVEventLoopData;
@@ -75,6 +52,8 @@ struct CurlEasyHandler
     , curlEasy(nullptr)
     , retry_count(0)
   {}
+  virtual ~CurlEasyHandler() {}
+
   UVEventLoopData *eventLoopData;
   CURL* curlEasy;
   int retry_count;
@@ -132,7 +111,6 @@ struct CurlDownloadHandler : public CurlEasyHandler
     , request(request)
     , url(std::move(url))
     , headers(std::move(headers))
-    , data(std::move(data))
     , metaKeyPrefixTrim(std::move(metaKeyPrefixTrim))
     , toISO8601DateTransformer(toISO8601DateTransformer)
     , verb(verb)

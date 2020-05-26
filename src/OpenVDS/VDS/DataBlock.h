@@ -82,7 +82,7 @@ public:
 bool InitializeDataBlock(const DataBlockDescriptor &descriptor, DataBlock &dataBlock, Error &error);
 bool InitializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, Dimensionality dimensionality, int32_t (&size)[DataStoreDimensionality_Max], DataBlock &dataBlock, Error &error);
 
-static int32_t GetVoxelFormatByteSize(VolumeDataChannelDescriptor::Format format)
+inline int32_t GetVoxelFormatByteSize(VolumeDataChannelDescriptor::Format format)
 {
   int32_t iRetval = -1;
   switch (format) {

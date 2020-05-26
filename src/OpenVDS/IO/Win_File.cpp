@@ -350,7 +350,7 @@ bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, Error& error) co
     }
   }
 
-  return isOK;
+  return isOK == TRUE;
 }
 
 bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & error)
@@ -406,7 +406,7 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
     }
   }
 
-  return isOK;
+  return isOK == TRUE;
 }
 
 bool File::Flush()
@@ -415,7 +415,7 @@ bool File::Flush()
     return false;
 
   BOOL isOK = FlushFileBuffers(_pxPlatformHandle);
-  return isOK;
+  return isOK == TRUE;
 }
 
 FileView *File::CreateFileView(int64_t nPos, int64_t nSize, bool isPopulate, Error &error)

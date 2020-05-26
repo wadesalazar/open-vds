@@ -53,12 +53,60 @@ enum class MetadataType
   BLOB
 };
 
-/// \brief A metadata key uniquely identifies a piece of metadata
-struct MetadataKey
+/// <summary>
+/// A metadata key uniquely identifies a metadata item
+/// </summary>
+class MetadataKey
 {
-  MetadataType type;
-  const char *category;
-  const char *name;
+  MetadataType  m_type;
+  const char   *m_category;
+  const char   *m_name;
+public:
+  /// <summary>
+  /// Default constructor
+  /// </summary>
+  MetadataKey() : m_type(), m_category(), m_name() {}
+
+  /// <summary>
+  /// Constructor
+  /// </summary>
+  /// <param name="type">
+  /// The type of the metadata that this key identifies. The possible types are (Int, Float, Double, {Int,Float,Double}Vector{2,3,4}, String or BLOB).
+  /// </param>
+  /// <param name="category">
+  /// The category of the metadata that this key identifies. A category is a collection of related metadata items, e.g. SurveyCoordinateSystem consists of Origin, InlineSpacing, CrosslineSpacing and Unit metadata.
+  /// </param>
+  /// <param name="name">
+  /// The name of the metadata that this key identifies
+  /// </param>
+  MetadataKey(MetadataType type, const char *category, const char *name) : m_type(type), m_category(category), m_name(name) {}
+
+  /// <summary>
+  /// Get the type of metadata that this key identifies
+  /// </summary>
+  /// <returns>
+  /// The type of the metadata that this key identifies
+  /// </returns>
+  MetadataType GetType() const { return m_type; }
+
+  /// <summary>
+  /// Get the category of metadata that this key identifies
+  /// </summary>
+  /// <returns>
+  /// The category of the metadata that this key identifies
+  /// </returns>
+  const char  *GetCategory() const { return m_category; }
+
+  /// <summary>
+  /// Get the name of metadata that this key identifies
+  /// </summary>
+  /// <returns>
+  /// The name of the metadata that this key identifies
+  /// </returns>
+  const char  *GetName() const { return m_name; }
+
+  bool operator==(const MetadataKey& other) const { return m_type == other.m_type && strcmp(m_category, other.m_category) == 0 && strcmp(m_name, other.m_name) == 0; }
+  bool operator!=(const MetadataKey& other) const { return m_type != other.m_type || strcmp(m_category, other.m_category) != 0 || strcmp(m_name, other.m_name) != 0; }
 };
 
 /// \brief A range of metadata keys that can be iterated over using range-based 'for'
@@ -169,8 +217,6 @@ public:
   virtual void        ClearMetadata(const char* category) = 0; ///< Clear the metadata with the given category
 };
 
-inline bool operator==(const MetadataKey& a, const MetadataKey& b) { return a.type == b.type && strcmp(a.category, b.category) == 0 && strcmp(a.name, b.name) == 0; }
-
 } // end namespace OpenVDS
 
 namespace std
@@ -180,8 +226,8 @@ struct hash<OpenVDS::MetadataKey>
 {
   std::size_t operator()(const OpenVDS::MetadataKey &k) const
   {
-    size_t const h1= std::hash<std::string>()(k.category);
-    size_t const h2= std::hash<std::string>()(k.name);
+    size_t const h1= std::hash<std::string>()(k.GetCategory());
+    size_t const h2= std::hash<std::string>()(k.GetName());
     return h1 ^ (h2 << 1);
   }
 };
@@ -245,53 +291,53 @@ public:
   {
     for (auto &key : metadataReadAccess->GetMetadataKeys())
     {
-      if (strcmp(key.category, category) == 0)
+      if (strcmp(key.GetCategory(), category) == 0)
       {
-        switch(key.type)
+        switch(key.GetType())
         {
         case MetadataType::Int:
-          SetMetadataInt(key.category, key.name, metadataReadAccess->GetMetadataInt(key.category, key.name));
+          SetMetadataInt(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataInt(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::IntVector2:
-          SetMetadataIntVector2(key.category, key.name, metadataReadAccess->GetMetadataIntVector2(key.category, key.name));
+          SetMetadataIntVector2(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataIntVector2(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::IntVector3:
-          SetMetadataIntVector3(key.category, key.name, metadataReadAccess->GetMetadataIntVector3(key.category, key.name));
+          SetMetadataIntVector3(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataIntVector3(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::IntVector4:
-          SetMetadataIntVector4(key.category, key.name, metadataReadAccess->GetMetadataIntVector4(key.category, key.name));
+          SetMetadataIntVector4(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataIntVector4(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::Float:
-          SetMetadataFloat(key.category, key.name, metadataReadAccess->GetMetadataFloat(key.category, key.name));
+          SetMetadataFloat(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataFloat(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::FloatVector2:
-          SetMetadataFloatVector2(key.category, key.name, metadataReadAccess->GetMetadataFloatVector2(key.category, key.name));
+          SetMetadataFloatVector2(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataFloatVector2(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::FloatVector3:
-          SetMetadataFloatVector3(key.category, key.name, metadataReadAccess->GetMetadataFloatVector3(key.category, key.name));
+          SetMetadataFloatVector3(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataFloatVector3(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::FloatVector4:
-          SetMetadataFloatVector4(key.category, key.name, metadataReadAccess->GetMetadataFloatVector4(key.category, key.name));
+          SetMetadataFloatVector4(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataFloatVector4(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::Double:
-          SetMetadataDouble(key.category, key.name, metadataReadAccess->GetMetadataDouble(key.category, key.name));
+          SetMetadataDouble(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataDouble(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::DoubleVector2:
-          SetMetadataDoubleVector2(key.category, key.name, metadataReadAccess->GetMetadataDoubleVector2(key.category, key.name));
+          SetMetadataDoubleVector2(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataDoubleVector2(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::DoubleVector3:
-          SetMetadataDoubleVector3(key.category, key.name, metadataReadAccess->GetMetadataDoubleVector3(key.category, key.name));
+          SetMetadataDoubleVector3(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataDoubleVector3(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::DoubleVector4:
-          SetMetadataDoubleVector4(key.category, key.name, metadataReadAccess->GetMetadataDoubleVector4(key.category, key.name));
+          SetMetadataDoubleVector4(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataDoubleVector4(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::String:
-          SetMetadataString(key.category, key.name, metadataReadAccess->GetMetadataString(key.category, key.name));
+          SetMetadataString(key.GetCategory(), key.GetName(), metadataReadAccess->GetMetadataString(key.GetCategory(), key.GetName()));
           break;
         case MetadataType::BLOB:
           std::vector<uint8_t> data;
-          metadataReadAccess->GetMetadataBLOB(key.category, key.name, data);
-          SetMetadataBLOB(key.category, key.name, data);
+          metadataReadAccess->GetMetadataBLOB(key.GetCategory(), key.GetName(), data);
+          SetMetadataBLOB(key.GetCategory(), key.GetName(), data);
           break;
         }
       }
@@ -304,7 +350,7 @@ public:
     localKeys.reserve(m_keys.size());
     for (auto &key : m_keys)
     {
-      if (strcmp(category, key.category) == 0 && strcmp(name, key.name) == 0)
+      if (strcmp(category, key.GetCategory()) == 0 && strcmp(name, key.GetName()) == 0)
       {
         localKeys.push_back(key);
       }
@@ -321,7 +367,7 @@ public:
     localKeys.reserve(m_keys.size());
     for (auto &key : m_keys)
     {
-      if (strcmp(category, key.category) == 0)
+      if (strcmp(category, key.GetCategory()) == 0)
       {
         localKeys.push_back(key);
       }
@@ -355,18 +401,15 @@ private:
   {
     auto category_it = m_categories.emplace(category).first;
     auto name_it = m_names.emplace(name).first;
-    MetadataKey ret;
-    ret.type = type;
-    ret.category = category_it->c_str();
-    ret.name = name_it->c_str();
-    if (std::find_if(m_keys.begin(), m_keys.end(), [ret](const MetadataKey &a) { return ret.type == a.type && ret.category == a.category && ret.name == a.name; }) == m_keys.end())
-      m_keys.push_back(ret);
-    return ret;
+    MetadataKey key(type, category_it->c_str(), name_it->c_str());
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end())
+      m_keys.push_back(key);
+    return key;
   }
 
   void RemoveMetadataForKey(const MetadataKey &key)
   {
-    switch(key.type)
+    switch(key.GetType())
     {
     case MetadataType::Int:
       m_intData.erase(key);
@@ -411,10 +454,8 @@ private:
       m_blobData.erase(key);
       break;
     }
-    m_keys.erase(std::find_if(m_keys.begin(), m_keys.end(), [key](const MetadataKey &a) { return key.type == a.type && key.category == a.category && key.name == a.name; }));
-
+    m_keys.erase(std::find(m_keys.begin(), m_keys.end(), key));
   }
-
 
   std::unordered_map<MetadataKey, int>        m_intData;
   std::unordered_map<MetadataKey, IntVector2> m_intVector2Data;

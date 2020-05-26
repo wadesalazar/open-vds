@@ -24,6 +24,7 @@
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/VolumeData.h>
 #include <OpenVDS/VolumeDataAccess.h>
+#include <OpenVDS/KnownMetadata.h>
 
 #include "generated_docstrings.h"
 
@@ -66,6 +67,7 @@ private:
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 #include <pybind11/attr.h>
+#include <pybind11/operators.h>
 
 namespace py = pybind11;
 namespace native = OpenVDS;

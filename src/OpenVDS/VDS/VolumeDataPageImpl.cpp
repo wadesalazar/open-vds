@@ -246,20 +246,12 @@ void VolumeDataPageImpl::CopyMargin(VolumeDataPageImpl* targetPage)
   int32_t overlapMax[Dimensionality_Max];
   int32_t overlapSize[Dimensionality_Max];
 
-  bool isEmpty = false;
-
   for(int32_t iDimension = 0; iDimension < Dimensionality_Max; iDimension++)
   {
     overlapMin[iDimension] = m_writtenMin[iDimension] >= targetMin[iDimension] ? m_writtenMin[iDimension] : targetMin[iDimension];
     overlapMax[iDimension] = m_writtenMax[iDimension] <= targetMax[iDimension] ? m_writtenMax[iDimension] : targetMax[iDimension];
     overlapSize[iDimension] = overlapMax[iDimension] - overlapMin[iDimension];
-    if(overlapSize[iDimension] <= 0)
-    {
-      isEmpty = true;
-    }
   }
-
-  assert(!isEmpty);
 
   int32_t sourcePitch[Dimensionality_Max];
   int32_t targetPitch[Dimensionality_Max];

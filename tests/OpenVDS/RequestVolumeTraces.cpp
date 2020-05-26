@@ -35,14 +35,14 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeTraces)
 
   options.region = TEST_AWS_REGION;
   options.bucket = TEST_AWS_BUCKET;
+  options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
   options.key = TEST_AWS_OBJECTID;
 
-  if(options.region.empty() || options.bucket.empty() || options.key.empty())
+  if(options.bucket.empty() || options.key.empty())
   {
     GTEST_SKIP() << "Environment variables not set";
   }
 
-  ASSERT_TRUE(options.region.size() && options.bucket.size() && options.key.size());
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(options, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 
@@ -70,7 +70,17 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeTraces)
   }
 
   int64_t requestId = accessManager->RequestVolumeTraces(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, tracePos, 10, OpenVDS::InterpolationMethod::Nearest, 0);
-  accessManager->WaitForCompletion(requestId);
+
+  float previousProgress = -1;
+  while(!accessManager->WaitForCompletion(requestId,1000)){
+      ASSERT_FALSE(accessManager->IsCanceled(requestId));
+
+      float progress = accessManager->GetCompletionFactor(requestId);
+      if (progress != previousProgress) {
+          previousProgress = progress;
+          GTEST_LOG_(INFO) << "Request progress : " << progress * 100. << " %";
+      }
+  }
 
   auto pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   auto valueReader = accessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Nearest);

@@ -33,6 +33,8 @@ int handleUploadErrors(OpenVDS::VolumeDataAccessManager *accessManager)
 
 TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
 {
+  GTEST_SKIP() << "This test has to be enabled manually";
+
   auto full_start = std::chrono::high_resolution_clock::now();
   OpenVDS::Error error;
   OpenVDS::IOManagerInMemory *inMemory = new OpenVDS::IOManagerInMemory(OpenVDS::InMemoryOpenOptions(), error);
@@ -60,7 +62,8 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   OpenVDS::AWSOpenOptions options;
   options.region = TEST_AWS_REGION;
   options.bucket = TEST_AWS_BUCKET;
-  options.key = "SIMPLE_NOISE_VDS";
+  options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
+  options.key = TEST_AWS_OBJECTID;
   if (options.bucket.empty())
   {
     GTEST_SKIP() << "Environment variables not set";
@@ -82,29 +85,29 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   }
 
   OpenVDS::MetadataContainer metadata;
-  for (auto &meta : inMemoryLayout->GetMetadataKeys())
+  for (auto &key : inMemoryLayout->GetMetadataKeys())
   {
-    switch(meta.type)
+    switch(key.GetType())
     {
-    case OpenVDS::MetadataType::Int:        metadata.SetMetadataInt(meta.category, meta.name, inMemoryLayout->GetMetadataInt(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::IntVector2: metadata.SetMetadataIntVector2(meta.category, meta.name, inMemoryLayout->GetMetadataIntVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::IntVector3: metadata.SetMetadataIntVector2(meta.category, meta.name, inMemoryLayout->GetMetadataIntVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::IntVector4: metadata.SetMetadataIntVector2(meta.category, meta.name, inMemoryLayout->GetMetadataIntVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::Float:        metadata.SetMetadataFloat(meta.category, meta.name, inMemoryLayout->GetMetadataFloat(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::FloatVector2: metadata.SetMetadataFloatVector2(meta.category, meta.name, inMemoryLayout->GetMetadataFloatVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::FloatVector3: metadata.SetMetadataFloatVector2(meta.category, meta.name, inMemoryLayout->GetMetadataFloatVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::FloatVector4: metadata.SetMetadataFloatVector2(meta.category, meta.name, inMemoryLayout->GetMetadataFloatVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::Double:        metadata.SetMetadataDouble(meta.category, meta.name, inMemoryLayout->GetMetadataDouble(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::DoubleVector2: metadata.SetMetadataDoubleVector2(meta.category, meta.name, inMemoryLayout->GetMetadataDoubleVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::DoubleVector3: metadata.SetMetadataDoubleVector2(meta.category, meta.name, inMemoryLayout->GetMetadataDoubleVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::DoubleVector4: metadata.SetMetadataDoubleVector2(meta.category, meta.name, inMemoryLayout->GetMetadataDoubleVector2(meta.category, meta.name)); break;
-    case OpenVDS::MetadataType::String: metadata.SetMetadataString(meta.category, meta.name, std::string(inMemoryLayout->GetMetadataString(meta.category, meta.name))); break;
+    case OpenVDS::MetadataType::Int:        metadata.SetMetadataInt(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataInt(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::IntVector2: metadata.SetMetadataIntVector2(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataIntVector2(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::IntVector3: metadata.SetMetadataIntVector2(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataIntVector2(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::IntVector4: metadata.SetMetadataIntVector2(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataIntVector2(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::Float:        metadata.SetMetadataFloat(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataFloat(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::FloatVector2: metadata.SetMetadataFloatVector2(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataFloatVector2(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::FloatVector3: metadata.SetMetadataFloatVector2(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataFloatVector2(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::FloatVector4: metadata.SetMetadataFloatVector2(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataFloatVector2(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::Double:        metadata.SetMetadataDouble(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataDouble(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::DoubleVector2: metadata.SetMetadataDoubleVector2(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataDoubleVector2(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::DoubleVector3: metadata.SetMetadataDoubleVector2(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataDoubleVector2(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::DoubleVector4: metadata.SetMetadataDoubleVector2(key.GetCategory(), key.GetName(), inMemoryLayout->GetMetadataDoubleVector2(key.GetCategory(), key.GetName())); break;
+    case OpenVDS::MetadataType::String: metadata.SetMetadataString(key.GetCategory(), key.GetName(), std::string(inMemoryLayout->GetMetadataString(key.GetCategory(), key.GetName()))); break;
 
     case OpenVDS::MetadataType::BLOB:
     {
       std::vector<uint8_t> blob;
-      inMemoryLayout->GetMetadataBLOB(meta.category, meta.name, blob);
-      metadata.SetMetadataBLOB(meta.category, meta.name, blob);
+      inMemoryLayout->GetMetadataBLOB(key.GetCategory(), key.GetName(), blob);
+      metadata.SetMetadataBLOB(key.GetCategory(), key.GetName(), blob);
       break;
     }
     }

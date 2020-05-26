@@ -46,7 +46,7 @@ public:
 
 private:
   std::mutex m_mutex;
-  std::chrono::high_resolution_clock::time_point  until;
+  std::chrono::high_resolution_clock::time_point until;
   bool done;
 };
 
@@ -55,83 +55,83 @@ class SlowRequest : public OpenVDS::Request
 public:
   SlowRequest(const std::string &objectName, int delayMs)
     : OpenVDS::Request(objectName)
-    , m_blockUntil(std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(delayMs))
+    , m_blockUntil(std::make_shared<BlockUntil>(std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(delayMs)))
   {
   }
 
   void WaitForFinish() override
   {
     assert(m_target);
-    m_blockUntil.block();
+    m_blockUntil->block();
     m_target->WaitForFinish();
   }
 
   bool IsDone() const override
   {
     assert(m_target);
-    m_blockUntil.block();
+    m_blockUntil->block();
     return m_target->IsDone();
   }
 
   bool IsSuccess(OpenVDS::Error& error) const override
   {
     assert(m_target);
-    m_blockUntil.block();
+    m_blockUntil->block();
     return m_target->IsSuccess(error);
   }
 
   void Cancel() override
   {
     assert(m_target);
-    m_blockUntil.block();
+    m_blockUntil->block();
     m_target->Cancel();
   }
 
-  mutable BlockUntil m_blockUntil;
+  std::shared_ptr<BlockUntil> m_blockUntil;
   std::shared_ptr<OpenVDS::Request> m_target;
 };
 
 class SlowTransferDownloadHandler : public OpenVDS::TransferDownloadHandler
 {
 public:
-  SlowTransferDownloadHandler(BlockUntil &blockUntil, const std::shared_ptr<OpenVDS::TransferDownloadHandler>& target)
+  SlowTransferDownloadHandler(std::shared_ptr<BlockUntil> blockUntil, const std::shared_ptr<OpenVDS::TransferDownloadHandler>& target)
     : m_blockUntil(blockUntil)
     , m_target(target)
   {}
   void HandleObjectSize(int64_t size)
   {
-    m_blockUntil.block();
+    m_blockUntil->block();
     m_target->HandleObjectSize(size);
   }
 
   void HandleObjectLastWriteTime(const std::string& lastWriteTimeISO8601)
   {
-    m_blockUntil.block();
+    m_blockUntil->block();
     m_target->HandleObjectLastWriteTime(lastWriteTimeISO8601);
   }
   void HandleMetadata(const std::string& key, const std::string& header)
   {
-    m_blockUntil.block();
+    m_blockUntil->block();
     m_target->HandleMetadata(key, header);
   }
   void HandleData(std::vector<uint8_t>&& data)
   {
-    m_blockUntil.block();
+    m_blockUntil->block();
     m_target->HandleData(std::move(data));
   }
   void Completed(const OpenVDS::Request& request, const OpenVDS::Error& error)
   {
-    m_blockUntil.block();
+    m_blockUntil->block();
     m_target->Completed(request, error);
   }
 
-  BlockUntil& blockUntil()
+  std::shared_ptr<BlockUntil> blockUntil()
   {
     return m_blockUntil;
   }
 
 private:
-  BlockUntil &m_blockUntil;
+  std::shared_ptr<BlockUntil> m_blockUntil;
   std::shared_ptr<OpenVDS::TransferDownloadHandler> m_target;
 };
 
@@ -165,7 +165,7 @@ public:
     std::function<void(const OpenVDS::Request& request, const OpenVDS::Error& error)> slowCompletedCallback;
     if (completedCallback)
     {
-      slowCompletedCallback = [slowRequest, completedCallback](const OpenVDS::Request& request, const OpenVDS::Error& error) { slowRequest->m_blockUntil.block(); completedCallback(request, error); };
+      slowCompletedCallback = [slowRequest, completedCallback](const OpenVDS::Request& request, const OpenVDS::Error& error) { slowRequest->m_blockUntil->block(); completedCallback(request, error); };
     }
     slowRequest->m_target = m_target->WriteObject(objectName, contentDispostionFilename, contentType, metadataHeader, data, slowCompletedCallback);
     return slowRequest;

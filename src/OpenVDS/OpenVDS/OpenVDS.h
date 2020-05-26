@@ -62,6 +62,7 @@ struct AWSOpenOptions : OpenOptions
   std::string bucket;
   std::string key;
   std::string region;
+  std::string endpointOverride;
 
   AWSOpenOptions() : OpenOptions(AWS) {}
   /// <summary>
@@ -76,7 +77,10 @@ struct AWSOpenOptions : OpenOptions
   /// <param name="region">
   /// The region of the bucket of the VDS
   /// </param>
-  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region) : OpenOptions(AWS), bucket(bucket), key(key), region(region) {}
+  /// <param name="endpointOverride">
+  /// This parameter allows to override the endpoint url
+  /// </param>
+  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region, std::string const & endpointOverride = std::string()) : OpenOptions(AWS), bucket(bucket), key(key), region(region), endpointOverride(endpointOverride) {}
 };
 
 /// <summary>

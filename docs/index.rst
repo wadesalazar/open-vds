@@ -15,6 +15,9 @@ Welcome to OpenVDS's documentation!
   cpp-api
   python-api
 
+  tools/tools
+
+
 Indices and tables
 ==================
 

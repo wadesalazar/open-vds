@@ -37,7 +37,7 @@ MetadataPageTransfer(MetadataManager *manager, VolumeDataAccessManagerImpl *acce
 
 void HandleObjectSize(int64_t size) override {}
 void HandleObjectLastWriteTime(const std::string &lastWriteTimeISO8601) override {}
-void HandleMetadata(const std::string &key, const std::string &header) {};
+void HandleMetadata(const std::string &key, const std::string &header) override {};
 void HandleData(std::vector<uint8_t> &&data) override
 {
   metadata = std::move(data);
@@ -84,7 +84,7 @@ void MetadataManager::LimitPages()
 {
   assert(m_pageMap.size() == m_pageList.size() + m_dirtyPageList.size());
 
-  while (m_pageList.size() > m_pageLimit && m_pageList.back().m_lockCount == 0)
+  while (int(m_pageList.size()) > m_pageLimit && m_pageList.back().m_lockCount == 0)
   {
     m_pageMap.erase(m_pageList.back().m_pageIndex);
     m_pageList.pop_back();
