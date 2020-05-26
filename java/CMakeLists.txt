@@ -62,14 +62,14 @@ else()
             ENTRY_POINT OpenVdsDemo)
 endif()
 
-create_javadoc(${JAVA_LIBRARY_DOC_NAME}
-        FILES ${JAVA_SOURCES_FILES}
-        #        CLASSPATH ${CMAKE_JAVA_INCLUDE_PATH}
-        WINDOWTITLE "OpenVDS-Java"
-        DOCTITLE "<h1>OpenVDS-Java</h1>"
-        AUTHOR TRUE
-        USE TRUE
-        VERSION TRUE)
+create_javadoc(openvds-java-javadoc
+  FILES ${JAVA_SOURCES_FILES}
+  WINDOWTITLE \"OpenVDS-Java\"
+  DOCTITLE \"<h1>OpenVDS-Java</h1>\"
+  AUTHOR TRUE
+  USE TRUE
+  VERSION TRUE
+  )
 
 if(JAVA_TEST_ENABLED)
     get_property(BUILT_JAR_FILE TARGET ${JAVA_LIBRARY_NAME} PROPERTY JAR_FILE)
