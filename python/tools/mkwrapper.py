@@ -129,7 +129,7 @@ def dump_node(n, file=sys.stdout):
     print("name: {0:40} {2:20} displayname: {1}".format(n.spelling, n.displayname, str(n.kind).replace('CursorKind.', '')), file)
 
 def getpyname(name):
-    return name[0].lower() + name[1:]
+    return name[0].lower() + name[1:] if not name[1:2].isupper() else name
 
 def getparent(node, all_):
     if node.semantic_parent:
@@ -320,6 +320,11 @@ def try_generate_trampoline_function(node, all_, restype, arglist, params):
     sig += argnames
     return sig
 
+relational_operators = {
+    "operator_eq": ".def(py::self == py::self);",
+    "operator_ne": ".def(py::self != py::self);",
+}
+
 def generate_function(node, all_, output, indent, parent_prefix, context):
     if node.get_num_template_arguments() >= 0:
         # Don't generate wrappers for template specializations
@@ -327,6 +332,12 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
     params = get_args(node, all_)
     argnames = get_argnames(node, all_)
     overload_name = resolve_overload_name(node, all_)
+    fnname = getpyname(sanitize_name(node.spelling))
+    if fnname in relational_operators.keys():
+        code = relational_operators[fnname]
+        line = indent + parent_prefix + code
+        output.append(line)
+        return
     restype   = fixname(node.result_type.spelling)
     arglist = fixarglist(fixname(node.displayname[node.displayname.find('('):]), node, all)
     method_prefix = ''
@@ -337,7 +348,7 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
         if node.is_const_method():
             method_suffix = " const"
     code = """.def({0:30}, static_cast<{1}({2}*){3}{4}>(&{5}){7}, {6});""".format(
-       q(getpyname(sanitize_name(node.spelling))),
+       q(fnname),
        restype,
        method_prefix,
        arglist,
@@ -350,17 +361,28 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
     if not can_generate_function(restype, arglist):
         try:
             code = """.def({0:30}, {1}, {2});""".format(
-               q(getpyname(sanitize_name(node.spelling))),
+               q(fnname),
                try_generate_trampoline_function(node, all_, restype, arglist, params),
                format_docstring_decl(overload_name)
             )
         except UnsupportedFunctionSignatureError:
+            fnname = '' # Prevent generation of property getter
             line = '// AUTOGENERATE FAIL : '
             _AUTOGEN_FAIL_LIST.append(node)
     if node.is_static_method():
         code = code.replace('.def(', '.def_static(')
     line = line + indent + parent_prefix + code
     output.append(line)
+    # Generate read-only property for get...() and is...() methods with no arguments
+    pname = getpyname(fnname[3:]) if fnname.startswith("get") else getpyname(fnname[2:]) if fnname.startswith("is") else ""
+    if pname and not argnames and not pname.isdigit() and not pname == "LODLevels":
+        getter_code = """.def_property_readonly("{}", &{}, {});""".format(
+            pname,
+            getnativename(node, all_),
+            format_docstring_decl(overload_name)
+        )
+        getter_line = indent + parent_prefix + getter_code
+        output.append(getter_line)
     
 def generate_class(node, all_, output, indent, parent_prefix, context):
     if node.is_definition():
