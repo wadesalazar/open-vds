@@ -349,6 +349,7 @@ void UploadRequestAzure::Cancel()
 IOManagerAzure::IOManagerAzure(const AzureOpenOptions& openOptions, Error& error)
   : m_connStr(openOptions.connectionString)
   , m_containerStr(openOptions.container)
+  , m_prefix(openOptions.blob)
 {
   if (m_connStr.empty())
   {
@@ -387,15 +388,17 @@ std::shared_ptr<Request> IOManagerAzure::ReadObjectInfo(const std::string &objec
 
 std::shared_ptr<Request> IOManagerAzure::ReadObject(const std::string &requestName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
 {
-  std::shared_ptr<DownloadRequestAzure> azureRequest = std::make_shared<DownloadRequestAzure>(requestName, handler);
-  azureRequest->run(m_container, m_options, requestName, range, azureRequest);
+  std::string id = requestName.empty() ? m_prefix : m_prefix + "/" + requestName;
+  std::shared_ptr<DownloadRequestAzure> azureRequest = std::make_shared<DownloadRequestAzure>(id, handler);
+  azureRequest->run(m_container, m_options, id, range, azureRequest);
   return azureRequest;
 }
 
 std::shared_ptr<Request> IOManagerAzure::WriteObject(const std::string &requestName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
 {
-  std::shared_ptr<UploadRequestAzure> azureRequest = std::make_shared<UploadRequestAzure>(requestName, completedCallback);
-  azureRequest->run(m_container, m_options, requestName, contentDispositionFilename, contentType, metadataHeader, data, azureRequest);
+  std::string id = requestName.empty() ? m_prefix : m_prefix + "/" + requestName;
+  std::shared_ptr<UploadRequestAzure> azureRequest = std::make_shared<UploadRequestAzure>(id, completedCallback);
+  azureRequest->run(m_container, m_options, id, contentDispositionFilename, contentType, metadataHeader, data, azureRequest);
   return azureRequest;
 }
 }

@@ -112,6 +112,7 @@ namespace OpenVDS
     private:
         std::string m_connStr;
         std::string m_containerStr;
+        std::string m_prefix;
         azure::storage::cloud_storage_account m_storage_account;
         azure::storage::cloud_blob_client m_blobClient;
         azure::storage::cloud_blob_container m_container;
