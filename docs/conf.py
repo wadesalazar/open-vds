@@ -12,12 +12,11 @@
 
 import os
 import sys
-from m2r import MdInclude
 
 # -- Project information -----------------------------------------------------
 
 project = 'OpenVDS'
-copyright = '2020, The Open Group, 2020, Bluware, Inc.'
+copyright = '2019, The Open Group, 2019, Bluware, Inc.'
 author = 'Bluware'
 
 # The full version, including alpha/beta/rc tags
@@ -42,6 +41,7 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -52,12 +52,4 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['_static']
-
-def setup(app):
-#    # from m2r to make `mdinclude` work
-    app.add_config_value('no_underscore_emphasis', False, 'env')
-    app.add_config_value('m2r_parse_relative_links', False, 'env')
-    app.add_config_value('m2r_anonymous_references', False, 'env')
-    app.add_config_value('m2r_disable_inline_math', False, 'env')
-    app.add_directive('mdinclude', MdInclude)
+html_static_path = ['_static']

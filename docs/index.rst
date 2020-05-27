@@ -15,10 +15,6 @@ Welcome to OpenVDS's documentation!
   cpp-api
   python-api
 
-  segyimport_readme
-  segyexport_readme
-  vdsinfo_readme
-
 Indices and tables
 ==================
 
