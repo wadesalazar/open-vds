@@ -1,17 +1,19 @@
 #This file depends on being in open-vds/CMake directory
 set(Fetch3rdPartyDir ${CMAKE_CURRENT_LIST_DIR})
 
-macro(Fetch3rdParty_File name version ext url url_hash)
-    get_filename_component(thirdParty "${Fetch3rdPartyDir}/../3rdparty" ABSOLUTE)
-    set(SRC_FILE ${thirdParty}/${name}-${version}.${ext})
-    set(${name}_SOURCE_FILE ${SRC_FILE} PARENT_SCOPE)
-    set(${name}_VERSION ${version} PARENT_SCOPE)
-    if (NOT (EXISTS ${SRC_FILE}))
-      file(DOWNLOAD ${url}
-        ${SRC_FILE}
-        SHOW_PROGRESS
-        EXPECTED_HASH MD5=9f17a8f9e99165e148c42b21f4b63d7c)
-    endif()
+macro(Fetch3rdParty_File name dir_prefix version ext url url_hash)
+  get_filename_component(thirdParty "${Fetch3rdPartyDir}/../3rdparty/${dir_prefix}" ABSOLUTE)
+  file(MAKE_DIRECTORY ${thirdParty})
+  set(SRC_FILE ${thirdParty}/${name}-${version}.${ext})
+  set(${name}_SOURCE_FILE ${SRC_FILE} PARENT_SCOPE)
+  set(${name}_VERSION ${version} PARENT_SCOPE)
+  if (NOT (EXISTS ${SRC_FILE}))
+    file(DOWNLOAD ${url}
+      ${SRC_FILE}
+      SHOW_PROGRESS
+      EXPECTED_HASH ${url_hash}
+      )
+  endif()
 endmacro()
 
 macro(Fetch3rdParty_Package name version url url_hash)
@@ -43,7 +45,9 @@ function(Fetch3rdParty)
   Fetch3rdParty_Package(pybind11    2.4.3      https://github.com/pybind/pybind11/archive/v2.4.3.tar.gz                                               SHA256=1eed57bc6863190e35637290f97a20c81cfe4d9090ac0a24f3bbf08f265eb71d)
   Fetch3rdParty_Package(curl        7.68.0      https://github.com/curl/curl/releases/download/curl-7_68_0/curl-7.68.0.tar.gz                         SHA256=1dd7604e418b0b9a9077f62f763f6684c1b092a7bc17e3f354b8ad5c964d7358)
   Fetch3rdParty_Package(libuv       1.34.1      https://github.com/libuv/libuv/archive/v1.34.1.tar.gz                                                 SHA256=e3e0105c9b26e181e0547607cb6893462beb0c652674c3795766b2e5555288b3)
-  Fetch3rdParty_File(testng         6.14.3 jar https://repo1.maven.org/maven2/org/testng/testng/6.14.3/testng-6.14.3.jar                              MD5=9f17a8f9e99165e148c42b21f4b63d7c) 
   Fetch3rdParty_Package(zlib      1.2.11     http://zlib.net/zlib-1.2.11.tar.gz                                                                     SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1)
+  Fetch3rdParty_File(testng  java   6.14.3 jar https://repo1.maven.org/maven2/org/testng/testng/6.14.3/testng-6.14.3.jar                              MD5=9f17a8f9e99165e148c42b21f4b63d7c) 
+  Fetch3rdParty_File(jcommander java 1.72 jar  https://repo1.maven.org/maven2/com/beust/jcommander/1.72/jcommander-1.72.jar                           MD5=9fde6bc0ba1032eceb7267fd1ad1657b) 
+  
 endfunction()
 

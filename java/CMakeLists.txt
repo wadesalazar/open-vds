@@ -90,7 +90,7 @@ add_jar(openvds-java-test
         ${BUILT_JAR_FILE}
 )
 
-add_library(openvds-javacpp 
+add_library(openvds-javacpp
   cpp/src/Common.cpp
   cpp/src/CommonJni.cpp
   cpp/src/JniPointer.cpp

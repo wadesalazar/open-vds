@@ -97,7 +97,17 @@ add_test_executable(multithreaded_requests
 add_test_executable(openvds_mixed_request
   OpenVDS/RequestVolumeSubsetAndPageAccessor.cpp
   )
+
 if (BUILD_PYTHON)
   add_subdirectory(python)
+endif()
+
+if (BUILD_JAVA)
+  add_custom_command(TARGET TestRootTarget
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:openvds-javacpp> $<TARGET_FILE_DIR:TestRootTarget>
+    DEPENDS openvds-javacpp 
+    )
+  add_subdirectory(java)
 endif()
 
