@@ -3,3 +3,5 @@ pybind11
 numpy
 sphinx
 breathe
+recommonmark
+sphinx-markdown-tables
