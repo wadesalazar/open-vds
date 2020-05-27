@@ -27,7 +27,7 @@
 #ifndef OPENVDS_NO_AZURE_IOMANAGER
 #include "IOManagerAzure.h"
 #endif
-#include "IOManagerGS.h"
+#include "IOManagerGoogle.h"
 
 #ifndef OPENVDS_NO_CURL_IOMANAGER
 #include "IOManagerAzurePresigned.h"
@@ -63,7 +63,7 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
   case OpenOptions::InMemory:
     return new IOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
   case OpenOptions::GoogleStorage:
-    return new IOManagerGS(static_cast<const GSOpenOptions &>(options), error);
+    return new IOManagerGoogle(static_cast<const GoogleOpenOptions &>(options), error);
   default:
     error.code = -1;
     error.string = "Unknown type for OpenOptions";

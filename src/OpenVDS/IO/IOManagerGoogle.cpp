@@ -16,7 +16,7 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "IOManagerGS.h"
+#include "IOManagerGoogle.h"
 
 #include <fmt/format.h>
 #include <sstream>
@@ -26,7 +26,7 @@ namespace OpenVDS
 {
   const char *GOOGLEAPIS = "https://storage.googleapis.com/";
 
-  IOManagerGS::IOManagerGS(const GSOpenOptions& openOptions, Error &error)
+  IOManagerGoogle::IOManagerGoogle(const GoogleOpenOptions& openOptions, Error &error)
     : m_curlHandler(error)
     , m_bucket(openOptions.bucket)
     , m_token(openOptions.key)
@@ -34,14 +34,14 @@ namespace OpenVDS
     if (m_bucket.empty())
     {
       error.code = -1;
-      error.string = "GS Config error. Empty bucket";
+      error.string = "Google Cloud Storage Config error. Empty bucket";
       return;
     }
   }
 
   std::string convertToISO8601(const std::string& value);
 
-  std::shared_ptr<Request> IOManagerGS::ReadObjectInfo(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler)
+  std::shared_ptr<Request> IOManagerGoogle::ReadObjectInfo(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler)
   {
     std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
@@ -51,7 +51,7 @@ namespace OpenVDS
     return request;
   }
 
-  std::shared_ptr<Request> IOManagerGS::ReadObject(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
+  std::shared_ptr<Request> IOManagerGoogle::ReadObject(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
   {
     std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
@@ -67,7 +67,7 @@ namespace OpenVDS
     return request;
   }
 
-  std::shared_ptr<Request> IOManagerGS::WriteObject(const std::string& objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request& request, const Error& error)> completedCallback)
+  std::shared_ptr<Request> IOManagerGoogle::WriteObject(const std::string& objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request& request, const Error& error)> completedCallback)
   {
     std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
     std::shared_ptr<UploadRequestCurl> request = std::make_shared<UploadRequestCurl>(objectName, completedCallback);

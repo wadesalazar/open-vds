@@ -24,10 +24,10 @@
 namespace OpenVDS
 {
 
-class IOManagerGS : public IOManager
+class IOManagerGoogle : public IOManager
 {
 public:
-  IOManagerGS(const GSOpenOptions& openOptions, Error& error);
+  IOManagerGoogle(const GoogleOpenOptions& openOptions, Error& error);
   std::shared_ptr<Request> ReadObjectInfo(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler) override;
   std::shared_ptr<Request> ReadObject(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range = IORange()) override;
   std::shared_ptr<Request> WriteObject(const std::string& objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request& request, const Error& error)> completedCallback = nullptr) override;

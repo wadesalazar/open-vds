@@ -13,7 +13,7 @@ Python API
 
 .. autoclass:: openvds.AzureOpenOptions
 
-.. autoclass:: openvds.GSOpenOptions
+.. autoclass:: openvds.GoogleOpenOptions
 
 .. autofunction:: openvds.getAccessManager
 

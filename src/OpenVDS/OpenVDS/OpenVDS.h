@@ -157,12 +157,12 @@ struct AzurePresignedOpenOptions : OpenOptions
 /// <summary>
 /// Options for opening a VDS in Google Cloud Storage
 /// </summary>
-struct GSOpenOptions : OpenOptions
+struct GoogleOpenOptions : OpenOptions
 {
   std::string bucket;
   std::string key;
 
-  GSOpenOptions() : OpenOptions(GoogleStorage) {}
+  GoogleOpenOptions() : OpenOptions(GoogleStorage) {}
   /// <summary>
   /// GSOpenOptions constructor
   /// </summary>
@@ -172,7 +172,7 @@ struct GSOpenOptions : OpenOptions
   /// <param name="key">
   /// The key prefix of the VDS
   /// </param>
-  GSOpenOptions(std::string const & bucket, std::string const & key) : OpenOptions(GoogleStorage), bucket(bucket), key(key) {}
+  GoogleOpenOptions(std::string const & bucket, std::string const & key) : OpenOptions(GoogleStorage), bucket(bucket), key(key) {}
 };
 
 /// <summary>
