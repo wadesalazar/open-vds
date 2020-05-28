@@ -2,6 +2,19 @@
 find_package(Doxygen REQUIRED)
 find_package(Sphinx REQUIRED)
 
+execute_process(COMMAND ${Python3_EXECUTABLE} -c "import breathe" RESULT_VARIABLE ret)
+if (ret)
+  message(FATAL_ERROR "Missing Documentation dependency breathe. Please install Python package breathe, recommonmark and sphinx_markdown_tables.")
+endif()
+execute_process(COMMAND ${Python3_EXECUTABLE} -c "import recommonmark" RESULT_VARIABLE ret)
+if (ret)
+  message(FATAL_ERROR "Missing Documentation dependency recommonmark. Please install Python package breathe, recommonmark and sphinx_markdown_tables.")
+endif()
+execute_process(COMMAND ${Python3_EXECUTABLE} -c "import sphinx_markdown_tables" RESULT_VARIABLE ret)
+if (ret)
+  message(FATAL_ERROR "Missing Documentation dependency sphinx_markdown_tables. Please install Python package breathe, recommonmark and sphinx_markdown_tables.")
+endif()
+
 # Find all the public headers
 get_target_property(OPENVDS_PUBLIC_HEADER_DIR openvds  INTERFACE_INCLUDE_DIRECTORIES)
 file(GLOB_RECURSE OPENVDS_PUBLIC_HEADERS ${OPENVDS_PUBLIC_HEADER_DIR}/*.h)
