@@ -681,6 +681,7 @@ int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &ch
     m_pendingUploadRequests.erase(jobId);
 
     lockedMetadataPage->GetManager()->UnlockPage(lockedMetadataPage);
+    const_cast<VolumeDataLayoutImpl*>(this->GetVolumeDataLayoutImpl())->ChangePendingWriteRequestCount(-1);
   };
 
   std::vector<char> base64Hash;

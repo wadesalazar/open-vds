@@ -21,6 +21,7 @@
 #include "VolumeDataLayer.h"
 #include "VolumeDataAccessManagerImpl.h"
 #include "VolumeDataStore.h"
+#include "VolumeDataLayoutImpl.h"
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 
 #include <algorithm>
@@ -168,7 +169,10 @@ void VolumeDataPageImpl::WriteBack(VolumeDataLayer* volumeDataLayer, std::unique
 {
   assert(m_isDirty);
   m_volumeDataPageAccessor->RequestWritePage(m_chunk, m_dataBlock, m_blob);
+  auto layout = const_cast<VolumeDataLayoutImpl*>(static_cast<VolumeDataLayoutImpl const*>(m_volumeDataPageAccessor->GetLayout()));
+  layout->ChangePendingWriteRequestCount(1);
   m_isDirty = false;
+  layout->CompletePendingWriteChunkRequests(16);
 }
 
 
