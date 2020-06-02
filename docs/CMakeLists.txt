@@ -2,7 +2,7 @@
 find_package(Doxygen REQUIRED)
 find_package(Sphinx REQUIRED)
 
-set(PYTHON_DEP_STRING "Please install Python package breathe (at least version 4.18.0), recommonmark sphinx_markdown_tables and sphinx_rtd_theme."
+set(PYTHON_DEP_STRING "Please install Python package breathe (at least version 4.18.0), recommonmark sphinx_markdown_tables and sphinx_rtd_theme.")
 
 execute_process(COMMAND ${Python3_EXECUTABLE} -c "from packaging import version; import sys; import breathe; sys.exit(version.parse(\"4.18.0\") >= version.parse(breathe.__version__))" RESULT_VARIABLE ret)
 if (ret)
