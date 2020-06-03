@@ -86,7 +86,7 @@ TEST(VDS_integration, RequestVolumeCleanupThread)
   ASSERT_TRUE(accessManager->WaitForCompletion(requestId));
   activePages = accessManager->CountActivePages();
   ASSERT_GT(activePages, 0);
-  std::this_thread::sleep_for(std::chrono::seconds(3));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   activePages = accessManager->CountActivePages();
   ASSERT_EQ(activePages, 0);
 
