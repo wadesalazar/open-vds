@@ -340,7 +340,7 @@ static inline std::string CreateUrlForChunk(const std::string &layerName, uint64
   return layerName + "/" + std::to_string(chunk);
 }
 
-bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &chunk, bool verbose, Error &error)
+bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &chunk, Error &error)
 {
   std::string layerName = GetLayerName(*chunk.layer);
   auto metadataManager = GetMetadataMangerForLayer(m_vds.layerMetadataContainer, layerName);
@@ -373,7 +373,7 @@ bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &ch
   {
     std::string url = fmt::format("{}/ChunkMetadata/{}", layerName, pageIndex);
 
-    metadataManager->InitiateTransfer(this, metadataPage, url, verbose);
+    metadataManager->InitiateTransfer(this, metadataPage, url);
   }
 
   // Check if the page is not valid and we need to add the request later when the metadata page transfer completes

@@ -240,7 +240,7 @@ public:
   int64_t RequestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int nTraceCount, InterpolationMethod eInterpolationMethod, int iTraceDimension, float rReplacementNoValue) override;
   int64_t PrefetchVolumeChunk(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk) override;
 
-  bool PrepareReadChunkData(const VolumeDataChunk& chunk, bool verbose, Error& error);
+  bool PrepareReadChunkData(const VolumeDataChunk& chunk, Error& error);
   bool ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
   bool CancelReadChunk(const VolumeDataChunk& chunk, Error& error);
   void PageTransferCompleted(MetadataPage* metadataPage, const Error &error);
