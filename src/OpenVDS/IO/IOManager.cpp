@@ -45,7 +45,7 @@ Request::~Request()
 
 IOManager::~IOManager()
 {}
-IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
+IOManager* IOManager::CreateIOManager(const OpenOptions& options, Mode mode, Error &error)
 {
   switch(options.connectionType)
   {

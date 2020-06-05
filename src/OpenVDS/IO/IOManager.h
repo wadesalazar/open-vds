@@ -61,6 +61,11 @@ namespace OpenVDS
   class IOManager
   {
   public:
+    enum Mode
+    {
+      ReadOnly,
+      ReadWrite
+    };
     virtual ~IOManager();
     virtual std::shared_ptr<Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler) = 0;
     virtual std::shared_ptr<Request> ReadObject(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
