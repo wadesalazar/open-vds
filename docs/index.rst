@@ -14,6 +14,7 @@ Welcome to OpenVDS's documentation!
 
   cpp-api
   python-api
+  Java-API <javadoc/openvds-javadoc/index.html#http://>
 
   tools/SEGYImport/README.md
   tools/SEGYExport/README.md
