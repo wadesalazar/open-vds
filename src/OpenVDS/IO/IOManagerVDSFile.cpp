@@ -51,12 +51,17 @@ namespace OpenVDS
     Error m_error;
   };
 
-  IOManagerVDSFile::IOManagerVDSFile(const VDSFileOpenOptions &openOptions, Error &error)
+  IOManagerVDSFile::IOManagerVDSFile(const VDSFileOpenOptions &openOptions, Mode mode, Error &error)
     : m_isVDSObjectFilePresent(false)
     , m_isVolumeDataLayoutFilePresent(false)
     , m_threadPool(std::thread::hardware_concurrency())
     , m_dataStore(HueBulkDataStore::Open(openOptions.fileName.c_str()), &HueBulkDataStore::Close)
   {
+    if(!m_dataStore->IsOpen() && mode == ReadWrite)
+    {
+      m_dataStore.reset(HueBulkDataStore::CreateNew(openOptions.fileName.c_str(), false));
+    }
+
     if(m_dataStore->IsOpen())
     {
       int fileCount = m_dataStore->GetFileCount();
@@ -249,36 +254,119 @@ namespace OpenVDS
     */
   }
 
-  std::shared_ptr<Request> IOManagerVDSFile::WriteObject(const std::string &objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string> > &metadataHeader, std::shared_ptr<std::vector<uint8_t> > data, std::function<void (const Request &, const Error &)> completedCallback)
+  std::shared_ptr<Request> IOManagerVDSFile::WriteObject(const std::string &objectName, const std::string &contentDispostionFilename, const std::string &contentType, const std::vector<std::pair<std::string, std::string> > &metadataHeaders, std::shared_ptr<std::vector<uint8_t> > data, std::function<void (const Request &, const Error &)> completedCallback)
   {
     auto request = std::make_shared<VDSFileRequest>(objectName);
-    m_threadPool.Enqueue([objectName, metadataHeader, data, completedCallback, request, this]
-      {
-/*
-        Object object;
-        object.metaHeader = metadataHeader;
-        object.data = *data;
-        std::unique_lock<std::mutex> lock(m_mutex);
-        m_data[objectName] = std::move(object);
-        lock.unlock();
-*/
-        Error error;
-        error.string = "Not implemented";
-        error.code = 404;
 
-        {
-          std::unique_lock<std::mutex> request_lock(request->m_mutex);
-          request->m_done = true;
-          request->m_error = error;
-        }
+    {
+      Error error;
+      bool success = m_dataStore->EnableWriting();
+      if(!success)
+      {
+        error.code = -1;
+        error.string = m_dataStore->GetErrorMessage();
 
         if (completedCallback)
           completedCallback(*request, error);
 
-        request->m_wait.notify_all();
-      });
-    std::shared_ptr<OpenVDS::Request>  retRequest = request;
-    return retRequest;
+        request->m_done = true;
+        request->m_error = error;
+        return request;
+      }
+    }
+
+    if(objectName == "VolumeDataLayout" || objectName == "LayerStatus")
+    {
+      Error error;
+
+      if(objectName == "VolumeDataLayout")
+      {
+        WriteVolumeDataLayout(data, error);
+      }
+      else if(objectName == "LayerStatus")
+      {
+        assert(0 && "Not implemented");
+      }
+
+      if (completedCallback)
+        completedCallback(*request, error);
+
+      request->m_done = true;
+      request->m_error = error;
+      return request;
+    }
+
+    std::string layerName;
+    int chunk;
+
+    size_t delimiterIndex = objectName.find('/');
+    if(delimiterIndex != std::string::npos)
+    {
+      layerName = objectName.substr(0, delimiterIndex);
+      chunk = std::stoi(objectName.substr(delimiterIndex + 1));
+    }
+
+    Error error;
+    auto layerFileEntryIterator = m_layerFiles.find(layerName);
+
+    if(layerFileEntryIterator != m_layerFiles.end())
+    {
+      HueBulkDataStore::FileInterface *fileInterface = layerFileEntryIterator->second;
+      std::vector<uint8_t> metadata(fileInterface->GetChunkMetadataLength());
+
+      for(auto &metadataHeader : metadataHeaders)
+      {
+        if(metadataHeader.first == "vdschunkmetadata")
+        {
+          Base64Decode(metadataHeader.second.data(), (int)metadataHeader.second.size(), metadata);
+          break;
+        }
+      }
+
+      bool success = fileInterface->WriteChunk(chunk, data->data(), (int)data->size(), metadata.data());
+
+      if(!success)
+      {
+        error.code = -1;
+        error.string = m_dataStore->GetErrorMessage();
+      }
+    }
+    else
+    {
+      error.code = -1;
+      error.string = "Non-existent layer";
+    }
+
+    /*
+    m_threadPool.Enqueue([objectName, metadataHeader, data, completedCallback, request, this]
+    {
+    Object object;
+    object.metaHeader = metadataHeader;
+    object.data = *data;
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_data[objectName] = std::move(object);
+    lock.unlock();
+
+    Error error;
+    {
+    std::unique_lock<std::mutex> request_lock(request->m_mutex);
+    request->m_done = true;
+    request->m_error = error;
+    }
+
+    if (completedCallback)
+    completedCallback(*request, error);
+
+    request->m_wait.notify_all();
+    });
+    */
+
+    if (completedCallback)
+      completedCallback(*request, error);
+
+    request->m_done = true;
+    request->m_error = error;
+    return request;
   }
 
   std::vector<uint8_t> IOManagerVDSFile::ReadVolumeDataLayout(Error &error)
@@ -416,5 +504,30 @@ namespace OpenVDS
     }
 
     return result;
+  }
+
+  bool IOManagerVDSFile::WriteVolumeDataLayout(std::shared_ptr<std::vector<uint8_t> > data, Error &error)
+  {
+    HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile("VolumeDataLayout", 1, 1, FILETYPE_JSON_OBJECT, 0, 0, true);
+
+    if(!fileInterface)
+    {
+      error.code = -1;
+      error.string = m_dataStore->GetErrorMessage();
+      return false;
+    }
+
+    bool success = fileInterface->WriteChunk(0, data->data(), (int)data->size(), nullptr);
+
+    if(!success)
+    {
+      error.code = -1;
+      error.string = m_dataStore->GetErrorMessage();
+      m_dataStore->CloseFile(fileInterface);
+      return false;
+    }
+
+    m_dataStore->CloseFile(fileInterface);
+    return true;
   }
 }
