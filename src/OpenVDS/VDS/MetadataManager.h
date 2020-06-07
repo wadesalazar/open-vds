@@ -122,7 +122,7 @@ namespace OpenVDS
 
     void PageTransferCompleted(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::vector<uint8_t>&& data);
 
-    void InitiateTransfer(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::string const& url, bool verbose);
+    void InitiateTransfer(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::string const& url);
     void UploadDirtyPages(VolumeDataAccessManagerImpl* accessManager);
 
     uint8_t const *GetPageEntry(MetadataPage *page, int entry) const;

@@ -273,6 +273,13 @@ int main(int argc, char **argv)
     }
   }
 
+  if (!axisDescriptors && !channelDescriptors && !volumeDataLayout && !metaKeys && metadataPrintName.empty() && metadataPrintCategory.empty())
+  {
+    axisDescriptors = true;
+    channelDescriptors = true;
+    volumeDataLayout = true;
+  }
+
   OpenVDS::Error openError;
 
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(*openOptions.get(), openError), &OpenVDS::Close);

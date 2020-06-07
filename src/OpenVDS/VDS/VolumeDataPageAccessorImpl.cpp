@@ -258,7 +258,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk, Error
   assert(page->IsPinned());
 
   VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(chunk);
-  if (!m_accessManager->PrepareReadChunkData(volumeDataChunk, true, error))
+  if (!m_accessManager->PrepareReadChunkData(volumeDataChunk, error))
   {
     page->SetError(error);
     page->UnPin();

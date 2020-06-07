@@ -772,8 +772,8 @@ public class MemoryVdsGeneratorTest {
         assertEquals(4, descriptor.getBrickSizeMultiplier2D());
         assertEquals(LOD_LEVELS_NONE, descriptor.getLODLevels());
         assertTrue(!descriptor.isCreate2DLODs());
-        assertTrue(descriptor.isForceFullResolutionDimension());
-        assertEquals(0, descriptor.getFullResolutionDimension());
+        assertTrue(!descriptor.isForceFullResolutionDimension());
+        assertEquals(-1, descriptor.getFullResolutionDimension());
 
         assertEquals(1, layout.getChannelCount());
 

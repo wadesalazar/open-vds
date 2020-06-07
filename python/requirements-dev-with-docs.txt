@@ -1,5 +1,8 @@
 scikit-build
+pybind11
 numpy
 sphinx
 breathe
-m2r
+recommonmark
+sphinx-markdown-tables
+sphinx-rtd-theme

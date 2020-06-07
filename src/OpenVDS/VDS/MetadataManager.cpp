@@ -145,7 +145,7 @@ MetadataManager::InitPage(MetadataPage* page)
   lock.unlock();
 }
 
-void MetadataManager::InitiateTransfer(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::string const& url, bool verbose)
+void MetadataManager::InitiateTransfer(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::string const& url)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
