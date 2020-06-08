@@ -191,6 +191,16 @@ else()
   endif()
 endif()
 
+set(OPENSSL_USE_STATIC_LIBS TRUE)
+if (WIN32)
+  set(OPENSSL_MSVC_STATIC_RT TRUE)
+endif()
+find_package(OpenSSL REQUIRED)
+target_link_libraries(openvds_objects PUBLIC OpenSSL::Crypto)
+if (WIN32)
+  target_link_libraries(openvds_objects PUBLIC wsock32 ws2_32)
+endif()
+
 target_link_libraries(openvds_objects PUBLIC Threads::Threads)
 
 target_link_libraries(openvds_objects PUBLIC $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)

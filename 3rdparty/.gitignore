@@ -9,4 +9,7 @@ pybind11-2.4.3
 CMakeArtifacts*
 curl*
 libuv*
+absl*
+crc32c*
+google-cloud-cpp*
 java*

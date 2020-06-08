@@ -22,9 +22,11 @@
 #include <sstream>
 #include <iomanip>
 
+#include <google/cloud/storage/client.h>
+
 namespace OpenVDS
 {
-  const char *GOOGLEAPIS = "https://storage.googleapis.com/";
+  constexpr char GOOGLEAPIS[] = "https://storage.googleapis.com/";
 
   IOManagerGoogle::IOManagerGoogle(const GoogleOpenOptions& openOptions, Error &error)
     : m_curlHandler(error)
@@ -36,6 +38,25 @@ namespace OpenVDS
       error.code = -1;
       error.string = "Google Cloud Storage Config error. Empty bucket";
       return;
+    }
+
+    if (m_token.empty())
+    {
+        auto credentials = google::cloud::storage::v1::oauth2::GoogleDefaultCredentials();
+        if (!credentials) {
+            error.code = -2;
+            error.string = "Google Cloud Storage Config error. Unable to get Google Default Credentials.";
+            return;
+        }
+
+        auto authorization_header = (*credentials)->AuthorizationHeader();
+        if (!authorization_header) {
+            error.code = -3;
+            error.string = "Google Cloud Storage Config error. Unable to generate Authorization Header.";
+            return;
+        }
+
+        m_token = *authorization_header;
     }
   }
 
