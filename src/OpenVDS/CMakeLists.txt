@@ -9,6 +9,7 @@ set(SOURCE_FILES
   IO/IOManagerInMemory.cpp
   IO/IOManagerCurl.cpp
   IO/IOManagerAzurePresigned.cpp
+  IO/IOManagerGoogle.cpp
   VDS/VolumeDataPartition.cpp
   VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
@@ -44,6 +45,7 @@ set (PRIVATE_HEADER_FILES
   IO/IOManagerInMemory.h
   IO/IOManagerCurl.h
   IO/IOManagerAzurePresigned.h
+  IO/IOManagerGoogle.h
   VDS/VDS.h
   VDS/VolumeDataPartition.h
   VDS/VolumeDataChannelMapping.h
@@ -176,7 +178,9 @@ if (DISABLE_CURL_IOMANAGER)
   set_source_files_properties(IO/IOManagerCurl.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
   set_source_files_properties(IO/IOManagerAzurePresigned.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
 else()
-  if (NOT BUILD_CURL)
+  if (BUILD_CURL)
+    add_dependencies(openvds_objects curl)
+  else()
     find_package(CURL REQUIRED)
     target_link_libraries(openvds_objects PUBLIC ${CURL_LIBRARIES})
     target_include_directories(openvds_objects PUBLIC ${CURL_INCLUDE_DIRS})

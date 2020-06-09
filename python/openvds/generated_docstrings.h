@@ -442,6 +442,26 @@ Returns:
 --------
     The VolumeDataLayout of the VDS)doc";
 
+static const char *__doc_OpenVDS_GoogleOpenOptions = R"doc(Options for opening a VDS in Google Cloud Storage)doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_2 =
+R"doc(GSOpenOptions constructor
+
+Parameters:
+-----------
+
+bucket :
+    The bucket of the VDS
+
+key :
+    The key prefix of the VDS)doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_bucket = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_key = R"doc()doc";
+
 static const char *__doc_OpenVDS_IJKGridDefinition = R"doc()doc";
 
 static const char *__doc_OpenVDS_IJKGridDefinition_IJKGridDefinition = R"doc()doc";
@@ -1069,6 +1089,8 @@ static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Azure = R"doc()doc";
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_AzurePresigned = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_File = R"doc()doc";
+
+static const char *__doc_OpenVDS_OpenOptions_ConnectionType_GoogleStorage = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_InMemory = R"doc()doc";
 

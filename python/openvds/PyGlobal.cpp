@@ -42,6 +42,7 @@ PyGlobal::initModule(py::module& m)
   OpenOptions_ConnectionType_.value("AWS"                         , OpenOptions::ConnectionType::AWS        , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_AWS));
   OpenOptions_ConnectionType_.value("Azure"                       , OpenOptions::ConnectionType::Azure      , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_Azure));
   OpenOptions_ConnectionType_.value("AzurePresigned"              , OpenOptions::ConnectionType::AzurePresigned, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_AzurePresigned));
+  OpenOptions_ConnectionType_.value("GoogleStorage"               , OpenOptions::ConnectionType::GoogleStorage, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_GoogleStorage));
   OpenOptions_ConnectionType_.value("File"                        , OpenOptions::ConnectionType::File       , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_File));
   OpenOptions_ConnectionType_.value("InMemory"                    , OpenOptions::ConnectionType::InMemory   , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_InMemory));
 
@@ -78,6 +79,15 @@ PyGlobal::initModule(py::module& m)
   AzurePresignedOpenOptions_.def_readwrite("baseUrl"                     , &AzurePresignedOpenOptions::baseUrl, OPENVDS_DOCSTRING(AzurePresignedOpenOptions_baseUrl));
   AzurePresignedOpenOptions_.def_readwrite("urlSuffix"                   , &AzurePresignedOpenOptions::urlSuffix, OPENVDS_DOCSTRING(AzurePresignedOpenOptions_urlSuffix));
 
+  // GoogleOpenOptions
+  py::class_<GoogleOpenOptions, OpenOptions, std::unique_ptr<GoogleOpenOptions>> 
+    GoogleOpenOptions_(m,"GoogleOpenOptions", OPENVDS_DOCSTRING(GoogleOpenOptions));
+
+  GoogleOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions));
+  GoogleOpenOptions_.def(py::init<const std::string &, const std::string &>(), py::arg("bucket"), py::arg("key"), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_2));
+  GoogleOpenOptions_.def_readwrite("bucket"                      , &GoogleOpenOptions::bucket     , OPENVDS_DOCSTRING(GoogleOpenOptions_bucket));
+  GoogleOpenOptions_.def_readwrite("key"                         , &GoogleOpenOptions::key        , OPENVDS_DOCSTRING(GoogleOpenOptions_key));
+
   // InMemoryOpenOptions
   py::class_<InMemoryOpenOptions, OpenOptions, std::unique_ptr<InMemoryOpenOptions>> 
     InMemoryOpenOptions_(m,"InMemoryOpenOptions", OPENVDS_DOCSTRING(InMemoryOpenOptions));
@@ -107,11 +117,12 @@ PyGlobal::initModule(py::module& m)
       std::string conn = "Unknown";
       switch(self.connectionType)
       {
-      case OpenOptions::ConnectionType::AWS     : conn = std::string("AWS"     ); break;
-      case OpenOptions::ConnectionType::Azure   : conn = std::string("Azure"   ); break;
-      case OpenOptions::ConnectionType::AzurePresigned   : conn = std::string("AzurePresigned"   ); break;
-      case OpenOptions::ConnectionType::File    : conn = std::string("File"    ); break;
-      case OpenOptions::ConnectionType::InMemory: conn = std::string("InMemory"); break;
+      case OpenOptions::ConnectionType::AWS            : conn = std::string("AWS"            ); break;
+      case OpenOptions::ConnectionType::Azure          : conn = std::string("Azure"          ); break;
+      case OpenOptions::ConnectionType::AzurePresigned : conn = std::string("AzurePresigned" ); break;
+      case OpenOptions::ConnectionType::GoogleStorage  : conn = std::string("GoogleStorage"  ); break;
+      case OpenOptions::ConnectionType::File           : conn = std::string("File"           ); break;
+      case OpenOptions::ConnectionType::InMemory       : conn = std::string("InMemory"       ); break;
       }
       return std::string("OpenOptions(connectionType='" + conn + "')");
     });

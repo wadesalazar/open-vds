@@ -19,6 +19,9 @@ C++ API
 .. doxygenstruct:: OpenVDS::AzureOpenOptions
   :members:
 
+.. doxygenstruct:: OpenVDS::GoogleOpenOptions
+  :members:
+
 .. doxygenfunction:: OpenVDS::GetAccessManager(VDSHandle handle)
 
 .. doxygenfunction:: OpenVDS::GetLayout(VDSHandle handle)

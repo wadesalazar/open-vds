@@ -2,6 +2,7 @@
 ** Copyright 2019 The Open Group
 ** Copyright 2019 Bluware, Inc.
 ** Copyright 2020 Microsoft Corp.
+** Copyright 2020 Google, Inc.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -26,6 +27,7 @@
 #ifndef OPENVDS_NO_AZURE_IOMANAGER
 #include "IOManagerAzure.h"
 #endif
+#include "IOManagerGoogle.h"
 
 #ifndef OPENVDS_NO_CURL_IOMANAGER
 #include "IOManagerAzurePresigned.h"
@@ -60,6 +62,8 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
 #endif
   case OpenOptions::InMemory:
     return new IOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
+  case OpenOptions::GoogleStorage:
+    return new IOManagerGoogle(static_cast<const GoogleOpenOptions &>(options), error);
   default:
     error.code = -1;
     error.string = "Unknown type for OpenOptions";
