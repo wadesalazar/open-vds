@@ -196,7 +196,7 @@ endif()
 find_package(OpenSSL REQUIRED)
 target_link_libraries(openvds_objects PUBLIC OpenSSL::Crypto)
 if (WIN32)
-  target_link_libraries(openvds_objects PUBLIC wsock32 ws2_32)
+  target_link_libraries(openvds_objects PUBLIC crypt32 wsock32 ws2_32)
 endif()
 
 target_link_libraries(openvds_objects PUBLIC Threads::Threads)
