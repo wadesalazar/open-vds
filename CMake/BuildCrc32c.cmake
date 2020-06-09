@@ -1,0 +1,11 @@
+function(BuildCrc32c)
+  if (WIN32)
+    list(APPEND CRC32C_LIBS_LIST "lib/crc32c.lib")
+  elseif (APPLE)
+  else()
+    list(APPEND CRC32C_LIBS_LIST "lib${LIBSUFFIX}/crc32c.so")
+  endif()
+
+  BuildExternal(crc32c ${crc32c_VERSION} "" ${crc32c_SOURCE_DIR} "${CRC32C_LIBS_LIST}" "" "" "" "-DCRC32C_BUILD_TESTS=OFF;-DCRC32C_BUILD_BENCHMARKS=OFF;-DCRC32C_USE_GLOG=OFF")
+  set(crc32c_INSTALL_INT_CONFIG ${crc32c_INSTALL_INT_CONFIG} PARENT_SCOPE)
+endfunction()

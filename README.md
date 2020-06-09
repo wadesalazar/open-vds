@@ -1,6 +1,7 @@
-## OpenVDS OpenVDS is a specification and an open source reference
-implementation of a storage format for fast random access to multi-dimensional
-(up to 6D) volumetric data stored in an object storage cloud service (e.g.
+## OpenVDS
+OpenVDS is a specification and an open source reference implementation of a
+storage format for fast random access to multi-dimensional (up to 6D)
+volumetric data stored in an object storage cloud service (e.g.
 Amazon S3, Azure Blob storage or Google Cloud Storage). The specification is
 based on, but not similar to, the existing Volume Data Store (VDS) file format.
 The VDS format is a Bluware Inc. proprietary format, which has seen extensive
