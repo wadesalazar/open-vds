@@ -47,9 +47,9 @@ class SyncTransfer : public OpenVDS::TransferDownloadHandler
 public:
   void HandleObjectSize(int64_t size) override { }
   void HandleObjectLastWriteTime(const std::string& lastWriteTimeISO8601) override {}
-  void HandleMetadata(const std::string& key, const std::string& header) { headers.emplace_back(key, header); }
-  void HandleData(std::vector<uint8_t>&& data) { this->data = std::move(data); }
-  void Completed(const OpenVDS::Request& request, const OpenVDS::Error& error) {}
+  void HandleMetadata(const std::string& key, const std::string& header) override { headers.emplace_back(key, header); }
+  void HandleData(std::vector<uint8_t>&& data) override { this->data = std::move(data); }
+  void Completed(const OpenVDS::Request& request, const OpenVDS::Error& error) override {}
 
   std::vector<uint8_t> data;
   std::vector<std::pair<std::string, std::string>> headers;
@@ -115,8 +115,8 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeError)
 
   int steps[3];
   int size[3];
-  steps[0] = samples[0] / (boundingBoxes.size() * 2);
-  size[0] = samples[0] / boundingBoxes.size();
+  steps[0] = samples[0] / int(boundingBoxes.size() * 2);
+  size[0] = samples[0] / int(boundingBoxes.size());
   steps[1] = 0;
   size[1] = 10;
   steps[2] = 0;
@@ -147,6 +147,7 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeError)
   for (int i = 0; i < boundingBoxes.size(); i++)
   {
     bool returned = accessManager->WaitForCompletion(requestIds[i]);
+    (void)returned;
   }
   //we don't need to assert anything as we are just loking for that the system does not segfault or deadlock.
 }

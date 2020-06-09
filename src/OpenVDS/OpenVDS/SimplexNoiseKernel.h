@@ -145,7 +145,7 @@ struct NoiseKernel
 };
 
 template<int dimension, bool useNoValue, typename ... Args>
-static void GenericDispatcher_1(VolumeDataChannelDescriptor::Format format, Args ... args)
+inline void GenericDispatcher_1(VolumeDataChannelDescriptor::Format format, Args ... args)
 {
   switch(format)
   {
@@ -161,7 +161,7 @@ static void GenericDispatcher_1(VolumeDataChannelDescriptor::Format format, Args
 }
 
 template<int dimension, typename ... Args>
-static void GenericDispatcher(bool useNoValue, VolumeDataChannelDescriptor::Format format, Args ... args)
+inline void GenericDispatcher(bool useNoValue, VolumeDataChannelDescriptor::Format format, Args ... args)
 {
   if (useNoValue)
     GenericDispatcher_1<dimension, true, Args...>(format, args...);
@@ -210,7 +210,7 @@ static void Do(void * outputVoid, VolumeIndexer2D const &outputIndexer2D, FloatV
 }
 };
 
-static void CalculateNoise2D(void* output, VolumeDataChannelDescriptor::Format format, VolumeIndexer2D *outputIndexer, FloatVector2 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
+inline void CalculateNoise2D(void* output, VolumeDataChannelDescriptor::Format format, VolumeIndexer2D *outputIndexer, FloatVector2 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
 {
   GenericDispatcher<2>(useNoValue, format, output, *outputIndexer, frequency, threshold, noValue, random);
 }
@@ -259,7 +259,7 @@ static void Do(void* outputVoid, VolumeIndexer3D const &outputIndexer3D, FloatVe
 }
 };
 
-static void CalculateNoise3D(void* output, VolumeDataChannelDescriptor::Format format, VolumeIndexer3D *outputIndexer, FloatVector3 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
+inline void CalculateNoise3D(void* output, VolumeDataChannelDescriptor::Format format, VolumeIndexer3D *outputIndexer, FloatVector3 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
 {
   GenericDispatcher<3>(useNoValue, format, output, *outputIndexer, frequency, threshold, noValue, random);
 }
@@ -308,7 +308,7 @@ static void Do(void* outputVoid, VolumeIndexer4D const &outputIndexer4D, FloatVe
 }
 };
 
-static void CalculateNoise4D(void* output, VolumeDataChannelDescriptor::Format format, VolumeIndexer4D *outputIndexer, FloatVector4 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
+inline void CalculateNoise4D(void* output, VolumeDataChannelDescriptor::Format format, VolumeIndexer4D *outputIndexer, FloatVector4 frequency, float threshold, float noValue, bool useNoValue, unsigned int random)
 {
   GenericDispatcher<4>(useNoValue, format, output, *outputIndexer, frequency, threshold, noValue, random);
 }

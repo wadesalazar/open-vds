@@ -170,8 +170,8 @@ GTEST_TEST(VDS_integration, DeSerializeVolumeData)
   double samples = 0;
   Stats(dataBlockNone, dataNone, dataBlockWavelet, dataWavelet, diff, maxError, deviation, samples);
 
-  double variance = deviation / samples;
-  double std_dev = sqrt(variance);
+  //double variance = deviation / samples;
+  //double std_dev = sqrt(variance);
   double avg_diff = diff / samples;
   double one_procent_range = (0.07883811742067337 + 0.07883811742067337) / 100;
   EXPECT_TRUE(avg_diff < one_procent_range * 2);

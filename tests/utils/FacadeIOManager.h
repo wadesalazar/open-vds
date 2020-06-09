@@ -30,8 +30,8 @@ class FacadeRequest : public OpenVDS::Request
 public:
   FacadeRequest(const std::string &objectName, const OpenVDS::Error &error)
     : Request(objectName)
-    , m_error(error)
     , m_done(false)
+    , m_error(error)
   {
 
   }

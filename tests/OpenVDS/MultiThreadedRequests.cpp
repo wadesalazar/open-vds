@@ -50,10 +50,10 @@ TEST(Multithreading, requests)
 
   struct ThreadRequestData
   {
+    int64_t requestId;
     int32_t minPos[OpenVDS::Dimensionality_Max];
     int32_t maxPos[OpenVDS::Dimensionality_Max];
     int32_t voxelCount;
-    int64_t requestId;
     std::vector<float> bufferFloat;
   };
   std::vector<std::vector<ThreadRequestData>> m_dataRequests;

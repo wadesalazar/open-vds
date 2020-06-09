@@ -3,9 +3,7 @@ function(setCompilerFlagsForTools target)
   setWarningFlagsForTarget(${target})
   copyDllForTarget(${target})
 
-  if (MSVC AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-    target_compile_options(${target} BEFORE PRIVATE "SHELL:/imsvc\ ${jsoncpp_SOURCE_DIR}/include")
-  endif()
+  addSystemHeadersToTarget(${target} "${jsoncpp_SOURCE_DIR}/include")
 
   if (${MSVC_TOOLSET_VERSION_LOCAL})
     set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION_LOCAL}")

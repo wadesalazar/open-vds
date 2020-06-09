@@ -15,6 +15,8 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#define _CRT_SECURE_NO_WARNINGS 1
+
 #include "cxxopts.hpp"
 
 #include <fmt/printf.h>
@@ -138,7 +140,7 @@ int main(int argc, char **argv)
   fmt::print(stdout, "Using axis mapping [{}, {}, {}]\n", axis_mapper[0], axis_mapper[1], axis_mapper[2]);
 
   OpenVDS::Error error;
-  OpenVDS::VDSHandle handle;
+  OpenVDS::VDSHandle handle = nullptr;
 
   if (generate_noise)
   {

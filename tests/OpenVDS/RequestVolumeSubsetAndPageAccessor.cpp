@@ -36,6 +36,7 @@ TEST(OpenVDS, MixedRequests)
     ASSERT_TRUE(pageAccessor);
     auto dataAccessor = accessManager->Create3DVolumeDataAccessorR32(pageAccessor, -1000);
     float value = dataAccessor->GetValue({ 100, 100, 100 });
+    (void)value;
 
     accessManager->WaitForCompletion(request);
   }
