@@ -45,7 +45,6 @@ VDS* Open(IOManager *ioManager, Error& error)
     return nullptr;
   }
   ret->accessManager.reset(new VolumeDataAccessManagerImpl(*ret.get()));
-  ret->requestProcessor.reset(new VolumeDataRequestProcessor(*ret->accessManager.get()));
   return ret.release();
 }
 
@@ -238,7 +237,6 @@ VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutD
     return nullptr;
 
   vds->accessManager.reset(new VolumeDataAccessManagerImpl(*vds.get()));
-  vds->requestProcessor.reset(new VolumeDataRequestProcessor(*vds->accessManager.get()));
 
   return vds.release();
 }

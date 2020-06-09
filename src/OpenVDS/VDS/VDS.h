@@ -77,8 +77,6 @@ struct VDS
                     ioManager;
   LayerMetadataContainer
                     layerMetadataContainer;
-  std::unique_ptr<VolumeDataRequestProcessor>
-                    requestProcessor;
 };
 
 const char *AddDescriptorString(std::string const &descriptorString, VDS &handle);

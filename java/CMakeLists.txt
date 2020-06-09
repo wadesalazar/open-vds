@@ -2,23 +2,11 @@ include(UseJava)
 
 set(OPENVDS_JAVA_VERSION 0.0.6)
 
-set(JAVA_TEST_ENABLED ON)
 #set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
 
 set(GENERATED_JNI_HEADERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cpp/generated)
 #file(REMOVE_RECURSE ${GENERATED_JNI_HEADERS_DIR})
 file(MAKE_DIRECTORY ${GENERATED_JNI_HEADERS_DIR})
-
-if(JAVA_TEST_ENABLED)
-    file (GLOB_RECURSE JAVA_TEST_SOURCES_FILES CONFIGURE_DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/java/test/*.java)
-endif()
-
-if(JAVA_TEST_ENABLED)
-    foreach(FILE ${JAVA_TEST_SOURCES_FILES})
-        message(STATUS ${FILE})
-    endforeach()
-endif()
 
 set(JAVA_SOURCE_FILES
   java/src/org/opengroup/openvds/AWSOpenOptions.java
@@ -79,30 +67,36 @@ add_jar(openvds-java
 
 get_property(BUILT_JAR_FILE TARGET openvds-java PROPERTY JAR_FILE)
 
-create_javadoc(openvds-java-javadoc
-  FILES ${JAVA_SOURCE_FILES}
-  WINDOWTITLE \"OpenVDS-Java\"
-  DOCTITLE \"<h1>OpenVDS-Java</h1>\"
-  AUTHOR TRUE
-  USE TRUE
-  VERSION TRUE
-  )
-
-if(JAVA_TEST_ENABLED)
-    file(DOWNLOAD https://repo1.maven.org/maven2/org/testng/testng/6.14.3/testng-6.14.3.jar
-            ${CMAKE_CURRENT_BINARY_DIR}/testng-6.14.3.jar
-            SHOW_PROGRESS
-            EXPECTED_HASH MD5=9f17a8f9e99165e148c42b21f4b63d7c)
-    add_jar(openvds-java-test
-            SOURCES ${JAVA_TEST_SOURCES_FILES}
-            VERSION ${OPENVDS_JAVA_VERSION}
-            INCLUDE_JARS
-            ${CMAKE_CURRENT_BINARY_DIR}/testng-6.14.3.jar
-            ${BUILT_JAR_FILE}
+if (BUILD_DOCS)
+  set(OLD_CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+  set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_BINARY_DIR}/docs/html)
+  create_javadoc(openvds-javadoc
+    FILES ${JAVA_SOURCE_FILES}
+    INSTALLPATH ${CMAKE_INSTALL_DOCDIR}/html
+    WINDOWTITLE \"OpenVDS-Java\"
+    DOCTITLE \"<h1>OpenVDS-Java</h1>\"
+    AUTHOR TRUE
+    USE TRUE
+    VERSION TRUE
     )
+  set(CMAKE_CURRENT_BINARY_DIR ${OLD_CMAKE_CURRENT_BINARY_DIR})
 endif()
 
-add_library(openvds-javacpp 
+
+set(JAVA_TEST_SOURCES_FILES
+  java/test/org/opengroup/openvds/AmazonS3Test.java
+  java/test/org/opengroup/openvds/MemoryVdsGeneratorTest.java
+  )
+
+add_jar(openvds-java-test
+        SOURCES ${JAVA_TEST_SOURCES_FILES}
+        VERSION ${OPENVDS_JAVA_VERSION}
+        INCLUDE_JARS
+        ${testng_SOURCE_FILE}
+        ${BUILT_JAR_FILE}
+)
+
+add_library(openvds-javacpp
   cpp/src/Common.cpp
   cpp/src/CommonJni.cpp
   cpp/src/JniPointer.cpp
@@ -143,7 +137,4 @@ if (WIN32)
    install(FILES ${BUILT_JAR_FILE} DESTINATION java)
 else()
   install_jar(openvds-java DESTINATION java)
-endif()
-if(JAVA_TEST_ENABLED)
-    #install_jar(openvds-java-test DESTINATION java)
 endif()

@@ -27,15 +27,17 @@ as well as efficient I/O for high-performance computing or machine learning
 workloads.
 
 The OpenVDS implementation is made up of the following components:
-- SEG-Y indexing (scanning the file to figure out where the traces go in the volume)
-- SEG-Y loading (transfer to object storage)
-- SEG-Y delivery (transfer from object storage)
-- VolumeDataAccess API for direct access to volume data stored in the cloud
+- VolumeDataAccess C++ API for direct access to volume data stored in a VDS
 - Python bindings for the VolumeDataAccess API
+- Java bindings for the VolumeDataAccess API
+- SEGYImport tool (import a SEG-Y file to a VDS)
+- SEGYExport tool (export a SEG-Y file from a VDS)
+- VDSInfo tool (transfer from object storage)
 
 In order to implement these components there are a number of internal components:
 - Decompression (Zip, Run-lenght encoding, Bluware Inc. properitary Wavelet compression)
 - VolumeDataLayout (manages how the volume is divided into chunks)
+- IOManagers for connecting to the various cloud providers' object storage solutions
 - File (UTF-8 filenames, thread-safe read/write, possibility to create memory-mapped file views)
 
 Licensed under [**Apache 2.0**](https://gitlab.opengroup.org/osdu/open-vds/blob/master/LICENSE)

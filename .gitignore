@@ -21,3 +21,6 @@ python/tools/WrapperReport.txt
 *.iml
 java/cpp/generated
 cmake-build*
+/docs/tools/SEGYExport/README.md
+/docs/tools/SEGYImport/README.md
+/docs/tools/VDSInfo/README.md
