@@ -1071,7 +1071,7 @@ HueBulkDataStoreImpl::UpdateFileTable(DataStoreFileDescriptor const &fileDescrip
   size_t
     fileTableEntrySize = sizeof(FileHeader) + GetDataStoreHeader().m_fileNameLength;
 
-  assert((m_fileTable ? m_fileTable->Size() : 0) == fileTableEntrySize * fileTableEntryCount);
+  assert(size_t(m_fileTable ? m_fileTable->Size() : 0) == fileTableEntrySize * fileTableEntryCount);
 
   int32_t
     fileNameLength = std::max(int32_t(fileDescriptor.m_fileName.length()), GetDataStoreHeader().m_fileNameLength);

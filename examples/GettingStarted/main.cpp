@@ -41,4 +41,5 @@ int main(int argc, char *argv[])
   int64_t iRequestID = accessManager->RequestVolumeSubset(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, voxelMin, voxelMax, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
 
   bool success = accessManager->WaitForCompletion(iRequestID);
+  (void)success;
 }

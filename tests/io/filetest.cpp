@@ -63,7 +63,6 @@ struct Offset
 static int TestFileView(OpenVDS::File &file, const std::vector<uint32_t> &rand_data, Offset (&offsets)[128])
 {
   OpenVDS::Error error;
-  int result = 0;
   OpenVDS::FileView *fileview = file.CreateFileView(0, DATA_SIZE * sizeof(*rand_data.data()), true, error);
   if (!fileview)
   {
@@ -114,7 +113,7 @@ TEST(IOTests, FileIO)
   for (auto& offset : offsets)
   {
     offset.offset = rand_data[n] % DATA_SIZE;
-    uint32_t next_rand = ++n == ArraySize(rand_data) ? rand_data[0] : rand_data[n];
+    uint32_t next_rand = size_t(++n) == ArraySize(rand_data) ? rand_data[0] : rand_data[n];
     offset.size = std::min(uint32_t(ArraySize(rand_data)) - offset.offset, uint32_t(next_rand % 4096));
   }
 

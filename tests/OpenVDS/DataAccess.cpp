@@ -132,8 +132,6 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSubset)
   int loopDimension = 4;
   int groupSize = 100;
 
-  int loopDimensionSize = layout->GetDimensionNumSamples(loopDimension);
-
   int traceDimension = (loopDimension == 0) ? 1 : 0;
   int traceDimensionSize = layout->GetDimensionNumSamples(traceDimension);
 
@@ -144,8 +142,6 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSubset)
   {
     groupSize = groupDimensionSize;
   }
-
-  int groupCount = (groupDimensionSize + (groupSize - 1)) / groupSize;
 
   std::array<int, OpenVDS::Dimensionality_Max> voxelMin = { 0, 0, 0, 0, 0, 0};
   std::array<int, OpenVDS::Dimensionality_Max> voxelMax = { 1, 1, 1, 1, 1, 1};

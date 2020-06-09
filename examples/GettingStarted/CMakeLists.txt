@@ -6,4 +6,5 @@ target_compile_definitions(getting-started PRIVATE -DTEST_URL="${TEST_URL}")
 string(REPLACE ";" "\\\\;" TEST_CONNECTION_ESCAPED "${TEST_CONNECTION}")
 target_compile_definitions(getting-started PRIVATE -DTEST_CONNECTION="${TEST_CONNECTION_ESCAPED}")
 
+setWarningFlagsForTarget(getting-started)
 copyDllForTarget(getting-started)

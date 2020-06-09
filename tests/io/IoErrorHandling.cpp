@@ -207,9 +207,9 @@ class SyncTransfer : public OpenVDS::TransferDownloadHandler
 public:
   void HandleObjectSize(int64_t size) override { }
   void HandleObjectLastWriteTime(const std::string& lastWriteTimeISO8601) override {}
-  void HandleMetadata(const std::string& key, const std::string& header) { headers.emplace_back(key, header); }
-  void HandleData(std::vector<uint8_t>&& data) { this->data = std::move(data); }
-  void Completed(const OpenVDS::Request& request, const OpenVDS::Error& error) {}
+  void HandleMetadata(const std::string& key, const std::string& header) override { headers.emplace_back(key, header); }
+  void HandleData(std::vector<uint8_t>&& data) override { this->data = std::move(data); }
+  void Completed(const OpenVDS::Request& request, const OpenVDS::Error& error) override {}
 
   std::vector<uint8_t> data;
   std::vector<std::pair<std::string, std::string>> headers;
@@ -369,13 +369,12 @@ TEST(IOErrorHandlingUpload, ErrorHandlingChunkHttpError)
 
   int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
 
-  OpenVDS::VolumeDataChannelDescriptor::Format format = layout->GetChannelFormat(0);
-
   for (int i = 0; i < chunkCount; i++)
   {
     OpenVDS::VolumeDataPage *page =  pageAccessor->CreatePage(i);
     int pitch[OpenVDS::Dimensionality_Max];
     void *buffer = page->GetWritableBuffer(pitch);
+    (void)buffer;
     page->Release();
   }
   pageAccessor->Commit();
@@ -433,13 +432,12 @@ TEST(IOErrorHandlingUpload, ErrorHandlingLayerStatusHttpError)
 
   int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
 
-  OpenVDS::VolumeDataChannelDescriptor::Format format = layout->GetChannelFormat(0);
-
   for (int i = 0; i < chunkCount; i++)
   {
     OpenVDS::VolumeDataPage *page =  pageAccessor->CreatePage(i);
     int pitch[OpenVDS::Dimensionality_Max];
     void *buffer = page->GetWritableBuffer(pitch);
+    (void)buffer;
     page->Release();
   }
   pageAccessor->Commit();
@@ -497,13 +495,12 @@ TEST(IOErrorHandlingUpload, ErrorHandlingChunkMetadataHttpError)
 
   int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
 
-  OpenVDS::VolumeDataChannelDescriptor::Format format = layout->GetChannelFormat(0);
-
   for (int i = 0; i < chunkCount; i++)
   {
     OpenVDS::VolumeDataPage *page =  pageAccessor->CreatePage(i);
     int pitch[OpenVDS::Dimensionality_Max];
     void *buffer = page->GetWritableBuffer(pitch);
+    (void)buffer;
     page->Release();
   }
   pageAccessor->Commit();

@@ -123,7 +123,7 @@ TEST_F(RequestVolumeSubsetFormat, test1Bit)
   int64_t request= shared_data->accessManager->RequestVolumeSubset(buffer.data(), shared_data->layout, OpenVDS::Dimensions_012, 0, 0, shared_data->minPos, shared_data->maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_1Bit);
   shared_data->accessManager->WaitForCompletion(request);
 
-  for (size_t i = 0; i < shared_data->voxelCount; i++)
+  for (int32_t i = 0; i < shared_data->voxelCount; i++)
   {
     uint8_t data = (buffer[i/8] & (1 << (i % 8))) >> (i % 8);
     uint8_t value = shared_data->bufferFloat[i] != shared_data->layout->GetChannelNoValue(0);

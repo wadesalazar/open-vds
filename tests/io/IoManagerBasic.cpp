@@ -58,7 +58,7 @@ void completedCallback(const OpenVDS::Request& request, const OpenVDS::Error& er
   {
     std::cout << "Failed Upload, Error=" << error.code << ", Message=" << error.string << std::endl;
   }
-};
+}
 
 TEST(IOTests, basicIOTest)
 {

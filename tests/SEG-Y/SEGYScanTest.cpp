@@ -51,7 +51,7 @@ TEST(SEGYScanTest, scan)
   EXPECT_TRUE(fileInfo.m_segmentInfo.front().m_traceStart == 0);
 
   // check that the segments cover all traces of the file (with no overlap)
-  for(int i = 1; i < fileInfo.m_segmentInfo.size(); i++)
+  for(int i = 1; i < int(fileInfo.m_segmentInfo.size()); i++)
   {
     if(fileInfo.m_segmentInfo[i].m_traceStart != fileInfo.m_segmentInfo[i - 1].m_traceStop + 1)
     {
