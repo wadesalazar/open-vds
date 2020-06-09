@@ -3,7 +3,7 @@ function(BuildCrc32c)
     list(APPEND CRC32C_LIBS_LIST "lib/crc32c.lib")
   elseif (APPLE)
   else()
-    list(APPEND CRC32C_LIBS_LIST "lib${LIBSUFFIX}/crc32c.so")
+    list(APPEND CRC32C_LIBS_LIST "lib${LIBSUFFIX}/libcrc32c.a")
   endif()
 
   BuildExternal(crc32c ${crc32c_VERSION} "" ${crc32c_SOURCE_DIR} "${CRC32C_LIBS_LIST}" "" "" "" "-DCRC32C_BUILD_TESTS=OFF;-DCRC32C_BUILD_BENCHMARKS=OFF;-DCRC32C_USE_GLOG=OFF")
