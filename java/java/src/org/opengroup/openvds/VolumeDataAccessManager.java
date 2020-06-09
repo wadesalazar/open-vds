@@ -197,16 +197,16 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
     /**
      * Compute the buffer size (in bytes) for a volume subset request.
      *
-     * @param layout the VolumeDataLayout object associated with the input VDS.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the input VDS.
      * @param box the box describing the volume subset coordinates.
      * @param format voxel format of the destination buffer.
      * @param lod the LOD level the requested data is read from.
      * @param channel the channel index the requested data is read from.
      * @return the buffer size needed
      */
-    long getVolumeSubsetBufferSize(VolumeDataLayout layout,
+    long getVolumeSubsetBufferSize(VolumeDataLayout volumeDataLayout,
                                    NDBox box, VolumeDataChannelDescriptor.Format format, int lod, int channel) {
-        return cpGetVolumeSubsetBufferSize(_handle, layout.handle(),
+        return cpGetVolumeSubsetBufferSize(_handle, volumeDataLayout.handle(),
                 box.getMin(), box.getMax(), format.getCode(), lod, channel);
     }
 
@@ -414,14 +414,14 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
     /**
      * Compute the buffer size (in bytes) for a volume samples request.
      *
-     * @param layout the VolumeDataLayout object associated with the input VDS.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the input VDS.
      * @param sampleCount number of samples to request.
      * @param channel the channel index the requested data is read from.
      * @return
      */
-    public long getVolumeSamplesBufferSize(VolumeDataLayout layout,
+    public long getVolumeSamplesBufferSize(VolumeDataLayout volumeDataLayout,
             int sampleCount, int channel) {
-        return cpGetVolumeSamplesBufferSize(_handle, layout.handle(),
+        return cpGetVolumeSamplesBufferSize(_handle, volumeDataLayout.handle(),
                 sampleCount, channel);
     }
 
@@ -429,7 +429,7 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * Request sampling of the input VDS at the specified coordinates.
      *
      * @param outBuf preallocated buffer holding at least sampleCount elements.
-     * @param layout the VolumeDataLayout object associated with the input VDS.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the input VDS.
      * @param dimensiongroup the dimensiongroup the requested data is read from.
      * @param lod the LOD level the requested data is read from.
      * @param channel the channel index the requested data is read from.
@@ -443,11 +443,11 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * @return the requestID which can be used to query the status of the
      * request, cancel the request or wait for the request to complete.
      */
-    public long requestVolumeSamples(FloatBuffer outBuf, VolumeDataLayout layout, DimensionsND dimensiongroup,
+    public long requestVolumeSamples(FloatBuffer outBuf, VolumeDataLayout volumeDataLayout, DimensionsND dimensiongroup,
             int lod, int channel, FloatBuffer samplePositions, int sampleCount, InterpolationMethod interpolationMethod) {
         B.checkDirectBuffer(outBuf);
         B.checkDirectBuffer(samplePositions);
-        return cpRequestVolumeSamples(_handle, outBuf, layout.handle(), dimensiongroup.ordinal(), lod, channel,
+        return cpRequestVolumeSamples(_handle, outBuf, volumeDataLayout.handle(), dimensiongroup.ordinal(), lod, channel,
                 samplePositions, sampleCount, interpolationMethod.ordinal());
     }
 
@@ -455,7 +455,7 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * Request sampling of the input VDS at the specified coordinates.
      *
      * @param outBuf preallocated buffer holding at least sampleCount elements.
-     * @param layout the VolumeDataLayout object associated with the input VDS.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the input VDS.
      * @param dimensiongroup the dimensiongroup the requested data is read from.
      * @param lod the LOD level the requested data is read from.
      * @param channel the channel index the requested data is read from.
@@ -471,7 +471,7 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * @return the requestID which can be used to query the status of the
      * request, cancel the request or wait for the request to complete.
      */
-    public long requestVolumeSamples(FloatBuffer outBuf, VolumeDataLayout layout, DimensionsND dimensiongroup,
+    public long requestVolumeSamples(FloatBuffer outBuf, VolumeDataLayout volumeDataLayout, DimensionsND dimensiongroup,
                                      int lod, int channel, FloatBuffer samplePositions, int sampleCount,
                                      InterpolationMethod interpolationMethod, float replacementNoValue) {
         B.checkDirectBuffer(outBuf);
@@ -479,23 +479,23 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
         if (B.getCapacityInBytes(outBuf) < getVolumeSamplesBufferSize(volumeDataLayout, sampleCount, channel)) {
             return throwBufferTooSmallException();
         }
-        return cpRequestVolumeSamplesR(_handle, outBuf, layout.handle(), dimensiongroup.ordinal(), lod, channel,
+        return cpRequestVolumeSamplesR(_handle, outBuf, volumeDataLayout.handle(), dimensiongroup.ordinal(), lod, channel,
                 samplePositions, sampleCount, interpolationMethod.ordinal(), replacementNoValue);
     }
 
     /**
      * Compute the buffer size (in bytes) for a volume traces request.
      *
-     * @param layout the VolumeDataLayout object associated with the input VDS.
+     * @param volumeDataLayout the VolumeDataLayout object associated with the input VDS.
      * @param traceCount number of traces to request.
      * @param traceDimension the dimension to trace
      * @param lod the LOD level the requested data is read from.
      * @param channel the channel index the requested data is read from.
      * @return
      */
-    public long getVolumeTracesBufferSize(VolumeDataLayout layout,
+    public long getVolumeTracesBufferSize(VolumeDataLayout volumeDataLayout,
             int traceCount, int traceDimension, int lod, int channel) {
-        return cpGetVolumeTracesBufferSize(_handle, layout.handle(),
+        return cpGetVolumeTracesBufferSize(_handle, volumeDataLayout.handle(),
                 traceCount, traceDimension, lod, channel);
     }
 
