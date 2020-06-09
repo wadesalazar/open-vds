@@ -136,18 +136,18 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpClo
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpGetVolumeSubsetBufferSize
-* Signature: (JJ[I[III)J
+* Signature: (JJ[I[IIII)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetVolumeSubsetBufferSize
         (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jintArray minVoxelCoordinates,
-         jintArray maxVoxelCoordinates, jint format, jint lod) {
+         jintArray maxVoxelCoordinates, jint format, jint lod, jint channel) {
     try {
         std::vector<int> minVoxel = JArrayToVector(env, minVoxelCoordinates);
         std::vector<int> maxVoxel = JArrayToVector(env, maxVoxelCoordinates);
         return GetManager(managerHandle)->GetVolumeSubsetBufferSize(GetLayout(layoutHandle),
                                                                     (Voxel &) *minVoxel.data(),
                                                                     (Voxel &) *maxVoxel.data(),
-                                                                    (VolumeDataChannelDescriptor::Format) format, lod);
+                                                                    (VolumeDataChannelDescriptor::Format) format, lod, channel);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
     return 0;
@@ -211,12 +211,12 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpGetProjectedVolumeSubsetBufferSize
-* Signature: (JJ[I[IIII)J
+* Signature: (JJ[I[IIIII)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetProjectedVolumeSubsetBufferSize
         (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jintArray minVoxelCoordinates,
          jintArray maxVoxelCoordinates,
-         jint projectedDimensions, jint format, jint lod) {
+         jint projectedDimensions, jint format, jint lod, jint channel) {
     try {
         std::vector<int> minVoxelArray = JArrayToVector(env, minVoxelCoordinates);
         std::vector<int> maxVoxelArray = JArrayToVector(env, maxVoxelCoordinates);
@@ -225,7 +225,7 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGet
                                                                              (Voxel &) *maxVoxelArray.data(),
                                                                              (DimensionsND) projectedDimensions,
                                                                              (VolumeDataChannelDescriptor::Format) format,
-                                                                             lod);
+                                                                             lod, channel);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
     return 0;
@@ -313,6 +313,20 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
 
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
+* Method:    cpGetVolumeSamplesBufferSize
+* Signature: (JJII)J
+*/
+JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetVolumeSamplesBufferSize
+(JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jint sampleCount, jint channel) {
+  try {
+    return GetManager(managerHandle)->GetVolumeSamplesBufferSize(GetLayout(layoutHandle), sampleCount, channel);
+  }
+  CATCH_EXCEPTIONS_FOR_JAVA;
+  return 0;
+}
+
+/*
+* Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpRequestVolumeSamplesR
 * Signature: (JLjava/nio/FloatBuffer;JIIILjava/nio/FloatBuffer;IIF)J
 */
@@ -337,13 +351,13 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpGetVolumeTracesBufferSize
-* Signature: (JJIII)J
+* Signature: (JJIIII)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetVolumeTracesBufferSize
-        (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jint traceCount, jint traceDimension, jint lod) {
+        (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jint traceCount, jint traceDimension, jint lod, jint channel) {
     try {
         return GetManager(managerHandle)->GetVolumeTracesBufferSize(GetLayout(layoutHandle), traceCount, traceDimension,
-                                                                    lod);
+                                                                    lod, channel);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
     return 0;

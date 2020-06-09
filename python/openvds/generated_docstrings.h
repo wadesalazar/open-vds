@@ -1404,7 +1404,8 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentDownloadError
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentUploadError = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetProjectedVolumeSubsetBufferSize =
-R"doc(Compute the buffer size for a projected volume subset request.
+R"doc(Compute the buffer size (in bytes) for a projected volume subset
+request.
 
 Parameters:
 -----------
@@ -1430,6 +1431,9 @@ format :
 
 lod :
     The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
 
 Returns:
 --------
@@ -1468,8 +1472,27 @@ Returns:
     The VolumeDataLayout object associated with the VDS or NULL if
     there is no valid VolumeDataLayout.)doc";
 
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeSamplesBufferSize =
+R"doc(Compute the buffer size (in bytes) for a volume samples request.
+
+Parameters:
+-----------
+
+volumeDataLayout :
+    The VolumeDataLayout object associated with the input VDS.
+
+sampleCount :
+    Number of samples to request.
+
+channel :
+    The channel index the requested data is read from.
+
+Returns:
+--------
+    The buffer size needed)doc";
+
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeSubsetBufferSize =
-R"doc(Compute the buffer size for a volume subset request.
+R"doc(Compute the buffer size (in bytes) for a volume subset request.
 
 Parameters:
 -----------
@@ -1491,12 +1514,15 @@ format :
 lod :
     The LOD level the requested data is read from.
 
+channel :
+    The channel index the requested data is read from.
+
 Returns:
 --------
     The buffer size needed)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeTracesBufferSize =
-R"doc(Compute the buffer size for a volume traces request.
+R"doc(Compute the buffer size (in bytes) for a volume traces request.
 
 Parameters:
 -----------
@@ -1512,6 +1538,9 @@ traceDimension :
 
 lod :
     The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
 
 Returns:
 --------
