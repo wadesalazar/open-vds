@@ -49,24 +49,11 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   OpenVDS::VolumeDataLayout *inMemoryLayout = OpenVDS::GetLayout(inMemoryVDS.get());
 
 #ifndef IN_MEMORY_TEST
-  //OpenVDS::AzureOpenOptions options;
-  //options.connectionString = TEST_AZURE_CONNECTION;
-  //options.container = "SIMPLE_NOISE_VDS";
-  //options.parallelism_factor = 8;
-
-  //if (options.connectionString.empty())
-  //{
-  //  GTEST_SKIP() << "Environment variables not set";
-  //}
-
-  OpenVDS::AWSOpenOptions options;
-  options.region = TEST_AWS_REGION;
-  options.bucket = TEST_AWS_BUCKET;
-  options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
-  options.key = TEST_AWS_OBJECTID;
-  if (options.bucket.empty())
+  std::string url = TEST_URL;
+  std::string connectionString = TEST_CONNECTION;
+  if(url.empty())
   {
-    GTEST_SKIP() << "Environment variables not set";
+    GTEST_SKIP() << "Test Environment for connecting to VDS is not set";
   }
 #endif
 
@@ -117,7 +104,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
 #ifdef IN_MEMORY_TEST
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> networkVDS(OpenVDS::Create(new IOManagerFacadeLight(inMemory), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error), &OpenVDS::Close);
 #else
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> networkVDS(OpenVDS::Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error), &OpenVDS::Close);
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> networkVDS(OpenVDS::Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error), &OpenVDS::Close);
 #endif
   ASSERT_TRUE(networkVDS);
 
@@ -174,7 +161,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
 #ifdef IN_MEMORY_TEST
   networkVDS.reset(OpenVDS::Open(new IOManagerFacadeLight(inMemory), error));
 #else
-  networkVDS.reset(OpenVDS::Open(options, error));
+  networkVDS.reset(OpenVDS::Open(url, connectionString, error));
 #endif
   ASSERT_TRUE(networkVDS);
 

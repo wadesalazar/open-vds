@@ -1,14 +1,12 @@
 import openvds
 import numpy as np
-TEST_AWS_BUCKET = ""
-TEST_AWS_OBJECTID = ""
-TEST_AWS_REGION = ""
+from connection_defs import *
 
-quit()
+if not TEST_URL:
+  quit()
 
 err = openvds.Error()
-opt = openvds.AWSOpenOptions(TEST_AWS_BUCKET, TEST_AWS_OBJECTID, TEST_AWS_REGION)
-handle = openvds.open(opt, err)
+handle = openvds.open(TEST_URL, TEST_CONNECTION, err)
 acc = openvds.VolumeDataAccessManager(handle)
 r = acc.requestVolumeSubset((0,0,0),(100,100,100))
 

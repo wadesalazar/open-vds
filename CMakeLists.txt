@@ -12,11 +12,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 include(GNUInstallDirs)
 
 set (TEST_DATA_PATH "" CACHE PATH "Test data path")
-set (TEST_AWS_REGION "" CACHE STRING "Test AWS region")
-set (TEST_AWS_BUCKET "" CACHE STRING "Test AWS bucket")
-set (TEST_AWS_OBJECTID "" CACHE STRING "Test AWS object ID")
-set (TEST_AWS_ENDPOINT_OVERRIDE "" CACHE STRING "Test AWS endpoint override")
-set (TEST_AZURE_CONNECTION "" CACHE STRING "Test Azure connection string")
+set (TEST_URL "" CACHE STRING "Test url for OpenOptions")
+set (TEST_CONNECTION "" CACHE STRING "Test connection string for OpenOptions")
 
 set (OPENVDS_LIBDIR_SUFFIX "" CACHE STRING "Suffix to add to lib directories on linux")
 set (OPENVDS_PYTHON_VERSION "" CACHE STRING "Exact Python 3 version to discover")

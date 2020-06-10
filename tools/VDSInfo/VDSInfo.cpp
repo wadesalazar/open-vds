@@ -187,13 +187,8 @@ int main(int argc, char **argv)
 {
   cxxopts::Options options("VDSInfo", "VDSInfo - A tool for extracting info from a VDS");
 
-  std::string bucket;
-  std::string region;
-  std::string endpointOverride;
-  std::string connectionString;
-  std::string container;
-  int azureParallelismFactor = 0;
-  std::string prefix;
+  std::string url;
+  std::string connection;
   std::string persistentID;
   std::string metadataPrintName;
   std::string metadataPrintCategory;
@@ -207,13 +202,8 @@ int main(int argc, char **argv)
   int  textDecodeWidth = std::numeric_limits<int>::max();
 
 //connection options
-  options.add_option("", "", "bucket", "AWS S3 bucket to connect to.", cxxopts::value<std::string>(bucket), "<string>");
-  options.add_option("", "", "region", "AWS region of bucket to connect to.", cxxopts::value<std::string>(region), "<string>");
-  options.add_option("", "", "endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(endpointOverride), "<string>");
-  options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
-  options.add_option("", "", "container", "Azure Blob Storage container to connect to.", cxxopts::value<std::string>(container), "<string>");
-  options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
-  options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
+  options.add_option("", "", "url", "Url with vendor specific protocol.", cxxopts::value<std::string>(url), "<string>");
+  options.add_option("", "", "connection-string", "Vendor specific connection string.", cxxopts::value<std::string>(connection), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
 ///action
@@ -244,33 +234,21 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
+  if (url.empty())
+  {
+    std::cout << "\nFailed - missing url argument\n\n";
+    std::cout << options.help();
+    return EXIT_FAILURE;
+  }
+
   // Open the VDS
-  std::string key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
-
-  std::unique_ptr<OpenVDS::OpenOptions> openOptions;
-
-  if(!bucket.empty())
+  if (persistentID.size())
   {
-    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
-  }
-  else if(!container.empty())
-  {
-    openOptions.reset(new OpenVDS::AzureOpenOptions(connectionString, container, key));
-  }
-
-  if(azureParallelismFactor)
-  {
-    if(openOptions->connectionType == OpenVDS::OpenOptions::Azure)
+    if (url[url.size() - 1] != '/')
     {
-      auto &azureOpenOptions = *static_cast<OpenVDS::AzureOpenOptions *>(openOptions.get());
-
-      azureOpenOptions.parallelism_factor = azureParallelismFactor;
+      url.push_back('/');
     }
-    else
-    {
-      std::cerr << "Cannot specify parallelism-factor with other backends than Azure\n";
-      return EXIT_FAILURE;
-    }
+    url.insert(url.end(), persistentID.begin(), persistentID.end());
   }
 
   if (!axisDescriptors && !channelDescriptors && !volumeDataLayout && !metaKeys && metadataPrintName.empty() && metadataPrintCategory.empty())
@@ -282,7 +260,7 @@ int main(int argc, char **argv)
 
   OpenVDS::Error openError;
 
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(*openOptions.get(), openError), &OpenVDS::Close);
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(url, connection, openError), &OpenVDS::Close);
 
   if(openError.code != 0)
   {

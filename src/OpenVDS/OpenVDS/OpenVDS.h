@@ -177,10 +177,61 @@ struct VectorWrapper
   size_t size;
 };
 
+struct StringWrapper
+{
+  StringWrapper(const std::string& toWrap)
+    : data(toWrap.c_str())
+    , size(toWrap.size())
+  {}
+
+  const char* data;
+  size_t size;
+};
+
 typedef struct VDS *VDSHandle;
 class VolumeDataLayout;
 class VolumeDataAccessManager;
 class VolumeDataPageAccessor;
+
+/// <summary>
+/// Create an OpenOptions struct from a url and connection string
+/// </summary>
+/// <param name="url">
+/// The url scheme specific to each cloud provider
+/// Available schemes are s3:// azure://
+/// </param>
+/// <param name="connectionString">
+/// The cloud provider specific connection string
+/// Specifies additional arguments for the cloud provider
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// This function news a OpenOptions struct that has to be deleted by
+/// the caller. This is a helper function to allow applications modify the
+/// OpenOption before passing it to Open. Use the Open and Create functions
+/// with url and string instead if this is not needed.
+/// </returns>
+OPENVDS_EXPORT OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString, Error& error);
+
+/// <summary>
+/// Open an existing VDS
+/// </summary>
+/// <param name="url">
+/// The url scheme specific to each cloud provider
+/// Available schemes are s3:// azure://
+/// </param>
+/// <param name="connectionString">
+/// The cloud provider specific connection string
+/// Specifies additional arguments for the cloud provider
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle Open(StringWrapper url, StringWrapper connectionString, Error& error);
 
 /// <summary>
 /// Open an existing VDS
@@ -213,6 +264,25 @@ OPENVDS_EXPORT VDSHandle Open(IOManager*ioManager, Error &error);
 /// <summary>
 /// Create a new VDS
 /// </summary>
+/// <param name="url">
+/// The url scheme specific to each cloud provider
+/// Available schemes are s3:// azure://
+/// </param>
+/// <param name="connectionString">
+/// The cloud provider specific connection string
+/// Specifies additional arguments for the cloud provider
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle Create(StringWrapper url, StringWrapper connectionString, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error);
+
+/// <summary>
+/// Create a new VDS
+/// </summary>
 /// <param name="options">
 /// The options for the connection
 /// </param>
@@ -226,6 +296,7 @@ OPENVDS_EXPORT VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDesc
 
 /// <summary>
 /// Create a new VDS
+
 /// </summary>
 /// <param name="ioManager">
 /// The IOManager for the connection, it will be deleted automatically when the VDS handle is closed

@@ -2,8 +2,8 @@ add_executable(getting-started main.cpp)
 target_link_libraries(getting-started openvds)
 set_target_properties(getting-started PROPERTIES FOLDER examples)
 
-target_compile_definitions(getting-started PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
-target_compile_definitions(getting-started PRIVATE -DTEST_AWS_BUCKET="${TEST_AWS_BUCKET}")
-target_compile_definitions(getting-started PRIVATE -DTEST_AWS_OBJECTID="${TEST_AWS_OBJECTID}")
+target_compile_definitions(getting-started PRIVATE -DTEST_URL="${TEST_URL}")
+string(REPLACE ";" "\\\\;" TEST_CONNECTION_ESCAPED "${TEST_CONNECTION}")
+target_compile_definitions(getting-started PRIVATE -DTEST_CONNECTION="${TEST_CONNECTION_ESCAPED}")
 
 copyDllForTarget(getting-started)

@@ -66,4 +66,13 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
     return nullptr;
   }
 }
+
+IOManager *IOManager::CreateIOManager(const StringWrapper &url, const StringWrapper &connectionString, Error& error)
+{
+  std::unique_ptr<OpenOptions> openOptions(CreateOpenOptions(url, connectionString, error));
+  if (error.code || !openOptions)
+    return nullptr;
+  return CreateIOManager(*(openOptions.get()), error);
+}
+
 }
