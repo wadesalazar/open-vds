@@ -187,6 +187,7 @@ int main(int argc, char **argv)
 {
   cxxopts::Options options("VDSInfo", "VDSInfo - A tool for extracting info from a VDS");
 
+  bool useGoogleStorage = false;
   std::string bucket;
   std::string region;
   std::string endpointOverride;
@@ -207,6 +208,7 @@ int main(int argc, char **argv)
   int  textDecodeWidth = std::numeric_limits<int>::max();
 
 //connection options
+  options.add_option("", "", "google", "Use Google Storage buckets", cxxopts::value<bool>(useGoogleStorage), "");
   options.add_option("", "", "bucket", "AWS S3 bucket to connect to.", cxxopts::value<std::string>(bucket), "<string>");
   options.add_option("", "", "region", "AWS region of bucket to connect to.", cxxopts::value<std::string>(region), "<string>");
   options.add_option("", "", "endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(endpointOverride), "<string>");
@@ -251,7 +253,14 @@ int main(int argc, char **argv)
 
   if(!bucket.empty())
   {
-    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
+    if(useGoogleStorage)
+    {
+      openOptions.reset(new OpenVDS::GoogleOpenOptions(bucket, key));
+    }
+    else
+    {
+      openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
+    }
   }
   else if(!container.empty())
   {

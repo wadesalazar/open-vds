@@ -39,6 +39,7 @@ main(int argc, char *argv[])
   cxxopts::Options options("SEGYExport", "SEGYExport - A tool to export a volume data store (VDS) to a SEG-Y file");
   options.positional_help("<output file>");
 
+  bool useGoogleStorage = false;
   std::string bucket;
   std::string region;
   std::string endpointOverride;
@@ -51,6 +52,7 @@ main(int argc, char *argv[])
   std::string azurePresignBase;
   std::string azurePresignSuffix;
 
+  options.add_option("", "", "google", "Use Google Storage buckets", cxxopts::value<bool>(useGoogleStorage), "");
   options.add_option("", "", "bucket", "AWS S3 bucket to export from.", cxxopts::value<std::string>(bucket), "<string>");
   options.add_option("", "", "region", "AWS region of bucket to export from.", cxxopts::value<std::string>(region), "<string>");
   options.add_option("", "", "endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(endpointOverride), "<string>");
@@ -95,7 +97,14 @@ main(int argc, char *argv[])
 
   if(!bucket.empty())
   {
-    openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
+    if(useGoogleStorage)
+    {
+      openOptions.reset(new OpenVDS::GoogleOpenOptions(bucket, key));
+    }
+    else
+    {
+      openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
+    }
   }
   else if(!container.empty())
   {
