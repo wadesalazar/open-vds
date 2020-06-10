@@ -31,7 +31,7 @@ namespace OpenVDS
   IOManagerGoogle::IOManagerGoogle(const GoogleOpenOptions& openOptions, Error &error)
     : m_curlHandler(error)
     , m_bucket(openOptions.bucket)
-    , m_token(openOptions.key)
+    , m_token() //fmt:"Authorization: Bearer {}"
   {
     if (m_bucket.empty())
     {
@@ -67,7 +67,7 @@ namespace OpenVDS
     std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
-    headers.push_back(fmt::format("Authorization: Bearer {}", m_token));
+    headers.push_back(m_token);
     m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", convertToISO8601, CurlDownloadHandler::HEADER);
     return request;
   }
@@ -77,7 +77,7 @@ namespace OpenVDS
     std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
-    headers.push_back(fmt::format("Authorization: Bearer {}", m_token));
+    headers.push_back(m_token);
     if (range.start != range.end)
     {
       headers.emplace_back();
@@ -94,7 +94,7 @@ namespace OpenVDS
     std::shared_ptr<UploadRequestCurl> request = std::make_shared<UploadRequestCurl>(objectName, completedCallback);
     std::vector<std::string> headers;
     //headers.emplace_back("x-ms-blob-type: BlockBlob");
-    headers.push_back(fmt::format("Authorization: Bearer {}", m_token));
+    headers.push_back(m_token);
     if (contentDispostionFilename.size())
       headers.push_back(fmt::format("content-disposition: attachment; filename=\"{}\"", contentDispostionFilename));
     if (contentType.size())
