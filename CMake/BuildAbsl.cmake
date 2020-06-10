@@ -114,6 +114,6 @@ function(BuildAbsl)
     list(APPEND ABSL_LIBS_LIST "lib${LIBSUFFIX}/libabsl_time_zone.a")
   endif()
 
-  BuildExternal(absl ${absl_VERSION} "" ${absl_SOURCE_DIR} "${ABSL_LIBS_LIST}" "" "" "" "-DBUILD_TESTING=OFF;-DABSL_USE_GOOGLETEST_HEAD=OFF;-DABSL_RUN_TESTS=OFF")
+  BuildExternal(absl ${absl_VERSION} "" ${absl_SOURCE_DIR} "${ABSL_LIBS_LIST}" "" "" "" "-DCMAKE_POSITION_INDEPENDENT_CODE=ON;-DBUILD_TESTING=OFF;-DABSL_USE_GOOGLETEST_HEAD=OFF;-DABSL_RUN_TESTS=OFF")
   set(absl_INSTALL_INT_CONFIG ${absl_INSTALL_INT_CONFIG} PARENT_SCOPE)
 endfunction()
