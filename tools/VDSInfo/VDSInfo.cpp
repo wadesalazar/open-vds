@@ -185,7 +185,7 @@ static void decodedEbcdic(std::vector<uint8_t> &ebcdic)
 
 int main(int argc, char **argv)
 {
-  cxxopts::Options options("VDSInfo", "VDSInfo - A tool for extracting info from a VDS\nSee online documentation for connection paramters:\nhttp://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/connection.html");
+  cxxopts::Options options("VDSInfo", "VDSInfo - A tool for extracting info from a VDS\n\nSee online documentation for connection paramters:\nhttp://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/connection.html\n");
 
   std::string url;
   std::string connection;
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
 
 //connection options
   options.add_option("", "", "url", "Url with vendor specific protocol.", cxxopts::value<std::string>(url), "<string>");
-  options.add_option("", "", "connection-string", "Vendor specific connection string.", cxxopts::value<std::string>(connection), "<string>");
+  options.add_option("", "", "connection", "Vendor specific connection string.", cxxopts::value<std::string>(connection), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
 ///action
