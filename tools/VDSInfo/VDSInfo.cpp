@@ -185,7 +185,7 @@ static void decodedEbcdic(std::vector<uint8_t> &ebcdic)
 
 int main(int argc, char **argv)
 {
-  cxxopts::Options options("VDSInfo", "VDSInfo - A tool for extracting info from a VDS");
+  cxxopts::Options options("VDSInfo", "VDSInfo - A tool for extracting info from a VDS\nSee online documentation for connection paramters:\nhttp://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/connection.html");
 
   std::string url;
   std::string connection;

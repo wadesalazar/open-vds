@@ -1027,7 +1027,7 @@ main(int argc, char* argv[])
   bool is_tty = isatty(fileno(stdout));
 #endif
   //auto start_time = std::chrono::high_resolution_clock::now();
-  cxxopts::Options options("SEGYImport", "SEGYImport - A tool to scan and import a SEG-Y file to a volume data store (VDS)");
+  cxxopts::Options options("SEGYImport", "SEGYImport - A tool to scan and import a SEG-Y file to a volume data store (VDS)\nSee online documentation for connection paramters:\nhttp://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/connection.html");
   options.positional_help("<input file>");
 
   std::string headerFormatFileName;

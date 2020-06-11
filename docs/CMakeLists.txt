@@ -95,6 +95,7 @@ add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
                    ${CMAKE_CURRENT_SOURCE_DIR}/getting-started.rst
                    ${CMAKE_CURRENT_SOURCE_DIR}/python-api.rst
                    ${CMAKE_CURRENT_SOURCE_DIR}/cpp-api.rst
+                   ${CMAKE_CURRENT_SOURCE_DIR}/connection.rst
                    ${CMAKE_CURRENT_SOURCE_DIR}/../tools/SEGYImport/README.md
                    ${CMAKE_CURRENT_SOURCE_DIR}/../tools/SEGYExport/README.md
                    ${CMAKE_CURRENT_SOURCE_DIR}/../tools/VDSInfo/README.md
