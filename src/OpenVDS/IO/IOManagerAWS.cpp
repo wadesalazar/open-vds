@@ -29,6 +29,7 @@
 #include <aws/core/utils/memory/AWSMemory.h>
 #include <aws/core/utils/memory/stl/AWSString.h>
 #include <aws/core/utils/logging/DefaultLogSystem.h>
+#include <aws/core/utils/logging/ConsoleLogSystem.h>
 #include <aws/core/utils/logging/AWSLogging.h>
 #include <aws/core/auth/AWSCredentialsProvider.h>
 #include <aws/core/auth/AWSCredentialsProviderChain.h>
@@ -68,6 +69,9 @@ namespace OpenVDS
       Aws::Utils::Logging::InitializeAWSLogging(
         Aws::MakeShared<Aws::Utils::Logging::DefaultLogSystem>(
           "OpenVDS-S3 Integration", Aws::Utils::Logging::LogLevel::Trace, "aws_sdk_"));
+      //Aws::Utils::Logging::InitializeAWSLogging(
+      //  Aws::MakeShared<Aws::Utils::Logging::ConsoleLogSystem>(
+      //    "OpenVDS-S3 Integration", Aws::Utils::Logging::LogLevel::Trace));
       Aws::InitAPI(initialize_sdk_options);
     }
   }
@@ -406,7 +410,8 @@ namespace OpenVDS
 
     Aws::Client::ClientConfiguration clientConfig;
     clientConfig.scheme = Aws::Http::Scheme::HTTPS;
-    clientConfig.region = m_region.c_str();
+    if (m_region.size())
+      clientConfig.region = convertStdString(m_region);
     clientConfig.connectTimeoutMs = 3000;
     clientConfig.requestTimeoutMs = 6000;
     bool useVirtualAddressing = true;
@@ -415,7 +420,26 @@ namespace OpenVDS
       clientConfig.endpointOverride = convertStdString(openOptions.endpointOverride);
       useVirtualAddressing = false;
     }
-    m_s3Client.reset(new Aws::S3::S3Client(credentials, clientConfig, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, useVirtualAddressing));
+    if (m_region.empty() && openOptions.endpointOverride.empty())
+    {
+      clientConfig.region = "us-west-1"; // workaround bug: https://github.com/aws/aws-sdk-cpp/issues/1339 should be fixed in 1.8
+      m_s3Client.reset(new Aws::S3::S3Client(credentials, clientConfig, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, useVirtualAddressing));
+      Aws::S3::Model::GetBucketLocationRequest bucketLocationRequest;
+      bucketLocationRequest.SetBucket(convertStdString(m_bucket));
+      auto outcome = m_s3Client->GetBucketLocation(bucketLocationRequest);
+      auto &result = outcome.GetResult();
+      auto location = result.GetLocationConstraint();
+      if (location != Aws::S3::Model::BucketLocationConstraint::NOT_SET)
+      {
+        m_region = convertAwsString(Aws::S3::Model::BucketLocationConstraintMapper::GetNameForBucketLocationConstraint(location));
+        clientConfig.region = convertStdString(m_region);
+        m_s3Client.reset(new Aws::S3::S3Client(credentials, clientConfig, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, useVirtualAddressing));
+      }
+    }
+    else
+    {
+      m_s3Client.reset(new Aws::S3::S3Client(credentials, clientConfig, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, useVirtualAddressing));
+    }
   }
 
   IOManagerAWS::~IOManagerAWS()
