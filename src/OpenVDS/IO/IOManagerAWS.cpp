@@ -366,45 +366,71 @@ namespace OpenVDS
     Aws::Auth::AWSCredentials
       credentials;
 
-    // If the default profile uses a role, we need to resolve the role ourselves
-    if(profileName.empty() && !Aws::Config::GetCachedConfigProfile(Aws::Auth::GetConfigProfileName()).GetRoleArn().empty())
+    if (openOptions.accessKeyId.size())
     {
-      profileName = Aws::Auth::GetConfigProfileName();
-    }
-
-    // If there is no profile name set we use the default credentials provider chain
-    if(profileName.empty())
-    {
-      Aws::Auth::DefaultAWSCredentialsProviderChain provider;
-      credentials = provider.GetAWSCredentials();
+      credentials.SetAWSAccessKeyId(convertStdString(openOptions.accessKeyId));
+      if (openOptions.secretKey.size())
+      {
+        credentials.SetAWSSecretKey(convertStdString(openOptions.secretKey));
+      }
+      if (openOptions.sessionToken.size())
+      {
+        credentials.SetSessionToken(convertStdString(openOptions.sessionToken));
+      }
+      if (openOptions.expiration.size())
+      {
+        Aws::Utils::DateTime expiration(convertStdString(openOptions.expiration), Aws::Utils::DateFormat::AutoDetect);
+        if (!expiration.WasParseSuccessful())
+        {
+          error.code = -1;
+          error.string = fmt::format("Failed to parse expiration parameter: {}.", openOptions.expiration);
+          return;
+        }
+        credentials.SetExpiration(expiration);
+      }
     }
     else
     {
-      auto profile = Aws::Config::GetCachedConfigProfile(profileName);
-
-      // If the profile is using roles we need to resolve the role ourselves as the AWS C++ SDK doesn't do this correctly
-      if(!profile.GetRoleArn().empty())
+      // If the default profile uses a role, we need to resolve the role ourselves
+      if (profileName.empty() && !Aws::Config::GetCachedConfigProfile(Aws::Auth::GetConfigProfileName()).GetRoleArn().empty())
       {
-        auto sourceProfileName = profile.GetSourceProfile();
-        Aws::Auth::ProfileConfigFileAWSCredentialsProvider sourceCredentialsProvider(sourceProfileName.c_str());
-        auto sourceProfileCredentials = sourceCredentialsProvider.GetAWSCredentials();
+        profileName = Aws::Auth::GetConfigProfileName();
+      }
 
-        Aws::STS::Model::AssumeRoleRequest request;
-        request.SetRoleArn(profile.GetRoleArn());
-        request.SetRoleSessionName("OpenVDS");
-
-        Aws::STS::STSClient stsClient(sourceProfileCredentials);
-        auto result = stsClient.AssumeRole(request);
-        if (result.IsSuccess())
-        {
-          auto stsCredentials = result.GetResult().GetCredentials();
-          credentials = Aws::Auth::AWSCredentials(stsCredentials.GetAccessKeyId(), stsCredentials.GetSecretAccessKey(), stsCredentials.GetSessionToken(), stsCredentials.GetExpiration());
-        }
+      // If there is no profile name set we use the default credentials provider chain
+      if (profileName.empty())
+      {
+        Aws::Auth::DefaultAWSCredentialsProviderChain provider;
+        credentials = provider.GetAWSCredentials();
       }
       else
       {
-        Aws::Auth::ProfileConfigFileAWSCredentialsProvider credentialsProvider(profileName.c_str());
-        credentials = credentialsProvider.GetAWSCredentials();
+        auto profile = Aws::Config::GetCachedConfigProfile(profileName);
+
+        // If the profile is using roles we need to resolve the role ourselves as the AWS C++ SDK doesn't do this correctly
+        if (!profile.GetRoleArn().empty())
+        {
+          auto sourceProfileName = profile.GetSourceProfile();
+          Aws::Auth::ProfileConfigFileAWSCredentialsProvider sourceCredentialsProvider(sourceProfileName.c_str());
+          auto sourceProfileCredentials = sourceCredentialsProvider.GetAWSCredentials();
+
+          Aws::STS::Model::AssumeRoleRequest request;
+          request.SetRoleArn(profile.GetRoleArn());
+          request.SetRoleSessionName("OpenVDS");
+
+          Aws::STS::STSClient stsClient(sourceProfileCredentials);
+          auto result = stsClient.AssumeRole(request);
+          if (result.IsSuccess())
+          {
+            auto stsCredentials = result.GetResult().GetCredentials();
+            credentials = Aws::Auth::AWSCredentials(stsCredentials.GetAccessKeyId(), stsCredentials.GetSecretAccessKey(), stsCredentials.GetSessionToken(), stsCredentials.GetExpiration());
+          }
+        }
+        else
+        {
+          Aws::Auth::ProfileConfigFileAWSCredentialsProvider credentialsProvider(profileName.c_str());
+          credentials = credentialsProvider.GetAWSCredentials();
+        }
       }
     }
 

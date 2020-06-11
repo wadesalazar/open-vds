@@ -61,6 +61,10 @@ struct AWSOpenOptions : OpenOptions
   std::string key;
   std::string region;
   std::string endpointOverride;
+  std::string accessKeyId;
+  std::string secretKey;
+  std::string sessionToken;
+  std::string expiration;
 
   AWSOpenOptions() : OpenOptions(AWS) {}
   /// <summary>
@@ -78,7 +82,7 @@ struct AWSOpenOptions : OpenOptions
   /// <param name="endpointOverride">
   /// This parameter allows to override the endpoint url
   /// </param>
-  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region, std::string const & endpointOverride = std::string()) : OpenOptions(AWS), bucket(bucket), key(key), region(region), endpointOverride(endpointOverride) {}
+  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region = std::string(), std::string const & endpointOverride = std::string()) : OpenOptions(AWS), bucket(bucket), key(key), region(region), endpointOverride(endpointOverride) {}
 };
 
 /// <summary>

@@ -152,6 +152,22 @@ static std::unique_ptr<OpenOptions> createS3OpenOptions(const StringWrapper &url
     {
       openOptions->endpointOverride = connectionPair.second;
     }
+    else if (connectionPair.first == "accesskeyid")
+    {
+      openOptions->accessKeyId = connectionPair.second;
+    }
+    else if (connectionPair.first == "secretkey")
+    {
+      openOptions->secretKey = connectionPair.second;
+    }
+    else if (connectionPair.first == "sessiontoken")
+    {
+      openOptions->sessionToken = connectionPair.second;
+    }
+    else if (connectionPair.first == "expiration")
+    {
+      openOptions->expiration = connectionPair.second;
+    }
     else
     {
       error.code = -1;

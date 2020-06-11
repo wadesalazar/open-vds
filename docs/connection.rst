@@ -29,6 +29,10 @@ The recognised keys for ``s3`` connection string are
 
   - Region
   - EndpointOverride
+  - AccessKeyId
+  - SecretKey
+  - SessionToken
+  - Expiration
 
 ``azure`` will treat the connection string as the connection string you get with your access keys.
 
