@@ -17,6 +17,8 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ${PROJECT_SO
 
 get_property(include_3rdparty      GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES)
 
+string(REPLACE ";" "\\\\;" TEST_CONNECTION_ESCAPED "${TEST_CONNECTION}")
+
 function(add_test_executable name)
   add_executable(${name} ${ARGN})
   target_link_libraries(${name} PRIVATE openvds_objects gtest gtest_main)
@@ -30,7 +32,6 @@ function(add_test_executable name)
   target_include_directories(${name} PRIVATE ${fmt_INCLUDE} ${json_INCLUDE} ${PROJECT_SOURCE_DIR}/src/OpenVDS)
   target_compile_definitions(${name} PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
   target_compile_definitions(${name} PRIVATE -DTEST_URL="${TEST_URL}")
-  string(REPLACE ";" "\\\\;" TEST_CONNECTION_ESCAPED "${TEST_CONNECTION}")
   target_compile_definitions(${name} PRIVATE -DTEST_CONNECTION="${TEST_CONNECTION_ESCAPED}")
 endfunction()
 

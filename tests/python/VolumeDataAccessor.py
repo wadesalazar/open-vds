@@ -5,8 +5,7 @@ from connection_defs import *
 if not TEST_URL:
   quit()
 
-err = openvds.Error()
-handle = openvds.open(TEST_URL, TEST_CONNECTION, err)
+handle = openvds.open(TEST_URL, TEST_CONNECTION)
 acc = openvds.VolumeDataAccessManager(handle)
 r = acc.requestVolumeSubset((0,0,0),(100,100,100))
 
