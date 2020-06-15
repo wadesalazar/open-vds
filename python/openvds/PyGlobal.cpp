@@ -55,6 +55,10 @@ PyGlobal::initModule(py::module& m)
   AWSOpenOptions_.def_readwrite("key"                         , &AWSOpenOptions::key           , OPENVDS_DOCSTRING(AWSOpenOptions_key));
   AWSOpenOptions_.def_readwrite("region"                      , &AWSOpenOptions::region        , OPENVDS_DOCSTRING(AWSOpenOptions_region));
   AWSOpenOptions_.def_readwrite("endpointOverride"            , &AWSOpenOptions::endpointOverride, OPENVDS_DOCSTRING(AWSOpenOptions_endpointOverride));
+  AWSOpenOptions_.def_readwrite("accessKeyId"                 , &AWSOpenOptions::accessKeyId   , OPENVDS_DOCSTRING(AWSOpenOptions_accessKeyId));
+  AWSOpenOptions_.def_readwrite("secretKey"                   , &AWSOpenOptions::secretKey     , OPENVDS_DOCSTRING(AWSOpenOptions_secretKey));
+  AWSOpenOptions_.def_readwrite("sessionToken"                , &AWSOpenOptions::sessionToken  , OPENVDS_DOCSTRING(AWSOpenOptions_sessionToken));
+  AWSOpenOptions_.def_readwrite("expiration"                  , &AWSOpenOptions::expiration    , OPENVDS_DOCSTRING(AWSOpenOptions_expiration));
 
   // AzureOpenOptions
   py::class_<AzureOpenOptions, OpenOptions, std::unique_ptr<AzureOpenOptions>> 
@@ -91,10 +95,21 @@ PyGlobal::initModule(py::module& m)
   Error_.def_readwrite("code"                        , &Error::code                   , OPENVDS_DOCSTRING(Error_code));
   Error_.def_readwrite("string"                      , &Error::string                 , OPENVDS_DOCSTRING(Error_string));
 
-  m.def("open"                        , static_cast<native::VDSHandle(*)(const native::OpenOptions &, native::Error &)>(&Open), py::arg("options"), py::arg("error"), OPENVDS_DOCSTRING(Open));
-  m.def("open"                        , static_cast<native::VDSHandle(*)(native::IOManager *, native::Error &)>(&Open), py::arg("ioManager"), py::arg("error"), OPENVDS_DOCSTRING(Open_2));
-  m.def("create"                      , static_cast<native::VDSHandle(*)(const native::OpenOptions &, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("options"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), py::arg("error"), OPENVDS_DOCSTRING(Create));
-  m.def("create"                      , static_cast<native::VDSHandle(*)(native::IOManager *, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("ioManager"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), py::arg("error"), OPENVDS_DOCSTRING(Create_2));
+  // StringWrapper
+  py::class_<StringWrapper, std::unique_ptr<StringWrapper>> 
+    StringWrapper_(m,"StringWrapper", OPENVDS_DOCSTRING(StringWrapper));
+
+  StringWrapper_.def(py::init<const std::string &           >(), py::arg("toWrap"), OPENVDS_DOCSTRING(StringWrapper_StringWrapper));
+  StringWrapper_.def_readwrite("data"                        , &StringWrapper::data           , OPENVDS_DOCSTRING(StringWrapper_data));
+  StringWrapper_.def_readwrite("size"                        , &StringWrapper::size           , OPENVDS_DOCSTRING(StringWrapper_size));
+
+  m.def("createOpenOptions"           , static_cast<native::OpenOptions *(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&CreateOpenOptions), py::arg("url"), py::arg("connectionString"), py::arg("error"), OPENVDS_DOCSTRING(CreateOpenOptions));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&Open), py::arg("url"), py::arg("connectionString"), py::arg("error"), OPENVDS_DOCSTRING(Open));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(const native::OpenOptions &, native::Error &)>(&Open), py::arg("options"), py::arg("error"), OPENVDS_DOCSTRING(Open_2));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(native::IOManager *, native::Error &)>(&Open), py::arg("ioManager"), py::arg("error"), OPENVDS_DOCSTRING(Open_3));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("url"), py::arg("connectionString"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), py::arg("error"), OPENVDS_DOCSTRING(Create));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(const native::OpenOptions &, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("options"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), py::arg("error"), OPENVDS_DOCSTRING(Create_2));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::IOManager *, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("ioManager"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), py::arg("error"), OPENVDS_DOCSTRING(Create_3));
   m.def("getLayout"                   , static_cast<native::VolumeDataLayout *(*)(native::VDSHandle)>(&GetLayout), py::arg("handle"), OPENVDS_DOCSTRING(GetLayout));
   m.def("getAccessManager"            , static_cast<native::VolumeDataAccessManager *(*)(native::VDSHandle)>(&GetAccessManager), py::arg("handle"), OPENVDS_DOCSTRING(GetAccessManager));
   m.def("close"                       , static_cast<void(*)(native::VDSHandle)>(&Close), py::arg("handle"), OPENVDS_DOCSTRING(Close));
@@ -117,6 +132,20 @@ PyGlobal::initModule(py::module& m)
     });
 
   // Overloads for "open" and "create" that raise an exception when an error occurs
+  m.def("open"                        , [](const std::string &url, const std::string &connection, Error &error)
+    {
+      return native::Open(url, connection, error);
+    }, py::arg("url"), py::arg("connectionString"), py::arg("error"), OPENVDS_DOCSTRING(Open));
+  m.def("open"                        , [](const std::string &url, const std::string &connection)
+    {
+      native::Error err;
+      auto handle = native::Open(url, connection, err);
+      if (err.code)
+      {
+        throw std::runtime_error(err.string);
+      }
+      return handle;
+    }, py::arg("url"), py::arg("connectionString"), OPENVDS_DOCSTRING(Open));
   m.def("open"                        , [](const native::OpenOptions &opt)
     {
       native::Error err;
@@ -126,7 +155,7 @@ PyGlobal::initModule(py::module& m)
         throw std::runtime_error(err.string);
       }
       return handle;
-    }, py::arg("options"), OPENVDS_DOCSTRING(Open));
+    }, py::arg("options"), OPENVDS_DOCSTRING(Open_2));
   m.def("open"                        , [](native::IOManager *mgr)
     {
       native::Error err;
@@ -136,8 +165,22 @@ PyGlobal::initModule(py::module& m)
         throw std::runtime_error(err.string);
       }
       return handle;
-    }, py::arg("ioManager"), OPENVDS_DOCSTRING(Open_2));
-  m.def("create"                      , [](const native::OpenOptions &opt, const native::VolumeDataLayoutDescriptor &layout, VectorWrapper<native::VolumeDataAxisDescriptor> axisdesc, VectorWrapper<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
+    }, py::arg("ioManager"), OPENVDS_DOCSTRING(Open_3));
+  m.def("create"                      , [](const std::string &url, const std::string &connectionString, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata, native::Error &error)
+    {
+      return native::Create(url, connectionString, layout , axisdesc, channeldesc, metadata, error);
+    }, py::arg("url"), py::arg("connectionString"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), py::arg("error"), OPENVDS_DOCSTRING(Create));
+  m.def("create"                      , [](const std::string &url, const std::string &connectionString, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
+    {
+      native::Error err;
+      auto handle = native::Create(url, connectionString, layout , axisdesc, channeldesc, metadata, err);
+      if (err.code) 
+      {
+        throw std::runtime_error(err.string);
+      }
+      return handle;
+    }, py::arg("url"), py::arg("connectionString"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), OPENVDS_DOCSTRING(Create));
+  m.def("create"                      , [](const native::OpenOptions &opt, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
     {
       native::Error err;
       auto handle = native::Create(opt, layout , axisdesc, channeldesc, metadata, err);
@@ -146,8 +189,8 @@ PyGlobal::initModule(py::module& m)
         throw std::runtime_error(err.string);
       }
       return handle;
-    }, py::arg("options"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), OPENVDS_DOCSTRING(Create));
-  m.def("create"                      , [](native::IOManager *mgr, const native::VolumeDataLayoutDescriptor &layout, VectorWrapper<native::VolumeDataAxisDescriptor> axisdesc, VectorWrapper<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
+    }, py::arg("options"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), OPENVDS_DOCSTRING(Create_2));
+  m.def("create"                      , [](native::IOManager *mgr, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
     {
       native::Error err;
       auto handle = native::Create(mgr, layout , axisdesc, channeldesc, metadata, err);
@@ -156,6 +199,6 @@ PyGlobal::initModule(py::module& m)
         throw std::runtime_error(err.string);
       }
       return handle;
-    }, py::arg("ioManager"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), OPENVDS_DOCSTRING(Create_2));
+    }, py::arg("ioManager"), py::arg("layoutDescriptor"), py::arg("axisDescriptors"), py::arg("channelDescriptors"), py::arg("metadata"), OPENVDS_DOCSTRING(Create_3));
 }
 
