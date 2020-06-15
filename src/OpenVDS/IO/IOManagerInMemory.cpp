@@ -166,4 +166,48 @@ std::shared_ptr<Request> IOManagerInMemory::WriteObject(const std::string &objec
   return retRequest;
 }
 
+
+class IOManagerProxy : public OpenVDS::IOManager
+{
+public:
+  IOManagerProxy(OpenVDS::IOManager *backend)
+    : backend(backend)
+  {}
+
+  std::shared_ptr<OpenVDS::Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler) override
+  {
+    return backend->ReadObjectInfo(objectName, handler);
+  }
+
+  std::shared_ptr<OpenVDS::Request> ReadObject(const std::string &objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler, const OpenVDS::IORange& range = OpenVDS::IORange()) override
+  {
+    return backend->ReadObject(objectName, handler, range);
+  }
+
+  std::shared_ptr<OpenVDS::Request> WriteObject(const std::string &objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const OpenVDS::Request & request, const OpenVDS::Error & error)> completedCallback = nullptr) override
+  {
+    return backend->WriteObject(objectName, contentDispostionFilename, contentType, metadataHeader, data, completedCallback);
+  }
+
+  IOManager *backend;
+};
+
+IOManager* IOManagerInMemory::CreateIOManager(const InMemoryOpenOptions& openOptions, Error& error)
+{
+  if (openOptions.name.empty())
+  {
+    return new IOManagerInMemory(openOptions, error);
+  }
+
+  static std::unordered_map<std::string, std::unique_ptr<IOManagerInMemory>> manager_map;
+  static std::mutex mutex;
+
+  std::unique_lock<std::mutex> lock(mutex);
+  auto& manager = manager_map[openOptions.name];
+  if (!manager)
+    manager.reset(new IOManagerInMemory(openOptions, error));
+
+  return new IOManagerProxy(manager.get());
+}
+
 }

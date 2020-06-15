@@ -161,6 +161,7 @@ struct AzurePresignedOpenOptions : OpenOptions
 struct InMemoryOpenOptions : OpenOptions
 {
   InMemoryOpenOptions() : OpenOptions(InMemory) {}
+  std::string name;
 };
 
 struct Error

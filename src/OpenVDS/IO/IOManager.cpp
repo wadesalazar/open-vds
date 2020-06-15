@@ -59,7 +59,7 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
     return new IOManagerAzurePresigned(static_cast<const AzurePresignedOpenOptions&>(options).baseUrl, static_cast<const AzurePresignedOpenOptions&>(options).urlSuffix, error);
 #endif
   case OpenOptions::InMemory:
-    return new IOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
+    return IOManagerInMemory::CreateIOManager(static_cast<const InMemoryOpenOptions &>(options), error);
   default:
     error.code = -1;
     error.string = "Unknown type for OpenOptions";

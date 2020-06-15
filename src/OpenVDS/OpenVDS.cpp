@@ -227,6 +227,13 @@ static std::unique_ptr<OpenOptions> createAzureSASOpenOptions(const StringWrappe
   return openOptions;
 }
 
+static std::unique_ptr<OpenOptions> createInMemoryOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
+{
+  std::unique_ptr<InMemoryOpenOptions> openOptions(new InMemoryOpenOptions());
+  openOptions->name.insert(0, url.data, url.size);
+  return openOptions;
+}
+
 OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString, Error& error)
 {
   error = Error();
@@ -243,6 +250,10 @@ OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString
   else if (isProtocol(url, "azuresas://"))
   {
     openOptions = createAzureSASOpenOptions(removeProtocol(url, "azuresas://"), connectionString, error);
+  }
+  else if (isProtocol(url, "inmemory://"))
+  {
+    openOptions = createInMemoryOpenOptions(removeProtocol(url, "inmemory://"), connectionString, error);
   }
   else
   {
