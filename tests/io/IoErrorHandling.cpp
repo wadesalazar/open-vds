@@ -35,7 +35,7 @@ struct IOErrorHandlingFixture : public ::testing::Test
   static void SetUpTestSuite() {
     OpenVDS::Error error;
     OpenVDS::InMemoryOpenOptions options;
-    inMemoryIOManager = new OpenVDS::IOManagerInMemory(options, error);
+    inMemoryIOManager = OpenVDS::IOManagerInMemory::CreateIOManager(options, error);
 
     IOManagerFacade* facadeIoManager = new IOManagerFacade(inMemoryIOManager);
 
@@ -53,10 +53,10 @@ struct IOErrorHandlingFixture : public ::testing::Test
   virtual void SetUp() { }
   virtual void TearDown() { }
 
-  static OpenVDS::IOManagerInMemory *inMemoryIOManager;
+  static OpenVDS::IOManager *inMemoryIOManager;
 };
 
-OpenVDS::IOManagerInMemory *IOErrorHandlingFixture::inMemoryIOManager = NULL;
+OpenVDS::IOManager *IOErrorHandlingFixture::inMemoryIOManager = NULL;
 
 TEST_F(IOErrorHandlingFixture, ErrorHandlingCorruptMetadata)
 {
@@ -221,8 +221,8 @@ TEST(IOErrorHandlingUpload, ErrorHandlingVolumeDataLayoutHttpError)
 
   OpenVDS::MetadataContainer metadataContainer;
 
-  OpenVDS::IOManagerInMemory inMemoryIO(OpenVDS::InMemoryOpenOptions(), error);
-  IOManagerFacade *ioManager = new IOManagerFacade(&inMemoryIO);
+  std::unique_ptr<OpenVDS::IOManager> inMemoryIO(OpenVDS::IOManagerInMemory::CreateIOManagerInMemory("", error));
+  IOManagerFacade *ioManager = new IOManagerFacade(inMemoryIO.get());
   auto &object = ioManager->m_data["VolumeDataLayout"];
   object.error.code = 456;
   object.error.string = "This tests refuses to accept your VolumeDataLayout";
@@ -258,8 +258,8 @@ TEST(IOErrorHandlingUpload, ErrorHandlingChunkHttpError)
 
   OpenVDS::MetadataContainer metadataContainer;
 
-  OpenVDS::IOManagerInMemory inMemoryIO(OpenVDS::InMemoryOpenOptions(), error);
-  IOManagerFacade *ioManager = new IOManagerFacade(&inMemoryIO);
+  std::unique_ptr<OpenVDS::IOManager> inMemoryIO(OpenVDS::IOManagerInMemory::CreateIOManagerInMemory("", error));
+  IOManagerFacade *ioManager = new IOManagerFacade(inMemoryIO.get());
   auto &chunk = ioManager->m_data["Dimensions_012LOD0/1"];
   chunk.error.code = 489;
   chunk.error.string = "We don't let chunk 1 through";
@@ -322,8 +322,8 @@ TEST(IOErrorHandlingUpload, ErrorHandlingLayerStatusHttpError)
 
   OpenVDS::MetadataContainer metadataContainer;
 
-  OpenVDS::IOManagerInMemory inMemoryIO(OpenVDS::InMemoryOpenOptions(), error);
-  IOManagerFacade *ioManager = new IOManagerFacade(&inMemoryIO);
+  std::unique_ptr<OpenVDS::IOManager> inMemoryIO(OpenVDS::IOManagerInMemory::CreateIOManagerInMemory("", error));
+  IOManagerFacade *ioManager = new IOManagerFacade(inMemoryIO.get());
   auto &chunk = ioManager->m_data["LayerStatus"];
   chunk.error.code = 466;
   chunk.error.string = "No Layerstatus";
@@ -386,8 +386,8 @@ TEST(IOErrorHandlingUpload, ErrorHandlingChunkMetadataHttpError)
 
   OpenVDS::MetadataContainer metadataContainer;
 
-  OpenVDS::IOManagerInMemory inMemoryIO(OpenVDS::InMemoryOpenOptions(), error);
-  IOManagerFacade *ioManager = new IOManagerFacade(&inMemoryIO);
+  std::unique_ptr<OpenVDS::IOManager> inMemoryIO(OpenVDS::IOManagerInMemory::CreateIOManagerInMemory("", error));
+  IOManagerFacade *ioManager = new IOManagerFacade(inMemoryIO.get());
   auto &chunk = ioManager->m_data["Dimensions_012LOD0/ChunkMetadata/0"];
   chunk.error.code = 433;
   chunk.error.string = "No metadata";

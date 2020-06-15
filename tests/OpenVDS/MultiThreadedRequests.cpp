@@ -39,7 +39,7 @@ TEST(Multithreading, requests)
 
   OpenVDS::InMemoryOpenOptions options;
   OpenVDS::Error error;
-  std::unique_ptr<OpenVDS::IOManagerInMemory> inMemory(new OpenVDS::IOManagerInMemory(options, error));
+  std::unique_ptr<OpenVDS::IOManager> inMemory(OpenVDS::IOManagerInMemory::CreateIOManager(options, error));
   SlowIOManager* slowIOManager = new SlowIOManager(requestDelayMs, inMemory.get());
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(datasetSize, datasetSize, datasetSize, OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, slowIOManager), OpenVDS::Close);
   fill3DVDSWithBitNoise(handle.get());

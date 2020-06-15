@@ -37,7 +37,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
 
   auto full_start = std::chrono::high_resolution_clock::now();
   OpenVDS::Error error;
-  OpenVDS::IOManagerInMemory *inMemory = new OpenVDS::IOManagerInMemory(OpenVDS::InMemoryOpenOptions(), error);
+  OpenVDS::IOManager *inMemory = OpenVDS::IOManagerInMemory::CreateIOManagerInMemory("", error);
 #ifdef IN_MEMORY_TEST
   int createDim[] = {800,800,800};
 #else

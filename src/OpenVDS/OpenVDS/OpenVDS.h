@@ -185,6 +185,15 @@ struct GoogleOpenOptions : OpenOptions
 struct InMemoryOpenOptions : OpenOptions
 {
   InMemoryOpenOptions() : OpenOptions(InMemory) {}
+  InMemoryOpenOptions(const char *name)
+    : OpenOptions(InMemory)
+    , name(name)
+  {}
+  InMemoryOpenOptions(const std::string &name)
+    : OpenOptions(InMemory)
+    , name(name)
+  {}
+  std::string name;
 };
 
 struct Error

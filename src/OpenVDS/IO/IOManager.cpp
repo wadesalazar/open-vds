@@ -61,12 +61,12 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
   case OpenOptions::AzurePresigned:
     return new IOManagerAzurePresigned(static_cast<const AzurePresignedOpenOptions&>(options).baseUrl, static_cast<const AzurePresignedOpenOptions&>(options).urlSuffix, error);
 #endif
-  case OpenOptions::InMemory:
-    return new IOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
 #ifndef OPENVDS_NO_GCP_IOMANAGER
   case OpenOptions::GoogleStorage:
     return new IOManagerGoogle(static_cast<const GoogleOpenOptions &>(options), error);
 #endif
+  case OpenOptions::InMemory:
+    return IOManagerInMemory::CreateIOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
   default:
     error.code = -1;
     error.string = "Unknown type for OpenOptions";
