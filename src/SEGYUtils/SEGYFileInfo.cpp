@@ -45,11 +45,11 @@ readBinInfoFromHeader(const char *header, SEGYBinInfoHeaderFields const &headerF
     int scale = ReadFieldFromHeader(header, TraceHeader::CoordinateScaleHeaderField, endianness);
     if(scale < 0)
     {
-      scaleFactor = 1.0 / float(scale);
+      scaleFactor = 1.0 / float(std::abs(scale));
     }
     else if(scale > 0)
     {
-      scaleFactor = 1.0 * float(scale);
+      scaleFactor = 1.0 * float(std::abs(scale));
     }
   }
   else
