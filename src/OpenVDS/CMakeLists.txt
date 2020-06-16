@@ -189,12 +189,9 @@ else()
   endif()
 endif()
 
-set(OPENSSL_USE_STATIC_LIBS TRUE)
-if (WIN32)
-  set(OPENSSL_MSVC_STATIC_RT TRUE)
-endif()
-find_package(OpenSSL REQUIRED)
-target_link_libraries(openvds_objects PUBLIC OpenSSL::Crypto)
+
+addGoogleCloudToTarget(openvds_objects)
+
 if (WIN32)
   target_link_libraries(openvds_objects PUBLIC crypt32 wsock32 ws2_32)
 endif()
@@ -203,8 +200,7 @@ target_link_libraries(openvds_objects PUBLIC Threads::Threads)
 
 target_link_libraries(openvds_objects PUBLIC $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)
 
-# this need to be explicitly included on centos7 for some reason
-if (NOT WIN32)
+if (NOT WIN32) #we build libressl for windows
   target_link_libraries(openvds_objects PUBLIC ssl crypto)
 endif()
 
