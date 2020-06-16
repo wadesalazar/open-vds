@@ -81,3 +81,18 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenAzurePresigned
 
     return openVDSOrThrowJavaIOException(env, openOptions);
 }
+
+/*
+ * Class:     org_opengroup_openvds_OpenVDS
+ * Method:    cpOpenConnection
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenConnection
+        (JNIEnv *env, jclass, jstring url, jstring connectionString) {
+    OpenVDS::Error error;
+    OpenVDS::VDSHandle pVds = OpenVDS::Open(JStringToString(env, url), JStringToString(env, connectionString), error);
+    if (pVds == nullptr) {
+        throwJavaIOException(env, error);
+    }
+    return (jlong) pVds;
+}
