@@ -72,6 +72,12 @@ function(addGoogleCloudToTarget target)
     #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
     ${CMAKE_BINARY_DIR}/google-cloud-cpp/internal/build_info.cc
   )
+
+  if (NOT (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
+    set_source_files_properties(${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/openssl_util.cc PROPERTIES COMPILE_FLAGS -Wno-pedantic)
+    set_source_files_properties(${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/bucket_requests.cc PROPERTIES COMPILE_FLAGS -Wno-pedantic)
+  endif()
+
   target_include_directories(${target} PRIVATE
     ${google-cloud-cpp_SOURCE_DIR}
     ${google_nlohmann_SOURCE_DIR}
