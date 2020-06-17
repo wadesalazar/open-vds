@@ -403,5 +403,8 @@ PyMetadata::initModule(py::module& m)
       }
       return std::string("MetadataKey(category='") + self->GetCategory() + "', name='" + self->GetName() + "', type=MetadataType." + type + ")";
     });
+
+  // Add a default constructor since the constructor of this class is implicit
+  MetadataContainer_.def(py::init<>(), R"doc(Default constructor)doc");
 }
 
