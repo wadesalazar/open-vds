@@ -32,7 +32,7 @@ The recognised keys for ``s3`` connection string are
   - AccessKeyId
   - SecretKey
   - SessionToken
-  - Expiration
+  - Expiration (Note: AWS SDK only accepts 'Z' timezone for ISO 8601 time)
 
 ``azure`` will treat the connection string as the connection string you get with your access keys.
 
