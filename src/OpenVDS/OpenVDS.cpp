@@ -226,6 +226,45 @@ static std::unique_ptr<OpenOptions> createAzureSASOpenOptions(const StringWrappe
   }
   return openOptions;
 }
+static std::unique_ptr<OpenOptions> createGCPOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
+{
+  std::unique_ptr<GoogleOpenOptions> openOptions(new GoogleOpenOptions());
+  auto connectionStringMap = parseConnectionString(connectionString.data, connectionString.size, error);
+  if (error.code)
+  {
+    return nullptr;
+  }
+
+  if (url.size < 1)
+  {
+    error.code = -1;
+    error.string = "GCP url is missing bucket";
+  }
+  auto end = url.data + url.size;
+  auto bucket_end = std::find(url.data, end, '/');
+  openOptions->bucket = std::string(url.data, bucket_end);
+
+  auto urlKeyBegin = bucket_end + 1;
+  if (urlKeyBegin < end)
+  {
+    openOptions->key = std::string(urlKeyBegin, end);
+  }
+
+  for (auto& connectionPair : connectionStringMap)
+  {
+//    if (FOOBAR)
+//    {
+//
+//    }
+//    else
+    {
+      error.code = -1;
+      error.string = fmt::format("Invalid key \"{}\" in GCP connection string.", connectionPair.first);
+      return openOptions;
+    }
+  }
+  return openOptions;
+}
 
 OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString, Error& error)
 {
@@ -243,6 +282,10 @@ OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString
   else if (isProtocol(url, "azuresas://"))
   {
     openOptions = createAzureSASOpenOptions(removeProtocol(url, "azuresas://"), connectionString, error);
+  }
+  else if (isProtocol(url, "gcp://"))
+  {
+    openOptions = createGCPOpenOptions(removeProtocol(url, "gcp://"), connectionString, error);
   }
   else
   {
