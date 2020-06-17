@@ -17,6 +17,8 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ${PROJECT_SO
 
 get_property(include_3rdparty      GLOBAL PROPERTY OPENVDS_INCLUDE_LIBRARIES)
 
+string(REPLACE ";" "\\\\;" TEST_CONNECTION_ESCAPED "${TEST_CONNECTION}")
+
 function(add_test_executable name)
   add_executable(${name} ${ARGN})
   target_link_libraries(${name} PRIVATE openvds_objects gtest gtest_main)
@@ -29,18 +31,14 @@ function(add_test_executable name)
   get_target_property(json_INCLUDE jsoncpp_lib_static INTERFACE_INCLUDE_DIRECTORIES)
   target_include_directories(${name} PRIVATE ${fmt_INCLUDE} ${json_INCLUDE} ${PROJECT_SOURCE_DIR}/src/OpenVDS)
   target_compile_definitions(${name} PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
-  target_compile_definitions(${name} PRIVATE -DTEST_AWS_REGION="${TEST_AWS_REGION}")
-  target_compile_definitions(${name} PRIVATE -DTEST_AWS_BUCKET="${TEST_AWS_BUCKET}")
-  target_compile_definitions(${name} PRIVATE -DTEST_AWS_ENDPOINT_OVERRIDE="${TEST_AWS_ENDPOINT_OVERRIDE}")
-  target_compile_definitions(${name} PRIVATE -DTEST_AWS_OBJECTID="${TEST_AWS_OBJECTID}")
-  string(REPLACE ";" "\\\\;" TEST_AZURE_CONNECTION_ESCAPED "${TEST_AZURE_CONNECTION}")
-  target_compile_definitions(${name} PRIVATE -DTEST_AZURE_CONNECTION="${TEST_AZURE_CONNECTION_ESCAPED}")
+  target_compile_definitions(${name} PRIVATE -DTEST_URL="${TEST_URL}")
+  target_compile_definitions(${name} PRIVATE -DTEST_CONNECTION="${TEST_CONNECTION_ESCAPED}")
 endfunction()
 
 add_test_executable(io_tests
   io/filetest.cpp
   io/InMemoryIo.cpp
-  io/AzureIo.cpp
+  io/IoManagerBasic.cpp
   )
 if (DISABLE_AZURE_IOMANAGER)
   set_source_files_properties(io/AzureIo.cpp PROPERTIES HEADER_FILE_ONLY TRUE)

@@ -1,4 +1,4 @@
-configure_file("aws_defs.txt" "${CMAKE_CURRENT_BINARY_DIR}/aws_defs.py" @ONLY)
+configure_file("connection_defs.txt" "${CMAKE_CURRENT_BINARY_DIR}/connection_defs.py" @ONLY)
 
 function(add_python_test scope test_file)
   if (UNIX)

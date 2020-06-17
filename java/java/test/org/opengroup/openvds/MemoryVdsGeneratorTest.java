@@ -128,7 +128,7 @@ public class MemoryVdsGeneratorTest {
         final VolumeDataAccessManager accessManager = generator.getAccessManager();
         assertTrue(!accessManager.isNull());
 
-        final long volumeTracesBufferSize = accessManager.getVolumeTracesBufferSize(layout, nYSamples, 0, 0);
+        final long volumeTracesBufferSize = accessManager.getVolumeTracesBufferSize(layout, nYSamples, 0, 0, 0);
         assertEquals(nZSamples * nYSamples * Float.BYTES, volumeTracesBufferSize);
 
         final FloatBuffer tracePositions = B.createFloatBuffer(nYSamples * DIMENSIONALITY_MAX.getNbDimension());
@@ -344,7 +344,7 @@ public class MemoryVdsGeneratorTest {
 
         NDBox wholeCube = new NDBox(0, 0, 0, 0, 0, 0, nZSamples, nYSamples, nXSamples, 0, 0, 0);
 
-        final long projectedVolumeSubsetBufferSize = accessManager.getProjectedVolumeSubsetBufferSize(layout, wholeCube, DimensionsND.DIMENSIONS_01, FORMAT_R32, 0);
+        final long projectedVolumeSubsetBufferSize = accessManager.getProjectedVolumeSubsetBufferSize(layout, wholeCube, DimensionsND.DIMENSIONS_01, FORMAT_R32, 0, 0);
         assertEquals(nZSamples * nYSamples * Float.BYTES, projectedVolumeSubsetBufferSize);
 
         final FloatBuffer floatBuffer1 = B.createFloatBuffer(nZSamples * nYSamples);

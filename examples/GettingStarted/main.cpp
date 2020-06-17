@@ -6,14 +6,11 @@
 
 int main(int argc, char *argv[])
 {
-  OpenVDS::AWSOpenOptions options;
-
-  options.region = TEST_AWS_REGION;
-  options.bucket = TEST_AWS_BUCKET;
-  options.key = TEST_AWS_OBJECTID;
+  std::string url = TEST_URL;
+  std::string connectionString = TEST_CONNECTION;
 
   OpenVDS::Error error;
-  OpenVDS::VDSHandle handle = OpenVDS::Open(options, error);
+  OpenVDS::VDSHandle handle = OpenVDS::Open(url, connectionString, error);
 
   if(error.code != 0)
   {

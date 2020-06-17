@@ -275,6 +275,7 @@ VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccesso
   {
     layer->SetProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
     MetadataStatus metadataStatus = {};
+    metadataStatus.m_chunkIndexCount = (int)layer->GetTotalChunkCount();
     metadataStatus.m_chunkMetadataPageSize = 1024;
     metadataStatus.m_chunkMetadataByteSize = sizeof(int64_t);
     metadataStatus.m_compressionMethod = layer->GetEffectiveCompressionMethod();

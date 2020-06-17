@@ -78,9 +78,9 @@ static DataProvider CreateDataProviderFromFile(const std::string &filename, Open
   return DataProvider(file.release());
 }
 
-static DataProvider CreateDataProviderFromOpenOptions(const OpenVDS::OpenOptions &openoptions, const std::string &objectId, OpenVDS::Error &error)
+static DataProvider CreateDataProviderFromOpenOptions(const std::string &url, const std::string &connectionString, const std::string &objectId, OpenVDS::Error &error)
 {
-  std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(openoptions, error));
+  std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(url, connectionString, error));
   if (error.code)
     return DataProvider((OpenVDS::IOManager *)nullptr, "", error);
   return DataProvider(ioManager.release(), objectId, error);
@@ -1005,76 +1005,16 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, c
   return findFirstTrace(primaryKey, secondaryKey, fileInfo, traceData, traceCount, secondaryStart, secondaryStop);
 }
 
-static std::unique_ptr<OpenVDS::OpenOptions> CreateOpenOptions(const std::string &prefix, const std::string &persistentID, bool useGoogleStorage,
-                                                          const std::string &bucket, const std::string &region, const std::string &endpointOverride,
-                                                          const std::string &container, const std::string &connectionString, int azureParallelismFactor,
-                                                          const std::string &azurePresignBase, const std::string &azurePresignSuffix, 
-                                                          OpenVDS::Error &error)
-{
-
-  // Create the VDS
-  std::string key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
-
-  std::unique_ptr<OpenVDS::OpenOptions> openOptions;
-
-  if(!bucket.empty())
-  {
-    if(useGoogleStorage)
-    {
-      openOptions.reset(new OpenVDS::GoogleOpenOptions(bucket, key));
-    }
-    else
-    {
-      openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
-    }
-  }
-  else if(!container.empty())
-  {
-    openOptions.reset(new OpenVDS::AzureOpenOptions(connectionString, container, key));
-  }
-  else if (!azurePresignBase.empty())
-  {
-    openOptions.reset(new OpenVDS::AzurePresignedOpenOptions(azurePresignBase, azurePresignSuffix));
-  }
-  else
-  {
-    error.code = -1;
-    error.string = "Failed to determing correct openOptions.";
-  }
-
-
-  if(azureParallelismFactor)
-  {
-    if(openOptions->connectionType == OpenVDS::OpenOptions::Azure)
-    {
-      auto &azureOpenOptions = *static_cast<OpenVDS::AzureOpenOptions *>(openOptions.get());
-
-      azureOpenOptions.parallelism_factor = azureParallelismFactor;
-    }
-    else
-    {
-      error.code = EXIT_FAILURE;
-      error.string = "Cannot specify parallelism-factor with other backends than Azure";
-      openOptions.reset(nullptr);
-    }
-  }
-  return openOptions;
-}
-
 static DataProvider CreateDataProvider(const std::string &fileName,
-                                       const std::string &prefix, const std::string &persistentID, bool useGoogleStorage,
-                                       const std::string &bucket, const std::string &region, const std::string &endpointOverride,
-                                       const std::string &container, const std::string &connectionString, int azureParallelismFactor,
-                                       const std::string &azurePresignBase, const std::string &azurePresignSuffix,
+                                       const std::string &url, const std::string &connection,
                                        OpenVDS::Error &error)
 {
-  auto openOptions = CreateOpenOptions(prefix, persistentID, useGoogleStorage, bucket, region, endpointOverride, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, error);
-  if (error.code || !openOptions)
+  if (url.empty())
   {
     error = OpenVDS::Error();
     return CreateDataProviderFromFile(fileName, error);
   }
-  return CreateDataProviderFromOpenOptions(*openOptions, fileName, error);
+  return CreateDataProviderFromOpenOptions(url, connection, fileName, error);
 }
 
 
@@ -1087,7 +1027,7 @@ main(int argc, char* argv[])
   bool is_tty = isatty(fileno(stdout));
 #endif
   //auto start_time = std::chrono::high_resolution_clock::now();
-  cxxopts::Options options("SEGYImport", "SEGYImport - A tool to scan and import a SEG-Y file to a volume data store (VDS)");
+  cxxopts::Options options("SEGYImport", "SEGYImport - A tool to scan and import a SEG-Y file to a volume data store (VDS)\n\nSee online documentation for connection paramters:\nhttp://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/connection.html\n");
   options.positional_help("<input file>");
 
   std::string headerFormatFileName;
@@ -1100,24 +1040,10 @@ main(int argc, char* argv[])
   int brickSize;
   bool force = false;
   bool ignoreWarnings = false;
-  bool useGoogleStorage = false;
-  std::string bucket;
-  std::string sourceBucket;
-  std::string region;
-  std::string sourceRegion;
-  std::string endpointOverride;
-  std::string sourceEndpointOverride;
-  std::string connectionString;
-  std::string container;
-  std::string sourceConnectionString;
-  std::string sourceContainer;
-  int azureParallelismFactor = 0;
-  std::string azurePresignBase;
-  std::string azurePresignSuffix;
-  std::string azurePresignSourceBase;
-  std::string azurePresignSourceSuffix;
-  std::string prefix;
-  std::string sourcePrefix;
+  std::string url;
+  std::string connection;
+  std::string sourceUrl;
+  std::string sourceConnection;
   std::string persistentID;
   bool uniqueID;
 
@@ -1134,24 +1060,10 @@ main(int argc, char* argv[])
   options.add_option("", "b", "brick-size", "The brick size for the volume data store.", cxxopts::value<int>(brickSize)->default_value("64"), "<value>");
   options.add_option("", "f", "force", "Continue on upload error.", cxxopts::value<bool>(force), "");
   options.add_option("", "", "ignore-warnings", "Ignore warnings about import parameters.", cxxopts::value<bool>(ignoreWarnings), "");
-  options.add_option("", "", "google", "Use Google Storage buckets", cxxopts::value<bool>(useGoogleStorage), "");
-  options.add_option("", "", "bucket", "AWS S3 bucket to upload to.", cxxopts::value<std::string>(bucket), "<string>");
-  options.add_option("", "", "source-bucket", "AWS S3 bucket to download from.", cxxopts::value<std::string>(sourceBucket), "<string>");
-  options.add_option("", "", "region", "AWS region of bucket to upload to.", cxxopts::value<std::string>(region), "<string>");
-  options.add_option("", "", "source-region", "AWS region of bucket to download from.", cxxopts::value<std::string>(sourceRegion), "<string>");
-  options.add_option("", "", "endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(endpointOverride), "<string>");
-  options.add_option("", "", "source-endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(sourceEndpointOverride), "<string>");
-  options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
-  options.add_option("", "", "container", "Azure Blob Storage container to upload to.", cxxopts::value<std::string>(container), "<string>");
-  options.add_option("", "", "source-connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(sourceConnectionString), "<string>");
-  options.add_option("", "", "source-container", "Azure Blob Storage container to upload to.", cxxopts::value<std::string>(sourceContainer), "<string>");
-  options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
-  options.add_option("", "", "azure-presign-base", "Base URL for presigned Azure requests", cxxopts::value(azurePresignBase), "<value>");
-  options.add_option("", "", "azure-presign-suffix", "Suffix of the presigned URL for Azure requests", cxxopts::value(azurePresignSuffix), "<value>");
-  options.add_option("", "", "azure-presign-source-base", "Base URL for presigned Azure requests", cxxopts::value(azurePresignSourceBase), "<value>");
-  options.add_option("", "", "azure-presign-source-suffix", "Suffix of the presigned URL for Azure requests", cxxopts::value(azurePresignSourceSuffix), "<value>");
-  options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
-  options.add_option("", "", "source-prefix", "Top-level prefix to prepend to all source object-keys.", cxxopts::value<std::string>(sourcePrefix), "<string>");
+  options.add_option("", "", "url", "Url with cloud vendor scheme used for target location.", cxxopts::value<std::string>(url), "<string>");
+  options.add_option("", "", "connection", "Connection string used for additional parameters to the target connection", cxxopts::value<std::string>(connection), "<string>");
+  options.add_option("", "", "source-url", "Url with cloud vendor scheme used for source location.", cxxopts::value<std::string>(sourceUrl), "<string>");
+  options.add_option("", "", "source-connection", "Connection string used for additional parameters to the source connection", cxxopts::value<std::string>(sourceConnection), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
   options.add_option("", "", "uniqueID", "Generate a new globally unique ID when scanning the input SEG-Y file.", cxxopts::value<bool>(uniqueID), "");
 
@@ -1184,21 +1096,6 @@ main(int argc, char* argv[])
   {
     std::cerr << std::string("Only one input SEG-Y file may be specified");
     return EXIT_FAILURE;
-  }
-
-  if (!scan)
-  {
-    if(container.empty() && bucket.empty() && azurePresignBase.empty())
-    {
-      std::cerr << std::string("Either an Azure Blob Storage container name or an AWS S3 bucket name must be specified");
-      return EXIT_FAILURE;
-    }
-
-    if(!container.empty() && !bucket.empty() && !azurePresignBase.empty())
-    {
-      std::cerr << std::string("Only one of Azure Blob Storage container name and AWS S3 bucket name may be specified");
-      return EXIT_FAILURE;
-    }
   }
 
   if(uniqueID && !persistentID.empty())
@@ -1263,7 +1160,7 @@ main(int argc, char* argv[])
   OpenVDS::Error
     error;
 
-  DataProvider dataProvider = CreateDataProvider(fileNames[0], sourcePrefix, persistentID, useGoogleStorage, sourceBucket, sourceRegion, sourceEndpointOverride, sourceContainer, sourceConnectionString, azureParallelismFactor, azurePresignSourceBase, azurePresignSourceSuffix, error);
+  DataProvider dataProvider = CreateDataProvider(fileNames[0], sourceUrl, sourceConnection, error);
   if (error.code != 0)
   {
     fmt::print(stderr, "Could not open: {} - {}\n", fileNames[0], error.string);
@@ -1478,13 +1375,17 @@ main(int argc, char* argv[])
   OpenVDS::Error
     createError;
 
-  auto openOptions = CreateOpenOptions(prefix, persistentID, useGoogleStorage, bucket, region, endpointOverride, container, connectionString, azureParallelismFactor, azurePresignBase, azurePresignSuffix, createError);
-
   if (createError.code)
     fmt::print(stderr, "{}\n", createError.code);
 
+  if (url[url.size() - 1] != '/')
+  {
+    url.push_back('/');
+  }
+  url.insert(url.end(), persistentID.begin(), persistentID.end());
+
   OpenVDS::VDSHandle
-    handle = OpenVDS::Create(*openOptions.get(), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
+    handle = OpenVDS::Create(url, connection, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
 
   if (createError.code != 0)
   {

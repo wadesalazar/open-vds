@@ -24,19 +24,13 @@
 GTEST_TEST(OpenVDS_integration, OpenClose)
 {
   OpenVDS::Error error;
-  OpenVDS::AWSOpenOptions options;
-
-  options.region = TEST_AWS_REGION;
-  options.bucket = TEST_AWS_BUCKET;
-  options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
-  options.key = TEST_AWS_OBJECTID;
-
-  if(options.bucket.empty() || options.key.empty())
+  std::string url = TEST_URL;
+  std::string connectionString = TEST_CONNECTION;
+  if(url.empty())
   {
-    GTEST_SKIP() << "Environment variables not set";
+    GTEST_SKIP() << "Test Environment for connecting to VDS is not set";
   }
 
-  ASSERT_TRUE(options.bucket.size() && options.key.size());
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(options, error), &OpenVDS::Close);
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(url, connectionString, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 }

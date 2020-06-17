@@ -11,6 +11,7 @@ Welcome to OpenVDS's documentation!
   :caption: Contents:
 
   getting-started
+  connection
 
   cpp-api
   python-api

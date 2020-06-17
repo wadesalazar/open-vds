@@ -1633,7 +1633,7 @@ static int64_t StaticRequestVolumeTraces(VolumeDataRequestProcessor &request_pro
     });
 }
 
-int64_t VolumeDataAccessManagerImpl::GetVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, int lod = 0)
+int64_t VolumeDataAccessManagerImpl::GetVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, int lod, int channel)
 {
   const int dimensionality = volumeDataLayout->GetDimensionality();
 
@@ -1666,7 +1666,7 @@ int64_t VolumeDataAccessManagerImpl::GetVolumeSubsetBufferSize(VolumeDataLayout 
   }
   else
   {
-    return voxelCount * GetVoxelFormatByteSize(format);
+    return voxelCount * GetElementSize(format, volumeDataLayout->GetChannelComponents(channel));
   }
 }
 
@@ -1684,7 +1684,7 @@ int64_t VolumeDataAccessManagerImpl::RequestProjectedVolumeSubset(void* buffer, 
   return StaticRequestProjectedVolumeSubset(m_requestProcessor, buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, DimensionGroupUtil::GetDimensionGroupFromDimensionsND(projectedDimensions), lod, format, interpolationMethod, false, 0.0f);
 }
 
-int64_t VolumeDataAccessManagerImpl::GetProjectedVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, int lod = 0)
+int64_t VolumeDataAccessManagerImpl::GetProjectedVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, int lod, int channel)
 {
   const int dimensionality = volumeDataLayout->GetDimensionality();
 
@@ -1717,13 +1717,22 @@ int64_t VolumeDataAccessManagerImpl::GetProjectedVolumeSubsetBufferSize(VolumeDa
   }
   else
   {
-    return voxelCount * GetVoxelFormatByteSize(format);
+    return voxelCount * GetElementSize(format, volumeDataLayout->GetChannelComponents(channel));
   }
 }
 
 int64_t VolumeDataAccessManagerImpl::RequestProjectedVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const& voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod, float replacementNoValue)
 {
   return StaticRequestProjectedVolumeSubset(m_requestProcessor, buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, DimensionGroupUtil::GetDimensionGroupFromDimensionsND(projectedDimensions), lod, format, interpolationMethod, true, replacementNoValue);
+}
+
+int64_t VolumeDataAccessManagerImpl::GetVolumeSamplesBufferSize(VolumeDataLayout const *volumeDataLayout, int sampleCount, int channel)
+{
+  const VolumeDataChannelDescriptor::Format format = VolumeDataChannelDescriptor::Format_R32;
+
+  int64_t voxelCount = sampleCount;
+
+  return voxelCount * GetElementSize(format, volumeDataLayout->GetChannelComponents(channel));
 }
 
 int64_t VolumeDataAccessManagerImpl::RequestVolumeSamples(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*samplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod)
@@ -1735,7 +1744,7 @@ int64_t VolumeDataAccessManagerImpl::RequestVolumeSamples(float* buffer, VolumeD
   return StaticRequestVolumeSamples(m_requestProcessor, buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), samplePositions, sampleCount, interpolationMethod, true, replacementNoValue);
 }
 
-int64_t VolumeDataAccessManagerImpl::GetVolumeTracesBufferSize(VolumeDataLayout const *volumeDataLayout, int traceCount, int traceDimension, int lod)
+int64_t VolumeDataAccessManagerImpl::GetVolumeTracesBufferSize(VolumeDataLayout const *volumeDataLayout, int traceCount, int traceDimension, int lod, int channel)
 {
   const VolumeDataChannelDescriptor::Format format = VolumeDataChannelDescriptor::Format_R32;
 
@@ -1743,7 +1752,7 @@ int64_t VolumeDataAccessManagerImpl::GetVolumeTracesBufferSize(VolumeDataLayout 
 
   int64_t voxelCount = (int64_t)GetLODSize(0, volumeDataLayout->GetDimensionNumSamples(traceDimension), effectiveLOD) * traceCount;
 
-  return voxelCount * GetVoxelFormatByteSize(format);
+  return voxelCount * GetElementSize(format, volumeDataLayout->GetChannelComponents(channel));
 }
 
 int64_t VolumeDataAccessManagerImpl::RequestVolumeTraces(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int traceDimension)

@@ -76,6 +76,9 @@ namespace OpenVDS
 
     OPENVDS_EXPORT
     static IOManager *CreateIOManager(const OpenOptions &options, Error &error);
+
+    OPENVDS_EXPORT
+    static IOManager *CreateIOManager(const StringWrapper& url, const StringWrapper& connectionString, Error& error);
   };
 
 }

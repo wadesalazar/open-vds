@@ -45,13 +45,21 @@ region :
 endpointOverride :
     This parameter allows to override the endpoint url)doc";
 
+static const char *__doc_OpenVDS_AWSOpenOptions_accessKeyId = R"doc()doc";
+
 static const char *__doc_OpenVDS_AWSOpenOptions_bucket = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_endpointOverride = R"doc()doc";
 
+static const char *__doc_OpenVDS_AWSOpenOptions_expiration = R"doc()doc";
+
 static const char *__doc_OpenVDS_AWSOpenOptions_key = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_region = R"doc()doc";
+
+static const char *__doc_OpenVDS_AWSOpenOptions_secretKey = R"doc()doc";
+
+static const char *__doc_OpenVDS_AWSOpenOptions_sessionToken = R"doc()doc";
 
 static const char *__doc_OpenVDS_AzureOpenOptions = R"doc(Options for opening a VDS in Azure)doc";
 
@@ -200,8 +208,13 @@ R"doc(Create a new VDS
 Parameters:
 -----------
 
-options :
-    The options for the connection
+url :
+    The url scheme specific to each cloud provider Available schemes
+    are s3:// azure://
+
+connectionString :
+    The cloud provider specific connection string Specifies additional
+    arguments for the cloud provider
 
 error :
     If an error occured, the error code and message will be written to
@@ -218,9 +231,8 @@ R"doc(Create a new VDS
 Parameters:
 -----------
 
-ioManager :
-    The IOManager for the connection, it will be deleted automatically
-    when the VDS handle is closed
+options :
+    The options for the connection
 
 error :
     If an error occured, the error code and message will be written to
@@ -230,6 +242,16 @@ Returns:
 --------
     The VDS handle that can be used to get the VolumeDataLayout and
     the VolumeDataAccessManager)doc";
+
+static const char *__doc_OpenVDS_Create_3 =
+R"doc(<summary> Create a new VDS
+
+</summary> <param name="ioManager"> The IOManager for the connection,
+it will be deleted automatically when the VDS handle is closed
+</param> <param name="error"> If an error occured, the error code and
+message will be written to this output parameter </param> <returns>
+The VDS handle that can be used to get the VolumeDataLayout and the
+VolumeDataAccessManager </returns>)doc";
 
 static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor = R"doc()doc";
 
@@ -242,6 +264,29 @@ static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_4 = R"doc
 static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_5 = R"doc()doc";
 
 static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_6 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateOpenOptions =
+R"doc(Create an OpenOptions struct from a url and connection string
+
+Parameters:
+-----------
+
+url :
+    The url scheme specific to each cloud provider Available schemes
+    are s3:// azure://
+
+connectionString :
+    The cloud provider specific connection string Specifies additional
+    arguments for the cloud provider <param name="error"> If an error
+    occured, the error code and message will be written to this output
+    parameter
+
+Returns:
+--------
+    This function news a OpenOptions struct that has to be deleted by
+    the caller. This is a helper function to allow applications modify
+    the OpenOption before passing it to Open. Use the Open and Create
+    functions with url and string instead if this is not needed.)doc";
 
 static const char *__doc_OpenVDS_CreateVolumeDataAccessor = R"doc()doc";
 
@@ -1047,6 +1092,29 @@ R"doc(Open an existing VDS
 Parameters:
 -----------
 
+url :
+    The url scheme specific to each cloud provider Available schemes
+    are s3:// azure://
+
+connectionString :
+    The cloud provider specific connection string Specifies additional
+    arguments for the cloud provider
+
+error :
+    If an error occured, the error code and message will be written to
+    this output parameter
+
+Returns:
+--------
+    The VDS handle that can be used to get the VolumeDataLayout and
+    the VolumeDataAccessManager)doc";
+
+static const char *__doc_OpenVDS_Open_2 =
+R"doc(Open an existing VDS
+
+Parameters:
+-----------
+
 options :
     The options for the connection
 
@@ -1059,7 +1127,7 @@ Returns:
     The VDS handle that can be used to get the VolumeDataLayout and
     the VolumeDataAccessManager)doc";
 
-static const char *__doc_OpenVDS_Open_2 =
+static const char *__doc_OpenVDS_Open_3 =
 R"doc(Open an existing VDS
 
 Parameters:
@@ -1180,6 +1248,14 @@ static const char *__doc_OpenVDS_ResultConverter_ConvertValueT = R"doc()doc";
 static const char *__doc_OpenVDS_ResultConverter_ReciprocalScale = R"doc()doc";
 
 static const char *__doc_OpenVDS_SimplexNoise = R"doc()doc";
+
+static const char *__doc_OpenVDS_StringWrapper = R"doc()doc";
+
+static const char *__doc_OpenVDS_StringWrapper_StringWrapper = R"doc()doc";
+
+static const char *__doc_OpenVDS_StringWrapper_data = R"doc()doc";
+
+static const char *__doc_OpenVDS_StringWrapper_size = R"doc()doc";
 
 static const char *__doc_OpenVDS_VDS = R"doc()doc";
 
@@ -1426,7 +1502,8 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentDownloadError
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentUploadError = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetProjectedVolumeSubsetBufferSize =
-R"doc(Compute the buffer size for a projected volume subset request.
+R"doc(Compute the buffer size (in bytes) for a projected volume subset
+request.
 
 Parameters:
 -----------
@@ -1452,6 +1529,9 @@ format :
 
 lod :
     The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
 
 Returns:
 --------
@@ -1490,8 +1570,27 @@ Returns:
     The VolumeDataLayout object associated with the VDS or NULL if
     there is no valid VolumeDataLayout.)doc";
 
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeSamplesBufferSize =
+R"doc(Compute the buffer size (in bytes) for a volume samples request.
+
+Parameters:
+-----------
+
+volumeDataLayout :
+    The VolumeDataLayout object associated with the input VDS.
+
+sampleCount :
+    Number of samples to request.
+
+channel :
+    The channel index the requested data is read from.
+
+Returns:
+--------
+    The buffer size needed)doc";
+
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeSubsetBufferSize =
-R"doc(Compute the buffer size for a volume subset request.
+R"doc(Compute the buffer size (in bytes) for a volume subset request.
 
 Parameters:
 -----------
@@ -1513,12 +1612,15 @@ format :
 lod :
     The LOD level the requested data is read from.
 
+channel :
+    The channel index the requested data is read from.
+
 Returns:
 --------
     The buffer size needed)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeTracesBufferSize =
-R"doc(Compute the buffer size for a volume traces request.
+R"doc(Compute the buffer size (in bytes) for a volume traces request.
 
 Parameters:
 -----------
@@ -1534,6 +1636,9 @@ traceDimension :
 
 lod :
     The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
 
 Returns:
 --------

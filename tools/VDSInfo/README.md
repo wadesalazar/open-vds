@@ -9,12 +9,8 @@ VDSInfo [OPTION...]
 
 | Option                        | Decription |
 |-------------------------------|------------|
-| --bucket \<string>            | AWS S3 bucket to connect to.
-| --region \<string>            | AWS region of bucket to connect to.
-| --connection-string \<string> | Azure Blob Storage connection string.
-| --container \<string>         | Azure Blob Storage container to connect to.
-| --parallelism-factor \<value> | Azure parallelism factor.
-| --prefix \<string>            | Top-level prefix to prepend to all object-keys.
+| --url \<string>               | Url for the VDS
+| --connection \<string>        | Connection string for the VDS
 | --persistentID \<ID>          | A globally unique ID for the VDS, usually an 8-digit hexadecimal number.
 | --axis                        | Print axis descriptors.
 | --channels                    | Print channel descriptors.
@@ -30,9 +26,12 @@ VDSInfo prints out the result of the query in json, and it will try and give
 the shortest json for the specific query by eliminating redundant json parent
 structures.
 
+For more information about the ``--url`` and ``--connection`` parameter please see:
+http://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/connection.html
 Some examples:
+
 ```
-$ VDSInfo.exe --bucket <some_bucket> --region <a_region> --persistentID <some_vds_id> --channels --axis --layout
+$ VDSInfo.exe --url s3://openvds-test --persistentID 7068247E9CA6EA05 --channels --axis --layout
 ```
 This will print out a json object with the following children
  * axisDescriptors (an array)
@@ -41,12 +40,12 @@ This will print out a json object with the following children
 
 while
 ```
-$ VDSInfo.exe --bucket <some_bucket> --region <a_region> --persistentID <some_vds_id> --channels
+$ VDSInfo.exe --url s3://openvds-test --persistentID 7068247E9CA6EA05 --channels
 ```
 will print an array with channel descriptors
 
 ```
-$ VDSInfo.exe --bucket <some_bucket> --region <a_region> --persistentID <some_vds_id> --metadatakeys
+$ VDSInfo.exe --url s3://openvds-test --persistentID 7068247E9CA6EA05 --metadatakeys
 ```
 will print an array with the metadata keys. Together with other queries it will
 be in the metaKeysInfo member of the root object;
@@ -60,7 +59,7 @@ If `--metadata-firstblob` is specified or that all parameters end up only
 matching BLOB meta properties, then the first matched property will print.
 
 ```
-$ VDSInfo.exe --bucket <some_bucket> --region <a_region> --persistentID <some_vds_id> --metadata-name TextHeader
+$ VDSInfo.exe --url s3://openvds-test --persistentID 7068247E9CA6EA05 --metadata-name TextHeader
 ```
 will write the first TextHeader metadata property in the VDS. If this is a blob
 property it will be written directly to stdout.
@@ -70,5 +69,5 @@ The text header property can sometimes be encoded in EBCDIC enconding. Add the
 
 To force a width for BLOB printing use the `-w` parameter.
 ```
-$ VDSInfo.exe --bucket <some_bucket> --region <a_region> --persistentID <some_vds_id> --metadata-name TextHeader -e -w 80
+$ VDSInfo.exe --url s3://openvds-test --persistentID 7068247E9CA6EA05 --metadata-name TextHeader -e -w 80
 ```

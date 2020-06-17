@@ -8,22 +8,45 @@ This tutorial walks you through opening an existing VDS and requesting a slice o
 Opening a VDS
 -------------
 
-To open a VDS we set up the :cpp:struct:`OpenOptions` for the object store the VDS is in, we will use AWS for this tutorial so we need to set up the :cpp:struct:`AWSOpenOptions`:
+To open a VDS we set up the :cpp:struct:`OpenOptions` for the object store the
+VDS. We can create this directly or we can use a url string and a connection
+parameter that will create a OpenOptions for us. In this tutorial we use the
+url string and connection string.
+
+The url string will have a shceme referring to the cloud provider and a path such as:
+.. code-block:: none
+
+  s3://bucket/vdsKey
+
+or
+
+.. code-block:: none
+
+  azure://container/vdsKey
+
+The connection string for s3 could look like this:
+
+.. code-block:: none
+
+  AccessKeyId=xxx;SecretAccessKey=xxx;SessionToken=xxx;Region=eu-north-1
+
+while the azure connection string could look like this:
+
+.. code-block:: none
+
+  DefaultEndpointsProtocol=https;AccountName=developer;AccountKey=xxx;EndpointSuffix=core.windows.net
 
 .. code-block:: cpp
 
-  OpenVDS::AWSOpenOptions options;
-
-  options.region = TEST_AWS_REGION;
-  options.bucket = TEST_AWS_BUCKET;
-  options.key = TEST_AWS_OBJECTID;
+  std::string url = TEST_URL;
+  std::string connectionString = TEST_CONNECTION;
 
 We will then call :cpp:func:`Open` to get the :cpp:type:`VDSHandle`:
 
 .. code-block:: cpp
 
   OpenVDS::Error error;
-  OpenVDS::VDSHandle handle = OpenVDS::Open(options, error);
+  OpenVDS::VDSHandle handle = OpenVDS::Open(url, connectionString, error);
 
   if(error.code != 0)
   {

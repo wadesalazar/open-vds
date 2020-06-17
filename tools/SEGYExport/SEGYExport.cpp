@@ -36,34 +36,18 @@ main(int argc, char *argv[])
 {
   //auto start_time = std::chrono::high_resolution_clock::now();
 
-  cxxopts::Options options("SEGYExport", "SEGYExport - A tool to export a volume data store (VDS) to a SEG-Y file");
+  cxxopts::Options options("SEGYExport", "SEGYExport - A tool to export a volume data store (VDS) to a SEG-Y file\n\nSee online documentation for connection paramters:\nhttp://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/connection.html\n");
   options.positional_help("<output file>");
 
-  bool useGoogleStorage = false;
-  std::string bucket;
-  std::string region;
-  std::string endpointOverride;
-  std::string connectionString;
-  std::string container;
-  int azureParallelismFactor = 0;
-  std::string prefix;
+  std::string url;
+  std::string connection;
   std::string persistentID;
   std::string fileName;
-  std::string azurePresignBase;
-  std::string azurePresignSuffix;
 
-  options.add_option("", "", "google", "Use Google Storage buckets", cxxopts::value<bool>(useGoogleStorage), "");
-  options.add_option("", "", "bucket", "AWS S3 bucket to export from.", cxxopts::value<std::string>(bucket), "<string>");
-  options.add_option("", "", "region", "AWS region of bucket to export from.", cxxopts::value<std::string>(region), "<string>");
-  options.add_option("", "", "endpoint-override", "AWS endpoint override.", cxxopts::value<std::string>(endpointOverride), "<string>");
-  options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
-  options.add_option("", "", "container", "Azure Blob Storage container to export from .", cxxopts::value<std::string>(container), "<string>");
-  options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
-  options.add_option("", "", "prefix", "Top-level prefix to prepend to all object-keys.", cxxopts::value<std::string>(prefix), "<string>");
+  options.add_option("", "", "url", "Url with vendor specific protocol.", cxxopts::value<std::string>(url), "<string>");
+  options.add_option("", "", "connection", "Vendor specific connection string.", cxxopts::value<std::string>(connection), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
-  options.add_option("", "", "azure-presign-base", "Base URL for presigned Azure requests", cxxopts::value(azurePresignBase), "<value>");
-  options.add_option("", "", "azure-presign-suffix", "Suffix of the presigned URL for Azure requests", cxxopts::value(azurePresignSuffix), "<value>");
   options.add_option("", "", "output", "", cxxopts::value<std::string>(fileName), "");
   options.parse_positional("output");
 
@@ -90,51 +74,20 @@ main(int argc, char *argv[])
   }
 
   // Open the VDS
-  std::string
-    key = !prefix.empty() ? prefix + "/" + persistentID : persistentID;
-
-  std::unique_ptr<OpenVDS::OpenOptions> openOptions;
-
-  if(!bucket.empty())
+  if (persistentID.size())
   {
-    if(useGoogleStorage)
+    if (url[url.size() - 1] != '/')
     {
-      openOptions.reset(new OpenVDS::GoogleOpenOptions(bucket, key));
+      url.push_back('/');
     }
-    else
-    {
-      openOptions.reset(new OpenVDS::AWSOpenOptions(bucket, key, region, endpointOverride));
-    }
-  }
-  else if(!container.empty())
-  {
-    openOptions.reset(new OpenVDS::AzureOpenOptions(connectionString, container, key));
-  }
-  else if (!azurePresignBase.empty())
-  {
-    openOptions.reset(new OpenVDS::AzurePresignedOpenOptions(azurePresignBase, azurePresignSuffix));
-  }
-
-  if(azureParallelismFactor)
-  {
-    if(openOptions->connectionType == OpenVDS::OpenOptions::Azure)
-    {
-      auto &azureOpenOptions = *static_cast<OpenVDS::AzureOpenOptions *>(openOptions.get());
-
-      azureOpenOptions.parallelism_factor = azureParallelismFactor;
-    }
-    else
-    {
-      std::cerr << "Cannot specify parallelism-factor with other backends than Azure";
-      return EXIT_FAILURE;
-    }
+    url.insert(url.end(), persistentID.begin(), persistentID.end());
   }
 
   OpenVDS::Error
     openError;
 
   OpenVDS::VDSHandle
-    handle = OpenVDS::Open(*openOptions.get(), openError);
+    handle = OpenVDS::Open(url, connection, openError);
 
   if(openError.code != 0)
   {

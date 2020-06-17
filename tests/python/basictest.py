@@ -1,7 +1,6 @@
-from aws_defs import *
+from connection_defs import *
 import openvds
-quit()
-err = openvds.Error()
-opt = openvds.AWSOpenOptions(TEST_AWS_BUCKET, TEST_AWS_OBJECTID, TEST_AWS_REGION)
-handle = openvds.open(opt, err)
+if not TEST_URL:
+  quit()
+handle = openvds.open(TEST_URL, TEST_CONNECTION)
 

@@ -22,6 +22,8 @@
 #include "VDS/ParseVDSJson.h"
 
 #include <memory>
+#include <map>
+#include <limits>
 
 #include <OpenVDS/VolumeDataAccess.h>
 
@@ -32,8 +34,239 @@
 
 #include <fmt/format.h>
 
+#include <cctype>
+
 namespace OpenVDS
 {
+
+static char asciitolower(char in) {
+  if (in <= 'Z' && in >= 'A')
+    return in - ('Z' - 'z');
+  return in;
+}
+
+static std::string trim(const char *start, const char *end)
+{
+  while (std::isspace(*start) && start < end)
+    start++;
+  end--;
+  while (end > start && std::isspace(*end))
+    end--;
+  return std::string(start, end + 1);
+}
+
+static std::map<std::string, std::string> parseConnectionString(const char* connectionString, size_t connectionStringSize, Error &error)
+{
+  std::map<std::string, std::string> ret;
+  auto it = connectionString;
+  auto end = connectionString + connectionStringSize;
+ 
+  const char* name_begin = nullptr;
+  const char* name_end = nullptr;
+  while (it < end)
+  {
+    auto keyValueEnd = std::find(it, end, ';');
+    auto equals = std::find(it, keyValueEnd, '=');
+    name_begin = it;
+    name_end = equals;
+    it = equals + 1;
+    if (it >= keyValueEnd)
+    {
+      error.code = -1;
+      std::string name(name_begin, name_end);
+      error.string = fmt::format("Invalid connection string. Name {} has no value.", name);
+      return ret;
+    }
+
+    std::string name = trim(name_begin, name_end);
+    if (name.empty())
+    {
+      error.code = - 1;
+      error.string = fmt::format("Empty name in connection string. Name must consist of more than empty spaces.");
+      return ret;
+    }
+    std::string value = trim(it, keyValueEnd);
+    if (value.empty())
+    {
+      error.code = -1;
+      error.string = fmt::format("Empty value in connection string. Name {} has empty value.", name);
+      return ret;
+    }
+    
+    std::transform(name.begin(), name.end(), name.begin(), asciitolower);
+    ret.emplace(std::move(name), std::move(value));
+    it = keyValueEnd + 1;
+  }
+  return ret;
+}
+
+template<int SIZE>
+static bool isProtocol(const StringWrapper &str, const char(&literal)[SIZE])
+{
+  if (str.size < SIZE - 1)
+    return false;
+  std::string protocol(str.data, str.data + SIZE - 1);
+  std::transform(protocol.begin(), protocol.end(), protocol.begin(), asciitolower);
+  return memcmp(protocol.data(), literal, SIZE - 1) == 0;
+}
+
+template<int SIZE>
+static StringWrapper removeProtocol(const StringWrapper& str, const char(&literal)[SIZE])
+{
+  StringWrapper ret(str);
+  ret.data += SIZE - 1;
+  ret.size -= SIZE - 1;
+  return ret;
+}
+
+static std::unique_ptr<OpenOptions> createS3OpenOptions(const StringWrapper &url, const StringWrapper &connectionString, Error &error)
+{
+  std::unique_ptr<AWSOpenOptions> openOptions(new AWSOpenOptions());
+
+  auto connectionStringMap = parseConnectionString(connectionString.data, connectionString.size, error);
+  if (error.code)
+  {
+    return nullptr;
+  }
+
+  if (url.size < 1)
+  {
+    error.code = -1;
+    error.string = "S3 url is missing bucket";
+  }
+  auto end = url.data + url.size;
+  auto bucket_end = std::find(url.data, end, '/');
+  openOptions->bucket = std::string(url.data, bucket_end);
+
+  auto urlKeyBegin = bucket_end + 1;
+  if (urlKeyBegin < end)
+  {
+    openOptions->key = std::string(urlKeyBegin, end);
+  }
+
+  for (auto& connectionPair : connectionStringMap)
+  {
+    if (connectionPair.first == "region")
+    {
+      openOptions->region = connectionPair.second;
+    }
+    else if (connectionPair.first == "endpointoverride")
+    {
+      openOptions->endpointOverride = connectionPair.second;
+    }
+    else if (connectionPair.first == "accesskeyid")
+    {
+      openOptions->accessKeyId = connectionPair.second;
+    }
+    else if (connectionPair.first == "secretkey")
+    {
+      openOptions->secretKey = connectionPair.second;
+    }
+    else if (connectionPair.first == "sessiontoken")
+    {
+      openOptions->sessionToken = connectionPair.second;
+    }
+    else if (connectionPair.first == "expiration")
+    {
+      openOptions->expiration = connectionPair.second;
+    }
+    else
+    {
+      error.code = -1;
+      error.string = fmt::format("Invalid key \"{}\" in S3 connection string.", connectionPair.first);
+      return openOptions;
+    }
+  }
+  return openOptions;
+}
+
+static std::unique_ptr<OpenOptions> createAzureOpenOptions(const StringWrapper &url, const StringWrapper &connectionString, Error &error)
+{
+  std::unique_ptr<AzureOpenOptions> openOptions(new AzureOpenOptions());
+  if (url.size < 1)
+  {
+    error.code = -1;
+    error.string = "Azure url is missing container";
+  }
+  auto end = url.data + url.size;
+  auto container_end = std::find(url.data, end, '/');
+  openOptions->container = std::string(url.data, container_end);
+
+  auto urlBlobBegin = container_end + 1;
+  if (urlBlobBegin < end)
+  {
+    openOptions->blob = std::string(urlBlobBegin, end);
+  }
+  openOptions->connectionString = std::string(connectionString.data, connectionString.data + connectionString.size);
+  return openOptions;
+}
+
+
+static std::unique_ptr<OpenOptions> createAzureSASOpenOptions(const StringWrapper &url, const StringWrapper &connectionString, Error& error)
+{
+  std::unique_ptr<AzurePresignedOpenOptions> openOptions(new AzurePresignedOpenOptions());
+  const char http[] = "https://";
+  openOptions->baseUrl.reserve(sizeof(http) - 1 + url.size);
+  openOptions->baseUrl.insert(0, http, sizeof(http) - 1);
+  openOptions->baseUrl.append(url.data, url.data + url.size);
+
+  auto connectionStringMap = parseConnectionString(connectionString.data, connectionString.size, error);
+  for (auto& connectionPair : connectionStringMap)
+  {
+    if (connectionPair.first == "suffix")
+    {
+      openOptions->urlSuffix = connectionPair.second;
+    }
+    else
+    {
+      error.code = -1;
+      error.string = fmt::format("Invalid key \"{}\" in AzureSAS connection string.", connectionPair.first);
+      return openOptions;
+    }
+  }
+  return openOptions;
+}
+
+OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString, Error& error)
+{
+  error = Error();
+  std::unique_ptr<OpenOptions> openOptions;
+
+  if (isProtocol(url, "s3://"))
+  {
+    openOptions = createS3OpenOptions(removeProtocol(url, "s3://"), connectionString, error);
+  }
+  else if (isProtocol(url, "azure://"))
+  {
+    openOptions = createAzureOpenOptions(removeProtocol(url, "azure://"), connectionString, error);
+  }
+  else if (isProtocol(url, "azuresas://"))
+  {
+    openOptions = createAzureSASOpenOptions(removeProtocol(url, "azuresas://"), connectionString, error);
+  }
+  else
+  {
+    error.code = -1;
+    error.string = fmt::format("Unknown url scheme for {}.", std::string(url.data, url.data + url.size));
+    return nullptr;
+  }
+
+  if (error.code)
+  {
+    return nullptr;
+  }
+  return openOptions.release();
+}
+
+VDS *Open(StringWrapper url, StringWrapper connectionString, Error& error)
+{
+  error = Error();
+  std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(url, connectionString, error));
+  if (error.code)
+    return nullptr;
+
+  return Open(ioManager.release(), error);
+}
 
 VDS* Open(IOManager *ioManager, Error& error)
 {
@@ -51,11 +284,11 @@ VDS* Open(IOManager *ioManager, Error& error)
 VDS *Open(const OpenOptions &options, Error &error)
 {
   error = Error();
-  IOManager* ioManager = IOManager::CreateIOManager(options, error);
+  std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(options, error));
   if (error.code)
     return nullptr;
 
-  return Open(ioManager, error);
+  return Open(ioManager.release(), error);
 }
 
 VolumeDataLayout *GetLayout(VDS *vds)
@@ -241,14 +474,24 @@ VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutD
   return vds.release();
 }
 
-VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
+VDSHandle Create(StringWrapper url, StringWrapper connectionString, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
 {
   error = Error();
-  IOManager* ioManager = IOManager::CreateIOManager(options, error);
+  std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(url, connectionString, error));
   if (error.code)
     return nullptr;
 
-  return Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error);
+  return Create(ioManager.release(), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error);
+}
+
+VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
+{
+  error = Error();
+  std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(options, error));
+  if (error.code)
+    return nullptr;
+
+  return Create(ioManager.release(), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error);
 }
 
 void Close(VDS *vds)

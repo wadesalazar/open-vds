@@ -20,16 +20,15 @@ file. |
 | -b, --brick-size \<value>         | The brick size for the volume data store. (default: 64)
 | -f, --force                       | Continue on upload error.
 |     --ignore-warnings             | Ignore warnings about import parameters.
-|     --bucket \<string>            | AWS S3 bucket to upload to.
-|     --source-bucket \<string>     | AWS S3 bucket to download from.
-|     --region \<string>            | AWS region of bucket to upload to.
-|     --connection-string \<string> | Azure Blob Storage connection string.
-|     --container \<string>         | Azure Blob Storage container to upload to.
-|     --parallelism-factor \<value> | Azure parallelism factor.
-|     --prefix \<string>            | Top-level prefix to prepend to all object-keys.
-|     --source-prefix \<string>     | Top-level prefix to prepend to all source object-keys.
+|     --url \<string>               | Url for the target destination for the VDS
+|     --connection \<string>        | Connection string for the target destination for the VDS
+|     --sourceUrl \<string>         | Url for the source input 
+|     --sourceConnection \<string>  | Connection source input
 |     --persistentID \<ID>          | A globally unique ID for the VDS, usually an 8-digit hexadecimal number.
 |     --uniqueID                    | Generate a new globally unique ID when scanning the input SEG-Y file.
+
+For more information about the ``--url`` and ``--connection`` parameter please see:
+http://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/connection.html
 
 To create a valid VDS from a SEG-Y file, SEGYImport needs to scan the file to
 determine the extents of the dataset (e.g. number of samples, number of
@@ -104,10 +103,10 @@ The default trace header fields (that can be overridden with a header format JSO
 | GroupYCoordinate      | Group-Y, ReceiverYCoordinate, Receiver-Y |  85    | 4     |
 | CoordinateScale       | Scalar                                   |  71    | 2     |
 
-Either a `--container` (for Azure) or a `--bucket` (for AWS) argument and an
+A valid ``--url`` an optional ``--connection`` argument and an
 input SEG-Y file must be specified.
 
 Example usage:
 ```
-SEGYImport --bucket openvds-test --header-format D:\\Datasets\\Australia\\HeaderFormat.json D:\\Datasets\\Australia\\shakespeare3d_pstm_Time.segy
+SEGYImport --url s3://openvds-test --header-format D:\\Datasets\\Australia\\HeaderFormat.json D:\\Datasets\\Australia\\shakespeare3d_pstm_Time.segy
 ```

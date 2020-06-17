@@ -57,31 +57,17 @@ TEST(IOTests, performance)
 #ifdef IN_MEMORY
   OpenVDS::InMemoryOpenOptions options;
 #else
-  //OpenVDS::AzureOpenOptions options;
-  //options.connectionString = TEST_AZURE_CONNECTION;
-  //options.container = "SIMPLE_NOISE_VDS";
-  //options.parallelism_factor = 8;
-
-  //if (options.connectionString.empty())
-  //{
-  //  GTEST_SKIP() << "Environment variables not set";
-  //}
-
-  OpenVDS::AWSOpenOptions options;
-  options.region = TEST_AWS_REGION;
-  options.bucket = TEST_AWS_BUCKET;
-  options.endpointOverride = TEST_AWS_ENDPOINT_OVERRIDE;
-  options.key = "SIMPLE_NOISE_VDS";
-
-  if (options.bucket.empty())
+  std::string url = TEST_URL;
+  std::string connectionString = TEST_CONNECTION;
+  if(url.empty())
   {
-    GTEST_SKIP() << "Environment variables not set";
+    GTEST_SKIP() << "Test Environment for connecting to VDS is not set";
   }
 #endif
 
   GTEST_SKIP() << "This test has to be enabled manually";
   OpenVDS::Error error;
-  OpenVDS::IOManager* ioManager = OpenVDS::IOManager::CreateIOManager(options, error);
+  OpenVDS::IOManager* ioManager = OpenVDS::IOManager::CreateIOManager(url, connectionString, error);
 
   int mega = 1 << 20;
   int chunkSize = mega * 4;

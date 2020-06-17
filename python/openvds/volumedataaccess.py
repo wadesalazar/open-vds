@@ -153,7 +153,7 @@ class VolumeDataSubsetRequest(VolumeDataRequest):
     ):
         super().__init__(accessManager, layout, data_out, dimensionsND, lod, channel, min, max, format, replacementNoValue)
         if self._data_out is None:
-            self._data_out = np.zeros(self._accessManager.getVolumeSubsetBufferSize(self._layout, self.min, self.max, format, lod), dtype=np.int8)
+            self._data_out = np.zeros(self._accessManager.getVolumeSubsetBufferSize(self._layout, self.min, self.max, self.format, self.lod, self.channel), dtype=np.int8)
         if self.replacementNoValue is None:
             self.requestID = self._accessManager.requestVolumeSubset(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, self.format)
         else:
@@ -185,7 +185,7 @@ class ProjectedVolumeDataSubsetRequest(VolumeDataRequest):
         self.projectedDimensions = projectedDimensions
         self.interpolationMethod = interpolationMethod
         if self._data_out is None:
-            self._data_out = np.zeros(self._accessManager.getProjectedVolumeSubsetBufferSize(self._layout, self.min, self.max, projectedDimensions, format, lod), dtype=np.int8)
+            self._data_out = np.zeros(self._accessManager.getProjectedVolumeSubsetBufferSize(self._layout, self.min, self.max, projectedDimensions, self.format, self.lod, self.channel), dtype=np.int8)
         if self.replacementNoValue is None:
             self.requestID = self._accessManager.requestProjectedVolumeSubset(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, voxelPlane, projectedDimensions, self.format, interpolationMethod)
         else:
@@ -214,7 +214,7 @@ class VolumeDataSamplesRequest(VolumeDataRequest):
         min_, max_ = layout.numSamples
         super().__init__(accessManager, layout, data_out, dimensionsND, lod, channel, min_, max_, VoxelFormat.Format_R32, replacementNoValue)
         if self._data_out is None:
-            self._data_out = np.zeros((self.sampleCount), dtype=np.float32)
+            self._data_out = np.zeros(self._accessManager.getVolumeSamplesBufferSize(self._layout, sampleCount, self.channel), dtype=np.int8)
         if self.replacementNoValue is None:
             self.requestID = self._accessManager.requestVolumeSamples(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.samplePositions, self.interpolationMethod)
         else:
@@ -245,7 +245,7 @@ class VolumeDataTracesRequest(VolumeDataRequest):
         min_, max_ = layout.numSamples
         super().__init__(accessManager, layout, data_out, dimensionsND, lod, channel, min_, max_, VoxelFormat.Format_R32, replacementNoValue)
         if self._data_out is None:
-            self._data_out = np.zeros(self._accessManager.getVolumeTracesBufferSize(self._layout, traceCount, traceDimension, lod), dtype=np.int8)
+            self._data_out = np.zeros(self._accessManager.getVolumeTracesBufferSize(self._layout, traceCount, traceDimension, self.lod, self.channel), dtype=np.int8)
         if self.replacementNoValue is None:
             self.requestID = self._accessManager.requestVolumeTraces(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.tracePositions, self.interpolationMethod, self.traceDimension)
         else:
