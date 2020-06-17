@@ -82,11 +82,15 @@ option(ENABLE_RUNPATH_ORIGIN "On Linux make the install have ORIGIN as RUNPATH" 
 option(DISABLE_STRICT_WARNINGS "Disable strict warnings settings. This includes making warnings to errors." OFF)
 option(DISABLE_AWS_IOMANAGER "Disable compiling the Aws-cpp-sdk IOManager backend." OFF)
 option(DISABLE_AZURE_IOMANAGER "Disable compiling Azure-storage-cpp and cpprestapi." OFF)
+option(DISABLE_GCP_IOMANAGER "Disable compiling GCP IOManager backend." OFF)
 option(DISABLE_CURL_IOMANAGER "Disable all IOManagers based on CURL (currently only Azure presigned)." OFF)
 option(BUILD_ZLIB "Build zlib" ${DEFAULT_BUILD_ZLIB})
 option(BUILD_CURL "Build libcurl as part of the openVDS build" ${DEFAULT_BUILD_CURL})
 option(BUILD_UV   "Build libuv as part of the openVDS build" ${DEFAULT_BUILD_UV})
 
+if (DISABLE_CURL_IOMANAGER)
+  set(DISABLE_GCP_IOMANAGER ON CACHE BOOL "Disabled because curl support is disabled" FORCE)
+endif()
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)

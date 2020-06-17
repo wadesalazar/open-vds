@@ -189,20 +189,23 @@ else()
   endif()
 endif()
 
-
-addGoogleCloudToTarget(openvds_objects)
+if (DISABLE_GCP_IOMANAGER)
+  target_compile_definitions(openvds_objects PRIVATE OPENVDS_NO_GCP_IOMANAGER)
+  set_source_files_properties(IO/IOManagerGoogle.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
+else()
+  addGoogleCloudToTarget(openvds_objects)
+endif()
 
 if (WIN32)
   target_link_libraries(openvds_objects PUBLIC crypt32 wsock32 ws2_32)
+else()
+  target_link_libraries(openvds_objects PUBLIC ssl crypto)
 endif()
 
 target_link_libraries(openvds_objects PUBLIC Threads::Threads)
 
 target_link_libraries(openvds_objects PUBLIC $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)
 
-if (NOT WIN32) #we build libressl for windows
-  target_link_libraries(openvds_objects PUBLIC ssl crypto)
-endif()
 
 if (OpenMP_CXX_FOUND)
     target_link_libraries(openvds_objects PUBLIC OpenMP::OpenMP_CXX)

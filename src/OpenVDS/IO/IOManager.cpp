@@ -62,8 +62,10 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
 #endif
   case OpenOptions::InMemory:
     return new IOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
+#ifndef OPENVDS_NO_GCP_IOMANAGER
   case OpenOptions::GoogleStorage:
     return new IOManagerGoogle(static_cast<const GoogleOpenOptions &>(options), error);
+#endif
   default:
     error.code = -1;
     error.string = "Unknown type for OpenOptions";
