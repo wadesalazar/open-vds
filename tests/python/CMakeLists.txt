@@ -17,5 +17,6 @@ function(add_python_test scope test_file)
 endfunction()
 
 add_python_test("python" "basictest.py")
+add_python_test("python" "createtest.py")
 add_python_test("python" "VolumeDataAccessor.py")
 #add_python_test("python" "fixedarraytest.py")
