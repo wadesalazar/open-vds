@@ -659,7 +659,6 @@ int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &ch
 
   auto completedCallback = [this, hash, metadataManager, lockedMetadataPage, entryIndex, jobId](const Request &request, const Error &error)
   {
-    const_cast<VolumeDataLayoutImpl*>(this->GetVolumeDataLayoutImpl())->ChangePendingWriteRequestCount(-1);
     std::unique_lock<std::mutex> lock(m_mutex);
 
     if(error.code != 0)
@@ -679,6 +678,7 @@ int64_t VolumeDataAccessManagerImpl::RequestWriteChunk(const VolumeDataChunk &ch
     {
       metadataManager->SetPageEntry(lockedMetadataPage, entryIndex, reinterpret_cast<const uint8_t *>(&hash), sizeof(hash));
     }
+    const_cast<VolumeDataLayoutImpl*>(this->GetVolumeDataLayoutImpl())->ChangePendingWriteRequestCount(-1);
 
     m_pendingUploadRequests.erase(jobId);
 
