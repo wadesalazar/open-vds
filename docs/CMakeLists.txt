@@ -70,19 +70,14 @@ else ()
 endif()
 
 # Nice named target so we can run the job easily
-add_custom_target(Sphinx ALL DEPENDS ${SPHINX_INDEX_FILE})
-add_dependencies(Sphinx Doxygen)
-
-# We need to copy the README.md files into the docs folder so Sphinx can find them
-add_custom_command(TARGET Sphinx PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/../tools/SEGYImport/README.md ${CMAKE_CURRENT_SOURCE_DIR}/tools/SEGYImport/README.md)
-add_custom_command(TARGET Sphinx PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/../tools/SEGYExport/README.md ${CMAKE_CURRENT_SOURCE_DIR}/tools/SEGYExport/README.md)
-add_custom_command(TARGET Sphinx PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/../tools/VDSInfo/README.md    ${CMAKE_CURRENT_SOURCE_DIR}/tools/VDSInfo/README.md)
-
 # Only regenerate Sphinx when:
 # - Doxygen has rerun
 # - Our doc files have been updated
 # - The Sphinx config has been updated
 add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
+                   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/../tools/SEGYImport/README.md ${CMAKE_CURRENT_SOURCE_DIR}/tools/SEGYImport/README.md
+                   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/../tools/SEGYExport/README.md ${CMAKE_CURRENT_SOURCE_DIR}/tools/SEGYExport/README.md
+                   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/../tools/VDSInfo/README.md    ${CMAKE_CURRENT_SOURCE_DIR}/tools/VDSInfo/README.md
                    COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=$<TARGET_FILE_DIR:core>/.." "PATH=${separator}${CMAKE_CURRENT_BINARY_DIR}"
                      ${Python3_EXECUTABLE} -m sphinx -b html
                      # Tell Breathe where to find the Doxygen output
@@ -99,11 +94,11 @@ add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
                    ${CMAKE_CURRENT_SOURCE_DIR}/../tools/SEGYImport/README.md
                    ${CMAKE_CURRENT_SOURCE_DIR}/../tools/SEGYExport/README.md
                    ${CMAKE_CURRENT_SOURCE_DIR}/../tools/VDSInfo/README.md
-                   ${CMAKE_CURRENT_SOURCE_DIR}/tools/SEGYImport/README.md
-                   ${CMAKE_CURRENT_SOURCE_DIR}/tools/SEGYExport/README.md
-                   ${CMAKE_CURRENT_SOURCE_DIR}/tools/VDSInfo/README.md
                    MAIN_DEPENDENCY ${SPHINX_SOURCE}/conf.py
                    COMMENT "Generating documentation with Sphinx")
+
+add_custom_target(Sphinx ALL DEPENDS ${SPHINX_INDEX_FILE})
+add_dependencies(Sphinx Doxygen)
 
 # Add an install target to install the docs
 install(DIRECTORY ${SPHINX_BUILD} DESTINATION ${CMAKE_INSTALL_DOCDIR})
