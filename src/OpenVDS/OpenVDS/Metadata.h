@@ -180,8 +180,6 @@ class MetadataWriteAccess
 protected:
   virtual ~MetadataWriteAccess() {}
 
-  virtual void        SetMetadataString(const char* category, const char* name, const char* value) = 0;   ///< Sets a metadata string with the given category and name to the given value
-  virtual void        SetMetadataBLOB(const char* category, const char* name, const void *data, size_t size) = 0; ///< Sets a metadata BLOB with the given category and name to the given value
 public:
   virtual void        SetMetadataInt(const char* category, const char* name, int value) = 0;               ///< Sets a metadata int with the given category and name to the given value
   virtual void        SetMetadataIntVector2(const char* category, const char* name, IntVector2 value) = 0; ///< Sets a metadata IntVector2 with the given category and name to the given value
@@ -198,10 +196,13 @@ public:
   virtual void        SetMetadataDoubleVector3(const char* category, const char* name, DoubleVector3 value) = 0; ///< Sets a metadata DoubleVector3 with the given category and name to the given value
   virtual void        SetMetadataDoubleVector4(const char* category, const char* name, DoubleVector4 value) = 0; ///< Sets a metadata DoubleVector4 with the given category and name to the given value
 
+  virtual void        SetMetadataString(const char* category, const char* name, const char* value) = 0;   ///< Sets a metadata string with the given category and name to the given value
   inline  void        SetMetadataString(const char* category, const char* name, std::string const &value) ///< Sets a metadata string with the given category and name to the given value
                       {
                         SetMetadataString(category, name, value.c_str());
                       }
+
+  virtual void        SetMetadataBLOB(const char* category, const char* name, const void *data, size_t size) = 0; ///< Sets a metadata BLOB with the given category and name to the given value
   template <typename T>
   inline void         SetMetadataBLOB(const char* category, const char* name, std::vector<T> const &value) ///< Sets a metadata BLOB with the given category and name to the given value
                       {
@@ -286,6 +287,9 @@ public:
   using MetadataWriteAccess::SetMetadataString;
   using MetadataReadAccess::GetMetadataBLOB;
   using MetadataReadAccess::GetMetadataString;
+
+  void        SetMetadataString(const char* category, const char* name, const char* value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::String, category, name); m_stringData[key] = value; }
+  void        SetMetadataBLOB(const char* category, const char* name, const void *data, size_t size) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::BLOB, category, name); const uint8_t *udata = static_cast<const uint8_t *>(data); auto &vec = m_blobData[key]; vec.clear(); vec.insert(vec.begin(), udata, udata + size); }
 
   void        CopyMetadata(const char* category, MetadataReadAccess const *metadataReadAccess) override
   {
@@ -391,10 +395,6 @@ public:
   {
     return MetadataKeyRange(m_keys.data(), m_keys.data() + m_keys.size());
   }
-
-protected:
-  void        SetMetadataString(const char* category, const char* name, const char* value) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::String, category, name); m_stringData[key] = value; }
-  void        SetMetadataBLOB(const char* category, const char* name, const void *data, size_t size) override { MetadataKey key = GetOrCreateMetadataKey(MetadataType::BLOB, category, name); const uint8_t *udata = static_cast<const uint8_t *>(data); auto &vec = m_blobData[key]; vec.clear(); vec.insert(vec.begin(), udata, udata + size); }
 
 private:
   MetadataKey GetOrCreateMetadataKey(MetadataType type, const char *category, const char *name)
