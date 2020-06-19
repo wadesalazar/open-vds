@@ -21,6 +21,8 @@
 
 #include "IOManagerCurl.h"
 
+#include <google/cloud/storage/client.h>
+
 namespace OpenVDS
 {
 
@@ -35,7 +37,7 @@ public:
 private:
   CurlHandler m_curlHandler;
   std::string m_bucket;
-  std::string m_token;
+  std::shared_ptr<google::cloud::storage::v1::oauth2::Credentials> m_credentials;
 };
 }
 

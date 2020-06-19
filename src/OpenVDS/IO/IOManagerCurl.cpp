@@ -22,6 +22,13 @@
 namespace OpenVDS
 {
 
+static char asciitolower(char in) {
+  if (in <= 'Z' && in >= 'A')
+    return in - ('Z' - 'z');
+  return in;
+}
+
+
 SocketContext::SocketContext(CurlEasyHandler* request, curl_socket_t socket)
   : curlMulti(request->eventLoopData->curlMulti)
   , socket(socket)
@@ -90,6 +97,40 @@ static void curlAddRequests(UVEventLoopData *eventLoopData)
   eventLoopData->queuedRequests.erase(eventLoopData->queuedRequests.begin(), eventLoopData->queuedRequests.begin() + to_add);
 }
 
+static int curl_easy_debug_callback(CURL* handle, curl_infotype type, char* data, size_t size, void* userptr)
+{
+  std::string text;
+  std::string datastr(data, size);
+  switch (type) {
+  case CURLINFO_TEXT:
+    fprintf(stderr, "== Info: %s", data);
+  default: /* in case a new one is introduced to shock us */
+    return 0;
+
+  case CURLINFO_HEADER_OUT:
+    text = "=> Send header";
+    break;
+  case CURLINFO_DATA_OUT:
+    text = "=> Send data";
+    break;
+  case CURLINFO_SSL_DATA_OUT:
+    text = "=> Send SSL data";
+    break;
+  case CURLINFO_HEADER_IN:
+    text = "<= Recv header";
+    break;
+  case CURLINFO_DATA_IN:
+    text = "<= Recv data";
+    break;
+  case CURLINFO_SSL_DATA_IN:
+    text = "<= Recv SSL data";
+    break;
+  }
+
+  fmt::print(stderr, "{} - {}\n", text, datastr);
+  return 0;
+}
+
 #if UV_VERSION_MAJOR < 1
 static void addDownloadCB(uv_async_t *handle, int status)
 #else
@@ -128,6 +169,8 @@ static void addDownloadCB(uv_async_t *handle)
     {
       curl_easy_setopt(downloadRequest->curlEasy, CURLOPT_NOBODY, 1L);
     }
+    curl_easy_setopt(downloadRequest->curlEasy, CURLOPT_DEBUGFUNCTION, curl_easy_debug_callback);
+    //curl_easy_setopt(downloadRequest->curlEasy, CURLOPT_VERBOSE, 1L);
   }
   
   eventLoopData->queuedRequests.insert(eventLoopData->queuedRequests.end(), downloadRequests.begin(), downloadRequests.end());
@@ -210,9 +253,20 @@ static void addUploadCB(uv_async_t *handle)
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_HEADERDATA, uploadRequest.get());
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_READFUNCTION, &curlReadCallback);
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_READDATA, uploadRequest.get());
-    curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_UPLOAD, 1L);
+    curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_WRITEFUNCTION, &curlWriteCallback);
+    curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_WRITEDATA, uploadRequest.get());
+    if (uploadRequest->post)
+    {
+      curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_POST, long(1));
+    }
+    else
+    {
+      curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_UPLOAD, 1L);
+    }
     curl_off_t filesize = curl_off_t(uploadRequest->data->size());
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_INFILESIZE_LARGE, filesize);
+    curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_DEBUGFUNCTION, curl_easy_debug_callback);
+    //curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_VERBOSE, 1L);
   }
   
   eventLoopData->queuedRequests.insert(eventLoopData->queuedRequests.end(), uploadRequests.begin(), uploadRequests.end());
@@ -578,10 +632,7 @@ void CurlDownloadHandler::handleHeaderData(char* b, size_t size)
 
   downloadRequest->m_handler->HandleMetadata(name, value);
   std::string lowercase_name = name;
-  std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), [](char c)
-    {
-      return std::tolower(c);
-    });
+  std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), asciitolower);
   if (lowercase_name == "content-length")
   {
     char* end = 0;
@@ -706,12 +757,26 @@ void CurlUploadHandler::handleDone(int responseCode, const Error& error)
   }
   uploadRequest->m_waitForFinish.notify_all();
 }
+
 void CurlUploadHandler::handleHeaderData(char* buffer, size_t size)
 {
+  std::string name, value;
+  getKeyValueFromLine(buffer, size, name, value, ':');
+  std::transform(name.begin(), name.end(), name.begin(), asciitolower);
+  if (name == "content-length")
+  {
+    char* end = 0;
+    long long length = strtoll(value.data(), &end, 10);
+    if (end > value.data() && length)
+    {
+      responsData.reserve(length);
+    }
+  }
 }
+
 void CurlUploadHandler::handleWriteData(char* ptr, size_t size)
 {
-  throw std::runtime_error("This function should not be called\n");
+  responsData.insert(responsData.end(), ptr, ptr + size);
 }
 size_t CurlUploadHandler::handleReadRequest(char* buffer, size_t size)
 {
@@ -807,9 +872,9 @@ void CurlHandler::addDownloadRequest(const std::shared_ptr<DownloadRequestCurl>&
  uv_async_send(&m_eventLoopData.asyncAddDownload);
 }
 
-void CurlHandler::addUploadRequest(const std::shared_ptr<UploadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, const std::shared_ptr<std::vector<uint8_t>> &data)
+void CurlHandler::addUploadRequest(const std::shared_ptr<UploadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, bool post, const std::shared_ptr<std::vector<uint8_t>>& data)
 {
-  auto curlData = std::make_shared<CurlUploadHandler>(&m_eventLoopData, request, url, headers, data);
+  auto curlData = std::make_shared<CurlUploadHandler>(&m_eventLoopData, request, url, headers, post, data);
   request->m_uploadHandler = curlData;
   std::unique_lock<std::mutex> lock(m_eventLoopData.mutex);
   m_eventLoopData.incommingUploadRequests.push_back(curlData);

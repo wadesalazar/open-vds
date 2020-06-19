@@ -22,8 +22,6 @@
 #include <sstream>
 #include <iomanip>
 
-#include <google/cloud/storage/client.h>
-
 namespace OpenVDS
 {
   constexpr char GOOGLEAPIS[] = "https://storage.googleapis.com/";
@@ -31,7 +29,6 @@ namespace OpenVDS
   IOManagerGoogle::IOManagerGoogle(const GoogleOpenOptions& openOptions, Error &error)
     : m_curlHandler(error)
     , m_bucket(openOptions.bucket)
-    , m_token() //fmt:"Authorization: Bearer {}"
   {
     if (m_bucket.empty())
     {
@@ -40,24 +37,14 @@ namespace OpenVDS
       return;
     }
 
-    if (m_token.empty())
-    {
-        auto credentials = google::cloud::storage::v1::oauth2::GoogleDefaultCredentials();
-        if (!credentials) {
-            error.code = -2;
-            error.string = "Google Cloud Storage Config error. Unable to get Google Default Credentials.";
-            return;
-        }
-
-        auto authorization_header = (*credentials)->AuthorizationHeader();
-        if (!authorization_header) {
-            error.code = -3;
-            error.string = "Google Cloud Storage Config error. Unable to generate Authorization Header.";
-            return;
-        }
-
-        m_token = *authorization_header;
+    auto credentials = google::cloud::storage::v1::oauth2::GoogleDefaultCredentials();
+    if (!credentials) {
+        error.code = -2;
+        error.string = "Google Cloud Storage Config error. Unable to get Google Default Credentials.";
+        return;
     }
+    m_credentials = *credentials;
+
   }
 
   std::string convertToISO8601(const std::string& value);
@@ -67,7 +54,16 @@ namespace OpenVDS
     std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
-    headers.push_back(m_token);
+
+    auto authorization_header = m_credentials->AuthorizationHeader();
+    if (!authorization_header) {
+      request->m_done = true;
+      request->m_cancelled = true;
+      request->m_error.code = -3;
+      request->m_error.string = "Google Cloud Storage Config error. Unable to generate Authorization Header.";
+      return request;
+    }
+    headers.push_back(*authorization_header);
     m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", convertToISO8601, CurlDownloadHandler::HEADER);
     return request;
   }
@@ -77,24 +73,39 @@ namespace OpenVDS
     std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
-    headers.push_back(m_token);
+    auto authorization_header = m_credentials->AuthorizationHeader();
+    if (!authorization_header) {
+      request->m_done = true;
+      request->m_cancelled = true;
+      request->m_error.code = -3;
+      request->m_error.string = "Google Cloud Storage Config error. Unable to generate Authorization Header.";
+      return request;
+    }
+    headers.push_back(*authorization_header);
     if (range.start != range.end)
     {
       headers.emplace_back();
       auto& header = headers.back();
-      header = fmt::format("x-ms-range: bytes={}-{}", range.start, range.end);
+      header = fmt::format("range: bytes={}-{}", range.start, range.end);
     }
-    m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", convertToISO8601, CurlDownloadHandler::GET);
+    m_curlHandler.addDownloadRequest(request, url, headers, "metadata.", convertToISO8601, CurlDownloadHandler::GET);
     return request;
   }
 
   std::shared_ptr<Request> IOManagerGoogle::WriteObject(const std::string& objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request& request, const Error& error)> completedCallback)
   {
-    std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
+    std::string url = fmt::format("{}upload/storage/v1/b/{}/o?uploadType=media&name={}", GOOGLEAPIS, m_bucket, objectName);
     std::shared_ptr<UploadRequestCurl> request = std::make_shared<UploadRequestCurl>(objectName, completedCallback);
     std::vector<std::string> headers;
-    //headers.emplace_back("x-ms-blob-type: BlockBlob");
-    headers.push_back(m_token);
+    auto authorization_header = m_credentials->AuthorizationHeader();
+    if (!authorization_header) {
+      request->m_done = true;
+      request->m_cancelled = true;
+      request->m_error.code = -3;
+      request->m_error.string = "Google Cloud Storage Config error. Unable to generate Authorization Header.";
+      return request;
+    }
+    headers.push_back(*authorization_header);
     if (contentDispostionFilename.size())
       headers.push_back(fmt::format("content-disposition: attachment; filename=\"{}\"", contentDispostionFilename));
     if (contentType.size())
@@ -103,9 +114,9 @@ namespace OpenVDS
       headers.push_back(fmt::format("content-length: {}", data->size()));
     for (auto metaTag : metadataHeader)
     {
-      headers.push_back(fmt::format("{}{}: {}", "x-ms-meta-", metaTag.first, metaTag.second));
+      headers.push_back(fmt::format("{}{}: {}", "metadata.", metaTag.first, metaTag.second));
     }
-    m_curlHandler.addUploadRequest(request, url, headers, data);
+    m_curlHandler.addUploadRequest(request, url, headers, true, data);
     return request;
   }
 }

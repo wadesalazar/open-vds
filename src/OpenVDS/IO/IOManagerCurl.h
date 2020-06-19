@@ -153,11 +153,12 @@ public:
 
 struct CurlUploadHandler : public CurlEasyHandler
 {
-  CurlUploadHandler(UVEventLoopData *eventLoopData, std::weak_ptr<UploadRequestCurl> request, const std::string &url, std::vector<std::string> headers, const std::shared_ptr<std::vector<uint8_t>> &data)
+  CurlUploadHandler(UVEventLoopData *eventLoopData, std::weak_ptr<UploadRequestCurl> request, const std::string &url, std::vector<std::string> headers,  bool post, const std::shared_ptr<std::vector<uint8_t>> &data)
     : CurlEasyHandler(eventLoopData)
     , request(request)
     , url(url)
     , headers(std::move(headers))
+    , post(post)
     , data(data)
     , data_offset(0)
   {}
@@ -170,8 +171,10 @@ struct CurlUploadHandler : public CurlEasyHandler
   std::weak_ptr<UploadRequestCurl> request;
   std::string url;
   std::vector<std::string> headers;
+  bool post;
   std::shared_ptr<std::vector<uint8_t>> data;
   size_t data_offset;
+  std::vector<uint8_t> responsData;
 };
 
 struct UVEventLoopData
@@ -207,7 +210,11 @@ public:
   ~CurlHandler();
 
   void addDownloadRequest(const std::shared_ptr<DownloadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, const std::string& metaKeyPrefixTrim, std::function<std::string(const std::string &date)> toISO8601DateTransformer, CurlDownloadHandler::Verb verb);
-  void addUploadRequest(const std::shared_ptr<UploadRequestCurl> &request, const std::string &url, const std::vector<std::string> &headers, const std::shared_ptr<std::vector<uint8_t>> &data);
+  void addUploadRequest(const std::shared_ptr<UploadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, const std::shared_ptr<std::vector<uint8_t>>& data)
+  {
+    addUploadRequest(request, url, headers, false, data);
+  }
+  void addUploadRequest(const std::shared_ptr<UploadRequestCurl> &request, const std::string &url, const std::vector<std::string> &headers, bool post, const std::shared_ptr<std::vector<uint8_t>> &data);
 
 private:
   UVEventLoopData m_eventLoopData;
