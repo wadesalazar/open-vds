@@ -613,7 +613,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
 }
 
 bool
-createSEGYMetadata(DataProvider &dataProvider, SEGYFileInfo const &fileInfo, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error& error)
+createSEGYMetadata(DataProvider &dataProvider, SEGYFileInfo const &fileInfo, OpenVDS::MetadataContainer& metadataContainer, SEGY::BinaryHeader::MeasurementSystem &measurementSystem, OpenVDS::Error& error)
 {
   std::vector<uint8_t> textHeader(SEGY::TextualFileHeaderSize);
   std::vector<uint8_t> binaryHeader(SEGY::BinaryFileHeaderSize);
@@ -631,11 +631,13 @@ createSEGYMetadata(DataProvider &dataProvider, SEGYFileInfo const &fileInfo, Ope
 
   metadataContainer.SetMetadataInt("SEGY", "Endianness", int(fileInfo.m_headerEndianness));
   metadataContainer.SetMetadataInt("SEGY", "DataSampleFormatCode", int(fileInfo.m_dataSampleFormatCode));
+
+  measurementSystem = SEGY::BinaryHeader::MeasurementSystem(SEGY::ReadFieldFromHeader(binaryHeader.data(), SEGY::BinaryHeader::MeasurementSystemHeaderField, fileInfo.m_headerEndianness));
   return success;
 }
 
 void
-createSurveyCoordinateSystemMetadata(SEGYFileInfo const& fileInfo, OpenVDS::MetadataContainer& metadataContainer)
+createSurveyCoordinateSystemMetadata(SEGYFileInfo const& fileInfo, SEGY::BinaryHeader::MeasurementSystem measurementSystem, std::string const &crsWkt, OpenVDS::MetadataContainer& metadataContainer)
 {
   if (fileInfo.m_segmentInfo.empty()) return;
 
@@ -711,6 +713,19 @@ createSurveyCoordinateSystemMetadata(SEGYFileInfo const& fileInfo, OpenVDS::Meta
   metadataContainer.SetMetadataDoubleVector2(LATTICE_CATEGORY, LATTICE_ORIGIN, OpenVDS::DoubleVector2(origin[0], origin[1]));
   metadataContainer.SetMetadataDoubleVector2(LATTICE_CATEGORY, LATTICE_INLINE_SPACING, OpenVDS::DoubleVector2(inlineSpacing[0], inlineSpacing[1]));
   metadataContainer.SetMetadataDoubleVector2(LATTICE_CATEGORY, LATTICE_CROSSLINE_SPACING, OpenVDS::DoubleVector2(crosslineSpacing[0], crosslineSpacing[1]));
+
+  if(!crsWkt.empty())
+  {
+    metadataContainer.SetMetadataString(LATTICE_CATEGORY, CRS_WKT, crsWkt);
+  }
+  if(measurementSystem == SEGY::BinaryHeader::MeasurementSystem::Meters)
+  {
+    metadataContainer.SetMetadataString(LATTICE_CATEGORY, LATTICE_UNIT, KNOWNMETADATA_UNIT_METER);
+  }
+  else if(measurementSystem == SEGY::BinaryHeader::MeasurementSystem::Feet)
+  {
+    metadataContainer.SetMetadataString(LATTICE_CATEGORY, LATTICE_UNIT, KNOWNMETADATA_UNIT_FOOT);
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -833,13 +848,34 @@ parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
   return true;
 }
 
+enum class SampleUnits
+{
+  Milliseconds = 0,
+  Feet = 1,
+  Meters = 2
+};
+
 std::vector<OpenVDS::VolumeDataAxisDescriptor>
-createAxisDescriptors(SEGYFileInfo const& fileInfo, int inlineStep, int crosslineStep)
+createAxisDescriptors(SEGYFileInfo const& fileInfo, SampleUnits sampleUnits, int inlineStep, int crosslineStep)
 {
   std::vector<OpenVDS::VolumeDataAxisDescriptor>
     axisDescriptors;
 
-  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, "ms", 0.0f, (fileInfo.m_sampleCount - 1) * (float)fileInfo.m_sampleIntervalMilliseconds));
+  const char *sampleUnit = "";
+
+  switch(sampleUnits)
+  {
+  case SampleUnits::Milliseconds:
+    sampleUnit = KNOWNMETADATA_UNIT_MILLISECOND;
+  case SampleUnits::Feet:
+    sampleUnit = KNOWNMETADATA_UNIT_FOOT;
+  case SampleUnits::Meters:
+    sampleUnit = KNOWNMETADATA_UNIT_METER;
+  default:
+    assert(0 && "Unknown sample unit");
+  }
+
+  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, sampleUnit, 0.0f, (fileInfo.m_sampleCount - 1) * (float)fileInfo.m_sampleIntervalMilliseconds));
 
   int minInline    = fileInfo.m_segmentInfo[0].m_binInfoStart.m_inlineNumber,
       minCrossline = fileInfo.m_segmentInfo[0].m_binInfoStart.m_crosslineNumber,
@@ -1033,6 +1069,8 @@ main(int argc, char* argv[])
   std::string headerFormatFileName;
   std::string primaryKey = "InlineNumber";
   std::string secondaryKey = "CrosslineNumber";
+  std::string sampleUnit;
+  std::string crsWkt;
   double scale = 0;
   bool littleEndian = false;
   bool scan = false;
@@ -1054,6 +1092,8 @@ main(int argc, char* argv[])
   options.add_option("", "p", "primary-key", "The name of the trace header field to use as the primary key.", cxxopts::value<std::string>(primaryKey)->default_value("Inline"), "<field>");
   options.add_option("", "s", "secondary-key", "The name of the trace header field to use as the secondary key.", cxxopts::value<std::string>(secondaryKey)->default_value("Crossline"), "<field>");
   options.add_option("", "", "scale", "If a scale override (floating point) is given, it is used to scale the coordinates in the header instead of determining the scale factor from the coordinate scale trace header field.", cxxopts::value<double>(scale), "<value>");
+  options.add_option("", "", "sampleUnit", "A sample unit of 'ms' is used for datasets in the time domain (default), while a sample unit of 'm' or 'ft' is used for datasets in the depth domain", cxxopts::value<std::string>(sampleUnit), "<string>");
+  options.add_option("", "", "crsWkt", "A coordinate reference system in well-known text format can optionally be provided", cxxopts::value<std::string>(crsWkt), "<string>");
   options.add_option("", "l", "little-endian", "Force little-endian trace headers.", cxxopts::value<bool>(littleEndian), "");
   options.add_option("", "", "scan", "Generate a JSON file containing information about the input SEG-Y file.", cxxopts::value<bool>(scan), "");
   options.add_option("", "i", "file-info", "A JSON file (generated by the --scan option) containing information about the input SEG-Y file.", cxxopts::value<std::string>(fileInfoFileName), "<file>");
@@ -1324,8 +1364,29 @@ main(int argc, char* argv[])
 
   OpenVDS::VolumeDataLayoutDescriptor layoutDescriptor(brickSizeEnum, negativeMargin, positiveMargin, brickSize2DMultiplier, lodLevels, layoutOptions);
 
+  SampleUnits
+    sampleUnits;
+
+  if(sampleUnit.empty() || sampleUnit == "ms" || sampleUnit == "millisecond"  || sampleUnit == "milliseconds")
+  {
+    sampleUnits = SampleUnits::Milliseconds;
+  }
+  else if(sampleUnit == "m" || sampleUnit == "meter" || sampleUnit == "meters")
+  {
+    sampleUnits = SampleUnits::Meters;
+  }
+  else if(sampleUnit == "ft" || sampleUnit == "foot" || sampleUnit == "feet")
+  {
+    sampleUnits = SampleUnits::Feet;
+  }
+  else
+  {
+    fmt::print(stderr, "Unknown sample unit: {}, legal units are 'ms', 'm' or 'ft'\n", sampleUnit);
+    return EXIT_FAILURE;
+  }
+
   // Create axis descriptors
-  std::vector<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors = createAxisDescriptors(fileInfo, primaryStep, secondaryStep);
+  std::vector<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors = createAxisDescriptors(fileInfo, sampleUnits, primaryStep, secondaryStep);
 
   // Check for excess of empty traces
 
@@ -1362,7 +1423,10 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  createSEGYMetadata(dataProvider, fileInfo, metadataContainer, error);
+  SEGY::BinaryHeader::MeasurementSystem
+    measurementSystem;
+
+  createSEGYMetadata(dataProvider, fileInfo, metadataContainer, measurementSystem, error);
 
   if (error.code != 0)
   {
@@ -1370,7 +1434,7 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  createSurveyCoordinateSystemMetadata(fileInfo, metadataContainer);
+  createSurveyCoordinateSystemMetadata(fileInfo, measurementSystem, crsWkt, metadataContainer);
 
   OpenVDS::Error
     createError;
