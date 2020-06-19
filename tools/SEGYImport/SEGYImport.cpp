@@ -865,12 +865,9 @@ createAxisDescriptors(SEGYFileInfo const& fileInfo, SampleUnits sampleUnits, int
 
   switch(sampleUnits)
   {
-  case SampleUnits::Milliseconds:
-    sampleUnit = KNOWNMETADATA_UNIT_MILLISECOND;
-  case SampleUnits::Feet:
-    sampleUnit = KNOWNMETADATA_UNIT_FOOT;
-  case SampleUnits::Meters:
-    sampleUnit = KNOWNMETADATA_UNIT_METER;
+  case SampleUnits::Milliseconds: sampleUnit = KNOWNMETADATA_UNIT_MILLISECOND; break;
+  case SampleUnits::Feet:         sampleUnit = KNOWNMETADATA_UNIT_FOOT;        break;
+  case SampleUnits::Meters:       sampleUnit = KNOWNMETADATA_UNIT_METER;       break;
   default:
     assert(0 && "Unknown sample unit");
   }
