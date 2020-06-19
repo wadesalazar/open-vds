@@ -19,6 +19,8 @@
 
 #include <fmt/printf.h>
 
+#include <VDS/CompilerDefines.h>
+
 namespace OpenVDS
 {
 
@@ -105,7 +107,7 @@ static int curl_easy_debug_callback(CURL* handle, curl_infotype type, char* data
   std::string datastr(data, size);
   switch (type) {
   case CURLINFO_TEXT:
-    fprintf(stderr, "== Info: %s", data);
+    fprintf(stderr, "== Info: %s", data); FALLTHROUGH;
   default: /* in case a new one is introduced to shock us */
     return 0;
 
@@ -776,10 +778,10 @@ void CurlUploadHandler::handleWriteData(char* ptr, size_t size)
 }
 size_t CurlUploadHandler::handleReadRequest(char* buffer, size_t size)
 {
-  if (bufferIndex >= data.size())
+  if (bufferIndex >= int(data.size()))
     return 0;
   size_t to_copy = 0;
-  while (to_copy == 0 && bufferIndex < data.size())
+  while (to_copy == 0 && bufferIndex < int(data.size()))
   {
     to_copy = std::min(size, data[bufferIndex]->size() - dataOffset);
     memcpy(buffer, data[bufferIndex]->data() + dataOffset, to_copy);
