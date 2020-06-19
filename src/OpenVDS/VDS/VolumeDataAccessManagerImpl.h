@@ -57,16 +57,20 @@ public:
 
   void HandleMetadata(const std::string& key, const std::string& header) override
   {
-    if (key == "vdschunkmetadata")
+    static const char vdschunkmetadata[] = "vdschunkmetadata";
+    constexpr int vdschunkmetadataSize = sizeof(vdschunkmetadata) - 1;
+    if (key.size() >= vdschunkmetadataSize)
     {
-      if (!Base64Decode(header.data(), (int)header.size(), m_metadata))
+      if (memcmp(key.data() + key.size() - vdschunkmetadataSize, vdschunkmetadata, vdschunkmetadataSize) == 0)
       {
-        m_error.code = -1;
-        m_error.string = "Failed to decode chunk metadata";
+        if (!Base64Decode(header.data(), (int)header.size(), m_metadata))
+        {
+          m_error.code = -1;
+          m_error.string = "Failed to decode chunk metadata";
+        }
       }
     }
   }
-
   void HandleData(std::vector<uint8_t>&& data) override
   {
     m_data = data;

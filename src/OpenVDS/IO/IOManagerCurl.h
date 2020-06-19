@@ -106,12 +106,11 @@ struct CurlDownloadHandler : public CurlEasyHandler
     GET
   };
 
-  CurlDownloadHandler(UVEventLoopData *eventLoopData, const std::shared_ptr<DownloadRequestCurl> &request, std::string url, std::vector<std::string> headers, std::string metaKeyPrefixTrim, std::function<std::string(const std::string&)> toISO8601DateTransformer, Verb verb)
+  CurlDownloadHandler(UVEventLoopData *eventLoopData, const std::shared_ptr<DownloadRequestCurl> &request, std::string url, std::vector<std::string> headers, std::function<std::string(const std::string&)> toISO8601DateTransformer, Verb verb)
     : CurlEasyHandler(eventLoopData)
     , request(request)
     , url(std::move(url))
     , headers(std::move(headers))
-    , metaKeyPrefixTrim(std::move(metaKeyPrefixTrim))
     , toISO8601DateTransformer(toISO8601DateTransformer)
     , verb(verb)
   {
@@ -126,7 +125,6 @@ struct CurlDownloadHandler : public CurlEasyHandler
   std::string url;
   std::vector<std::string> headers;
   std::vector<uint8_t> data;
-  std::string metaKeyPrefixTrim;
   std::function<std::string(const std::string&)> toISO8601DateTransformer;
   Verb verb;
 };
@@ -209,7 +207,7 @@ public:
   CurlHandler(Error& error);
   ~CurlHandler();
 
-  void addDownloadRequest(const std::shared_ptr<DownloadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, const std::string& metaKeyPrefixTrim, std::function<std::string(const std::string &date)> toISO8601DateTransformer, CurlDownloadHandler::Verb verb);
+  void addDownloadRequest(const std::shared_ptr<DownloadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, std::function<std::string(const std::string &date)> toISO8601DateTransformer, CurlDownloadHandler::Verb verb);
   void addUploadRequest(const std::shared_ptr<UploadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, const std::shared_ptr<std::vector<uint8_t>>& data)
   {
     addUploadRequest(request, url, headers, false, data);

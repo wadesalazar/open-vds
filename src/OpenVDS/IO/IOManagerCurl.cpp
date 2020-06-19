@@ -622,14 +622,6 @@ void CurlDownloadHandler::handleHeaderData(char* b, size_t size)
   if (!downloadRequest->m_handler)
     return;
 
-  if (name.size() >= metaKeyPrefixTrim.size())
-  {
-    if (memcmp(name.data(), metaKeyPrefixTrim.data(), metaKeyPrefixTrim.size()) == 0)
-    {
-      name.erase(0, metaKeyPrefixTrim.size());
-    }
-  }
-
   downloadRequest->m_handler->HandleMetadata(name, value);
   std::string lowercase_name = name;
   std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), asciitolower);
@@ -863,9 +855,9 @@ CurlHandler::~CurlHandler()
   m_thread->join();
 }
 
-void CurlHandler::addDownloadRequest(const std::shared_ptr<DownloadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, const std::string& metaKeyPrefixTrim, std::function<std::string(const std::string&)> toISO8601DateTransformer, CurlDownloadHandler::Verb verb)
+void CurlHandler::addDownloadRequest(const std::shared_ptr<DownloadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, std::function<std::string(const std::string&)> toISO8601DateTransformer, CurlDownloadHandler::Verb verb)
 {
- auto curlData =  std::make_shared<CurlDownloadHandler>(&m_eventLoopData, request, url, headers, metaKeyPrefixTrim, toISO8601DateTransformer, verb);
+ auto curlData =  std::make_shared<CurlDownloadHandler>(&m_eventLoopData, request, url, headers, toISO8601DateTransformer, verb);
  request->m_downloadHandler = curlData;
  std::unique_lock<std::mutex> lock(m_eventLoopData.mutex);
  m_eventLoopData.incommingDownloadRequests.push_back(curlData);
