@@ -73,8 +73,8 @@
    <li>The Inline/Crossline system:
 
    In this system, the step vector for dimension 0 is always negative Z direction. This will simplify the metadata, and the 
-   information we need is a Hue::Util::DoubleVector2 to define the origin (\ref KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_ORIGIN), 
-   and two more Hue::Util::DoubleVector2 to define the inline and crossline spacing (\ref KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_INLINESPACING 
+   information we need is a DoubleVector2 to define the origin (\ref KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_ORIGIN), 
+   and two more DoubleVector2 to define the inline and crossline spacing (\ref KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_INLINESPACING 
    and \ref KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_CROSSLINESPACING respectively). These are applied to transform the VDS dimensions 
    with name Inline/Crossline to XYZ coordinates. Other dimension names that are recognized are Time/Depth/Sample which are all mapped to 
    negative Z (i.e. positive Depth will result in the same negative Z).   
@@ -82,7 +82,7 @@
    <li>The 3D IJK system:
    
    The Inline/Crossline system has flexibility for only two dimensions. In order to have more freedom, the 3DIJK metadata is defined.
-   A Hue::Util::DoubleVector3 is used to represent the origin (\ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_ORIGIN3D) and three step vectors 
+   A DoubleVector3 is used to represent the origin (\ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_ORIGIN3D) and three step vectors 
    (\ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_I_STEPVECTOR, \ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_J_STEPVECTOR and 
    \ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR) that corresponding to the dimensions named "I", "J" and "K" respectively.
    
@@ -104,7 +104,7 @@
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_ORIGIN
 /// <ul>
-/// <li>Data type   : Hue::Util::DoubleVector2
+/// <li>Data type   : DoubleVector2
 /// <li>Name        : "Origin"
 /// <li>Description : The XY position of the origin of the annotation (Inline/Crossline/Time) coordinate system.
 /// </ul>
@@ -112,7 +112,7 @@
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_INLINESPACING
 /// <ul>
-/// <li>Data type   : Hue::Util::DoubleVector2
+/// <li>Data type   : DoubleVector2
 /// <li>Name        : "InlineSpacing"
 /// <li>Description : The XY spacing between units in the Inline annotation dimension.
 /// </ul>
@@ -128,7 +128,7 @@
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_ORIGIN3D
 /// <ul>
-/// <li>Data type   : Hue::Util::DoubleVector3
+/// <li>Data type   : DoubleVector3
 /// <li>Name        : "Origin3D"
 /// <li>Description : The XYZ position of the origin of the annotation (I/J/K) coordinate system.
 /// </ul>
@@ -136,7 +136,7 @@
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_I_STEPVECTOR
 /// <ul>
-/// <li>Data type   : Hue::Util::DoubleVector3
+/// <li>Data type   : DoubleVector3
 /// <li>Name        : "IStepVector"
 /// <li>Description : The step vector corresponding to dimension named 'I'
 /// </ul>
@@ -144,7 +144,7 @@
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_J_STEPVECTOR
 /// <ul>
-/// <li>Data type   : Hue::Util::DoubleVector3
+/// <li>Data type   : DoubleVector3
 /// <li>Name        : "JStepVector"
 /// <li>Description : The step vector corresponding to dimension named 'J'
 /// </ul>
@@ -152,11 +152,27 @@
 
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR
 /// <ul>
-/// <li>Data type   : Hue::Util::DoubleVector3
+/// <li>Data type   : DoubleVector3
 /// <li>Name        : "KStepVector"
 /// <li>Description : The step vector corresponding to dimension named 'K'
 /// </ul>
 #define KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR         "KStepVector"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_UNIT
+/// <ul>
+/// <li>Data type   : String
+/// <li>Name        : "Unit"
+/// <li>Description : The unit of the coordinate system
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_UNIT                       "Unit"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_CRS_WKT
+/// <ul>
+/// <li>Data type   : String
+/// <li>Name        : "CRSWkt"
+/// <li>Description : The well-known text representation of the coordinate reference system
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_CRS_WKT                    "CRSWkt"
 
 // Dimension names //////////////////////////////////////////////////////////
 
@@ -206,6 +222,38 @@
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Z
 /// String representing the name of the axis mapped directly to the Z coordinate
 #define KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Z              "Z"
+
+/// \def KNOWNMETADATA_UNIT_METER
+/// String representing the SI meter unit
+#define KNOWNMETADATA_UNIT_METER                     "m"
+
+/// \def KNOWNMETADATA_UNIT_MILLISECOND
+/// String representing the SI milliseconds unit
+#define KNOWNMETADATA_UNIT_MILLISECOND               "ms"
+
+/// \def KNOWNMETADATA_UNIT_FOOT
+/// String representing the foot unit
+#define KNOWNMETADATA_UNIT_FOOT                      "ft"
+
+/// \def KNOWNMETADATA_UNIT_US_SURVEY_FOOT
+/// String representing the US survey foot unit
+#define KNOWNMETADATA_UNIT_US_SURVEY_FOOT            "ussft"
+
+/// \def KNOWNMETADATA_UNIT_SECOND
+/// String representing the SI second unit
+#define KNOWNMETADATA_UNIT_SECOND                    "s"
+
+/// \def KNOWNMETADATA_UNIT_METERS_PER_SECOND
+/// String representing the meters per second unit
+#define KNOWNMETADATA_UNIT_METERS_PER_SECOND          "m/s"
+
+/// \def KNOWNMETADATA_UNIT_FEET_PER_SECOND
+/// String representing the feet per second unit
+#define KNOWNMETADATA_UNIT_FEET_PER_SECOND           "ft/s"
+
+/// \def KNOWNMETADATA_UNIT_US_SURVEY_FEET_PER_SECOND
+/// String representing the US survey feet per second unit
+#define KNOWNMETADATA_UNIT_US_SURVEY_FEET_PER_SECOND "ussft/s"
 
 // Trace coordinate metadata ////////////////////////////////////////////////
 /*! \def KNOWNMETADATA_TRACECOORDINATES
@@ -396,50 +444,95 @@ namespace OpenVDS
 
 class KnownAxisNames
 {
+public:
   /// <summary>
   /// String representing the name of the axis corresponding to the inline spacing.
   /// </summary>
-  static const char *AxisNameInline() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE; }
+  static const char *Inline() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE; }
   /// <summary>
   /// String representing the name of the axis corresponding to the crossline spacing.
   /// </summary>
-  static const char *AxisNameCrossline() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE; }
+  static const char *Crossline() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE; }
   /// <summary>
   /// String representing the name of the axis corresponding to the negative z direction.
   /// </summary>
-  static const char *AxisNameTime() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_TIME; }
+  static const char *Time() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_TIME; }
   /// <summary>
   /// String representing the name of the axis corresponding to the negative z direction.
   /// </summary>
-  static const char *AxisNameDepth() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_DEPTH; }
+  static const char *Depth() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_DEPTH; }
   /// <summary>
   /// String representing the name of the axis corresponding to the negative z direction.
   /// </summary>
-  static const char *AxisNameSample() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE; }
+  static const char *Sample() { return KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE; }
   /// <summary>
   /// String representing the name of the axis corresponding to the I step vector (\ref SurveyCoordinateSystemIStep)
   /// </summary>
-  static const char *AxisNameI() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_I; }
+  static const char *I() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_I; }
   /// <summary>
   /// String representing the name of the axis corresponding to the J step vector (\ref SurveyCoordinateSystemIStep)
   /// </summary>
-  static const char *AxisNameJ() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_J; }
+  static const char *J() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_J; }
   /// <summary>
   /// String representing the name of the axis corresponding to the K step vector (\ref SurveyCoordinateSystemKStep)
   /// </summary>
-  static const char *AxisNameK() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_K; }
+  static const char *K() { return KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_AXISNAME_K; }
   /// <summary>
   /// String representing the name of the axis that maps directly to the X coordinate in the XYZ coordinate system
   /// </summary>
-  static const char *AxisNameX() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_X; }
+  static const char *X() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_X; }
   /// <summary>
   /// String representing the name of the axis that maps directly to the Y coordinate in the XYZ coordinate system
   /// </summary>
-  static const char *AxisNameY() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Y; }
+  static const char *Y() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Y; }
   /// <summary>
   /// String representing the name of the axis that maps directly to the Z coordinate in the XYZ coordinate system
   /// </summary>
-  static const char *AxisNameZ() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Z; }
+  static const char *Z() { return KNOWNMETADATA_SURVEYCOORDINATE_XYZ_AXISNAME_Z; }
+};
+
+class KnownUnitNames
+{
+public:
+  /// <summary>
+  /// String representing the SI meter unit
+  /// </summary>
+  static const char *Meter() { return KNOWNMETADATA_UNIT_METER; }
+
+  /// <summary>
+  /// String representing the SI milliseconds unit
+  /// </summary>
+  static const char *Millisecond() { return KNOWNMETADATA_UNIT_MILLISECOND; }
+
+  /// <summary>
+  /// String representing the foot unit
+  /// </summary>
+  static const char *Foot() { return KNOWNMETADATA_UNIT_FOOT; }
+
+  /// <summary>
+  /// String representing the US survey foot unit
+  /// </summary>
+  static const char *USSurveyFoot() { return KNOWNMETADATA_UNIT_US_SURVEY_FOOT; }
+
+  /// <summary>
+  /// String representing the SI second unit
+  /// </summary>
+  static const char *Second() { return KNOWNMETADATA_UNIT_SECOND; }
+
+  /// <summary>
+  /// String representing the meters per second unit
+  /// </summary>
+  static const char *MetersPerSecond() { return KNOWNMETADATA_UNIT_METERS_PER_SECOND; }
+
+  /// <summary>
+  /// String representing the feet per second unit
+  /// </summary>
+  static const char *FeetPerSecond() { return KNOWNMETADATA_UNIT_FEET_PER_SECOND; }
+
+  /// <summary>
+  /// String representing the US survey feet per second unit
+  /// </summary>
+  static const char *USSurveyFeetPerSecond() { return KNOWNMETADATA_UNIT_US_SURVEY_FEET_PER_SECOND; }
 };
 
 class KnownMetadata
@@ -493,6 +586,15 @@ public:
   /// The step vector corresponding to dimension named 'K'
   /// </summary>
   static MetadataKey SurveyCoordinateSystemKStepVector() { return MetadataKey(MetadataType::DoubleVector3, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR); }
+  /// <summary>
+  /// The unit of the coordinate system
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemUnit() { return MetadataKey(MetadataType::String, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_UNIT); }
+  /// <summary>
+  /// The well-known text representation of the coordinate reference system
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemCRSWkt() { return MetadataKey(MetadataType::String, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_CRS_WKT); }
+
   /// <summary>
   /// The metadata in the TraceCoordinates category is used for positioning of 2D seismic. It relates to the 'Trace' dimension of the VDS where the annotation coordinate is used to look up in the arrays in this category.
   /// This allows using the same positions with subsetted and interpolated or decimated data.

@@ -561,47 +561,47 @@ static const char *__doc_OpenVDS_InterpolationMethod_Triangular = R"doc(< Triang
 
 static const char *__doc_OpenVDS_KnownAxisNames = R"doc()doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameCrossline =
+static const char *__doc_OpenVDS_KnownAxisNames_Crossline =
 R"doc(String representing the name of the axis corresponding to the
 crossline spacing.)doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameDepth =
+static const char *__doc_OpenVDS_KnownAxisNames_Depth =
 R"doc(String representing the name of the axis corresponding to the negative
 z direction.)doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameI =
+static const char *__doc_OpenVDS_KnownAxisNames_I =
 R"doc(String representing the name of the axis corresponding to the I step
 vector (SurveyCoordinateSystemIStep))doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameInline =
+static const char *__doc_OpenVDS_KnownAxisNames_Inline =
 R"doc(String representing the name of the axis corresponding to the inline
 spacing.)doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameJ =
+static const char *__doc_OpenVDS_KnownAxisNames_J =
 R"doc(String representing the name of the axis corresponding to the J step
 vector (SurveyCoordinateSystemIStep))doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameK =
+static const char *__doc_OpenVDS_KnownAxisNames_K =
 R"doc(String representing the name of the axis corresponding to the K step
 vector (SurveyCoordinateSystemKStep))doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameSample =
+static const char *__doc_OpenVDS_KnownAxisNames_Sample =
 R"doc(String representing the name of the axis corresponding to the negative
 z direction.)doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameTime =
+static const char *__doc_OpenVDS_KnownAxisNames_Time =
 R"doc(String representing the name of the axis corresponding to the negative
 z direction.)doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameX =
+static const char *__doc_OpenVDS_KnownAxisNames_X =
 R"doc(String representing the name of the axis that maps directly to the X
 coordinate in the XYZ coordinate system)doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameY =
+static const char *__doc_OpenVDS_KnownAxisNames_Y =
 R"doc(String representing the name of the axis that maps directly to the Y
 coordinate in the XYZ coordinate system)doc";
 
-static const char *__doc_OpenVDS_KnownAxisNames_AxisNameZ =
+static const char *__doc_OpenVDS_KnownAxisNames_Z =
 R"doc(String representing the name of the axis that maps directly to the Z
 coordinate in the XYZ coordinate system)doc";
 
@@ -705,6 +705,8 @@ over.)doc";
 
 static const char *__doc_OpenVDS_KnownMetadata_SEGYTextHeader = R"doc(The original text header of the SEG-Y file)doc";
 
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemCRSWkt = R"doc(The well-known text representation of the coordinate reference system)doc";
+
 static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemCrosslineSpacing = R"doc(The XY spacing between units in the Crossline annotation dimension.)doc";
 
 static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemIJKOrigin =
@@ -723,6 +725,8 @@ static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemOrigin =
 R"doc(The XY position of the origin of the annotation
 (Inline/Crossline/Time) coordinate system.)doc";
 
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemUnit = R"doc(The unit of the coordinate system)doc";
+
 static const char *__doc_OpenVDS_KnownMetadata_TracePositions =
 R"doc(An array of DoubleVector2 defining the position for each trace, where
 (0, 0) is treated as an undefined position.)doc";
@@ -734,6 +738,24 @@ vertical start position in the Time/Depth/Sample dimension of the VDS)doc";
 static const char *__doc_OpenVDS_KnownMetadata_WrittenRegion =
 R"doc(An array of scalar int32 values defining the 6D min and max (NDBox) of
 the written region)doc";
+
+static const char *__doc_OpenVDS_KnownUnitNames = R"doc()doc";
+
+static const char *__doc_OpenVDS_KnownUnitNames_FeetPerSecond = R"doc(String representing the feet per second unit)doc";
+
+static const char *__doc_OpenVDS_KnownUnitNames_Foot = R"doc(String representing the foot unit)doc";
+
+static const char *__doc_OpenVDS_KnownUnitNames_Meter = R"doc(String representing the SI meter unit)doc";
+
+static const char *__doc_OpenVDS_KnownUnitNames_MetersPerSecond = R"doc(String representing the meters per second unit)doc";
+
+static const char *__doc_OpenVDS_KnownUnitNames_Millisecond = R"doc(String representing the SI milliseconds unit)doc";
+
+static const char *__doc_OpenVDS_KnownUnitNames_Second = R"doc(String representing the SI second unit)doc";
+
+static const char *__doc_OpenVDS_KnownUnitNames_USSurveyFeetPerSecond = R"doc(String representing the US survey feet per second unit)doc";
+
+static const char *__doc_OpenVDS_KnownUnitNames_USSurveyFoot = R"doc(String representing the US survey foot unit)doc";
 
 static const char *__doc_OpenVDS_M4 = R"doc()doc";
 
