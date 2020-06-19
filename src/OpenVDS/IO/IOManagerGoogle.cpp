@@ -24,7 +24,7 @@
 
 namespace OpenVDS
 {
-  constexpr char GOOGLEAPIS[] = "https://storage.googleapis.com/";
+  constexpr char GOOGLEAPIS[] = "https://storage.googleapis.com";
 
   IOManagerGoogle::IOManagerGoogle(const GoogleOpenOptions& openOptions, Error &error)
     : m_curlHandler(error)
@@ -51,7 +51,8 @@ namespace OpenVDS
 
   std::shared_ptr<Request> IOManagerGoogle::ReadObjectInfo(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler)
   {
-    std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
+    //std::string url = fmt::format("{}/storage/v1/b/{}/o/{}?alt=media", GOOGLEAPIS, m_bucket, objectName);
+    std::string url = fmt::format("{}/{}/{}", GOOGLEAPIS, m_bucket, objectName);
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
 
@@ -64,13 +65,14 @@ namespace OpenVDS
       return request;
     }
     headers.push_back(*authorization_header);
-    m_curlHandler.addDownloadRequest(request, url, headers, "x-ms-meta-", convertToISO8601, CurlDownloadHandler::HEADER);
+    m_curlHandler.addDownloadRequest(request, url, headers, convertToISO8601, CurlDownloadHandler::HEADER);
     return request;
   }
 
   std::shared_ptr<Request> IOManagerGoogle::ReadObject(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
   {
-    std::string url = GOOGLEAPIS + m_bucket + '/' + objectName;
+    //std::string url = fmt::format("{}/storage/v1/b/{}/o/{}?alt=media", GOOGLEAPIS, m_bucket, objectName); //I cant make this work with sub-paths!!!
+    std::string url = fmt::format("{}/{}/{}", GOOGLEAPIS, m_bucket, objectName);
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
     auto authorization_header = m_credentials->AuthorizationHeader();
@@ -88,14 +90,15 @@ namespace OpenVDS
       auto& header = headers.back();
       header = fmt::format("range: bytes={}-{}", range.start, range.end);
     }
-    m_curlHandler.addDownloadRequest(request, url, headers, "metadata.", convertToISO8601, CurlDownloadHandler::GET);
+    m_curlHandler.addDownloadRequest(request, url, headers, convertToISO8601, CurlDownloadHandler::GET);
     return request;
   }
 
   std::shared_ptr<Request> IOManagerGoogle::WriteObject(const std::string& objectName, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request& request, const Error& error)> completedCallback)
   {
-    std::string url = fmt::format("{}upload/storage/v1/b/{}/o?uploadType=media&name={}", GOOGLEAPIS, m_bucket, objectName);
+    std::string url = fmt::format("{}/upload/storage/v1/b/{}/o?uploadType=multipart", GOOGLEAPIS, m_bucket, objectName);
     std::shared_ptr<UploadRequestCurl> request = std::make_shared<UploadRequestCurl>(objectName, completedCallback);
+    static const std::string delimiterStr = "foo_openvds_delimiter_baz";
     std::vector<std::string> headers;
     auto authorization_header = m_credentials->AuthorizationHeader();
     if (!authorization_header) {
@@ -106,17 +109,33 @@ namespace OpenVDS
       return request;
     }
     headers.push_back(*authorization_header);
+    headers.push_back(fmt::format("Content-Type: multipart/related; boundary={}", delimiterStr));
+
+    Json::Value jsonHeader;
+    jsonHeader["name"] = objectName;
     if (contentDispostionFilename.size())
-      headers.push_back(fmt::format("content-disposition: attachment; filename=\"{}\"", contentDispostionFilename));
-    if (contentType.size())
-      headers.push_back(fmt::format("content-type: {}", contentType));
-    if (data->size())
-      headers.push_back(fmt::format("content-length: {}", data->size()));
-    for (auto metaTag : metadataHeader)
+      jsonHeader["Content-Disposition"] = fmt::format("attachment; filename={}", contentDispostionFilename);
+    if (metadataHeader.size())
     {
-      headers.push_back(fmt::format("{}{}: {}", "metadata.", metaTag.first, metaTag.second));
+      auto& metaJson = jsonHeader["metadata"];
+      for (auto metaTag : metadataHeader)
+      {
+        metaJson[metaTag.first] = metaTag.second;
+      }
     }
-    m_curlHandler.addUploadRequest(request, url, headers, true, data);
+    std::string jsonHeaderString = Json::writeString(m_jsonWriterBuilder, jsonHeader);
+
+    std::string multipartMsgHeader = fmt::format("--{}\nContent-Type: application/json; charset=UTF-8\n\n{}\n\n--{}\nContent-Type: {}\n\n", delimiterStr, jsonHeaderString, delimiterStr, contentType);
+    std::string multipartMsgFooter = fmt::format("\n--{}--", delimiterStr);
+
+    std::shared_ptr<std::vector<uint8_t>> continousData = std::make_shared<std::vector<uint8_t>>();
+    continousData->reserve(data->size() + multipartMsgHeader.size() + multipartMsgFooter.size());
+    continousData->insert(continousData->end(), multipartMsgHeader.begin(), multipartMsgHeader.end());
+    continousData->insert(continousData->end(), data->begin(), data->end());
+    continousData->insert(continousData->end(), multipartMsgFooter.begin(), multipartMsgFooter.end());
+    headers.push_back(fmt::format("Content-Length: {}", continousData->size()));
+
+    m_curlHandler.addUploadRequest(request, url, headers, true, continousData);
     return request;
   }
 }
