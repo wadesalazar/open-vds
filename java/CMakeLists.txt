@@ -80,6 +80,7 @@ endif()
 set(JAVA_TEST_SOURCES_FILES
   java/test/org/opengroup/openvds/AmazonS3Test.java
   java/test/org/opengroup/openvds/MemoryVdsGeneratorTest.java
+  java/test/org/opengroup/openvds/CreateVDSTest.java
   )
 
 add_jar(openvds-java-test

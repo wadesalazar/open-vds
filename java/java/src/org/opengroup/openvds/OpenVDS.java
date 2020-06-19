@@ -29,6 +29,11 @@ public class OpenVDS extends VdsHandle{
 
     private static native long cpOpenConnection(String url, String connectionString) throws IOException;
 
+    private static native long cpCreateAzure(String pConnectionString, String pContainer, String pBlob,
+                                             int pParallelismFactor, int pMaxExecutionTime,
+                                             VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
+                                             VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+
     private OpenVDS(long handle, boolean ownHandle) {
         super(handle, ownHandle);
     }
@@ -51,5 +56,33 @@ public class OpenVDS extends VdsHandle{
     public static OpenVDS open(String url, String connectionString) throws IOException {
         if ("".equals(url)) throw new IllegalArgumentException("url can't be empty");
         return new OpenVDS(cpOpenConnection(url, connectionString), true);
+    }
+
+    public static OpenVDS create(AzureOpenOptions o, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md) throws IOException {
+        if (o == null) {
+            throw new IllegalArgumentException("open option can't be null");
+        }
+
+        if (ld == null) {
+            throw new IllegalArgumentException("VolumeDataLayoutDescriptor can't be null");
+        }
+
+        if (vda == null || java.util.Arrays.stream(vda).allMatch(a -> {return a == null;})) {
+            throw new IllegalArgumentException("VolumeDataLayoutDescriptor or its elements can't be null");
+        }
+
+        if (vdc == null || java.util.Arrays.stream(vdc).allMatch(a -> {return a == null;})) {
+            throw new IllegalArgumentException("VolumeDataChannelDescriptor or its elements can't be null");
+        }
+
+        if (md == null) {
+            throw new IllegalArgumentException("MetadataReadAccess can't be null");
+        }
+
+        return new OpenVDS(cpCreateAzure(o.connectionString, o.container, o.blob, 
+                                         o.parallelism_factor, o.max_execution_time,
+                                         ld, vda, vdc, md), true);
     }
 }
