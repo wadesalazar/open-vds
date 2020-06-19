@@ -22,6 +22,8 @@
 namespace OpenVDS
 {
 
+static const bool curl_verbose_output = false;
+
 static char asciitolower(char in) {
   if (in <= 'Z' && in >= 'A')
     return in - ('Z' - 'z');
@@ -170,7 +172,8 @@ static void addDownloadCB(uv_async_t *handle)
       curl_easy_setopt(downloadRequest->curlEasy, CURLOPT_NOBODY, 1L);
     }
     curl_easy_setopt(downloadRequest->curlEasy, CURLOPT_DEBUGFUNCTION, curl_easy_debug_callback);
-    //curl_easy_setopt(downloadRequest->curlEasy, CURLOPT_VERBOSE, 1L);
+    if (curl_verbose_output)
+    curl_easy_setopt(downloadRequest->curlEasy, CURLOPT_VERBOSE, 1L);
   }
   
   eventLoopData->queuedRequests.insert(eventLoopData->queuedRequests.end(), downloadRequests.begin(), downloadRequests.end());
@@ -266,7 +269,8 @@ static void addUploadCB(uv_async_t *handle)
     curl_off_t filesize = curl_off_t(uploadRequest->data->size());
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_INFILESIZE_LARGE, filesize);
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_DEBUGFUNCTION, curl_easy_debug_callback);
-    //curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_VERBOSE, 1L);
+    if (curl_verbose_output)
+      curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_VERBOSE, 1L);
   }
   
   eventLoopData->queuedRequests.insert(eventLoopData->queuedRequests.end(), uploadRequests.begin(), uploadRequests.end());
