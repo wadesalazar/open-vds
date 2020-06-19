@@ -37,6 +37,7 @@ public:
 private:
   CurlHandler m_curlHandler;
   std::string m_bucket;
+  std::string m_pathPrefix;
   std::shared_ptr<google::cloud::storage::v1::oauth2::Credentials> m_credentials;
   Json::StreamWriterBuilder m_jsonWriterBuilder;
 };

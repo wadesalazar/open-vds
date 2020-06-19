@@ -3,9 +3,6 @@
 Connection URL and Connection String
 ************************************
 
-Opening a VDS
--------------
-
 When opening a VDS its possible to use a URL and a connection string. The
 purpose of this is to create a unified connection API that can be used for
 multiple IO backends.
@@ -14,9 +11,10 @@ The URL consist ``protocol://resource/sub_path``. The protocol will define the
 backend to be used. Currently this can be:
   - s3
   - azure
+  - gs
   - azureSAS
 
-For ``s3`` the ``resource`` will be the bucket while for ``azure`` the ``resource``
+For ``s3`` and ``gs`` the ``resource`` will be the bucket while for ``azure`` the ``resource``
 will be the container. ``azureSAS`` will treat ``resource/sub_path`` as the baseURL
 of the SAS url and prepend ``https``.
 
@@ -52,7 +50,11 @@ S3::
 Azure::
 
   url = "azure://my_container/somepath"
-  connection = "DefaultEndpointsProtocol=https;AccountName=developer;AccountKey=somekey;EndpointSuffix=core.windows.net",_
+  connection = "DefaultEndpointsProtocol=https;AccountName=developer;AccountKey=somekey;EndpointSuffix=core.windows.net"
+
+GS::
+  url = "gs://my_bucket/somepath"
+  # there are no good paramteres to connection at current time.
 
 AzureSAS::
 

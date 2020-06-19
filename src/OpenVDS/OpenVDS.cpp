@@ -247,7 +247,7 @@ static std::unique_ptr<OpenOptions> createGSOpenOptions(const StringWrapper& url
   auto urlKeyBegin = bucket_end + 1;
   if (urlKeyBegin < end)
   {
-    openOptions->key = std::string(urlKeyBegin, end);
+    openOptions->pathPrefix = std::string(urlKeyBegin, end);
   }
 
   for (auto& connectionPair : connectionStringMap)

@@ -500,12 +500,12 @@ Parameters:
 bucket :
     The bucket of the VDS
 
-key :
-    The key prefix of the VDS)doc";
+pathPrefix :
+    The prefix of the VDS)doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_bucket = R"doc()doc";
 
-static const char *__doc_OpenVDS_GoogleOpenOptions_key = R"doc()doc";
+static const char *__doc_OpenVDS_GoogleOpenOptions_pathPrefix = R"doc()doc";
 
 static const char *__doc_OpenVDS_IJKGridDefinition = R"doc()doc";
 

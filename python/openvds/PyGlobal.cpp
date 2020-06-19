@@ -90,7 +90,7 @@ PyGlobal::initModule(py::module& m)
   GoogleOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions));
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &>(), py::arg("bucket"), py::arg("key"), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_2));
   GoogleOpenOptions_.def_readwrite("bucket"                      , &GoogleOpenOptions::bucket     , OPENVDS_DOCSTRING(GoogleOpenOptions_bucket));
-  GoogleOpenOptions_.def_readwrite("key"                         , &GoogleOpenOptions::key        , OPENVDS_DOCSTRING(GoogleOpenOptions_key));
+  GoogleOpenOptions_.def_readwrite("pathPrefix"                  , &GoogleOpenOptions::pathPrefix , OPENVDS_DOCSTRING(GoogleOpenOptions_pathPrefix));
 
   // InMemoryOpenOptions
   py::class_<InMemoryOpenOptions, OpenOptions, std::unique_ptr<InMemoryOpenOptions>> 

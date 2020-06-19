@@ -24,11 +24,12 @@
 
 namespace OpenVDS
 {
-  constexpr char GOOGLEAPIS[] = "https://storage.googleapis.com";
+  static const std::string GOOGLEAPIS = "https://storage.googleapis.com";
 
   IOManagerGoogle::IOManagerGoogle(const GoogleOpenOptions& openOptions, Error &error)
     : m_curlHandler(error)
     , m_bucket(openOptions.bucket)
+    , m_pathPrefix(openOptions.pathPrefix)
   {
     if (m_bucket.empty())
     {
@@ -49,10 +50,17 @@ namespace OpenVDS
 
   std::string convertToISO8601(const std::string& value);
 
+  static std::string downloadUrl(const std::string& googleapi, const std::string& bucket, const std::string& pathPrefix, const std::string& objectName)
+  {
+    //std::string url = fmt::format("{}/storage/v1/b/{}/o/{}?alt=media", GOOGLEAPIS, m_bucket, objectName); //I cant make this scheme work
+    if (pathPrefix.size())
+      return fmt::format("{}/{}/{}/{}", googleapi, bucket, pathPrefix, objectName);
+    return fmt::format("{}/{}/{}", googleapi, bucket, objectName);
+  }
+
   std::shared_ptr<Request> IOManagerGoogle::ReadObjectInfo(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler)
   {
-    //std::string url = fmt::format("{}/storage/v1/b/{}/o/{}?alt=media", GOOGLEAPIS, m_bucket, objectName);
-    std::string url = fmt::format("{}/{}/{}", GOOGLEAPIS, m_bucket, objectName);
+    std::string url = downloadUrl(GOOGLEAPIS, m_bucket, m_pathPrefix, objectName);
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
 
@@ -71,8 +79,7 @@ namespace OpenVDS
 
   std::shared_ptr<Request> IOManagerGoogle::ReadObject(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
   {
-    //std::string url = fmt::format("{}/storage/v1/b/{}/o/{}?alt=media", GOOGLEAPIS, m_bucket, objectName); //I cant make this work with sub-paths!!!
-    std::string url = fmt::format("{}/{}/{}", GOOGLEAPIS, m_bucket, objectName);
+    std::string url = downloadUrl(GOOGLEAPIS, m_bucket, m_pathPrefix, objectName);
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
     auto authorization_header = m_credentials->AuthorizationHeader();
@@ -112,7 +119,10 @@ namespace OpenVDS
     headers.push_back(fmt::format("Content-Type: multipart/related; boundary={}", delimiterStr));
 
     Json::Value jsonHeader;
-    jsonHeader["name"] = objectName;
+    if (m_pathPrefix.size())
+      jsonHeader["name"] = fmt::format("{}/{}", m_pathPrefix, objectName);
+    else
+      jsonHeader["name"] = objectName;
     if (contentDispostionFilename.size())
       jsonHeader["Content-Disposition"] = fmt::format("attachment; filename={}", contentDispostionFilename);
     if (metadataHeader.size())
