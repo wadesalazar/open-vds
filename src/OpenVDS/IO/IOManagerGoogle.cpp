@@ -126,16 +126,20 @@ namespace OpenVDS
     std::string jsonHeaderString = Json::writeString(m_jsonWriterBuilder, jsonHeader);
 
     std::string multipartMsgHeader = fmt::format("--{}\nContent-Type: application/json; charset=UTF-8\n\n{}\n\n--{}\nContent-Type: {}\n\n", delimiterStr, jsonHeaderString, delimiterStr, contentType);
+    
     std::string multipartMsgFooter = fmt::format("\n--{}--", delimiterStr);
 
-    std::shared_ptr<std::vector<uint8_t>> continousData = std::make_shared<std::vector<uint8_t>>();
-    continousData->reserve(data->size() + multipartMsgHeader.size() + multipartMsgFooter.size());
-    continousData->insert(continousData->end(), multipartMsgHeader.begin(), multipartMsgHeader.end());
-    continousData->insert(continousData->end(), data->begin(), data->end());
-    continousData->insert(continousData->end(), multipartMsgFooter.begin(), multipartMsgFooter.end());
-    headers.push_back(fmt::format("Content-Length: {}", continousData->size()));
+    std::vector<std::shared_ptr<std::vector<uint8_t>>> upload_buffers;
+    upload_buffers.reserve(3);
+    upload_buffers.emplace_back(std::make_shared<std::vector<uint8_t>>(multipartMsgHeader.begin(), multipartMsgHeader.end()));
+    upload_buffers.emplace_back(data);
+    upload_buffers.emplace_back(std::make_shared<std::vector<uint8_t>>(multipartMsgFooter.begin(), multipartMsgFooter.end()));
 
-    m_curlHandler.addUploadRequest(request, url, headers, true, continousData);
+    size_t uploadSize = multipartMsgHeader.size() + data->size() + multipartMsgFooter.size();
+
+    headers.push_back(fmt::format("Content-Length: {}", uploadSize));
+
+    m_curlHandler.addUploadRequest(request, url, headers, true, std::move(upload_buffers), uploadSize);
     return request;
   }
 }

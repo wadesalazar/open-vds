@@ -151,14 +151,17 @@ public:
 
 struct CurlUploadHandler : public CurlEasyHandler
 {
-  CurlUploadHandler(UVEventLoopData *eventLoopData, std::weak_ptr<UploadRequestCurl> request, const std::string &url, std::vector<std::string> headers,  bool post, const std::shared_ptr<std::vector<uint8_t>> &data)
+  CurlUploadHandler(UVEventLoopData *eventLoopData, std::weak_ptr<UploadRequestCurl> request, const std::string &url, std::vector<std::string> headers,  bool post, std::vector<std::shared_ptr<std::vector<uint8_t>>> &&data, int64_t completeSize)
     : CurlEasyHandler(eventLoopData)
     , request(request)
     , url(url)
     , headers(std::move(headers))
     , post(post)
-    , data(data)
-    , data_offset(0)
+    , data(std::move(data))
+    , completeSize(completeSize)
+    , bufferIndex(0)
+    , dataOffset(0)
+    , totalTransferred(0)
   {}
 
   void handleDone(int responsCode, const Error &error) override;
@@ -170,8 +173,11 @@ struct CurlUploadHandler : public CurlEasyHandler
   std::string url;
   std::vector<std::string> headers;
   bool post;
-  std::shared_ptr<std::vector<uint8_t>> data;
-  size_t data_offset;
+  std::vector<std::shared_ptr<std::vector<uint8_t>>> data;
+  int64_t completeSize;
+  int bufferIndex;
+  size_t dataOffset;
+  size_t totalTransferred;
   std::vector<uint8_t> responsData;
 };
 
@@ -208,11 +214,13 @@ public:
   ~CurlHandler();
 
   void addDownloadRequest(const std::shared_ptr<DownloadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, std::function<std::string(const std::string &date)> toISO8601DateTransformer, CurlDownloadHandler::Verb verb);
-  void addUploadRequest(const std::shared_ptr<UploadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, const std::shared_ptr<std::vector<uint8_t>>& data)
+  void addUploadRequest(const std::shared_ptr<UploadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, const std::shared_ptr<std::vector<uint8_t>> &data)
   {
-    addUploadRequest(request, url, headers, false, data);
+    std::vector<std::shared_ptr<std::vector<uint8_t>>> uploadbuffers;
+    uploadbuffers.emplace_back(data);
+    addUploadRequest(request, url, headers, false, std::move(uploadbuffers), data->size());
   }
-  void addUploadRequest(const std::shared_ptr<UploadRequestCurl> &request, const std::string &url, const std::vector<std::string> &headers, bool post, const std::shared_ptr<std::vector<uint8_t>> &data);
+  void addUploadRequest(const std::shared_ptr<UploadRequestCurl> &request, const std::string &url, const std::vector<std::string> &headers, bool post, std::vector<std::shared_ptr<std::vector<uint8_t>>> &&data, int64_t completeSize);
 
 private:
   UVEventLoopData m_eventLoopData;

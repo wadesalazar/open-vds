@@ -266,7 +266,7 @@ static void addUploadCB(uv_async_t *handle)
     {
       curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_UPLOAD, 1L);
     }
-    curl_off_t filesize = curl_off_t(uploadRequest->data->size());
+    curl_off_t filesize = curl_off_t(uploadRequest->completeSize);
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_INFILESIZE_LARGE, filesize);
     curl_easy_setopt(uploadRequest->curlEasy, CURLOPT_DEBUGFUNCTION, curl_easy_debug_callback);
     if (curl_verbose_output)
@@ -776,9 +776,21 @@ void CurlUploadHandler::handleWriteData(char* ptr, size_t size)
 }
 size_t CurlUploadHandler::handleReadRequest(char* buffer, size_t size)
 {
-  size_t to_copy = std::min(size, data->size() - data_offset);
-  memcpy(buffer, data->data() + data_offset, to_copy);
-  data_offset += to_copy;
+  if (bufferIndex >= data.size())
+    return 0;
+  size_t to_copy = 0;
+  while (to_copy == 0 && bufferIndex < data.size())
+  {
+    to_copy = std::min(size, data[bufferIndex]->size() - dataOffset);
+    memcpy(buffer, data[bufferIndex]->data() + dataOffset, to_copy);
+    dataOffset += to_copy;
+    totalTransferred += to_copy;
+    if (dataOffset >= data[bufferIndex]->size())
+    {
+      dataOffset = 0;
+      bufferIndex++;
+    }
+  }
   return to_copy;
 }
 
@@ -868,9 +880,9 @@ void CurlHandler::addDownloadRequest(const std::shared_ptr<DownloadRequestCurl>&
  uv_async_send(&m_eventLoopData.asyncAddDownload);
 }
 
-void CurlHandler::addUploadRequest(const std::shared_ptr<UploadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, bool post, const std::shared_ptr<std::vector<uint8_t>>& data)
+void CurlHandler::addUploadRequest(const std::shared_ptr<UploadRequestCurl>& request, const std::string& url, const std::vector<std::string>& headers, bool post, std::vector<std::shared_ptr<std::vector<uint8_t>>> && data, int64_t completeSize)
 {
-  auto curlData = std::make_shared<CurlUploadHandler>(&m_eventLoopData, request, url, headers, post, data);
+  auto curlData = std::make_shared<CurlUploadHandler>(&m_eventLoopData, request, url, headers, post, std::move(data), completeSize);
   request->m_uploadHandler = curlData;
   std::unique_lock<std::mutex> lock(m_eventLoopData.mutex);
   m_eventLoopData.incommingUploadRequests.push_back(curlData);
