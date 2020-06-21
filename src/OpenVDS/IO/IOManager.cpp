@@ -27,9 +27,10 @@
 #ifndef OPENVDS_NO_AZURE_IOMANAGER
 #include "IOManagerAzure.h"
 #endif
+#ifndef OPENVDS_NO_GCP_IOMANAGER
 #include "IOManagerGoogle.h"
-
-#ifndef OPENVDS_NO_CURL_IOMANAGER
+#endif
+#ifndef OPENVDS_NO_AZURE_PRESIGNED_IOMANAGER
 #include "IOManagerAzurePresigned.h"
 #endif
 
@@ -56,7 +57,7 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
   case OpenOptions::Azure:
       return new IOManagerAzure(static_cast<const AzureOpenOptions&>(options), error);
 #endif
-#ifndef OPENVDS_NO_CURL_IOMANAGER
+#ifndef OPENVDS_NO_AZURE_PRESIGNED_IOMANAGER
   case OpenOptions::AzurePresigned:
     return new IOManagerAzurePresigned(static_cast<const AzurePresignedOpenOptions&>(options).baseUrl, static_cast<const AzurePresignedOpenOptions&>(options).urlSuffix, error);
 #endif

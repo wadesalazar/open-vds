@@ -18,8 +18,6 @@
 #include "IOManagerAzurePresigned.h"
 
 #include <fmt/format.h>
-#include <sstream>
-#include <iomanip>
 
 namespace OpenVDS
 {
@@ -43,17 +41,6 @@ namespace OpenVDS
       if (m_suffix[0] != '?')
         m_suffix.insert(m_suffix.begin(), '?');
     }
-  }
-
-  std::string convertToISO8601(const std::string &value)
-  {
-    std::tm tm = {};
-    std::stringstream ss(value);
-    ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S");
-
-    ss = std::stringstream();
-    ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%SZ");
-    return ss.str();
   }
 
   std::shared_ptr<Request> IOManagerAzurePresigned::ReadObjectInfo(const std::string& objectName, std::shared_ptr<TransferDownloadHandler> handler)

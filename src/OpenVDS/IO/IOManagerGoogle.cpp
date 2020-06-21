@@ -48,8 +48,6 @@ namespace OpenVDS
 
   }
 
-  std::string convertToISO8601(const std::string& value);
-
   static std::string downloadUrl(const std::string& googleapi, const std::string& bucket, const std::string& pathPrefix, const std::string& objectName)
   {
     //std::string url = fmt::format("{}/storage/v1/b/{}/o/{}?alt=media", GOOGLEAPIS, m_bucket, objectName); //I cant make this scheme work

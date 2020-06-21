@@ -21,6 +21,9 @@
 
 #include <VDS/CompilerDefines.h>
 
+#include <sstream>
+#include <iomanip>
+
 namespace OpenVDS
 {
 
@@ -32,6 +35,16 @@ static char asciitolower(char in) {
   return in;
 }
 
+std::string convertToISO8601(const std::string& value)
+{
+    std::tm tm = {};
+    std::stringstream ss(value);
+    ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S");
+
+    ss = std::stringstream();
+    ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%SZ");
+    return ss.str();
+}
 
 SocketContext::SocketContext(CurlEasyHandler* request, curl_socket_t socket)
   : curlMulti(request->eventLoopData->curlMulti)

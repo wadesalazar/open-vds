@@ -41,9 +41,6 @@
 
 namespace OpenVDS
 {
-
-class IOManagerCurl;
-
 struct UVEventLoopData;
 struct CurlEasyHandler
 {
@@ -226,5 +223,7 @@ private:
   UVEventLoopData m_eventLoopData;
   std::unique_ptr<std::thread> m_thread;
 };
+
+std::string convertToISO8601(const std::string& value);
 }
 #endif //IOMANAGERCURL_H
