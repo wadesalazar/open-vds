@@ -13,3 +13,5 @@ absl*
 crc32c*
 google-cloud-cpp*
 java*
+google_nlohmann*
+libressl*
