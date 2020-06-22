@@ -74,6 +74,7 @@ add_test_executable(vds_integration_tests
   VDS/ParseVDSJsonTest.cpp
   VDS/DeserializeVolumeDataTest.cpp
   VDS/RequestVolumeCleanupThread.cpp
+  VDS/ParseConnectionStringTest.cpp
   )
 
 add_test_executable(openvds_integration_tests

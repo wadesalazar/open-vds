@@ -31,6 +31,7 @@
 #include "VDS/VolumeDataPageAccessorImpl.h"
 #include "VDS/VolumeDataAccessManagerImpl.h"
 #include "VDS/VolumeDataRequestProcessor.h"
+#include "VDS/ConnectionStringParser.h"
 
 #include <fmt/format.h>
 
@@ -39,66 +40,6 @@
 namespace OpenVDS
 {
 
-static char asciitolower(char in) {
-  if (in <= 'Z' && in >= 'A')
-    return in - ('Z' - 'z');
-  return in;
-}
-
-static std::string trim(const char *start, const char *end)
-{
-  while (std::isspace(*start) && start < end)
-    start++;
-  end--;
-  while (end > start && std::isspace(*end))
-    end--;
-  return std::string(start, end + 1);
-}
-
-static std::map<std::string, std::string> parseConnectionString(const char* connectionString, size_t connectionStringSize, Error &error)
-{
-  std::map<std::string, std::string> ret;
-  auto it = connectionString;
-  auto end = connectionString + connectionStringSize;
- 
-  const char* name_begin = nullptr;
-  const char* name_end = nullptr;
-  while (it < end)
-  {
-    auto keyValueEnd = std::find(it, end, ';');
-    auto equals = std::find(it, keyValueEnd, '=');
-    name_begin = it;
-    name_end = equals;
-    it = equals + 1;
-    if (it >= keyValueEnd)
-    {
-      error.code = -1;
-      std::string name(name_begin, name_end);
-      error.string = fmt::format("Invalid connection string. Name {} has no value.", name);
-      return ret;
-    }
-
-    std::string name = trim(name_begin, name_end);
-    if (name.empty())
-    {
-      error.code = - 1;
-      error.string = fmt::format("Empty name in connection string. Name must consist of more than empty spaces.");
-      return ret;
-    }
-    std::string value = trim(it, keyValueEnd);
-    if (value.empty())
-    {
-      error.code = -1;
-      error.string = fmt::format("Empty value in connection string. Name {} has empty value.", name);
-      return ret;
-    }
-    
-    std::transform(name.begin(), name.end(), name.begin(), asciitolower);
-    ret.emplace(std::move(name), std::move(value));
-    it = keyValueEnd + 1;
-  }
-  return ret;
-}
 
 template<int SIZE>
 static bool isProtocol(const StringWrapper &str, const char(&literal)[SIZE])
@@ -123,7 +64,7 @@ static std::unique_ptr<OpenOptions> createS3OpenOptions(const StringWrapper &url
 {
   std::unique_ptr<AWSOpenOptions> openOptions(new AWSOpenOptions());
 
-  auto connectionStringMap = parseConnectionString(connectionString.data, connectionString.size, error);
+  auto connectionStringMap = ParseConnectionString(connectionString.data, connectionString.size, error);
   if (error.code)
   {
     return nullptr;
@@ -210,7 +151,7 @@ static std::unique_ptr<OpenOptions> createAzureSASOpenOptions(const StringWrappe
   openOptions->baseUrl.insert(0, http, sizeof(http) - 1);
   openOptions->baseUrl.append(url.data, url.data + url.size);
 
-  auto connectionStringMap = parseConnectionString(connectionString.data, connectionString.size, error);
+  auto connectionStringMap = ParseConnectionString(connectionString.data, connectionString.size, error);
   for (auto& connectionPair : connectionStringMap)
   {
     if (connectionPair.first == "suffix")
@@ -229,7 +170,7 @@ static std::unique_ptr<OpenOptions> createAzureSASOpenOptions(const StringWrappe
 static std::unique_ptr<OpenOptions> createGSOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
 {
   std::unique_ptr<GoogleOpenOptions> openOptions(new GoogleOpenOptions());
-  auto connectionStringMap = parseConnectionString(connectionString.data, connectionString.size, error);
+  auto connectionStringMap = ParseConnectionString(connectionString.data, connectionString.size, error);
   if (error.code)
   {
     return nullptr;
