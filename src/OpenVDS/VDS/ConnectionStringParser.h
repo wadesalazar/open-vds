@@ -24,6 +24,8 @@
 #include <map>
 #include <fmt/format.h>
 
+#include <cctype>
+
 namespace OpenVDS
 {
 
@@ -60,6 +62,14 @@ inline std::map<std::string, std::string> ParseConnectionString(const char* conn
     it = equals + 1;
 
     std::string name = trim(name_begin, name_end);
+
+    if (name.size() && equals == keyValueEnd)
+    {
+      error.code = - 1;
+      error.string = fmt::format("Missing required = sign for name {} in connection string. Every key has to have a = sign next to it.", name);
+      return ret;
+    }
+
     if (name.empty() && it < keyValueEnd)
     {
       error.code = - 1;

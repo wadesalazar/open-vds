@@ -51,4 +51,14 @@ GTEST_TEST(VDS_integration, ParseConnectionString)
   map = OpenVDS::ParseConnectionString(manySemicolons.data(), manySemicolons.size(), error);
   EXPECT_EQ(error.code, 0);
   EXPECT_EQ(map.size(), 2);
+  
+  error = OpenVDS::Error();
+  std::string noEquals = "Foo;hello=hello";
+  map = OpenVDS::ParseConnectionString(noEquals.data(), noEquals.size(), error);
+  EXPECT_NE(error.code, 0);
+  
+  error = OpenVDS::Error();
+  std::string noEquals2 = "Foo=bar;hello";
+  map = OpenVDS::ParseConnectionString(noEquals2.data(), noEquals2.size(), error);
+  EXPECT_NE(error.code, 0);
 }

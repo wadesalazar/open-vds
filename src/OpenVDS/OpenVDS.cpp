@@ -35,8 +35,6 @@
 
 #include <fmt/format.h>
 
-#include <cctype>
-
 namespace OpenVDS
 {
 
