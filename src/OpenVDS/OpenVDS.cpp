@@ -226,7 +226,7 @@ static std::unique_ptr<OpenOptions> createAzureSASOpenOptions(const StringWrappe
   }
   return openOptions;
 }
-static std::unique_ptr<OpenOptions> createGSOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
+static std::unique_ptr<OpenOptions> createGoogleOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
 {
   std::unique_ptr<GoogleOpenOptions> openOptions(new GoogleOpenOptions());
   auto connectionStringMap = parseConnectionString(connectionString.data, connectionString.size, error);
@@ -285,7 +285,7 @@ OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString
   }
   else if (isProtocol(url, "gs://"))
   {
-    openOptions = createGSOpenOptions(removeProtocol(url, "gs://"), connectionString, error);
+    openOptions = createGoogleOpenOptions(removeProtocol(url, "gs://"), connectionString, error);
   }
   else
   {

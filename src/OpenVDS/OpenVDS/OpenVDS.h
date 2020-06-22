@@ -168,7 +168,7 @@ struct GoogleOpenOptions : OpenOptions
 
   GoogleOpenOptions() : OpenOptions(GoogleStorage) {}
   /// <summary>
-  /// GSOpenOptions constructor
+  /// GoogleOpenOptions constructor
   /// </summary>
   /// <param name="bucket">
   /// The bucket of the VDS

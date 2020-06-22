@@ -492,7 +492,7 @@ static const char *__doc_OpenVDS_GoogleOpenOptions = R"doc(Options for opening a
 static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_2 =
-R"doc(GSOpenOptions constructor
+R"doc(GoogleOpenOptions constructor
 
 Parameters:
 -----------
