@@ -80,6 +80,7 @@ set (PRIVATE_HEADER_FILES
   VDS/VolumeDataRequestProcessor.h
   VDS/ThreadPool.h
   VDS/Env.h
+  VDS/ConnectionStringParser.h
   )
 
 set (EXPORTED_HEADER_FILES
