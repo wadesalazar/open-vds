@@ -83,6 +83,20 @@ public class VolumeDataLayoutDescriptor {
 
     private int[] _values;
 
+    public VolumeDataLayoutDescriptor(BrickSize brickSize, int negativeMargin,
+            int positiveMargin, int brickSize2DMultiplier, LODLevels lodLevels,
+            boolean isCreate2DLODs, boolean isForceFullResolutionDimension,
+            int fullResolutionDimension) {
+        _values[BRICK_SIZE] =  brickSize.ordinal();
+        _values[NEGATIVE_MARGIN] = negativeMargin;
+        _values[POSITIVE_MARGIN] = positiveMargin;
+        _values[BRICK_SIZE_2D_MULTIPLIER] = brickSize2DMultiplier;
+        _values[LOD_LEVELS ] = lodLevels.ordinal();
+        _values[IS_CREATE_2D_LODS] =  isCreate2DLODs ? 1 : 0;
+        _values[IS_FORCE_FULL_RESOLUTION_DIMENSION] = isForceFullResolutionDimension ? 1 : 0;
+        _values[FULL_RESOLUTION_DIMENSION] = fullResolutionDimension;
+    }
+
     public VolumeDataLayoutDescriptor(int[] values) {
         _values = values;
     }
