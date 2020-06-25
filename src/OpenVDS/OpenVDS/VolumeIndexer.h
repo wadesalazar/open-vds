@@ -33,8 +33,10 @@ enum DataBlockDimensionality
   DataBlockDimensionality_Max = 4
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 template <int D>
 struct GetDataBlockDimensionality { enum { Dimensionality = (D < DataBlockDimensionality_Max) ? D : DataBlockDimensionality_Max }; };
+#endif
 
 class VolumeDataPage;
 class VolumeDataLayout;

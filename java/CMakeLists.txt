@@ -68,18 +68,12 @@ add_jar(openvds-java
 get_property(BUILT_JAR_FILE TARGET openvds-java PROPERTY JAR_FILE)
 
 if (BUILD_DOCS)
-  set(OLD_CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
-  set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_BINARY_DIR}/docs/html)
-  create_javadoc(openvds-javadoc
-    FILES ${JAVA_SOURCE_FILES}
-    INSTALLPATH ${CMAKE_INSTALL_DOCDIR}/html
-    WINDOWTITLE \"OpenVDS-Java\"
-    DOCTITLE \"<h1>OpenVDS-Java</h1>\"
-    AUTHOR TRUE
-    USE TRUE
-    VERSION TRUE
+  set(JAVADOC_OPTIONS -d ${CMAKE_BINARY_DIR}/docs/html/javadoc -windowtitle '\"OpenVDS-Java\"' -doctitle '\"<h1>OpenVDS-Java</h1>\"' -author -use -version)
+  add_custom_target(openvds-javadoc ALL
+    COMMAND ${Java_JAVADOC_EXECUTABLE} ${JAVADOC_OPTIONS}
+    ${JAVA_SOURCE_FILES}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
-  set(CMAKE_CURRENT_BINARY_DIR ${OLD_CMAKE_CURRENT_BINARY_DIR})
 endif()
 
 

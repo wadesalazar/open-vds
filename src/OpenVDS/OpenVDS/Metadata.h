@@ -220,6 +220,7 @@ public:
 
 } // end namespace OpenVDS
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace std
 {
 template<>
@@ -233,6 +234,7 @@ struct hash<OpenVDS::MetadataKey>
   }
 };
 } // end namespace std
+#endif
 
 namespace OpenVDS
 {

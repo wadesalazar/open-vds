@@ -13,9 +13,10 @@ Welcome to OpenVDS's documentation!
   getting-started
   connection
 
-  cpp-api
+  cppdoc/cpp-important-types-and-functions
+  cppdoc/cpp-api
   python-api
-  Java-API <javadoc/openvds-javadoc/index.html#http://>
+  Java API <javadoc/index.html#http://>
 
   tools/SEGYImport/README.md
   tools/SEGYExport/README.md
@@ -28,7 +29,9 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+
 API Reference
 =============
-* :ref:`cpp-api`
-* :ref:`python-api`
+* `C++ Doxygen <cppdoc/doxygen/index.html#http://>`_
+* `Java API <javadoc/index.html#http://>`_
+

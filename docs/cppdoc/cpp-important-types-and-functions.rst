@@ -1,7 +1,7 @@
-.. _cpp-api:
+.. _cpp-important-types-and-functions:
 
-C++ API
-*******
+C++ important types and functions
+*********************************
 
 .. doxygenfunction:: OpenVDS::Open(const OpenOptions &options, Error &error)
 
