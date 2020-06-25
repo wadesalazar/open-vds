@@ -15,18 +15,10 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#ifndef PARSEVDSJSON_H
-#define PARSEVDSJSON_H
+#include "VolumeDataChunk.h"
+#include "VolumeDataLayer.h"
 
-#include <OpenVDS/OpenVDS.h>
-#include <VDS/VDS.h>
-
-namespace OpenVDS
+std::size_t std::hash<OpenVDS::VolumeDataChunk>::operator()(const OpenVDS::VolumeDataChunk& volumeDataChunk) const
 {
-bool ParseVolumeDataLayout(const std::vector<uint8_t> &json, VolumeDataLayoutDescriptor &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> &axisDescriptors, std::vector<VolumeDataChannelDescriptor> &channelDescriptors, DescriptorStringContainer &descriptorStrings, MetadataContainer &metadataContainer, Error &error);
-bool ParseLayerStatus(const std::vector<uint8_t> &json, VDS &vds, LayerMetadataContainer &layerMetadataContainer, Error &error);
-std::vector<uint8_t> SerializeVolumeDataLayout(VDS& vds);
-std::vector<uint8_t> SerializeLayerStatus(VDS& vds, LayerMetadataContainer const &layerMetadataContainer);
+  return OpenVDS::HashCombiner(volumeDataChunk.index).Add(volumeDataChunk.layer->GetLayerID()).GetCombinedHash();
 }
-
-#endif //PARSEVDSJSON_H

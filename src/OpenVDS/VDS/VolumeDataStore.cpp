@@ -590,7 +590,8 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChu
   return true;
 }
 
-bool VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, std::vector<uint8_t>& destinationBuffer, uint64_t& outputHash, Error& error)
+uint64_t
+VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, std::vector<uint8_t>& destinationBuffer)
 {
   DataBlockDescriptor dataBlockHeader;
   dataBlockHeader.Components = dataBlock.Components;
@@ -618,8 +619,7 @@ bool VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const Da
     {
       destinationBuffer.resize(0);
       auto& layer = *chunk.layer;
-      outputHash = GetConstantValueVolumeDataHash(dataBlock, (const uint8_t *) targetBuffer, layer.GetValueRange(), layer.GetIntegerScale(), layer.GetIntegerOffset(), layer.IsUseNoValue(), layer.GetNoValue());
-      return true;
+      return GetConstantValueVolumeDataHash(dataBlock, (const uint8_t *) targetBuffer, layer.GetValueRange(), layer.GetIntegerScale(), layer.GetIntegerOffset(), layer.IsUseNoValue(), layer.GetNoValue());
     }
     break;
   }
@@ -633,8 +633,7 @@ bool VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const Da
     {
       destinationBuffer.resize(0);
       auto& layer = *chunk.layer;
-      outputHash = GetConstantValueVolumeDataHash(dataBlock, tmpdata.get(), layer.GetValueRange(), layer.GetIntegerScale(), layer.GetIntegerOffset(), layer.IsUseNoValue(), layer.GetNoValue());
-      return true;
+      return GetConstantValueVolumeDataHash(dataBlock, tmpdata.get(), layer.GetValueRange(), layer.GetIntegerScale(), layer.GetIntegerOffset(), layer.IsUseNoValue(), layer.GetNoValue());
     }
     unsigned long compressedMaxSize = compressBound(tmpbuffersize);
     destinationBuffer.resize(compressedMaxSize + sizeof(dataBlockHeader));
@@ -647,19 +646,14 @@ bool VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const Da
 
     if (status != Z_OK)
     {
-      error.code = -100;
-      error.string = "zlib compression failed";
-      return false;
+      throw std::runtime_error("zlib compression failed");
     }
     break;
   }
   default:
-    error.code = -2;
-    error.string = "Invalid compression method specified when serializing a VolumeDataChunk";
-    return false;
+    throw std::runtime_error("Invalid compression method specified when serializing a VolumeDataChunk");
   }
-  outputHash = VolumeDataHash::UNKNOWN;
-  return true;
+  return VolumeDataHash::UNKNOWN;
 }
 
 }

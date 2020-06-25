@@ -19,6 +19,7 @@
 #define VOLUMEDATACHUNK_H
 
 #include <cstdint>
+#include "Hash.h"
 
 namespace OpenVDS
 {
@@ -27,6 +28,19 @@ struct VolumeDataChunk
 {
   const VolumeDataLayer *layer;
   int64_t index;
+};
+
+inline bool operator==(VolumeDataChunk const &lhs, VolumeDataChunk const &rhs)
+{
+  return lhs.index == rhs.index && lhs.layer == rhs.layer;
+}
+}
+
+namespace std {
+template <>
+struct hash<OpenVDS::VolumeDataChunk>
+{
+  std::size_t operator()(const OpenVDS::VolumeDataChunk& volumeDataChunk) const;
 };
 }
 

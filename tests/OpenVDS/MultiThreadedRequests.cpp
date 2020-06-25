@@ -53,7 +53,7 @@ TEST(Multithreading, requests)
     int32_t minPos[OpenVDS::Dimensionality_Max];
     int32_t maxPos[OpenVDS::Dimensionality_Max];
     int32_t voxelCount;
-    int32_t requestId;
+    int64_t requestId;
     std::vector<float> bufferFloat;
   };
   std::vector<std::vector<ThreadRequestData>> m_dataRequests;
@@ -93,7 +93,6 @@ TEST(Multithreading, requests)
         {
           requestData.bufferFloat.resize(requestData.voxelCount);
           requestData.requestId = accessManager->RequestVolumeSubset(requestData.bufferFloat.data(), layout, OpenVDS::Dimensions_012, 0, 0, requestData.minPos, requestData.maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-
         }
         bool success = true;
         for (auto& requestData : threadRequestData)

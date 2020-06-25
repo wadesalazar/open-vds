@@ -19,7 +19,6 @@
 #include "VolumeDataLayer.h"
 #include "VolumeDataLayoutImpl.h"
 #include "VolumeDataHash.h"
-#include "MetadataManager.h"
 #include "CompilerDefines.h"
 #include <OpenVDS/Vector.h>
 
@@ -30,8 +29,6 @@
 #include "Base64.h"
 
 namespace OpenVDS
-{
-namespace Internal
 {
 static DimensionsND DimensionsNDFromJson(Json::Value const &jsonDimensionsND)
 {
@@ -436,164 +433,6 @@ bool ParseJSONFromBuffer(const std::vector<uint8_t> &json, Json::Value &root, Er
   return false;
 }
 
-bool ParseVolumeDataLayout(const std::vector<uint8_t> &json, VDS &vds, Error &error)
-{
-  Json::Value root;
-
-  if (!ParseJSONFromBuffer(json, root, error))
-  {
-    return false;
-  }
-
-  if (root.empty())
-    return true;
-
-  Json::Value
-    layoutDescriptor = root["layoutDescriptor"];
-
-  vds.layoutDescriptor = VolumeDataLayoutDescriptor(BrickSizeFromJson(layoutDescriptor["brickSize"]),
-                                                       layoutDescriptor["negativeMargin"].asInt(),
-                                                       layoutDescriptor["positiveMargin"].asInt(),
-                                                       layoutDescriptor["brickSize2DMultiplier"].asInt(),
-                                                       LodLevelsFromJson(layoutDescriptor["lodLevels"]),
-                                                       (layoutDescriptor["create2DLODs"].asBool() ? VolumeDataLayoutDescriptor::Options_Create2DLODs : VolumeDataLayoutDescriptor::Options_None) |
-                                                       (layoutDescriptor["forceFullResolutionDimension"].asBool() ? VolumeDataLayoutDescriptor::Options_ForceFullResolutionDimension : VolumeDataLayoutDescriptor::Options_None),
-                                                       layoutDescriptor["fullResolutionDimension"].asInt());
-
-  for (const Json::Value &axisDescriptor : root["axisDescriptors"])
-  {
-    VolumeDataAxisDescriptor
-      volumeDataAxisDescriptor(axisDescriptor["numSamples"].asInt(),
-                               AddDescriptorString(axisDescriptor["name"].asString(), vds),
-                               AddDescriptorString(axisDescriptor["unit"].asString(), vds),
-                               axisDescriptor["coordinateMin"].asFloat(),
-                               axisDescriptor["coordinateMax"].asFloat());
-
-    vds.axisDescriptors.push_back(volumeDataAxisDescriptor);
-  }
-
-  for (const Json::Value &channelDescriptor : root["channelDescriptors"])
-  {
-    if (channelDescriptor["useNoValue"].asBool())
-    {
-      vds.channelDescriptors.push_back(VolumeDataChannelDescriptor(
-        VoxelFormatFromJson(channelDescriptor["format"]),
-        VoxelComponentsFromJson(channelDescriptor["components"]),
-        AddDescriptorString(channelDescriptor["name"].asString(), vds),
-        AddDescriptorString(channelDescriptor["unit"].asString(), vds),
-        channelDescriptor["valueRange"][0].asFloat(),
-        channelDescriptor["valueRange"][1].asFloat(),
-        ChannelMappingFromJson(channelDescriptor["channelMapping"]),
-        channelDescriptor["mappedValues"].asInt(),
-        (channelDescriptor["discrete"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default) |
-        (channelDescriptor["renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable) |
-        (channelDescriptor["allowLossyCompression"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NoLossyCompression),
-        channelDescriptor["noValue"].asFloat(),
-        channelDescriptor["integerScale"].asFloat(),
-        channelDescriptor["integerOffset"].asFloat()));
-    }
-    else
-    {
-      vds.channelDescriptors.push_back(VolumeDataChannelDescriptor(
-        VoxelFormatFromJson(channelDescriptor["format"]),
-        VoxelComponentsFromJson(channelDescriptor["components"]),
-        AddDescriptorString(channelDescriptor["name"].asString(), vds),
-        AddDescriptorString(channelDescriptor["unit"].asString(), vds),
-        channelDescriptor["valueRange"][0].asFloat(),
-        channelDescriptor["valueRange"][1].asFloat(),
-        ChannelMappingFromJson(channelDescriptor["channelMapping"]),
-        channelDescriptor["mappedValues"].asInt(),
-        (channelDescriptor["discrete"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default) |
-        (channelDescriptor["renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable) |
-        (channelDescriptor["allowLossyCompression"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NoLossyCompression),
-        channelDescriptor["integerScale"].asFloat(),
-        channelDescriptor["integerOffset"].asFloat()));
-    }
-  }
-
-  for (const Json::Value &metadata : root["metadata"])
-  {
-    //MetadataKey key = { MetadataTypeFromJson(metadata["type"]), metadata["category"].asString(), metadata["name"].asString() };
-
-    //vds.metadataContainer.keys.push_back(key);
-
-    std::string type = metadata["type"].asString();
-    std::string category = metadata["category"].asString();
-    std::string name = metadata["name"].asString();
-    const Json::Value &value = metadata["value"];
-    if (type == "Int")
-    {
-      vds.metadataContainer.SetMetadataInt(category.c_str(), name.c_str(), value.asInt());
-    }
-    else if (type == "IntVector2")
-    {
-      vds.metadataContainer.SetMetadataIntVector2(category.c_str(), name.c_str(), IntVector2(value[0].asInt(), value[1].asInt()));
-    }
-    else if (type == "IntVector3")
-    {
-      vds.metadataContainer.SetMetadataIntVector3(category.c_str(), name.c_str(), IntVector3(value[0].asInt(), value[1].asInt(), value[2].asInt()));
-    }
-    else if (type == "IntVector4")
-    {
-      vds.metadataContainer.SetMetadataIntVector4(category.c_str(), name.c_str(), IntVector4(value[0].asInt(), value[1].asInt(), value[2].asInt(), value[3].asInt()));
-    }
-    else if (type == "Float")
-    {
-      vds.metadataContainer.SetMetadataFloat(category.c_str(), name.c_str(), value.asFloat());
-    }
-    else if (type == "FloatVector2")
-    {
-      vds.metadataContainer.SetMetadataFloatVector2(category.c_str(), name.c_str(), FloatVector2(value[0].asFloat(), value[1].asFloat()));
-    }
-    else if (type == "FloatVector3")
-    {
-      vds.metadataContainer.SetMetadataFloatVector3(category.c_str(), name.c_str(), FloatVector3(value[0].asFloat(), value[1].asFloat(), value[2].asFloat()));
-    }
-    else if (type == "FloatVector4")
-    {
-      vds.metadataContainer.SetMetadataFloatVector4(category.c_str(), name.c_str(), FloatVector4(value[0].asFloat(), value[1].asFloat(), value[2].asFloat(), value[3].asFloat()));
-    }
-    else if (type == "Double")
-    {
-      vds.metadataContainer.SetMetadataDouble(category.c_str(), name.c_str(), value.asDouble());
-    }
-    else if (type == "DoubleVector2")
-    {
-      vds.metadataContainer.SetMetadataDoubleVector2(category.c_str(), name.c_str(), DoubleVector2(value[0].asDouble(), value[1].asDouble()));
-    }
-    else if (type == "DoubleVector3")
-    {
-      vds.metadataContainer.SetMetadataDoubleVector3(category.c_str(), name.c_str(), DoubleVector3(value[0].asDouble(), value[1].asDouble(), value[2].asDouble()));
-    }
-    else if (type == "DoubleVector4")
-    {
-      vds.metadataContainer.SetMetadataDoubleVector4(category.c_str(), name.c_str(), DoubleVector4(value[0].asDouble(), value[1].asDouble(), value[2].asDouble(), value[3].asDouble()));
-    }
-    else if (type == "String")
-    {
-      vds.metadataContainer.SetMetadataString(category.c_str(), name.c_str(), value.asString());
-    }
-    else if (type == "BLOB")
-    {
-      const char *v = value.asCString();
-
-      int len = (int)strlen(v);
-
-      std::vector<uint8_t> data;
-      bool success = Base64Decode(v, len, data);
-
-      if (!success)
-      {
-        data.clear();
-        return false;
-      }
-      vds.metadataContainer.SetMetadataBLOB(category.c_str(), name.c_str(), data);
-    }
-  }
-
-  return true;
-}
-
 static VolumeDataLayer::ProduceStatus ProduceStatusFromJson(Json::Value const &jsonProduceStatus)
 {
   std::string produceStatusString = jsonProduceStatus.asString();
@@ -682,89 +521,6 @@ static CompressionMethod CompressionMethodFromJson(Json::Value const &jsonCompre
 //
 //  return metadataStatus;
 //}
-
-bool ParseLayerStatus(const std::vector<uint8_t> &json, VDS &vds, Error &error)
-{
-  vds.produceStatuses.clear();
-  vds.produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
-
-  Json::Value root;
-  if (!ParseJSONFromBuffer(json, root, error))
-  {
-    return false;
-  }
-
-  if (root.empty())
-      return true;
-
-  try
-  {
-    for (const Json::Value &layerStatus : root)
-    {
-      bool
-        hasChunkMetadataPages = layerStatus["hasChunkMetadataPages"].asBool();
-
-      VolumeDataLayer::ProduceStatus
-        produceStatus = ProduceStatusFromJson(layerStatus["produceStatus"]);
-
-      DimensionsND
-        dimensionsND = DimensionsNDFromJson(layerStatus["dimensionGroup"]);
-
-      int
-        lod = layerStatus["lod"].asInt();
-
-      if (lod == 0 && vds.produceStatuses[dimensionsND] == VolumeDataLayer::ProduceStatus_Unavailable)
-      {
-        vds.produceStatuses[dimensionsND] = produceStatus;
-      }
-
-      MetadataStatus
-        metadataStatus = MetadataStatus();
-
-      metadataStatus.m_chunkIndexCount = layerStatus["chunkCount"].asInt();
-      metadataStatus.m_chunkMetadataPageSize = layerStatus["chunkMetadataPageSize"].asInt();
-      metadataStatus.m_chunkMetadataByteSize = layerStatus["chunkMetadataByteSize"].asInt();
-      metadataStatus.m_compressionMethod = CompressionMethodFromJson(layerStatus["compressionMethod"]);
-      metadataStatus.m_compressionTolerance = layerStatus["compressionTolerance"].asFloat();
-      metadataStatus.m_uncompressedSize = layerStatus["uncompressedSize"].asInt64();
-
-      Json::Value
-        adaptiveLevelSizesJson = layerStatus["adaptiveLevelSizes"];
-
-      if (!adaptiveLevelSizesJson.empty())
-      {
-        for (int i = 0; i < WAVELET_ADAPTIVE_LEVELS; i++)
-        {
-          metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJson[i].asInt64();
-        }
-      }
-
-      std::string
-        layerName = layerStatus["layerName"].asString();
-
-      if (hasChunkMetadataPages)
-      {
-        std::unique_lock<std::mutex> metadataManagersMutexLock(vds.layerMetadataContainer.mutex);
-        auto &managers = vds.layerMetadataContainer.managers;
-
-        if (managers.find(layerName) == vds.layerMetadataContainer.managers.end())
-        {
-          int pageLimit = vds.axisDescriptors.size() <= 3 ? 64 : 1024;
-
-          vds.layerMetadataContainer.managers.insert(std::make_pair(layerName, std::unique_ptr<MetadataManager>(new MetadataManager(vds.ioManager.get(), layerName, metadataStatus, pageLimit))));
-        }
-      }
-    }
-  }
-  catch(Json::Exception &e)
-  {
-    error.string = e.what();
-    error.code = -1;
-    return false;
-  }
-
-  return true;
-}
 
 Json::Value SerializeAxisDescriptor(VolumeDataAxisDescriptor const &axisDescriptor)
 {
@@ -1099,9 +855,10 @@ Json::Value SerializeLayerStatusArray(VolumeDataLayoutImpl const &volumeDataLayo
         {
           std::string layerName = GetLayerName(*volumeDataLayer);
           Json::Value layerStatusJson = SerializeLayerStatus(*volumeDataLayer, layerName);
-          if(MetadataManager *metadataManager = FindMetadataManager(layerMetadataContainer, layerName))
+          MetadataStatus metadataStatus;
+          if(layerMetadataContainer.GetMetadataStatus(layerName, metadataStatus))
           {
-            Json::Value metadataStatusJson = SerializeMetadataStatus(metadataManager->GetMetadataStatus());
+            Json::Value metadataStatusJson = SerializeMetadataStatus(metadataStatus);
 
             for (const auto& key : metadataStatusJson.getMemberNames())
             {
@@ -1142,63 +899,21 @@ WriteJson(Json::Value root)
   return result;
 }
 
-class SyncTransferHandler : public TransferDownloadHandler
-{
-public:
-  void HandleObjectSize(int64_t size) override
-  {
-  }
-  void HandleObjectLastWriteTime(const std::string &lastWriteTimeISO8601) override
-  {
-  }
-  void HandleMetadata(const std::string &key, const std::string &header) override
-  {
-  }
-  void HandleData(std::vector<uint8_t> &&data) override
-  {
-    *(this->data) = data;
-  }
-  void Completed(const Request &request, const Error &error) override
-  {
-    *(this->error) = error;
-  }
-
-  std::vector<uint8_t> *data;
-  Error *error;
-};
-
-}
-
 bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDS& vds, Error& error)
 {
-  std::vector<uint8_t> volumedatalayout_json;
-  std::shared_ptr<Internal::SyncTransferHandler> syncTransferHandler = std::make_shared<Internal::SyncTransferHandler>();
-  syncTransferHandler->error = &error;
-  syncTransferHandler->data = &volumedatalayout_json;
-  auto request = vds.ioManager->ReadObject("VolumeDataLayout", syncTransferHandler);
-  request->WaitForFinish();
-  if (!request->IsSuccess(error) || volumedatalayout_json.empty())
+  std::vector<uint8_t> serializedVolumeDataLayout;
+
+  if(!vds.volumeDataStore->ReadSerializedVolumeDataLayout(serializedVolumeDataLayout, error))
   {
-    error.string = "Error on downloading VolumeDataLayout object: " + error.string;
-    return false;
-  }
-  std::vector<uint8_t> layerstatus_json;
-  syncTransferHandler->data = &layerstatus_json;
-  request = vds.ioManager->ReadObject("LayerStatus", syncTransferHandler);
-  request->WaitForFinish();
-  if (!request->IsSuccess(error) || layerstatus_json.empty())
-  {
-    error.string = "Error on downloading LayerStatus object: " + error.string;
     return false;
   }
 
   try
   {
-    if (!Internal::ParseVolumeDataLayout(volumedatalayout_json, vds, error))
-      return false;
-    if (!Internal::ParseLayerStatus(layerstatus_json, vds, error))
+    if (!ParseVolumeDataLayout(serializedVolumeDataLayout, vds.layoutDescriptor, vds.axisDescriptors, vds.channelDescriptors, vds.descriptorStrings, vds.metadataContainer, error))
       return false;
   }
+
   catch (Json::Exception& e)
   {
     error.string = e.what();
@@ -1211,38 +926,255 @@ bool DownloadAndParseVolumeDataLayoutAndLayerStatus(VDS& vds, Error& error)
   return true;
 }
 
-bool SerializeAndUploadVolumeDataLayout(VDS& vds, Error& error)
+bool ParseVolumeDataLayout(const std::vector<uint8_t> &json, VolumeDataLayoutDescriptor &layoutDescriptor, std::vector<VolumeDataAxisDescriptor> &axisDescriptors, std::vector<VolumeDataChannelDescriptor> &channelDescriptors, DescriptorStringContainer &descriptorStrings, MetadataContainer &metadataContainer, Error &error)
 {
-  Json::Value volumeDataLayoutJson = Internal::SerializeVolumeDataLayout(*vds.volumeDataLayout, vds.metadataContainer);
-  auto serializedVolumeDataLayout = std::make_shared<std::vector<uint8_t>>(Internal::WriteJson(volumeDataLayoutJson));
-  auto request = vds.ioManager->UploadJson("VolumeDataLayout", serializedVolumeDataLayout);
+  Json::Value root;
 
-  request->WaitForFinish();
-
-  if (!request->IsSuccess(error))
+  if (!ParseJSONFromBuffer(json, root, error))
   {
-    error.string = "Error on uploading VolumeDataLayout object: " + error.string;
+    return false;
+  }
+
+  if (root.empty())
+    return true;
+
+  Json::Value
+    layoutDescriptorJson = root["layoutDescriptor"];
+
+  layoutDescriptor = VolumeDataLayoutDescriptor(BrickSizeFromJson(layoutDescriptorJson["brickSize"]),
+                                                layoutDescriptorJson["negativeMargin"].asInt(),
+                                                layoutDescriptorJson["positiveMargin"].asInt(),
+                                                layoutDescriptorJson["brickSize2DMultiplier"].asInt(),
+                                                LodLevelsFromJson(layoutDescriptorJson["lodLevels"]),
+                                                (layoutDescriptorJson["create2DLODs"].asBool() ? VolumeDataLayoutDescriptor::Options_Create2DLODs : VolumeDataLayoutDescriptor::Options_None) |
+                                                (layoutDescriptorJson["forceFullResolutionDimension"].asBool() ? VolumeDataLayoutDescriptor::Options_ForceFullResolutionDimension : VolumeDataLayoutDescriptor::Options_None),
+                                                layoutDescriptorJson["fullResolutionDimension"].asInt());
+
+  for (const Json::Value &axisDescriptorJson : root["axisDescriptors"])
+  {
+    VolumeDataAxisDescriptor
+      axisDescriptor(axisDescriptorJson["numSamples"].asInt(),
+                     descriptorStrings.Add(axisDescriptorJson["name"].asString()),
+                     descriptorStrings.Add(axisDescriptorJson["unit"].asString()),
+                     axisDescriptorJson["coordinateMin"].asFloat(),
+                     axisDescriptorJson["coordinateMax"].asFloat());
+
+    axisDescriptors.push_back(axisDescriptor);
+  }
+
+  for (const Json::Value &channelDescriptorJson : root["channelDescriptors"])
+  {
+    if (channelDescriptorJson["useNoValue"].asBool())
+    {
+      VolumeDataChannelDescriptor
+        channelDescriptor(VoxelFormatFromJson(channelDescriptorJson["format"]),
+                          VoxelComponentsFromJson(channelDescriptorJson["components"]),
+                          descriptorStrings.Add(channelDescriptorJson["name"].asString()),
+                          descriptorStrings.Add(channelDescriptorJson["unit"].asString()),
+                          channelDescriptorJson["valueRange"][0].asFloat(),
+                          channelDescriptorJson["valueRange"][1].asFloat(),
+                          ChannelMappingFromJson(channelDescriptorJson["channelMapping"]),
+                          channelDescriptorJson["mappedValues"].asInt(),
+                          (channelDescriptorJson["discrete"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default) |
+                          (channelDescriptorJson["renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable) |
+                          (channelDescriptorJson["allowLossyCompression"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NoLossyCompression),
+                          channelDescriptorJson["noValue"].asFloat(),
+                          channelDescriptorJson["integerScale"].asFloat(),
+                          channelDescriptorJson["integerOffset"].asFloat());
+
+      channelDescriptors.push_back(channelDescriptor);
+    }
+    else
+    {
+      VolumeDataChannelDescriptor
+        channelDescriptor(VoxelFormatFromJson(channelDescriptorJson["format"]),
+                          VoxelComponentsFromJson(channelDescriptorJson["components"]),
+                          descriptorStrings.Add(channelDescriptorJson["name"].asString()),
+                          descriptorStrings.Add(channelDescriptorJson["unit"].asString()),
+                          channelDescriptorJson["valueRange"][0].asFloat(),
+                          channelDescriptorJson["valueRange"][1].asFloat(),
+                          ChannelMappingFromJson(channelDescriptorJson["channelMapping"]),
+                          channelDescriptorJson["mappedValues"].asInt(),
+                          (channelDescriptorJson["discrete"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default) |
+                          (channelDescriptorJson["renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable) |
+                          (channelDescriptorJson["allowLossyCompression"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NoLossyCompression),
+                          channelDescriptorJson["integerScale"].asFloat(),
+                          channelDescriptorJson["integerOffset"].asFloat());
+
+      channelDescriptors.push_back(channelDescriptor);
+    }
+  }
+
+  for (const Json::Value &metadata : root["metadata"])
+  {
+    //MetadataKey key = { MetadataTypeFromJson(metadata["type"]), metadata["category"].asString(), metadata["name"].asString() };
+
+    //metadataContainer.keys.push_back(key);
+
+    std::string type = metadata["type"].asString();
+    std::string category = metadata["category"].asString();
+    std::string name = metadata["name"].asString();
+    const Json::Value &value = metadata["value"];
+    if (type == "Int")
+    {
+      metadataContainer.SetMetadataInt(category.c_str(), name.c_str(), value.asInt());
+    }
+    else if (type == "IntVector2")
+    {
+      metadataContainer.SetMetadataIntVector2(category.c_str(), name.c_str(), IntVector2(value[0].asInt(), value[1].asInt()));
+    }
+    else if (type == "IntVector3")
+    {
+      metadataContainer.SetMetadataIntVector3(category.c_str(), name.c_str(), IntVector3(value[0].asInt(), value[1].asInt(), value[2].asInt()));
+    }
+    else if (type == "IntVector4")
+    {
+      metadataContainer.SetMetadataIntVector4(category.c_str(), name.c_str(), IntVector4(value[0].asInt(), value[1].asInt(), value[2].asInt(), value[3].asInt()));
+    }
+    else if (type == "Float")
+    {
+      metadataContainer.SetMetadataFloat(category.c_str(), name.c_str(), value.asFloat());
+    }
+    else if (type == "FloatVector2")
+    {
+      metadataContainer.SetMetadataFloatVector2(category.c_str(), name.c_str(), FloatVector2(value[0].asFloat(), value[1].asFloat()));
+    }
+    else if (type == "FloatVector3")
+    {
+      metadataContainer.SetMetadataFloatVector3(category.c_str(), name.c_str(), FloatVector3(value[0].asFloat(), value[1].asFloat(), value[2].asFloat()));
+    }
+    else if (type == "FloatVector4")
+    {
+      metadataContainer.SetMetadataFloatVector4(category.c_str(), name.c_str(), FloatVector4(value[0].asFloat(), value[1].asFloat(), value[2].asFloat(), value[3].asFloat()));
+    }
+    else if (type == "Double")
+    {
+      metadataContainer.SetMetadataDouble(category.c_str(), name.c_str(), value.asDouble());
+    }
+    else if (type == "DoubleVector2")
+    {
+      metadataContainer.SetMetadataDoubleVector2(category.c_str(), name.c_str(), DoubleVector2(value[0].asDouble(), value[1].asDouble()));
+    }
+    else if (type == "DoubleVector3")
+    {
+      metadataContainer.SetMetadataDoubleVector3(category.c_str(), name.c_str(), DoubleVector3(value[0].asDouble(), value[1].asDouble(), value[2].asDouble()));
+    }
+    else if (type == "DoubleVector4")
+    {
+      metadataContainer.SetMetadataDoubleVector4(category.c_str(), name.c_str(), DoubleVector4(value[0].asDouble(), value[1].asDouble(), value[2].asDouble(), value[3].asDouble()));
+    }
+    else if (type == "String")
+    {
+      metadataContainer.SetMetadataString(category.c_str(), name.c_str(), value.asString());
+    }
+    else if (type == "BLOB")
+    {
+      const char *v = value.asCString();
+
+      int len = (int)strlen(v);
+
+      std::vector<uint8_t> data;
+      bool success = Base64Decode(v, len, data);
+
+      if (!success)
+      {
+        data.clear();
+        return false;
+      }
+      metadataContainer.SetMetadataBLOB(category.c_str(), name.c_str(), data);
+    }
+  }
+
+  return true;
+}
+
+bool ParseLayerStatus(const std::vector<uint8_t> &json, VDS &vds, LayerMetadataContainer &layerMetadataContainer, Error &error)
+{
+  vds.produceStatuses.clear();
+  vds.produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
+
+  Json::Value root;
+  if (!ParseJSONFromBuffer(json, root, error))
+  {
+    return false;
+  }
+
+  if (root.empty())
+      return true;
+
+  try
+  {
+    for (const Json::Value &layerStatus : root)
+    {
+      bool
+        hasChunkMetadataPages = layerStatus["hasChunkMetadataPages"].asBool();
+
+      VolumeDataLayer::ProduceStatus
+        produceStatus = ProduceStatusFromJson(layerStatus["produceStatus"]);
+
+      DimensionsND
+        dimensionsND = DimensionsNDFromJson(layerStatus["dimensionGroup"]);
+
+      int
+        lod = layerStatus["lod"].asInt();
+
+      if (lod == 0 && vds.produceStatuses[dimensionsND] == VolumeDataLayer::ProduceStatus_Unavailable)
+      {
+        vds.produceStatuses[dimensionsND] = produceStatus;
+      }
+
+      MetadataStatus
+        metadataStatus = MetadataStatus();
+
+      metadataStatus.m_chunkIndexCount = layerStatus["chunkCount"].asInt();
+      metadataStatus.m_chunkMetadataPageSize = layerStatus["chunkMetadataPageSize"].asInt();
+      metadataStatus.m_chunkMetadataByteSize = layerStatus["chunkMetadataByteSize"].asInt();
+      metadataStatus.m_compressionMethod = CompressionMethodFromJson(layerStatus["compressionMethod"]);
+      metadataStatus.m_compressionTolerance = layerStatus["compressionTolerance"].asFloat();
+      metadataStatus.m_uncompressedSize = layerStatus["uncompressedSize"].asInt64();
+
+      Json::Value
+        adaptiveLevelSizesJson = layerStatus["adaptiveLevelSizes"];
+
+      if (!adaptiveLevelSizesJson.empty())
+      {
+        for (int i = 0; i < WAVELET_ADAPTIVE_LEVELS; i++)
+        {
+          metadataStatus.m_adaptiveLevelSizes[i] = adaptiveLevelSizesJson[i].asInt64();
+        }
+      }
+
+      std::string
+        layerName = layerStatus["layerName"].asString();
+
+      if (hasChunkMetadataPages)
+      {
+        int pageLimit = vds.axisDescriptors.size() <= 3 ? 64 : 1024;
+
+        layerMetadataContainer.SetMetadataStatus(layerName, metadataStatus, pageLimit);
+      }
+    }
+  }
+  catch(Json::Exception &e)
+  {
+    error.string = e.what();
+    error.code = -1;
     return false;
   }
 
   return true;
 }
 
-bool SerializeAndUploadLayerStatus(VDS& vds, Error& error)
+std::vector<uint8_t> SerializeVolumeDataLayout(VDS& vds)
 {
-  Json::Value layerStatusArrayJson = Internal::SerializeLayerStatusArray(*vds.volumeDataLayout, vds.layerMetadataContainer);
-  auto serializedLayerStatus = std::make_shared<std::vector<uint8_t>>(Internal::WriteJson(layerStatusArrayJson));
-  auto request = vds.ioManager->UploadJson("LayerStatus", serializedLayerStatus);
+  Json::Value volumeDataLayoutJson = SerializeVolumeDataLayout(*vds.volumeDataLayout, vds.metadataContainer);
+  return WriteJson(volumeDataLayoutJson);
+}
 
-  request->WaitForFinish();
-
-  if (!request->IsSuccess(error))
-  {
-    error.string = "Error on uploading LayerStatus object: " + error.string;
-    return false;
-  }
-
-  return true;
+std::vector<uint8_t> SerializeLayerStatus(VDS& vds, LayerMetadataContainer const &layerMetadataContainer)
+{
+  Json::Value layerStatusArrayJson = SerializeLayerStatusArray(*vds.volumeDataLayout, layerMetadataContainer);
+  return WriteJson(layerStatusArrayJson);
 }
 
 }

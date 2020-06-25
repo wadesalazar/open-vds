@@ -259,7 +259,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk, Error
   assert(page->IsPinned());
 
   VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(chunk);
-  if (!m_accessManager->PrepareReadChunkData(volumeDataChunk, error))
+  if (!m_accessManager->GetVolumeDataStore()->PrepareReadChunk(volumeDataChunk, error))
   {
     page->SetError(error);
     page->UnPin();
@@ -370,7 +370,7 @@ void VolumeDataPageAccessorImpl::CancelPreparedReadPage(VolumeDataPage* page)
   {
     VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(pageImpl->GetChunkIndex());
     Error error;
-    m_accessManager->CancelReadChunk(volumeDataChunk, error);
+    m_accessManager->GetVolumeDataStore()->CancelReadChunk(volumeDataChunk, error);
     if (error.code)
     {
       pageImpl->SetError(error);
@@ -491,7 +491,20 @@ void VolumeDataPageAccessorImpl::LimitPageListSize(int maxPages, std::unique_loc
 
 int64_t VolumeDataPageAccessorImpl::RequestWritePage(int64_t chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& data)
 {
-  return m_accessManager->RequestWriteChunk({ m_layer, chunk }, dataBlock, data);
+  std::vector<uint8_t> serializedData;
+  uint64_t hash;
+
+  hash = VolumeDataStore::SerializeVolumeData({ m_layer, chunk }, dataBlock, data, m_layer->GetEffectiveCompressionMethod(), serializedData);
+
+  if (hash == VolumeDataHash::UNKNOWN)
+  {
+    hash = VolumeDataHash::GetUniqueHash();
+  }
+
+  std::vector<uint8_t> metadata(sizeof(hash));
+  memcpy(metadata.data(), &hash, sizeof(hash));
+
+  return m_accessManager->GetVolumeDataStore()->WriteChunk({ m_layer, chunk }, serializedData, metadata);
 }
 /////////////////////////////////////////////////////////////////////////////
 // Commit

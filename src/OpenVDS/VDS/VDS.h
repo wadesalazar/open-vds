@@ -29,7 +29,7 @@
 #include "VDS/MetadataManager.h"
 #include "VDS/VolumeDataAccessManagerImpl.h"
 #include "VDS/VolumeDataRequestProcessor.h"
-#include "IO/IOManager.h"
+#include "VDS/VolumeDataStore.h"
 
 #include <vector>
 #include <map>
@@ -42,16 +42,26 @@ namespace OpenVDS
 class LayerMetadataContainer
 {
 public:
-  mutable std::mutex mutex;
-  std::map<std::string, std::unique_ptr<MetadataManager>> managers;
+  virtual bool GetMetadataStatus(std::string const &layerName, MetadataStatus &metadataStatus) const = 0;
+  virtual void SetMetadataStatus(std::string const &layerName, MetadataStatus &metadataStatus, int pageLimit) = 0;
+};
+
+class DescriptorStringContainer
+{
+  std::vector<std::unique_ptr<char[]>> m_descriptorStrings;
+public:
+  const char *Add(std::string const &descriptorString)
+  {
+    char *data = new char[descriptorString.size() + 1];
+    memcpy(data, descriptorString.data(), descriptorString.size());
+    data[descriptorString.size()] = 0;
+    m_descriptorStrings.emplace_back(data);
+    return data;
+  }
 };
 
 struct VDS
 {
-  VDS(IOManager *ioManager)
-    : ioManager(ioManager)
-  {
-  }
   VolumeDataLayoutDescriptor
                     layoutDescriptor;
 
@@ -61,7 +71,7 @@ struct VDS
   std::vector<VolumeDataChannelDescriptor>
                     channelDescriptors;
 
-  std::vector<std::unique_ptr<char[]>>
+  DescriptorStringContainer
                     descriptorStrings;
 
   std::vector<VolumeDataLayer::ProduceStatus>
@@ -73,19 +83,13 @@ struct VDS
                     volumeDataLayout;
   std::unique_ptr<VolumeDataAccessManagerImpl>
                     accessManager;
-  std::unique_ptr<IOManager>
-                    ioManager;
-  LayerMetadataContainer
-                    layerMetadataContainer;
+  std::unique_ptr<VolumeDataStore>
+                    volumeDataStore;
 };
-
-const char *AddDescriptorString(std::string const &descriptorString, VDS &handle);
 
 void CreateVolumeDataLayout(VDS &handle);
 
 std::string GetLayerName(VolumeDataLayer const &volumeDataLayer);
-MetadataManager *FindMetadataManager(LayerMetadataContainer const &layerMetadataContainer, std::string const &layerName);
-MetadataManager *CreateMetadataManager(VDS &handle, std::string const &layerName, MetadataStatus const &metadataStatus);
 
 }
 
