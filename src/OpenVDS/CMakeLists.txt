@@ -14,6 +14,7 @@ set(SOURCE_FILES
   VDS/VolumeDataChannelMapping.cpp
   VDS/VolumeDataLayer.cpp
   VDS/VolumeDataLayoutImpl.cpp
+  VDS/VolumeDataChunk.cpp
   VDS/VolumeDataRegion.cpp
   VDS/VolumeDataHash.cpp
   VDS/VolumeDataPageAccessorImpl.cpp
@@ -26,6 +27,7 @@ set(SOURCE_FILES
   VDS/MetadataManager.cpp
   VDS/Base64.cpp
   VDS/VolumeDataStore.cpp
+  VDS/VolumeDataStoreIOManager.cpp
   VDS/Wavelet.cpp
   VDS/WaveletAdaptiveLL.cpp
   VDS/DataBlock.cpp
@@ -66,6 +68,7 @@ set (PRIVATE_HEADER_FILES
   VDS/IntrusiveList.h
   VDS/Base64.h
   VDS/VolumeDataStore.h
+  VDS/VolumeDataStoreIOManager.h
   VDS/Wavelet.h
   VDS/WaveletAdaptiveLL.h
   VDS/WaveletTypes.h

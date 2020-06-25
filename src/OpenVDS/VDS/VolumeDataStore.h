@@ -31,12 +31,31 @@
 namespace OpenVDS
 {
 
-struct VolumeDataStore
+class VolumeDataStore
 {
+public:
+  class WriteError : public Error
+  {
+    VolumeDataChunk chunk;
+  };
+
+  virtual CompressionInfo
+                        GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error) = 0;
+  virtual bool          PrepareReadChunk(const VolumeDataChunk &volumeDataChunk, Error &error) = 0;
+  virtual bool          ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error) = 0;
+  virtual bool          CancelReadChunk(const VolumeDataChunk& chunk, Error& error) = 0;
+  virtual bool          WriteChunk(const VolumeDataChunk& chunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata) = 0;
+  virtual bool          Flush() = 0;
+  virtual bool          ReadSerializedVolumeDataLayout(std::vector<uint8_t>& serializedVolumeDataLayout, Error &error) = 0;
+  virtual bool          WriteSerializedVolumeDataLayout(const std::vector<uint8_t>& serializedVolumeDataLayout, Error &error) = 0;
+  virtual bool          AddLayer(VolumeDataLayer* volumeDataLayer) = 0;
+  virtual bool          RemoveLayer(VolumeDataLayer* volumeDataLayer) = 0;
+
   static bool Verify(const VolumeDataChunk& volumeDataChunk, const std::vector<uint8_t>& serializedData, CompressionMethod compressionMethod, bool isFullyRead);
   static bool DeserializeVolumeData(const VolumeDataChunk& chunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error);
   static bool CreateConstantValueDataBlock(VolumeDataChunk const &volumeDataChunk, VolumeDataChannelDescriptor::Format format, float noValue, VolumeDataChannelDescriptor::Components components, VolumeDataHash const &constantValueVolumeDataHash, DataBlock &dataBlock, std::vector<uint8_t> &buffer, Error &error);
-  static bool SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlock &dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, std::vector<uint8_t>& destinationBuffer, uint64_t &outputHash, Error& error);
+  static uint64_t
+              SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlock &dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, std::vector<uint8_t>& destinationBuffer);
 };
 
 }

@@ -87,7 +87,7 @@ namespace OpenVDS
   typedef std::list<MetadataPage> MetadataPageList;
 
   class IOManager;
-  class VolumeDataAccessManagerImpl;
+  class VolumeDataStoreIOManager;
 
   class MetadataManager
   {
@@ -118,12 +118,12 @@ namespace OpenVDS
 
     void InitPage(MetadataPage* page);
 
-    void PageTransferError(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, const Error &error);
+    void PageTransferError(VolumeDataStoreIOManager* accessManager, MetadataPage* page, const Error &error);
 
-    void PageTransferCompleted(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::vector<uint8_t>&& data);
+    void PageTransferCompleted(VolumeDataStoreIOManager *accessManager, MetadataPage* page, std::vector<uint8_t>&& data);
 
-    void InitiateTransfer(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::string const& url);
-    void UploadDirtyPages(VolumeDataAccessManagerImpl* accessManager);
+    void InitiateTransfer(VolumeDataStoreIOManager* accessManager, MetadataPage* page, std::string const& url);
+    void UploadDirtyPages(VolumeDataStoreIOManager* accessManager);
 
     uint8_t const *GetPageEntry(MetadataPage *page, int entry) const;
     void SetPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength);

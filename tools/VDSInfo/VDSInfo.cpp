@@ -8,12 +8,9 @@
 
 namespace OpenVDS
 {
-namespace Internal
-{
   extern Json::Value SerializeVolumeDataLayoutDescriptor(VolumeDataLayout const &volumeDataLayout);
   extern Json::Value SerializeAxisDescriptors(VolumeDataLayout const &volumeDataLayout);
   extern Json::Value SerializeChannelDescriptors(VolumeDataLayout const &volumeDataLayout);
-}
 }
 
 const char ebcdic_to_ascii[256] =
@@ -280,15 +277,15 @@ int main(int argc, char **argv)
   Json::Value layoutJson;
   if (volumeDataLayout)
   {
-    layoutJson["layoutDescriptor"] = OpenVDS::Internal::SerializeVolumeDataLayoutDescriptor(*layout);
+    layoutJson["layoutDescriptor"] = OpenVDS::SerializeVolumeDataLayoutDescriptor(*layout);
   }
   if (axisDescriptors)
   {
-    layoutJson["axisDescriptors"] = OpenVDS::Internal::SerializeAxisDescriptors(*layout);
+    layoutJson["axisDescriptors"] = OpenVDS::SerializeAxisDescriptors(*layout);
   }
   if (channelDescriptors)
   {
-    layoutJson["channelDescriptors"] = OpenVDS::Internal::SerializeChannelDescriptors(*layout);
+    layoutJson["channelDescriptors"] = OpenVDS::SerializeChannelDescriptors(*layout);
   }
 
   if (layoutJson.size())

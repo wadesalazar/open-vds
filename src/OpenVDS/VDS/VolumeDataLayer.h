@@ -98,6 +98,11 @@ public:
     return m_volumeDataLayout;
   }
 
+  VolumeDataLayerID GetLayerID() const
+  {
+    return m_layerID;
+  }
+
   int32_t GetChannelIndex() const
   {
     return m_channel;

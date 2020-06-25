@@ -18,7 +18,7 @@
 #include "MetadataManager.h"
 
 #include <IO/IOManager.h>
-#include "VolumeDataAccessManagerImpl.h"
+#include "VolumeDataStoreIOManager.h"
 #include <assert.h>
 #include <algorithm>
 #include <fmt/format.h>
@@ -29,9 +29,9 @@ namespace OpenVDS
 class MetadataPageTransfer : public TransferDownloadHandler
 {
 public:
-MetadataPageTransfer(MetadataManager *manager, VolumeDataAccessManagerImpl *accessManager, MetadataPage *metadataPage)
+MetadataPageTransfer(MetadataManager *manager, VolumeDataStoreIOManager *volumeDataStore, MetadataPage *metadataPage)
   : manager(manager)
-  , accessManager(accessManager)
+  , volumeDataStore(volumeDataStore)
   , metadataPage(metadataPage)
 { }
 
@@ -54,16 +54,16 @@ void Completed(const Request &request, const Error &e) override
 
   if(error.code == 0)
   {
-    manager->PageTransferCompleted(accessManager, metadataPage, std::move(metadata));
+    manager->PageTransferCompleted(volumeDataStore, metadataPage, std::move(metadata));
   }
   else
   {
-    manager->PageTransferError(accessManager, metadataPage, error);
+    manager->PageTransferError(volumeDataStore, metadataPage, error);
   }
 }
 
 MetadataManager *manager;
-VolumeDataAccessManagerImpl *accessManager;
+VolumeDataStoreIOManager *volumeDataStore;
 MetadataPage *metadataPage;
 std::vector<uint8_t> metadata;
 };
@@ -145,16 +145,16 @@ MetadataManager::InitPage(MetadataPage* page)
   lock.unlock();
 }
 
-void MetadataManager::InitiateTransfer(VolumeDataAccessManagerImpl *accessManager, MetadataPage* page, std::string const& url)
+void MetadataManager::InitiateTransfer(VolumeDataStoreIOManager *volumeDataStore, MetadataPage* page, std::string const& url)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
   assert(!page->m_valid && !page->m_activeTransfer);
 
-  page->m_activeTransfer = m_iomanager->ReadObject(url, std::make_shared<MetadataPageTransfer>(this, accessManager, page));
+  page->m_activeTransfer = m_iomanager->ReadObject(url, std::make_shared<MetadataPageTransfer>(this, volumeDataStore, page));
 }
 
-void MetadataManager::UploadDirtyPages(VolumeDataAccessManagerImpl *accessManager)
+void MetadataManager::UploadDirtyPages(VolumeDataStoreIOManager *volumeDataStore)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -166,7 +166,7 @@ void MetadataManager::UploadDirtyPages(VolumeDataAccessManagerImpl *accessManage
     // We need to keep a separate 'next' iterator since we're moving the current element to another list if the write is successful
     next = std::next(it);
 
-    bool success = accessManager->WriteMetadataPage(&page, page.m_data);
+    bool success = volumeDataStore->WriteMetadataPage(&page, page.m_data);
     if(success)
     {
       page.m_dirty = false;
@@ -175,16 +175,16 @@ void MetadataManager::UploadDirtyPages(VolumeDataAccessManagerImpl *accessManage
   }
 }
 
-void MetadataManager::PageTransferError(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, const Error &error)
+void MetadataManager::PageTransferError(VolumeDataStoreIOManager* volumeDataStore, MetadataPage* page, const Error &error)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   page->m_valid = false;
   page->m_transferError = error;
   lock.unlock();
-  accessManager->PageTransferCompleted(page, error);
+  volumeDataStore->PageTransferCompleted(page, error);
 }
 
-void MetadataManager::PageTransferCompleted(VolumeDataAccessManagerImpl* accessManager, MetadataPage* page, std::vector<uint8_t> &&data)
+void MetadataManager::PageTransferCompleted(VolumeDataStoreIOManager* volumeDataStore, MetadataPage* page, std::vector<uint8_t> &&data)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   page->m_data = std::move(data);
@@ -192,7 +192,7 @@ void MetadataManager::PageTransferCompleted(VolumeDataAccessManagerImpl* accessM
   lock.unlock();
 
   Error error;
-  accessManager->PageTransferCompleted(page, error);
+  volumeDataStore->PageTransferCompleted(page, error);
 }
 
 uint8_t const *MetadataManager::GetPageEntry(MetadataPage *page, int entryIndex) const

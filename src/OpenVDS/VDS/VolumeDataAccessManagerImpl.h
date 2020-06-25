@@ -22,7 +22,8 @@
 
 #include "IntrusiveList.h"
 #include "VolumeDataPageAccessorImpl.h"
-#include <IO/IOManager.h>
+#include "VolumeDataLayoutImpl.h"
+#include "VolumeDataStore.h"
 
 #include "VolumeDataChunk.h"
 #include "VolumeDataLayer.h"
@@ -33,143 +34,6 @@
 
 namespace OpenVDS
 {
-class MetadataPage;
-
-class ReadChunkTransfer : public TransferDownloadHandler
-{
-public:
-  ReadChunkTransfer(CompressionMethod compressionMethod, int adaptiveLevel)
-    : m_compressionMethod(compressionMethod)
-    , m_adaptiveLevel(adaptiveLevel)
-  {}
-
-  ~ReadChunkTransfer() override
-  {
-  }
-
-  void HandleObjectSize(int64_t size) override
-  {
-  }
-
-  void HandleObjectLastWriteTime(const std::string &lastWriteTimeISO8601) override
-  {
-  }
-
-  void HandleMetadata(const std::string& key, const std::string& header) override
-  {
-    static const char vdschunkmetadata[] = "vdschunkmetadata";
-    constexpr int vdschunkmetadataSize = sizeof(vdschunkmetadata) - 1;
-    if (key.size() >= vdschunkmetadataSize)
-    {
-      if (memcmp(key.data() + key.size() - vdschunkmetadataSize, vdschunkmetadata, vdschunkmetadataSize) == 0)
-      {
-        if (!Base64Decode(header.data(), (int)header.size(), m_metadata))
-        {
-          m_error.code = -1;
-          m_error.string = "Failed to decode chunk metadata";
-        }
-      }
-    }
-  }
-  void HandleData(std::vector<uint8_t>&& data) override
-  {
-    m_data = data;
-  }
-
-  void Completed(const Request &req, const Error & error) override
-  {
-    m_error = error;
-  }
-  
-  CompressionMethod m_compressionMethod;
-
-  int m_adaptiveLevel;
-
-  Error m_error;
-
-  std::vector<uint8_t> m_data;
-  std::vector<uint8_t> m_metadata;
-};
-
-struct PendingDownloadRequest
-{
-  MetadataPage* m_lockedMetadataPage;
-  Error m_metadataPageRequestError;
-
-  std::shared_ptr<Request> m_activeTransfer;
-  std::shared_ptr<ReadChunkTransfer> m_transferHandle;
-  int m_ref;
-  bool m_canMove;
-  PendingDownloadRequest() : m_lockedMetadataPage(nullptr), m_ref(0), m_canMove(true)
-  {
-  }
-
-  explicit PendingDownloadRequest(MetadataPage* lockedMetadataPage) : m_lockedMetadataPage(lockedMetadataPage), m_activeTransfer(nullptr), m_ref(1), m_canMove(true)
-  {
-  }
-  explicit PendingDownloadRequest(std::shared_ptr<Request> activeTransfer, std::shared_ptr<ReadChunkTransfer> handler) : m_lockedMetadataPage(nullptr), m_activeTransfer(activeTransfer), m_transferHandle(handler), m_ref(1), m_canMove(true)
-  {
-  }
-};
-
-inline bool operator<(const VolumeDataChunk &a, const VolumeDataChunk &b)
-{
-  if (a.layer->GetChunkDimensionGroup() == b.layer->GetChunkDimensionGroup())
-  {
-    if (a.layer->GetLOD() == b.layer->GetLOD())
-    {
-      if (a.layer->GetChannelIndex() == b.layer->GetChannelIndex())
-      {
-        return a.index < b.index;
-      }
-      else
-      {
-        return a.layer->GetChannelIndex() < b.layer->GetChannelIndex();
-      }
-    }
-    else
-    {
-      return a.layer->GetLOD() < b.layer->GetLOD();
-    }
-  }
-  return a.layer->GetChunkDimensionGroup() < b.layer->GetChunkDimensionGroup();
-}
-
-struct RetryInfo
-{
-  std::string url;
-  std::string contentDispositionName;
-  std::vector<std::pair<std::string, std::string>> metaMap;
-  std::shared_ptr<std::vector<uint8_t>> data;
-  std::function<void(const Request & request, const Error & error)> completedCallback;
-};
-
-struct PendingUploadRequest
-{
-  RetryInfo retryInfo;
-  std::shared_ptr<Request> request;
-  uint32_t attempts;
-
-  PendingUploadRequest()
-    : request()
-    , attempts(0)
-  {
-  }
-
-  void StartNewUpload(IOManager &ioManager,  const std::string &url, const std::string &contentDispositionName,  std::vector<std::pair<std::string, std::string>> &metaMap, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
-  {
-    retryInfo = {url, contentDispositionName, metaMap, data, completedCallback };
-    request = ioManager.UploadBinary(url, contentDispositionName, metaMap, data, completedCallback);
-    attempts++;
-  }
-
-  void Retry(IOManager &ioManager)
-  {
-    request = ioManager.UploadBinary(retryInfo.url, retryInfo.contentDispositionName, retryInfo.metaMap, retryInfo.data, retryInfo.completedCallback);
-    attempts++;
-  }
-};
-
 struct UploadError
 {
   UploadError(const Error &error, const std::string &urlObject)
@@ -185,9 +49,8 @@ class VolumeDataAccessManagerImpl : public VolumeDataAccessManager
 public:
   VolumeDataAccessManagerImpl(VDS &vds);
   ~VolumeDataAccessManagerImpl() override;
-  VolumeDataLayout const *GetVolumeDataLayout() const override;
+  VolumeDataLayoutImpl const *GetVolumeDataLayout() const override;
   VDSProduceStatus GetVDSProduceStatus(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel) const override;
-  VolumeDataLayoutImpl const *GetVolumeDataLayoutImpl() const;
   VolumeDataPageAccessor *CreateVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) override;
 
   void  DestroyVolumeDataPageAccessor(VolumeDataPageAccessor *volumeDataPageAccessor) override;
@@ -245,16 +108,7 @@ public:
   int64_t RequestVolumeTraces(float *buffer, VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int nTraceCount, InterpolationMethod eInterpolationMethod, int iTraceDimension, float rReplacementNoValue) override;
   int64_t PrefetchVolumeChunk(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk) override;
 
-  bool PrepareReadChunkData(const VolumeDataChunk& chunk, Error& error);
-  bool ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
-  bool CancelReadChunk(const VolumeDataChunk& chunk, Error& error);
-  void PageTransferCompleted(MetadataPage* metadataPage, const Error &error);
-  bool WriteMetadataPage(MetadataPage* metadataPage, const std::vector<uint8_t> &data);
-
-  int64_t RequestWriteChunk(const VolumeDataChunk &chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data);
-  
-  IOManager *GetIoManager() const { return m_ioManager; }
-
+  VolumeDataStore *GetVolumeDataStore();
   void FlushUploadQueue() override;
   void ClearUploadErrors() override;
   void ForceClearAllUploadErrors() override;
@@ -271,13 +125,9 @@ public:
   int CountActivePages() { return m_requestProcessor.CountActivePages(); }
 private:
   VDS &m_vds;
-  IOManager *m_ioManager;
   VolumeDataRequestProcessor m_requestProcessor;
   IntrusiveList<VolumeDataPageAccessorImpl, &VolumeDataPageAccessorImpl::m_volumeDataPageAccessorListNode> m_volumeDataPageAccessorList;
   std::mutex m_mutex;
-  std::condition_variable m_pendingRequestChangedCondition;
-  std::map<VolumeDataChunk, PendingDownloadRequest> m_pendingDownloadRequests;
-  std::map<int64_t, PendingUploadRequest> m_pendingUploadRequests;
   std::vector<std::unique_ptr<UploadError>> m_uploadErrors;
   uint32_t m_currentErrorIndex;
   Error m_currentDownloadError;
