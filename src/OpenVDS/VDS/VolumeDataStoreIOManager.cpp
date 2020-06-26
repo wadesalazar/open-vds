@@ -259,29 +259,40 @@ VolumeDataStoreIOManager::~VolumeDataStoreIOManager()
 bool
 VolumeDataStoreIOManager::ReadSerializedVolumeDataLayout(std::vector<uint8_t>& serializedVolumeDataLayout, Error &error)
 {
-  std::vector<uint8_t> volumedatalayout_json;
   std::shared_ptr<Internal::SyncTransferHandler> syncTransferHandler = std::make_shared<Internal::SyncTransferHandler>();
   syncTransferHandler->error = &error;
-  syncTransferHandler->data = &volumedatalayout_json;
+  syncTransferHandler->data = &serializedVolumeDataLayout;
   auto request = m_ioManager->ReadObject("VolumeDataLayout", syncTransferHandler);
   request->WaitForFinish();
-  if (!request->IsSuccess(error) || volumedatalayout_json.empty())
+  if (!request->IsSuccess(error))
   {
     error.string = "Error on downloading VolumeDataLayout object: " + error.string;
     return false;
   }
+  else if(serializedVolumeDataLayout.empty())
+  {
+    error.code = -1;
+    error.string = "Error on downloading VolumeDataLayout object: Empty response";
+    return false;
+  }
 
-  std::vector<uint8_t> layerstatus_json;
-  syncTransferHandler->data = &layerstatus_json;
+  std::vector<uint8_t> serializedLayerStatus;
+  syncTransferHandler->data = &serializedLayerStatus;
   request = m_ioManager->ReadObject("LayerStatus", syncTransferHandler);
   request->WaitForFinish();
-  if (!request->IsSuccess(error) || layerstatus_json.empty())
+  if (!request->IsSuccess(error))
   {
     error.string = "Error on downloading LayerStatus object: " + error.string;
     return false;
   }
+  else if(serializedLayerStatus.empty())
+  {
+    error.code = -1;
+    error.string = "Error on downloading LayerStatus object: Empty response";
+    return false;
+  }
 
-  ParseLayerStatus(layerstatus_json, m_vds, *this, error);
+  ParseLayerStatus(serializedLayerStatus, m_vds, *this, error);
 
   return error.code == 0;
 }

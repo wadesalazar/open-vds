@@ -371,7 +371,7 @@ bool DeserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
   if(dataBlock.Format != format)
   {
     error.string = "Formats doesn't match in deserialization\n";
-    error.code = -2;
+    error.code = -1;
     return false;
   }
   return true;
@@ -464,7 +464,7 @@ bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volume
   switch (effectiveFormat)
   {
   default:
-    error.code = -3;
+    error.code = -1;
     error.string = "Invalid format in createConstantValuedataBlock";
     return false;
   case VolumeDataChannelDescriptor::Format_U8:  FillConstantValueBuffer<uint8_t>(buffer, allocatedElements, convertedConstantValue); break;
@@ -488,7 +488,7 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChu
   }
   else if (metadata.size() != sizeof(uint64_t) || !Verify(volumeDataChunk, serializedData, compressionMethod, true))
   {
-    error.code = 30;
+    error.code = -1;
     error.string = fmt::format("Invalid header for chunk file. Chunk index: {}.", volumeDataChunk.index);
     return false;
   }
