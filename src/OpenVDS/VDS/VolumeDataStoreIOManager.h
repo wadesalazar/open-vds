@@ -107,11 +107,6 @@ class VolumeDataStoreIOManager : public VolumeDataStore, public LayerMetadataCon
   std::unordered_map<int64_t, PendingUploadRequest>
                         m_pendingUploadRequests;
 
-  std::vector<std::unique_ptr<UploadError>>
-                        m_uploadErrors;
-
-  uint32_t              m_currentErrorIndex;
-
   std::unordered_map<std::string, std::unique_ptr<MetadataManager>> m_metadataManagers;
 
   MetadataManager *GetMetadataMangerForLayer(const std::string &layerName) const;

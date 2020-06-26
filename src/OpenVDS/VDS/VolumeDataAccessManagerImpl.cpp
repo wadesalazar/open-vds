@@ -74,11 +74,16 @@ static VolumeDataLayer *GetVolumeDataLayer(VolumeDataLayoutImpl const *layout, D
 VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDS &vds)
   : m_vds(vds)
   , m_requestProcessor(*this)
+  , m_currentErrorIndex(0)
 {
 }
 
 VolumeDataAccessManagerImpl::~VolumeDataAccessManagerImpl()
 {
+  if (m_uploadErrors.size())
+  {
+    fprintf(stderr, "VolumeDataAccessManager destructor: there where upload errors\n");
+  }
 }
 
 VolumeDataLayoutImpl const* VolumeDataAccessManagerImpl::GetVolumeDataLayout() const
@@ -168,6 +173,12 @@ float VolumeDataAccessManagerImpl::GetCompletionFactor(int64_t requestID)
 void VolumeDataAccessManagerImpl::FlushUploadQueue()
 {
   GetVolumeDataStore()->Flush();
+}
+
+void VolumeDataAccessManagerImpl::AddUploadError(Error const &error, const std::string &url)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_uploadErrors.emplace_back(new UploadError(error, url));
 }
 
 void VolumeDataAccessManagerImpl::ClearUploadErrors()
