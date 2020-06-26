@@ -269,8 +269,7 @@ static int WaveletAdaptiveLevelsMetadataDecode(uint64_t totalSize, int targetLev
 
 VolumeDataStoreIOManager:: VolumeDataStoreIOManager(VDS &vds, IOManager *ioManager) :
   m_vds(vds),
-  m_ioManager(ioManager),
-  m_currentErrorIndex(0)
+  m_ioManager(ioManager)
 {
 }
 
@@ -278,10 +277,6 @@ VolumeDataStoreIOManager::~VolumeDataStoreIOManager()
 {
   assert(m_pendingDownloadRequests.empty());
   assert(m_pendingUploadRequests.empty());
-  if (m_uploadErrors.size())
-  {
-    fprintf(stderr, "VolumeDataAccessManager destructor: there where upload errors\n");
-  }
 }
 
 
@@ -664,8 +659,7 @@ bool VolumeDataStoreIOManager::WriteMetadataPage(MetadataPage* metadataPage, con
 
   if(error.code != 0)
   {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_uploadErrors.emplace_back(new UploadError(error, url));
+    m_vds.accessManager->AddUploadError(error, url);
   }
 
   return success;
@@ -707,7 +701,7 @@ bool VolumeDataStoreIOManager::WriteChunk(const VolumeDataChunk& chunk, const st
 
   int64_t jobId = CreateUploadJobId();
 
-  auto completedCallback = [this, &metadata, metadataManager, lockedMetadataPage, entryIndex, jobId](const Request &request, const Error &error)
+  auto completedCallback = [this, metadata, metadataManager, lockedMetadataPage, entryIndex, jobId](const Request &request, const Error &error)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -721,7 +715,7 @@ bool VolumeDataStoreIOManager::WriteChunk(const VolumeDataChunk& chunk, const st
       }
       else
       {
-        m_uploadErrors.emplace_back(new UploadError(error, request.GetObjectName()));
+        m_vds.accessManager->AddUploadError(error, request.GetObjectName());
       }
     }
     else
@@ -769,8 +763,7 @@ bool VolumeDataStoreIOManager::Flush()
 
   if(error.code != 0)
   {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_uploadErrors.emplace_back(new UploadError(error, "LayerStatus"));
+    m_vds.accessManager->AddUploadError(error, "LayerStatus");
   }
 
   return true;

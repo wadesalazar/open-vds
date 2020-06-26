@@ -109,6 +109,8 @@ public:
   int64_t PrefetchVolumeChunk(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk) override;
 
   VolumeDataStore *GetVolumeDataStore();
+  void AddUploadError(Error const &error, const std::string &url);
+
   void FlushUploadQueue() override;
   void ClearUploadErrors() override;
   void ForceClearAllUploadErrors() override;
