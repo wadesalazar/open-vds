@@ -938,151 +938,160 @@ bool ParseVolumeDataLayout(const std::vector<uint8_t> &json, VolumeDataLayoutDes
   if (root.empty())
     return true;
 
-  Json::Value
-    layoutDescriptorJson = root["layoutDescriptor"];
-
-  layoutDescriptor = VolumeDataLayoutDescriptor(BrickSizeFromJson(layoutDescriptorJson["brickSize"]),
-                                                layoutDescriptorJson["negativeMargin"].asInt(),
-                                                layoutDescriptorJson["positiveMargin"].asInt(),
-                                                layoutDescriptorJson["brickSize2DMultiplier"].asInt(),
-                                                LodLevelsFromJson(layoutDescriptorJson["lodLevels"]),
-                                                (layoutDescriptorJson["create2DLODs"].asBool() ? VolumeDataLayoutDescriptor::Options_Create2DLODs : VolumeDataLayoutDescriptor::Options_None) |
-                                                (layoutDescriptorJson["forceFullResolutionDimension"].asBool() ? VolumeDataLayoutDescriptor::Options_ForceFullResolutionDimension : VolumeDataLayoutDescriptor::Options_None),
-                                                layoutDescriptorJson["fullResolutionDimension"].asInt());
-
-  for (const Json::Value &axisDescriptorJson : root["axisDescriptors"])
+  try
   {
-    VolumeDataAxisDescriptor
-      axisDescriptor(axisDescriptorJson["numSamples"].asInt(),
-                     descriptorStrings.Add(axisDescriptorJson["name"].asString()),
-                     descriptorStrings.Add(axisDescriptorJson["unit"].asString()),
-                     axisDescriptorJson["coordinateMin"].asFloat(),
-                     axisDescriptorJson["coordinateMax"].asFloat());
+    Json::Value
+      layoutDescriptorJson = root["layoutDescriptor"];
 
-    axisDescriptors.push_back(axisDescriptor);
-  }
+    layoutDescriptor = VolumeDataLayoutDescriptor(BrickSizeFromJson(layoutDescriptorJson["brickSize"]),
+                                                  layoutDescriptorJson["negativeMargin"].asInt(),
+                                                  layoutDescriptorJson["positiveMargin"].asInt(),
+                                                  layoutDescriptorJson["brickSize2DMultiplier"].asInt(),
+                                                  LodLevelsFromJson(layoutDescriptorJson["lodLevels"]),
+                                                  (layoutDescriptorJson["create2DLODs"].asBool() ? VolumeDataLayoutDescriptor::Options_Create2DLODs : VolumeDataLayoutDescriptor::Options_None) |
+                                                  (layoutDescriptorJson["forceFullResolutionDimension"].asBool() ? VolumeDataLayoutDescriptor::Options_ForceFullResolutionDimension : VolumeDataLayoutDescriptor::Options_None),
+                                                  layoutDescriptorJson["fullResolutionDimension"].asInt());
 
-  for (const Json::Value &channelDescriptorJson : root["channelDescriptors"])
-  {
-    if (channelDescriptorJson["useNoValue"].asBool())
+    for (const Json::Value &axisDescriptorJson : root["axisDescriptors"])
     {
-      VolumeDataChannelDescriptor
-        channelDescriptor(VoxelFormatFromJson(channelDescriptorJson["format"]),
-                          VoxelComponentsFromJson(channelDescriptorJson["components"]),
-                          descriptorStrings.Add(channelDescriptorJson["name"].asString()),
-                          descriptorStrings.Add(channelDescriptorJson["unit"].asString()),
-                          channelDescriptorJson["valueRange"][0].asFloat(),
-                          channelDescriptorJson["valueRange"][1].asFloat(),
-                          ChannelMappingFromJson(channelDescriptorJson["channelMapping"]),
-                          channelDescriptorJson["mappedValues"].asInt(),
-                          (channelDescriptorJson["discrete"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default) |
-                          (channelDescriptorJson["renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable) |
-                          (channelDescriptorJson["allowLossyCompression"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NoLossyCompression),
-                          channelDescriptorJson["noValue"].asFloat(),
-                          channelDescriptorJson["integerScale"].asFloat(),
-                          channelDescriptorJson["integerOffset"].asFloat());
+      VolumeDataAxisDescriptor
+        axisDescriptor(axisDescriptorJson["numSamples"].asInt(),
+                       descriptorStrings.Add(axisDescriptorJson["name"].asString()),
+                       descriptorStrings.Add(axisDescriptorJson["unit"].asString()),
+                       axisDescriptorJson["coordinateMin"].asFloat(),
+                       axisDescriptorJson["coordinateMax"].asFloat());
 
-      channelDescriptors.push_back(channelDescriptor);
+      axisDescriptors.push_back(axisDescriptor);
     }
-    else
-    {
-      VolumeDataChannelDescriptor
-        channelDescriptor(VoxelFormatFromJson(channelDescriptorJson["format"]),
-                          VoxelComponentsFromJson(channelDescriptorJson["components"]),
-                          descriptorStrings.Add(channelDescriptorJson["name"].asString()),
-                          descriptorStrings.Add(channelDescriptorJson["unit"].asString()),
-                          channelDescriptorJson["valueRange"][0].asFloat(),
-                          channelDescriptorJson["valueRange"][1].asFloat(),
-                          ChannelMappingFromJson(channelDescriptorJson["channelMapping"]),
-                          channelDescriptorJson["mappedValues"].asInt(),
-                          (channelDescriptorJson["discrete"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default) |
-                          (channelDescriptorJson["renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable) |
-                          (channelDescriptorJson["allowLossyCompression"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NoLossyCompression),
-                          channelDescriptorJson["integerScale"].asFloat(),
-                          channelDescriptorJson["integerOffset"].asFloat());
 
-      channelDescriptors.push_back(channelDescriptor);
-    }
-  }
-
-  for (const Json::Value &metadata : root["metadata"])
-  {
-    //MetadataKey key = { MetadataTypeFromJson(metadata["type"]), metadata["category"].asString(), metadata["name"].asString() };
-
-    //metadataContainer.keys.push_back(key);
-
-    std::string type = metadata["type"].asString();
-    std::string category = metadata["category"].asString();
-    std::string name = metadata["name"].asString();
-    const Json::Value &value = metadata["value"];
-    if (type == "Int")
+    for (const Json::Value &channelDescriptorJson : root["channelDescriptors"])
     {
-      metadataContainer.SetMetadataInt(category.c_str(), name.c_str(), value.asInt());
-    }
-    else if (type == "IntVector2")
-    {
-      metadataContainer.SetMetadataIntVector2(category.c_str(), name.c_str(), IntVector2(value[0].asInt(), value[1].asInt()));
-    }
-    else if (type == "IntVector3")
-    {
-      metadataContainer.SetMetadataIntVector3(category.c_str(), name.c_str(), IntVector3(value[0].asInt(), value[1].asInt(), value[2].asInt()));
-    }
-    else if (type == "IntVector4")
-    {
-      metadataContainer.SetMetadataIntVector4(category.c_str(), name.c_str(), IntVector4(value[0].asInt(), value[1].asInt(), value[2].asInt(), value[3].asInt()));
-    }
-    else if (type == "Float")
-    {
-      metadataContainer.SetMetadataFloat(category.c_str(), name.c_str(), value.asFloat());
-    }
-    else if (type == "FloatVector2")
-    {
-      metadataContainer.SetMetadataFloatVector2(category.c_str(), name.c_str(), FloatVector2(value[0].asFloat(), value[1].asFloat()));
-    }
-    else if (type == "FloatVector3")
-    {
-      metadataContainer.SetMetadataFloatVector3(category.c_str(), name.c_str(), FloatVector3(value[0].asFloat(), value[1].asFloat(), value[2].asFloat()));
-    }
-    else if (type == "FloatVector4")
-    {
-      metadataContainer.SetMetadataFloatVector4(category.c_str(), name.c_str(), FloatVector4(value[0].asFloat(), value[1].asFloat(), value[2].asFloat(), value[3].asFloat()));
-    }
-    else if (type == "Double")
-    {
-      metadataContainer.SetMetadataDouble(category.c_str(), name.c_str(), value.asDouble());
-    }
-    else if (type == "DoubleVector2")
-    {
-      metadataContainer.SetMetadataDoubleVector2(category.c_str(), name.c_str(), DoubleVector2(value[0].asDouble(), value[1].asDouble()));
-    }
-    else if (type == "DoubleVector3")
-    {
-      metadataContainer.SetMetadataDoubleVector3(category.c_str(), name.c_str(), DoubleVector3(value[0].asDouble(), value[1].asDouble(), value[2].asDouble()));
-    }
-    else if (type == "DoubleVector4")
-    {
-      metadataContainer.SetMetadataDoubleVector4(category.c_str(), name.c_str(), DoubleVector4(value[0].asDouble(), value[1].asDouble(), value[2].asDouble(), value[3].asDouble()));
-    }
-    else if (type == "String")
-    {
-      metadataContainer.SetMetadataString(category.c_str(), name.c_str(), value.asString());
-    }
-    else if (type == "BLOB")
-    {
-      const char *v = value.asCString();
-
-      int len = (int)strlen(v);
-
-      std::vector<uint8_t> data;
-      bool success = Base64Decode(v, len, data);
-
-      if (!success)
+      if (channelDescriptorJson["useNoValue"].asBool())
       {
-        data.clear();
-        return false;
+        VolumeDataChannelDescriptor
+          channelDescriptor(VoxelFormatFromJson(channelDescriptorJson["format"]),
+                            VoxelComponentsFromJson(channelDescriptorJson["components"]),
+                            descriptorStrings.Add(channelDescriptorJson["name"].asString()),
+                            descriptorStrings.Add(channelDescriptorJson["unit"].asString()),
+                            channelDescriptorJson["valueRange"][0].asFloat(),
+                            channelDescriptorJson["valueRange"][1].asFloat(),
+                            ChannelMappingFromJson(channelDescriptorJson["channelMapping"]),
+                            channelDescriptorJson["mappedValues"].asInt(),
+                            (channelDescriptorJson["discrete"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default) |
+                            (channelDescriptorJson["renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable) |
+                            (channelDescriptorJson["allowLossyCompression"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NoLossyCompression),
+                            channelDescriptorJson["noValue"].asFloat(),
+                            channelDescriptorJson["integerScale"].asFloat(),
+                            channelDescriptorJson["integerOffset"].asFloat());
+
+        channelDescriptors.push_back(channelDescriptor);
       }
-      metadataContainer.SetMetadataBLOB(category.c_str(), name.c_str(), data);
+      else
+      {
+        VolumeDataChannelDescriptor
+          channelDescriptor(VoxelFormatFromJson(channelDescriptorJson["format"]),
+                            VoxelComponentsFromJson(channelDescriptorJson["components"]),
+                            descriptorStrings.Add(channelDescriptorJson["name"].asString()),
+                            descriptorStrings.Add(channelDescriptorJson["unit"].asString()),
+                            channelDescriptorJson["valueRange"][0].asFloat(),
+                            channelDescriptorJson["valueRange"][1].asFloat(),
+                            ChannelMappingFromJson(channelDescriptorJson["channelMapping"]),
+                            channelDescriptorJson["mappedValues"].asInt(),
+                            (channelDescriptorJson["discrete"].asBool() ? VolumeDataChannelDescriptor::DiscreteData : VolumeDataChannelDescriptor::Default) |
+                            (channelDescriptorJson["renderable"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NotRenderable) |
+                            (channelDescriptorJson["allowLossyCompression"].asBool() ? VolumeDataChannelDescriptor::Default : VolumeDataChannelDescriptor::NoLossyCompression),
+                            channelDescriptorJson["integerScale"].asFloat(),
+                            channelDescriptorJson["integerOffset"].asFloat());
+
+        channelDescriptors.push_back(channelDescriptor);
+      }
     }
+
+    for (const Json::Value &metadata : root["metadata"])
+    {
+      //MetadataKey key = { MetadataTypeFromJson(metadata["type"]), metadata["category"].asString(), metadata["name"].asString() };
+
+      //metadataContainer.keys.push_back(key);
+
+      std::string type = metadata["type"].asString();
+      std::string category = metadata["category"].asString();
+      std::string name = metadata["name"].asString();
+      const Json::Value &value = metadata["value"];
+      if (type == "Int")
+      {
+        metadataContainer.SetMetadataInt(category.c_str(), name.c_str(), value.asInt());
+      }
+      else if (type == "IntVector2")
+      {
+        metadataContainer.SetMetadataIntVector2(category.c_str(), name.c_str(), IntVector2(value[0].asInt(), value[1].asInt()));
+      }
+      else if (type == "IntVector3")
+      {
+        metadataContainer.SetMetadataIntVector3(category.c_str(), name.c_str(), IntVector3(value[0].asInt(), value[1].asInt(), value[2].asInt()));
+      }
+      else if (type == "IntVector4")
+      {
+        metadataContainer.SetMetadataIntVector4(category.c_str(), name.c_str(), IntVector4(value[0].asInt(), value[1].asInt(), value[2].asInt(), value[3].asInt()));
+      }
+      else if (type == "Float")
+      {
+        metadataContainer.SetMetadataFloat(category.c_str(), name.c_str(), value.asFloat());
+      }
+      else if (type == "FloatVector2")
+      {
+        metadataContainer.SetMetadataFloatVector2(category.c_str(), name.c_str(), FloatVector2(value[0].asFloat(), value[1].asFloat()));
+      }
+      else if (type == "FloatVector3")
+      {
+        metadataContainer.SetMetadataFloatVector3(category.c_str(), name.c_str(), FloatVector3(value[0].asFloat(), value[1].asFloat(), value[2].asFloat()));
+      }
+      else if (type == "FloatVector4")
+      {
+        metadataContainer.SetMetadataFloatVector4(category.c_str(), name.c_str(), FloatVector4(value[0].asFloat(), value[1].asFloat(), value[2].asFloat(), value[3].asFloat()));
+      }
+      else if (type == "Double")
+      {
+        metadataContainer.SetMetadataDouble(category.c_str(), name.c_str(), value.asDouble());
+      }
+      else if (type == "DoubleVector2")
+      {
+        metadataContainer.SetMetadataDoubleVector2(category.c_str(), name.c_str(), DoubleVector2(value[0].asDouble(), value[1].asDouble()));
+      }
+      else if (type == "DoubleVector3")
+      {
+        metadataContainer.SetMetadataDoubleVector3(category.c_str(), name.c_str(), DoubleVector3(value[0].asDouble(), value[1].asDouble(), value[2].asDouble()));
+      }
+      else if (type == "DoubleVector4")
+      {
+        metadataContainer.SetMetadataDoubleVector4(category.c_str(), name.c_str(), DoubleVector4(value[0].asDouble(), value[1].asDouble(), value[2].asDouble(), value[3].asDouble()));
+      }
+      else if (type == "String")
+      {
+        metadataContainer.SetMetadataString(category.c_str(), name.c_str(), value.asString());
+      }
+      else if (type == "BLOB")
+      {
+        const char *v = value.asCString();
+
+        int len = (int)strlen(v);
+
+        std::vector<uint8_t> data;
+        bool success = Base64Decode(v, len, data);
+
+        if (!success)
+        {
+          data.clear();
+          return false;
+        }
+        metadataContainer.SetMetadataBLOB(category.c_str(), name.c_str(), data);
+      }
+    }
+  }
+  catch(Json::Exception &e)
+  {
+    error.string = e.what();
+    error.code = -1;
+    return false;
   }
 
   return true;
