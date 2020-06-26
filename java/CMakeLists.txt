@@ -12,6 +12,7 @@ set(JAVA_SOURCE_FILES
   java/src/org/opengroup/openvds/AWSOpenOptions.java
   java/src/org/opengroup/openvds/AzureOpenOptions.java
   java/src/org/opengroup/openvds/AzurePresignedOpenOptions.java
+  java/src/org/opengroup/openvds/AzureVdsGenerator.java
   java/src/org/opengroup/openvds/B.java
   java/src/org/opengroup/openvds/BufferUtils.java
   java/src/org/opengroup/openvds/Cleaner.java
@@ -92,6 +93,7 @@ add_jar(openvds-java-test
 )
 
 add_library(openvds-javacpp
+  cpp/src/AzureVdsGenerator.cpp
   cpp/src/Common.cpp
   cpp/src/CommonJni.cpp
   cpp/src/JniPointer.cpp
