@@ -1,22 +1,21 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <IO/IOManager.h>
-#include <IO/IOManagerAzure.h>
 #include <OpenVDS/OpenVDS.h>
 #include <VDS/VolumeDataAccessManagerImpl.h>
 #include <VDS/Base64.h>
 #include <chrono>
 
-class AzureTransfer : public OpenVDS::TransferDownloadHandler
+class BasicIOTransfer : public OpenVDS::TransferDownloadHandler
 {
 public:
-  AzureTransfer() {}
+  BasicIOTransfer() {}
   OpenVDS::Error m_error;
 
   std::vector<uint8_t> m_data;
   std::vector<uint8_t> m_metadata;
 
-  ~AzureTransfer() override
+  ~BasicIOTransfer() override
   {
   }
 
@@ -61,7 +60,7 @@ void completedCallback(const OpenVDS::Request& request, const OpenVDS::Error& er
   }
 };
 
-TEST(IOTests, basicAzure)
+TEST(IOTests, basicIOTest)
 {
   OpenVDS::Error error;
   std::string url = TEST_URL;
@@ -71,9 +70,9 @@ TEST(IOTests, basicAzure)
     GTEST_SKIP() << "Test Environment for connecting to VDS is not set";
   }
 
-  OpenVDS::Error azureManagerError;
+  OpenVDS::Error ioManagerError;
 
-  OpenVDS::IOManagerAzure* m_ioManager = reinterpret_cast <OpenVDS::IOManagerAzure*> (OpenVDS::IOManager::CreateIOManager(url, connectionString, azureManagerError));
+  OpenVDS::IOManager * m_ioManager = reinterpret_cast <OpenVDS::IOManager*> (OpenVDS::IOManager::CreateIOManager(url, connectionString, ioManagerError));
 
   const char hash[] = "Test text";
   std::vector<char> base64Hash;
@@ -86,62 +85,62 @@ TEST(IOTests, basicAzure)
 
   // Test that we can upload and download some data
   {
-    std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->WriteObject("aztest1", "NA", "Text", meta_map, to_write, completedCallback);
+    std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->WriteObject("basicIOtest1", "NA", "Text", meta_map, to_write, completedCallback);
     while (!uploadRequest->IsDone())
     {
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 
-    bool uploadStatus = uploadRequest->IsSuccess(azureManagerError);
+    bool uploadStatus = uploadRequest->IsSuccess(ioManagerError);
     ASSERT_TRUE(uploadStatus);
   }
 
   {
-    auto transferHandler = std::make_shared<AzureTransfer>();
+    auto transferHandler = std::make_shared<BasicIOTransfer>();
 
-    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("aztest1", transferHandler);
+    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("basicIOtest1", transferHandler);
 
     downloadRequest->WaitForFinish();
     ASSERT_TRUE(downloadRequest->IsDone());
 
-    bool downloadStatus = downloadRequest->IsSuccess(azureManagerError);
+    bool downloadStatus = downloadRequest->IsSuccess(ioManagerError);
     ASSERT_TRUE(downloadStatus);
   }
 
   // Test that we can upload and download a 0 byte chunk
   {
     to_write->clear();
-    std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->WriteObject("aztest2", "", "Text", meta_map, to_write, completedCallback);
+    std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->WriteObject("basicIOtest2", "", "Text", meta_map, to_write, completedCallback);
 
     uploadRequest->WaitForFinish();
     ASSERT_TRUE(uploadRequest->IsDone());
 
-    bool uploadStatus = uploadRequest->IsSuccess(azureManagerError);
+    bool uploadStatus = uploadRequest->IsSuccess(ioManagerError);
     ASSERT_TRUE(uploadStatus);
   }
 
   {
-    auto transferHandler = std::make_shared<AzureTransfer>();
+    auto transferHandler = std::make_shared<BasicIOTransfer>();
 
-    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("aztest2", transferHandler);
+    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("basicIOtest2", transferHandler);
 
     downloadRequest->WaitForFinish();
     ASSERT_TRUE(downloadRequest->IsDone());
 
-    bool downloadStatus = downloadRequest->IsSuccess(azureManagerError);
+    bool downloadStatus = downloadRequest->IsSuccess(ioManagerError);
     ASSERT_TRUE(downloadStatus);
   }
 
   // Test that we can catch an error if we download something that doesn't exist
   {
-    auto transferHandler = std::make_shared<AzureTransfer>();
+    auto transferHandler = std::make_shared<BasicIOTransfer>();
 
-    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("aztest_not_existing_blob", transferHandler);
+    std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("basicIOtest_not_existing_blob", transferHandler);
 
     downloadRequest->WaitForFinish();
     ASSERT_TRUE(downloadRequest->IsDone());
 
-    bool downloadStatus = downloadRequest->IsSuccess(azureManagerError);
+    bool downloadStatus = downloadRequest->IsSuccess(ioManagerError);
     ASSERT_FALSE(downloadStatus);
   }
 }

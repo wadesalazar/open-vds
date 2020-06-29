@@ -40,9 +40,6 @@ add_test_executable(io_tests
   io/InMemoryIo.cpp
   io/IoManagerBasic.cpp
   )
-if (DISABLE_AZURE_IOMANAGER)
-  set_source_files_properties(io/AzureIo.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
-endif()
 
 add_test_executable(io_performance_test
   io/IoPerformance.cpp
