@@ -403,7 +403,7 @@ findRepresentativeSegment(SEGYFileInfo const& fileInfo, int& primaryStep)
   for (int i = 0; i < int(fileInfo.m_segmentInfo.size()); i++)
   {
     int64_t
-      numTraces = (fileInfo.m_segmentInfo[i].m_traceStop - fileInfo.m_segmentInfo[i].m_traceStart);
+      numTraces = (fileInfo.m_segmentInfo[i].m_traceStop - fileInfo.m_segmentInfo[i].m_traceStart + 1);
 
     float
       multiplier = 1.5f - std::abs(i - (float)fileInfo.m_segmentInfo.size() / 2) / (float)fileInfo.m_segmentInfo.size(); // give 50% more importance to a segment in the middle of the dataset
@@ -478,7 +478,7 @@ copySamples(const void* data, SEGY::BinaryHeader::DataSampleFormatCode dataSampl
 bool
 analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, int& fold, int& secondaryStep, OpenVDS::Error& error)
 {
-  assert(segmentInfo.m_traceStop > segmentInfo.m_traceStart && "A valid segment info should always have a greater stop trace than the start trace");
+  assert(segmentInfo.m_traceStop >= segmentInfo.m_traceStart && "A valid segment info should always have a stop trace greater or equal to the start trace");
 
   bool success = true;
 
@@ -493,7 +493,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
   std::unique_ptr<char[]> buffer;
 
   // Create min/max heaps for determining value range
-  int heapSizeMax = int(((100.0f - valueRangePercentile) / 100.0f) * (segmentInfo.m_traceStop - segmentInfo.m_traceStart) * fileInfo.m_sampleCount / 2) + 1;
+  int heapSizeMax = int(((100.0f - valueRangePercentile) / 100.0f) * (segmentInfo.m_traceStop - segmentInfo.m_traceStart + 1) * fileInfo.m_sampleCount / 2) + 1;
 
   std::vector<float> minHeap, maxHeap;
 
@@ -507,12 +507,12 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
   // Determine fold and secondary step
   int gatherSecondaryKey = 0, gatherFold = 0, gatherSecondaryStep = 0;
 
-  for (int64_t trace = segmentInfo.m_traceStart; trace <  segmentInfo.m_traceStop; trace++)
+  for (int64_t trace = segmentInfo.m_traceStart; trace <= segmentInfo.m_traceStop; trace++)
   {
     if(trace - traceBufferStart >= traceBufferSize)
     {
       traceBufferStart = trace;
-      traceBufferSize = (segmentInfo.m_traceStop - trace) < 1000 ? int(segmentInfo.m_traceStop - trace) : 1000;
+      traceBufferSize = (segmentInfo.m_traceStop - trace + 1) < 1000 ? int(segmentInfo.m_traceStop - trace + 1) : 1000;
 
       buffer.reset(new char[traceByteSize * traceBufferSize]);
       int64_t offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + traceByteSize * traceBufferStart;
