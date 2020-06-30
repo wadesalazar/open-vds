@@ -414,10 +414,10 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
     // Check if the page is not valid and we need to add the request later when the metadata page transfer completes
     if (!metadataPage->IsValid())
     {
-      auto it = m_pendingDownloadRequests.lower_bound(chunk);
-      if (it == m_pendingDownloadRequests.end() || chunk < it->first)
+      auto it = m_pendingDownloadRequests.find(chunk);
+      if (it == m_pendingDownloadRequests.end())
       {
-        it = m_pendingDownloadRequests.emplace_hint(it, chunk, PendingDownloadRequest(metadataPage));
+        it = m_pendingDownloadRequests.emplace(chunk, PendingDownloadRequest(metadataPage)).first;
       }
       else
       {
