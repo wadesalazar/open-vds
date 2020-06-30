@@ -44,7 +44,7 @@ PyGlobal::initModule(py::module& m)
   OpenOptions_ConnectionType_.value("AzurePresigned"              , OpenOptions::ConnectionType::AzurePresigned, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_AzurePresigned));
   OpenOptions_ConnectionType_.value("GoogleStorage"               , OpenOptions::ConnectionType::GoogleStorage, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_GoogleStorage));
   OpenOptions_ConnectionType_.value("Http"                        , OpenOptions::ConnectionType::Http       , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_Http));
-  OpenOptions_ConnectionType_.value("File"                        , OpenOptions::ConnectionType::File       , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_File));
+  OpenOptions_ConnectionType_.value("VDSFile"                     , OpenOptions::ConnectionType::VDSFile    , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_VDSFile));
   OpenOptions_ConnectionType_.value("InMemory"                    , OpenOptions::ConnectionType::InMemory   , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_InMemory));
 
   // AWSOpenOptions
@@ -111,6 +111,14 @@ PyGlobal::initModule(py::module& m)
   InMemoryOpenOptions_.def(py::init<const char *                  >(), py::arg("name"), OPENVDS_DOCSTRING(InMemoryOpenOptions_InMemoryOpenOptions_2));
   InMemoryOpenOptions_.def(py::init<const std::string &           >(), py::arg("name"), OPENVDS_DOCSTRING(InMemoryOpenOptions_InMemoryOpenOptions_3));
   InMemoryOpenOptions_.def_readwrite("name"                        , &InMemoryOpenOptions::name     , OPENVDS_DOCSTRING(InMemoryOpenOptions_name));
+
+  // VDSFileOpenOptions
+  py::class_<VDSFileOpenOptions, OpenOptions, std::unique_ptr<VDSFileOpenOptions>> 
+    VDSFileOpenOptions_(m,"VDSFileOpenOptions", OPENVDS_DOCSTRING(VDSFileOpenOptions));
+
+  VDSFileOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(VDSFileOpenOptions_VDSFileOpenOptions));
+  VDSFileOpenOptions_.def(py::init<const std::string &           >(), py::arg("fileName"), OPENVDS_DOCSTRING(VDSFileOpenOptions_VDSFileOpenOptions_2));
+  VDSFileOpenOptions_.def_readwrite("fileName"                    , &VDSFileOpenOptions::fileName  , OPENVDS_DOCSTRING(VDSFileOpenOptions_fileName));
 
   // Error
   py::class_<Error, std::unique_ptr<Error>> 

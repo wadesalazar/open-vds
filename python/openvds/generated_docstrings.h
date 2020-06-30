@@ -1206,13 +1206,13 @@ static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Azure = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_AzurePresigned = R"doc()doc";
 
-static const char *__doc_OpenVDS_OpenOptions_ConnectionType_File = R"doc()doc";
-
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_GoogleStorage = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Http = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_InMemory = R"doc()doc";
+
+static const char *__doc_OpenVDS_OpenOptions_ConnectionType_VDSFile = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_OpenOptions = R"doc()doc";
 
@@ -1360,6 +1360,21 @@ static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_ijkToWorldTranslat
 static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_worldToIJKTransform = R"doc(< Coordinate transform matrix)doc";
 
 static const char *__doc_OpenVDS_VDSCoordinateTransformerBase_worldToIJKTranslation = R"doc(< Coordinate translation vector)doc";
+
+static const char *__doc_OpenVDS_VDSFileOpenOptions = R"doc(Options for opening a VDS file)doc";
+
+static const char *__doc_OpenVDS_VDSFileOpenOptions_VDSFileOpenOptions = R"doc()doc";
+
+static const char *__doc_OpenVDS_VDSFileOpenOptions_VDSFileOpenOptions_2 =
+R"doc(VDSFileOpenOptions constructor
+
+Parameters:
+-----------
+
+fileName :
+    The name of the VDS file)doc";
+
+static const char *__doc_OpenVDS_VDSFileOpenOptions_fileName = R"doc()doc";
 
 static const char *__doc_OpenVDS_VDSIJKGridDefinition = R"doc()doc";
 
@@ -2176,6 +2191,20 @@ coordinate :
 Returns:
 --------
     The sample index of the coordinate)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_CoordinateToSamplePosition =
+R"doc(Convert a coordinate to a sample position (to use with
+RequestVolumeSamples or an InterpolatingVolumeDataAccessor)
+
+Parameters:
+-----------
+
+coordinate :
+    The coordinate to get the sample position of
+
+Returns:
+--------
+    The sample position of the coordinate)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_GetCoordinateMax =
 R"doc(Get the coordinate of the last sample of this axis
