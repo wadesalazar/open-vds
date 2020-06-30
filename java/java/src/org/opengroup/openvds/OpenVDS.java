@@ -25,6 +25,8 @@ public class OpenVDS extends VdsHandle{
     private static native long cpOpenAzure(String pConnectionString, String pContainer, String pBlob,
                                            int pParallelismFactor, int pMaxExecutionTime) throws IOException;
 
+    private static native long cpOpenGoogle(String bucket, String pathPrefix) throws IOException;
+
     private static native long cpOpenAzurePresigned(String baseUrl, String urlSuffix) throws IOException;
 
     private static native long cpOpenConnection(String url, String connectionString) throws IOException;
@@ -33,6 +35,22 @@ public class OpenVDS extends VdsHandle{
                                              int pParallelismFactor, int pMaxExecutionTime,
                                              VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
                                              VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+
+    private static native long cpCreateAws(String bucket, String key, String region, String endpointoverhide, String accessKeyId, String secretKey, String sessionToken, String expiration,
+                                           VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
+                                           VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+    
+    private static native long cpCreateGoogle(String bucket, String key,
+                                              VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
+                                              VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+    
+    private static native long cpCreateAzurePresigned(String baseUrl, String urlSuffix,
+                                                      VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
+                                                      VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+
+    private static native long cpCreateConnection(String url, String connectionString,
+                                                  VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
+                                                  VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
 
     private OpenVDS(long handle, boolean ownHandle) {
         super(handle, ownHandle);
@@ -57,13 +75,10 @@ public class OpenVDS extends VdsHandle{
         if ("".equals(url)) throw new IllegalArgumentException("url can't be empty");
         return new OpenVDS(cpOpenConnection(url, connectionString), true);
     }
-
-    public static OpenVDS create(AzureOpenOptions o, VolumeDataLayoutDescriptor ld,
+    
+    private static void validateCreateArguments(VolumeDataLayoutDescriptor ld,
                                  VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
                                  MetadataReadAccess md) throws IOException {
-        if (o == null) {
-            throw new IllegalArgumentException("open option can't be null");
-        }
 
         if (ld == null) {
             throw new IllegalArgumentException("VolumeDataLayoutDescriptor can't be null");
@@ -80,9 +95,64 @@ public class OpenVDS extends VdsHandle{
         if (md == null) {
             throw new IllegalArgumentException("MetadataReadAccess can't be null");
         }
+	}
+
+    private static <OpenOpt> void validateCreateArguments(OpenOpt o, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md) throws IOException {
+
+        if (o == null) {
+            throw new IllegalArgumentException("open option can't be null");
+        }
+        validateCreateArguments(ld, vda, vdc, md);
+	}
+
+    public static OpenVDS create(AzureOpenOptions o, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md) throws IOException {
+        validateCreateArguments(o, ld, vda, vdc, md);
 
         return new OpenVDS(cpCreateAzure(o.connectionString, o.container, o.blob, 
                                          o.parallelism_factor, o.max_execution_time,
+                                         ld, vda, vdc, md), true);
+    }
+    
+    public static OpenVDS create(AWSOpenOptions o, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md) throws IOException {
+        validateCreateArguments(o, ld, vda, vdc, md);
+
+        return new OpenVDS(cpCreateAws(o.bucket, o.key, o.region, o.endpointoverhide, o.accessKeyId, o.secretKey, o.sessionToken, o.expiration,
+                                         ld, vda, vdc, md), true);
+    }
+    
+    public static OpenVDS create(GoogleOpenOptions o, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md) throws IOException {
+        validateCreateArguments(o, ld, vda, vdc, md);
+
+        return new OpenVDS(cpCreateGoogle(o.bucket, o.pathPrefix, 
+                                         ld, vda, vdc, md), true);
+    }
+    
+    public static OpenVDS create(AzurePresignedOpenOptions o, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md) throws IOException {
+        validateCreateArguments(o, ld, vda, vdc, md);
+
+        return new OpenVDS(cpCreateAzurePresigned(o.baseUrl, o.urlSuffix,
+                                         ld, vda, vdc, md), true);
+    }
+    public static OpenVDS create(String url, String connectionString, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md) throws IOException {
+        if (url == null) {
+            throw new IllegalArgumentException("url can't be null");
+        }
+
+        validateCreateArguments(ld, vda, vdc, md);
+
+        return new OpenVDS(cpCreateConnection(url, connectionString,
                                          ld, vda, vdc, md), true);
     }
 }

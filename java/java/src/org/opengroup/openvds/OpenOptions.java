@@ -25,6 +25,7 @@ public class OpenOptions {
         AWS,
         Azure,
         AzurePresigned,
+        Google,
         File,
         InMemory;
     }

@@ -1,6 +1,6 @@
 /*
- * Copyright 2019 The Open Group
- * Copyright 2019 INT, Inc.
+ * Copyright 2020 The Open Group
+** Copyright 2020 Bluware, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,29 +18,30 @@
 package org.opengroup.openvds;
 
 /**
- * Options for opening a VDS in Microsoft Azure cloud computing platform.
+ * Options for opening a VDS in GS (Google Storage) cloud computing
+ * platform.
  */
-public class AzurePresignedOpenOptions extends OpenOptions {
+public class GoogleOpenOptions extends OpenOptions {
 
-    public String baseUrl;
-    public String urlSuffix;
+    public String bucket, pathPrefix;
 
     /**
      * Default constructor.
      */
-    public AzurePresignedOpenOptions() {
-        super(ConnectionType.AzurePresigned);
+    public GoogleOpenOptions() {
+        super(ConnectionType.Google);
     }
 
     /**
      * Constructor.
      *
-     * @param baseUrl the connectionString for the VDS
-     * @param urlSuffix the container of the VDS
+     * @param pBucket           the bucket of the VDS
+     * @param pKey              the prefix of the VDS
      */
-    public AzurePresignedOpenOptions(String baseUrl, String urlSuffix) {
-        super(ConnectionType.AzurePresigned);
-        this.baseUrl = baseUrl;
-        this.urlSuffix = urlSuffix;
+    public GoogleOpenOptions(String pBucket, String pathPrefix) {
+        super(ConnectionType.Google);
+        bucket = pBucket;
+        pathPrefix = pathPrefix;
     }
+
 }

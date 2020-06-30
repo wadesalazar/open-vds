@@ -32,7 +32,9 @@ void throwJavaIOException(JNIEnv *env, const OpenVDS::Error &error) {
     ThrowJavaIOException(env, message.c_str());
 }
 
-jlong openVDSOrThrowJavaIOException(JNIEnv *env, const OpenVDS::OpenOptions &openOptions) {
+jlong openVDSOrThrowJavaIOException(JNIEnv *env, const OpenVDS::OpenOptions &openOptions)
+{
+
     OpenVDS::Error error;
     OpenVDS::VDSHandle pVds = OpenVDS::Open(openOptions, error);
     if (pVds == nullptr) {
@@ -47,7 +49,8 @@ jlong openVDSOrThrowJavaIOException(JNIEnv *env, const OpenVDS::OpenOptions &ope
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J
  */
 jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenAWS
-        (JNIEnv *env, jclass, jstring jbucket, jstring jkey, jstring jregion, jstring jEndPointOverride) {
+        (JNIEnv *env, jclass, jstring jbucket, jstring jkey, jstring jregion, jstring jEndPointOverride)
+{
     OpenVDS::AWSOpenOptions openOptions;
 
     openOptions.key = JStringToString(env, jkey);
@@ -69,6 +72,16 @@ jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenAzure
     openOptions.blob = JStringToString(env, jBlob);
     openOptions.parallelism_factor = jParallelismFactor;
     openOptions.max_execution_time = jMaxExecutionTime;
+
+    return openVDSOrThrowJavaIOException(env, openOptions);
+}
+
+jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenGoogle
+        (JNIEnv *env, jclass, jstring jbucket, jstring jpathPrefix) {
+    OpenVDS::GoogleOpenOptions openOptions;
+
+    openOptions.bucket = JStringToString(env, jbucket);
+    openOptions.pathPrefix= JStringToString(env, jpathPrefix);
 
     return openVDSOrThrowJavaIOException(env, openOptions);
 }
@@ -100,24 +113,6 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenConnection
     if (pVds == nullptr) {
         throwJavaIOException(env, error);
     }
-    return (jlong) pVds;
-}
-
-static jlong
-createVDSOrThrowJavaIOException(JNIEnv* env, const OpenVDS::OpenOptions& options,
-                                const OpenVDS::VolumeDataLayoutDescriptor& layoutDescriptor,
-                                OpenVDS::VectorWrapper<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors,
-                                OpenVDS::VectorWrapper<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors,
-                                const OpenVDS::MetadataReadAccess& metadata)
-{
-    OpenVDS::Error error;
-    auto* pVds = OpenVDS::Create(options, layoutDescriptor, axisDescriptors,
-            channelDescriptors, metadata, error);
-
-    if (pVds == nullptr) {
-        throwJavaIOException(env, error);
-    }
-
     return (jlong) pVds;
 }
 
@@ -282,26 +277,110 @@ getDescriptor(JNIEnv *env, jobject obj)
                                                lodLevels, (OpenVDS::VolumeDataLayoutDescriptor::Options) options, fullResolutionDimension);
 }
 
+static jlong
+createVDSOrThrowJavaIOException(JNIEnv* env, const OpenVDS::OpenOptions& options,
+                                jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+{
+  auto layoutDescriptor = getDescriptor(env, ld);
+
+  std::multiset<std::string> buffer;
+  auto axisDescriptors = getValueDataAxisDescriptors(env, vda, buffer);
+  auto channelDescriptors = getVolumeDataChannelDescriptor(env, vdc, buffer);
+  auto* metadata = getMetadata(env, md);
+
+  OpenVDS::Error error;
+  OpenVDS::VDS *pVds = OpenVDS::Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, *metadata, error);
+
+  if (pVds == nullptr) {
+    throwJavaIOException(env, error);
+  }
+
+  return (jlong)pVds;
+}
+
+
 jlong JNICALL
 Java_org_opengroup_openvds_OpenVDS_cpCreateAzure(JNIEnv *env, jclass, jstring jConnectionString,
-        jstring jContainer, jstring jBlob, jint jParallelismFactor, jint jMaxExecutionTime, jobject ld, jobjectArray vda,
-        jobjectArray vdc, jobject md)
+        jstring jContainer, jstring jBlob, jint jParallelismFactor, jint jMaxExecutionTime,
+        jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
 {
-    OpenVDS::AzureOpenOptions openOptions = OpenVDS::AzureOpenOptions();
+  OpenVDS::AzureOpenOptions openOptions;
 
-    openOptions.connectionString = JStringToString(env, jConnectionString);
-    openOptions.container = JStringToString(env, jContainer);
-    openOptions.blob = JStringToString(env, jBlob);
-    openOptions.parallelism_factor = jParallelismFactor;
-    openOptions.max_execution_time = jMaxExecutionTime;
+  openOptions.connectionString = JStringToString(env, jConnectionString);
+  openOptions.container = JStringToString(env, jContainer);
+  openOptions.blob = JStringToString(env, jBlob);
+  openOptions.parallelism_factor = jParallelismFactor;
+  openOptions.max_execution_time = jMaxExecutionTime;
 
-    auto descr = getDescriptor(env, ld);
+  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md);
+}
 
-    std::multiset<std::string> buffer;
-    auto axisDescriptors = getValueDataAxisDescriptors(env, vda, buffer);
-    auto channelDescriptors = getVolumeDataChannelDescriptor(env, vdc, buffer);
-    auto* metadata = getMetadata(env, md);
+jlong JNICALL
+Java_org_opengroup_openvds_OpenVDS_cpCreateAws(JNIEnv *env, jclass,
+  jstring jbucket, jstring jkey, jstring jregion, jstring jendpointoverhide, jstring jaccessKeyId, jstring jsecretKey, jstring jsessionToken, jstring jexpiration,
+  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+{
+  OpenVDS::AWSOpenOptions openOptions;
 
-    return createVDSOrThrowJavaIOException(env, openOptions, descr, axisDescriptors,
-                                           channelDescriptors, *metadata);
+  openOptions.bucket = JStringToString(env, jbucket);
+  openOptions.key = JStringToString(env, jkey);
+  openOptions.region = JStringToString(env, jregion);
+  openOptions.endpointOverride = JStringToString(env, jendpointoverhide);
+  openOptions.accessKeyId = JStringToString(env, jaccessKeyId);
+  openOptions.secretKey = JStringToString(env, jsecretKey);
+  openOptions.sessionToken = JStringToString(env, jsessionToken);
+  openOptions.expiration = JStringToString(env, jexpiration);
+
+  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md);
+}
+
+jlong JNICALL
+Java_org_opengroup_openvds_OpenVDS_cpCreateGoogle(JNIEnv *env, jclass,
+  jstring jbucket, jstring jpathPrefix,
+  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+{
+  OpenVDS::GoogleOpenOptions openOptions;
+
+  openOptions.bucket = JStringToString(env, jbucket);
+  openOptions.pathPrefix  = JStringToString(env, jpathPrefix);
+
+  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md);
+}
+
+jlong JNICALL
+Java_org_opengroup_openvds_OpenVDS_cpCreateAzurePresigned(JNIEnv* env, jclass,
+  jstring jbaseUrl, jstring jurlSuffix,
+  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+{
+  OpenVDS::AzurePresignedOpenOptions openOptions;
+
+  openOptions.baseUrl = JStringToString(env, jbaseUrl);
+  openOptions.urlSuffix = JStringToString(env, jurlSuffix);
+
+  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md);
+}
+
+jlong JNICALL
+Java_org_opengroup_openvds_OpenVDS_cpCreateConnection(JNIEnv* env, jclass,
+  jstring jurl, jstring jconnectionString,
+  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+{
+ 
+  std::string url = JStringToString(env, jurl);
+  std::string connectionString = JStringToString(env, jconnectionString);
+  auto layoutDescriptor = getDescriptor(env, ld);
+
+  std::multiset<std::string> buffer;
+  auto axisDescriptors = getValueDataAxisDescriptors(env, vda, buffer);
+  auto channelDescriptors = getVolumeDataChannelDescriptor(env, vdc, buffer);
+  auto* metadata = getMetadata(env, md);
+
+  OpenVDS::Error error;
+  OpenVDS::VDS *pVds = OpenVDS::Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, *metadata, error);
+
+  if (pVds == nullptr) {
+    throwJavaIOException(env, error);
+  }
+
+  return (jlong)pVds;
 }

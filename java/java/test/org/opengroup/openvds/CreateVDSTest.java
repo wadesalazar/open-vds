@@ -24,10 +24,8 @@ public class CreateVDSTest {
     @BeforeClass
     public void init() {
         vds = new MemoryVdsGenerator(16, 16, 16, VolumeDataChannelDescriptor.Format.FORMAT_U8);
+        url = "inmemory://create_test";
         o = new AzureOpenOptions();
-        o.connectionString = System.getenv("CONNECTION_STRING");
-        o.container = "test";
-        o.blob = "test_vds_16_16_16";
         VolumeDataLayout volumeDataLayout = vds.getLayout();
 
         int nbChannel = volumeDataLayout.getChannelCount();
@@ -54,14 +52,10 @@ public class CreateVDSTest {
     @Test
     public void testCreateVDS() {
         try {
-            if (o.connectionString == null) {
-                return;
-            }
-
-            OpenVDS openvds1 = OpenVDS.create(o, ld, vda, vdc, md);
+            OpenVDS openvds1 = OpenVDS.create(url, "", ld, vda, vdc, md);
             openvds1.getAccessManager().flushUploadQueue();
 
-            OpenVDS openvds2 = OpenVDS.open(o);
+            OpenVDS openvds2 = OpenVDS.open(url, "");
 
             VolumeDataLayout layout = openvds2.getLayout();
 
@@ -78,7 +72,8 @@ public class CreateVDSTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testException1() {
         try {
-           OpenVDS.create(null, ld, vda, vdc, md);
+           AWSOpenOptions o = null;
+           OpenVDS.create(o, ld, vda, vdc, md);
         } catch (java.io.IOException e) {
             fail();
         }
@@ -125,6 +120,7 @@ public class CreateVDSTest {
     }
 
     public AzureOpenOptions o;
+    public String url;
     public VolumeDataLayoutDescriptor ld;
     public VolumeDataAxisDescriptor[] vda;
     public VolumeDataChannelDescriptor[] vdc;

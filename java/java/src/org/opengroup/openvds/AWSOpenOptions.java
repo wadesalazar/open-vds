@@ -23,7 +23,7 @@ package org.opengroup.openvds;
  */
 public class AWSOpenOptions extends OpenOptions {
 
-    public String bucket, key, region, endpointoverhide;
+    public String bucket, key, region, endpointoverhide, accessKeyId, secretKey, sessionToken, expiration;
 
     /**
      * Default constructor.
