@@ -159,7 +159,7 @@ PyGlobal::initModule(py::module& m)
       case OpenOptions::ConnectionType::AzurePresigned : conn = std::string("AzurePresigned" ); break;
       case OpenOptions::ConnectionType::GoogleStorage  : conn = std::string("GoogleStorage"  ); break;
       case OpenOptions::ConnectionType::Http           : conn = std::string("Http"           ); break;
-      case OpenOptions::ConnectionType::File           : conn = std::string("File"           ); break;
+      case OpenOptions::ConnectionType::VDSFile        : conn = std::string("VDSFile"        ); break;
       case OpenOptions::ConnectionType::InMemory       : conn = std::string("InMemory"       ); break;
       }
       return std::string("OpenOptions(connectionType='" + conn + "')");
