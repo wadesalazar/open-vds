@@ -1,9 +1,5 @@
 include(UseJava)
 
-set(OPENVDS_JAVA_VERSION 0.0.6)
-
-#set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
-
 set(GENERATED_JNI_HEADERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cpp/generated)
 #file(REMOVE_RECURSE ${GENERATED_JNI_HEADERS_DIR})
 file(MAKE_DIRECTORY ${GENERATED_JNI_HEADERS_DIR})
@@ -63,7 +59,7 @@ set(JAVA_SOURCE_FILES
 # Enable JNI header generation for java >=8
 add_jar(openvds-java
         SOURCES ${JAVA_SOURCE_FILES}
-        VERSION ${OPENVDS_JAVA_VERSION}
+        VERSION ${CMAKE_PROJECT_VERSION}
         GENERATE_NATIVE_HEADERS openvds-java-generated-headers DESTINATION ${GENERATED_JNI_HEADERS_DIR}
         ENTRY_POINT OpenVdsDemo)
 
@@ -87,7 +83,7 @@ set(JAVA_TEST_SOURCES_FILES
 
 add_jar(openvds-java-test
         SOURCES ${JAVA_TEST_SOURCES_FILES}
-        VERSION ${OPENVDS_JAVA_VERSION}
+        VERSION ${CMAKE_PROJECT_VERSION}
         INCLUDE_JARS
         ${testng_SOURCE_FILE}
         ${BUILT_JAR_FILE}
@@ -111,8 +107,10 @@ add_library(openvds-javacpp
   cpp/src/VolumeDataPageAccessor.cpp
   )
 
-set_target_properties(openvds-javacpp PROPERTIES FOLDER java)
-set_target_properties(openvds-javacpp PROPERTIES VERSION ${OPENVDS_JAVA_VERSION})
+set_target_properties(openvds-javacpp PROPERTIES
+  FOLDER java
+  VERSION ${CMAKE_PROJECT_VERSION}
+)
 copyDllForTarget(openvds-javacpp)
 target_include_directories(openvds-javacpp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cpp/include)
 target_include_directories(openvds-javacpp PUBLIC ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})

@@ -11,8 +11,7 @@ setWarningFlagsForTarget(segyutils)
 set_target_properties(segyutils
   PROPERTIES
   FRAMEWORK ON
-  SOVERSION 0
-  VERSION 0.1.0
+  VERSION ${CMAKE_PROJECT_VERSION}
   PUBLIC_HEADER "${EXPORTED_HEADER_FILES}"
   #OUTPUT_NAME ${PROJECT_NAME}
 )
