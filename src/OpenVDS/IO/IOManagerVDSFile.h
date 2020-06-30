@@ -33,6 +33,12 @@ namespace OpenVDS
   class IOManagerVDSFile : public IOManager
   {
   public:
+    enum Mode
+    {
+      ReadOnly,
+      ReadWrite
+    };
+
     IOManagerVDSFile(const VDSFileOpenOptions &openOptions, Mode mode, Error &error);
     ~IOManagerVDSFile() override;
 
