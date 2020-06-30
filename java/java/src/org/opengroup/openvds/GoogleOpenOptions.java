@@ -36,7 +36,7 @@ public class GoogleOpenOptions extends OpenOptions {
      * Constructor.
      *
      * @param pBucket           the bucket of the VDS
-     * @param pKey              the prefix of the VDS
+     * @param pathPrefix        the prefix of the VDS
      */
     public GoogleOpenOptions(String pBucket, String pathPrefix) {
         super(ConnectionType.Google);
