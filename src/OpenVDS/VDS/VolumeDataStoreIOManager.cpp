@@ -391,7 +391,7 @@ static IORange CalculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, co
     }
   }
 
-  return { 0 , 0 };
+  return IORange();
 }
 
 static inline std::string CreateUrlForChunk(const std::string &layerName, uint64_t chunk)
@@ -401,59 +401,61 @@ static inline std::string CreateUrlForChunk(const std::string &layerName, uint64
 
 bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Error &error)
 {
+  CompressionMethod compressionMethod = CompressionMethod::Wavelet;
+  int adaptiveLevel = -1;
+
+  IORange ioRange = IORange();
+
   std::string layerName = GetLayerName(*chunk.layer);
   auto metadataManager = GetMetadataMangerForLayer(layerName);
-  //do fallback
-  if (!metadataManager)
+
+  if (metadataManager)
   {
-    error.code = -1;
-    error.string = "No metadata manager";
-    return false;
-  }
-  
-  int pageIndex  = (int)(chunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
-  int entryIndex = (int)(chunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+    int pageIndex  = (int)(chunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+    int entryIndex = (int)(chunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
-  bool initiateTransfer;
+    bool initiateTransfer;
 
-  MetadataPage* metadataPage = metadataManager->LockPage(pageIndex, &initiateTransfer);
+    MetadataPage* metadataPage = metadataManager->LockPage(pageIndex, &initiateTransfer);
 
-  assert(pageIndex == metadataPage->PageIndex());
+    assert(pageIndex == metadataPage->PageIndex());
 
-  std::unique_lock<std::mutex> lock(m_mutex);
-  if (metadataPage->transferError().code != 0)
-  {
-    error = metadataPage->transferError();
-    metadataManager->UnlockPage(metadataPage);
-    return false;
-  }
-
-  if (initiateTransfer)
-  {
-    std::string url = fmt::format("{}/ChunkMetadata/{}", layerName, pageIndex);
-
-    metadataManager->InitiateTransfer(this, metadataPage, url);
-  }
-
-  // Check if the page is not valid and we need to add the request later when the metadata page transfer completes
-  if (!metadataPage->IsValid())
-  {
-    auto it = m_pendingDownloadRequests.find(chunk);
-    if (it == m_pendingDownloadRequests.end())
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (metadataPage->transferError().code != 0)
     {
-      it = m_pendingDownloadRequests.emplace(chunk, PendingDownloadRequest(metadataPage)).first;
+      error = metadataPage->transferError();
+      metadataManager->UnlockPage(metadataPage);
+      return false;
     }
-    else
+
+    if (initiateTransfer)
     {
-      it->second.m_ref++;
-      it->second.m_canMove = false;
+      std::string url = fmt::format("{}/ChunkMetadata/{}", layerName, pageIndex);
+
+      metadataManager->InitiateTransfer(this, metadataPage, url);
     }
-    return it->second.m_metadataPageRequestError.code == 0;
-  }
 
-  lock.unlock();
+    // Check if the page is not valid and we need to add the request later when the metadata page transfer completes
+    if (!metadataPage->IsValid())
+    {
+      auto it = m_pendingDownloadRequests.lower_bound(chunk);
+      if (it == m_pendingDownloadRequests.end() || chunk < it->first)
+      {
+        it = m_pendingDownloadRequests.emplace_hint(it, chunk, PendingDownloadRequest(metadataPage));
+      }
+      else
+      {
+        it->second.m_ref++;
+        it->second.m_canMove = false;
+      }
+      return it->second.m_metadataPageRequestError.code == 0;
+    }
 
-  unsigned char const* metadata = metadataManager->GetPageEntry(metadataPage, entryIndex);
+    lock.unlock();
+
+    compressionMethod = metadataManager->GetMetadataStatus().m_compressionMethod;
+
+    unsigned char const* metadata = metadataManager->GetPageEntry(metadataPage, entryIndex);
 
   Error metaParseError;
   ParsedMetadata parsedMetadata = ParseMetadata(metadata, metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, metaParseError);
@@ -463,18 +465,17 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
     continue;
   }
     
-  metadataManager->UnlockPage(metadataPage);
+    metadataManager->UnlockPage(metadataPage);
 
-  int adaptiveLevel;
+    ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
 
-  IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
+    lock.lock();
+  }
 
-  std::string url = CreateUrlForChunk(layerName, chunk.index);
-
-  lock.lock();
   if (m_pendingDownloadRequests.find(chunk) == m_pendingDownloadRequests.end())
   {
-    auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, adaptiveLevel);
+    std::string url = CreateUrlForChunk(layerName, chunk.index);
+    auto transferHandler = std::make_shared<ReadChunkTransfer>(compressionMethod, adaptiveLevel);
     m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->ReadObject(url, transferHandler, ioRange), transferHandler);
   }
   else
