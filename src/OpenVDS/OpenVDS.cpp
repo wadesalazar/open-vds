@@ -33,6 +33,7 @@
 #include "VDS/VolumeDataRequestProcessor.h"
 #include "VDS/ConnectionStringParser.h"
 #include "VDS/VolumeDataStoreIOManager.h"
+#include "VDS/VolumeDataStoreVDSFile.h"
 
 #include "IO/IOManager.h"
 
@@ -253,35 +254,73 @@ VDS *Open(StringWrapper url, StringWrapper connectionString, Error& error)
   return Open(ioManager.release(), error);
 }
 
+static bool Init(VDS *vds, VolumeDataStore *volumeDataStore, Error& error)
+{
+  vds->produceStatuses.clear();
+  vds->produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
+
+  vds->volumeDataStore.reset(volumeDataStore);
+
+  std::vector<uint8_t> serializedVolumeDataLayout;
+  if(!vds->volumeDataStore->ReadSerializedVolumeDataLayout(serializedVolumeDataLayout, error))
+  {
+    return false;
+  }
+  if(!ParseVolumeDataLayout(serializedVolumeDataLayout, vds->layoutDescriptor, vds->axisDescriptors, vds->channelDescriptors, vds->descriptorStrings, vds->metadataContainer, error))
+  {
+    return false;
+  }
+  CreateVolumeDataLayout(*vds);
+
+  vds->accessManager.reset(new VolumeDataAccessManagerImpl(*vds));
+  return true;
+}
+
 VDS* Open(IOManager *ioManager, Error& error)
 {
   std::unique_ptr<VDS> ret(new VDS());
   error = Error();
 
-  ret->volumeDataStore.reset(new VolumeDataStoreIOManager(*ret, ioManager));
-
-  std::vector<uint8_t> serializedVolumeDataLayout;
-  if(!ret->volumeDataStore->ReadSerializedVolumeDataLayout(serializedVolumeDataLayout, error))
+  if(Init(ret.get(), new VolumeDataStoreIOManager(*ret, ioManager), error))
+  {
+    return ret.release();
+  }
+  else
   {
     return nullptr;
   }
-  if(!ParseVolumeDataLayout(serializedVolumeDataLayout, ret->layoutDescriptor, ret->axisDescriptors, ret->channelDescriptors, ret->descriptorStrings, ret->metadataContainer, error))
-  {
-    return nullptr;
-  }
-  CreateVolumeDataLayout(*ret);
-  ret->accessManager.reset(new VolumeDataAccessManagerImpl(*ret));
-  return ret.release();
 }
 
 VDS *Open(const OpenOptions &options, Error &error)
 {
+  std::unique_ptr<VDS> ret(new VDS());
+  std::unique_ptr<VolumeDataStore> volumeDataStore;
   error = Error();
-  std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(options, error));
-  if (error.code)
-    return nullptr;
 
-  return Open(ioManager.release(), error);
+  if(options.connectionType != OpenOptions::VDSFile)
+  {
+    std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(options, error));
+    if (error.code)
+      return nullptr;
+
+    volumeDataStore.reset(new VolumeDataStoreIOManager(*ret, ioManager.release()));
+  }
+  else
+  {
+    const VDSFileOpenOptions &fileOptions = static_cast<const VDSFileOpenOptions &>(options);
+    volumeDataStore.reset(new VolumeDataStoreVDSFile(*ret, fileOptions.fileName, VolumeDataStoreVDSFile::ReadOnly, error));
+    if (error.code)
+      return nullptr;
+  }
+
+  if(Init(ret.get(), volumeDataStore.release(), error))
+  {
+    return ret.release();
+  }
+  else
+  {
+    return nullptr;
+  }
 }
 
 VolumeDataLayout *GetLayout(VDS *vds)
@@ -430,10 +469,10 @@ VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutD
 
   copyMetadataToContainer(vds->metadataContainer, metadata);
 
+  CreateVolumeDataLayout(*vds);
+
   vds->produceStatuses.clear();
   vds->produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
-
-  CreateVolumeDataLayout(*vds);
 
   if (!vds->volumeDataStore->WriteSerializedVolumeDataLayout(SerializeVolumeDataLayout(*vds), error))
     return nullptr;

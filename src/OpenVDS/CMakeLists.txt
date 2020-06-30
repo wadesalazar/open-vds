@@ -32,6 +32,7 @@ set(SOURCE_FILES
   VDS/Base64.cpp
   VDS/VolumeDataStore.cpp
   VDS/VolumeDataStoreIOManager.cpp
+  VDS/VolumeDataStoreVDSFile.cpp
   VDS/Wavelet.cpp
   VDS/WaveletAdaptiveLL.cpp
   VDS/DataBlock.cpp
@@ -73,6 +74,7 @@ set (PRIVATE_HEADER_FILES
   VDS/Base64.h
   VDS/VolumeDataStore.h
   VDS/VolumeDataStoreIOManager.h
+  VDS/VolumeDataStoreVDSFile.h
   VDS/Wavelet.h
   VDS/WaveletAdaptiveLL.h
   VDS/WaveletTypes.h
