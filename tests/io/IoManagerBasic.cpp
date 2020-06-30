@@ -31,7 +31,7 @@ public:
   {
     if (key == "vdschunkmetadata")
     {
-      bool decoded = OpenVDS::Base64Decode(header.data(), (int)header.size(), m_metadata);
+      bool decoded = Base64Decode(header.data(), (int)header.size(), m_metadata);
       if (!decoded)
       {
         m_error.code = -1;
@@ -76,7 +76,7 @@ TEST(IOTests, basicIOTest)
 
   const char hash[] = "Test text";
   std::vector<char> base64Hash;
-  OpenVDS::Base64Encode((const unsigned char*)&hash, sizeof(hash), base64Hash);
+  Base64Encode((const unsigned char*)&hash, sizeof(hash), base64Hash);
   std::vector<std::pair<std::string, std::string>> meta_map;
   meta_map.emplace_back("vdschunkmetadata", std::string(base64Hash.begin(), base64Hash.end()));
   std::string str = "Data to write";
