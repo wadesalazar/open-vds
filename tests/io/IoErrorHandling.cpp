@@ -245,12 +245,7 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingMissingMetadataTag)
   data.resize((maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]));
   int64_t request = accessManager->RequestVolumeSubset(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
   bool finished = accessManager->WaitForCompletion(request);
-  ASSERT_FALSE(finished);
-  int errorCode = 0;
-  const char* errorString = nullptr;
-  accessManager->GetCurrentDownloadError(&errorCode, &errorString);
-  ASSERT_TRUE(strContains(errorString, "Metadata is empty"));
-  ASSERT_TRUE(accessManager->IsCanceled(request));
+  ASSERT_TRUE(finished);
 }
 
 TEST_F(IOErrorHandlingFixture, ErrorHandlingChangedMetadataTag)

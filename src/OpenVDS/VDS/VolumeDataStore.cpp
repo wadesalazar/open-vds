@@ -54,7 +54,7 @@ static uint32_t GetByteSize(const DataBlockDescriptor &descriptor)
 }
 
 
-bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t> &serializedData, CompressionMethod compressionMethod, bool isFullyRead)
+bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t> &serializedData, CompressionMethod compressionMethod, bool isFullyRead, const VolumeDataHash &hash)
 {
   bool isValid = false;
 
@@ -62,11 +62,11 @@ bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::
 
   volumeDataChunk.layer->GetChunkVoxelSize(volumeDataChunk.index, voxelSize);
 
-  if(serializedData.empty())
+  if(serializedData.empty() && hash.IsConstant())
   {
     isValid = true;
   }
-  else if(CompressionMethodIsWavelet(compressionMethod))
+  else if(CompressionMethodIsWavelet(compressionMethod) && serializedData.size() >= sizeof(int32_t) * 5)
   {
     if(serializedData.size() >= sizeof(int32_t) * 6)
     {
@@ -479,13 +479,16 @@ bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volume
   return true;
 }
 
-static bool getMetadataValidity(const VolumeDataChunk &volumeDataChunk, CompressionMethod compressionMethod,  const std::vector<uint8_t>& metadata, const ParsedMetadata& parsedMetadata, Error &error)
+static bool getMetadataValidity(const VolumeDataChunk &volumeDataChunk, CompressionMethod compressionMethod,  const std::vector<uint8_t>& metadata, const ParsedMetadata& parsedMetadata, bool &warnedAboutMissingMetadataTag, Error &error)
 {
   if (metadata.empty())
   {
-    error.string = fmt::format("Chunk {} - Metadata is empty.", volumeDataChunk.index);
-    error.code = -1;
-    return false;
+    if (!warnedAboutMissingMetadataTag)
+    {
+      fmt::print(stderr, "Warning: VDS dataset missing metadata tags, degraded data verification.");
+      warnedAboutMissingMetadataTag = true;
+    }
+    return parsedMetadata.m_chunkHash;
   }
 
   if (parsedMetadata.valid())
@@ -523,28 +526,31 @@ static bool getMetadataValidity(const VolumeDataChunk &volumeDataChunk, Compress
   return true;
 }
 
-bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, const ParsedMetadata &parsedMetadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error)
+bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, const ParsedMetadata &parsedMetadata, bool &warnedAboutMissingMetadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error)
 {
   uint64_t volumeDataHashValue = VolumeDataHash::UNKNOWN;
 
-  bool metadataValid = getMetadataValidity(volumeDataChunk, compressionMethod, metadata, parsedMetadata, error);
+  bool metadataValid = getMetadataValidity(volumeDataChunk, compressionMethod, metadata, parsedMetadata, warnedAboutMissingMetadata, error);
   if (!metadataValid)
     return false;
 
-  if (CompressionMethodIsWavelet(compressionMethod) && VolumeDataStore::Verify(volumeDataChunk, serializedData, compressionMethod, false))
+  if (metadata.size())
+    memcpy(&volumeDataHashValue, metadata.data(), sizeof(uint64_t));
+  else
+    volumeDataHashValue = parsedMetadata.m_chunkHash;
+  
+  VolumeDataHash volumeDataHash(volumeDataHashValue);
+
+  if (CompressionMethodIsWavelet(compressionMethod) && VolumeDataStore::Verify(volumeDataChunk, serializedData, compressionMethod, false, volumeDataHashValue))
   {
     ;
   }
-  else if (!Verify(volumeDataChunk, serializedData, compressionMethod, true))
+  else if (!Verify(volumeDataChunk, serializedData, compressionMethod, true, volumeDataHashValue))
   {
     error.code = 30;
     error.string = fmt::format("Invalid header for chunk file. Chunk index: {}.", volumeDataChunk.index);
     return false;
   }
-
-  memcpy(&volumeDataHashValue, metadata.data(), sizeof(uint64_t));
-  
-  VolumeDataHash volumeDataHash(volumeDataHashValue);
 
   const VolumeDataLayer* volumeDataLayer = volumeDataChunk.layer;
 
