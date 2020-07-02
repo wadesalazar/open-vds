@@ -27,6 +27,7 @@
 #include "VolumeDataChunk.h"
 #include "VolumeDataLayer.h"
 #include "VolumeDataRequestProcessor.h"
+#include "ParsedMetadata.h"
 
 #include <map>
 #include "Base64.h"
@@ -38,8 +39,9 @@ class MetadataPage;
 class ReadChunkTransfer : public TransferDownloadHandler
 {
 public:
-  ReadChunkTransfer(CompressionMethod compressionMethod, int adaptiveLevel)
+  ReadChunkTransfer(CompressionMethod compressionMethod, const ParsedMetadata &parsedMetadata, int adaptiveLevel)
     : m_compressionMethod(compressionMethod)
+    , m_parsedMetadata(parsedMetadata)
     , m_adaptiveLevel(adaptiveLevel)
   {}
 
@@ -57,17 +59,39 @@ public:
 
   void HandleMetadata(const std::string& key, const std::string& header) override
   {
-    static const char vdschunkmetadata[] = "vdschunkmetadata";
-    constexpr int vdschunkmetadataSize = sizeof(vdschunkmetadata) - 1;
-    if (key.size() >= vdschunkmetadataSize)
+    static const char vdschunkmetadata[] = "vdschunkmetadata=";
+    constexpr int vdschunkmetadataKeySize = sizeof(vdschunkmetadata) - 2;
+    constexpr int vdschunkmetadataValueSize = sizeof(vdschunkmetadata) - 1;
+    if (key.size() >= vdschunkmetadataKeySize)
     {
-      if (memcmp(key.data() + key.size() - vdschunkmetadataSize, vdschunkmetadata, vdschunkmetadataSize) == 0)
+      if (memcmp(key.data() + key.size() - vdschunkmetadataKeySize, vdschunkmetadata, vdschunkmetadataKeySize) == 0)
       {
         if (!Base64Decode(header.data(), (int)header.size(), m_metadata))
         {
           m_error.code = -1;
           m_error.string = "Failed to decode chunk metadata";
         }
+        return;
+      }
+    }
+    if (header.size() > vdschunkmetadataValueSize) // This is to support Azure x-ms-properties header for dfs type blobs
+    {
+      if (memcmp(header.data(), vdschunkmetadata, vdschunkmetadataValueSize) == 0)
+      {
+        std::vector<uint8_t> tmp;
+        tmp.reserve(12);
+        if (!Base64Decode(header.data() + vdschunkmetadataValueSize, (int)header.size() - vdschunkmetadataValueSize, tmp))
+        {
+          m_error.code = -1;
+          m_error.string = "Failed to decode chunk metadata";
+          return;
+        }
+        if (!Base64Decode((const char *)tmp.data(), (int)tmp.size(), m_metadata))
+        {
+          m_error.code = -1;
+          m_error.string = "Failed to decode chunk metadata";
+        }
+        return;
       }
     }
   }
@@ -82,7 +106,7 @@ public:
   }
   
   CompressionMethod m_compressionMethod;
-
+  ParsedMetadata m_parsedMetadata;
   int m_adaptiveLevel;
 
   Error m_error;
@@ -246,7 +270,7 @@ public:
   int64_t PrefetchVolumeChunk(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk) override;
 
   bool PrepareReadChunkData(const VolumeDataChunk& chunk, Error& error);
-  bool ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error);
+  bool ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, ParsedMetadata &parsedMetadata, Error& error);
   bool CancelReadChunk(const VolumeDataChunk& chunk, Error& error);
   void PageTransferCompleted(MetadataPage* metadataPage, const Error &error);
   bool WriteMetadataPage(MetadataPage* metadataPage, const std::vector<uint8_t> &data);

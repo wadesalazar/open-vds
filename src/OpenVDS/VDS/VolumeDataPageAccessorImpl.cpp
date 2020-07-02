@@ -287,9 +287,10 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
     std::vector<uint8_t> serialized_data;
     std::vector<uint8_t> metadata;
     CompressionInfo compressionInfo;
+    ParsedMetadata parsedMetadata;
 
 
-    if (!m_accessManager->ReadChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, error))
+    if (!m_accessManager->ReadChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, parsedMetadata, error))
     {
       pageListMutexLock.lock();
       pageImpl->SetError(error);
@@ -302,7 +303,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
 
     std::vector<uint8_t> page_data;
     DataBlock dataBlock;
-    if (!VolumeDataStore::DeserializeVolumeData(volumeDataChunk, serialized_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->GetFormat(), dataBlock, page_data, error))
+    if (!VolumeDataStore::DeserializeVolumeData(volumeDataChunk, serialized_data, metadata, parsedMetadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->GetFormat(), dataBlock, page_data, error))
     {
       pageListMutexLock.lock();
       pageImpl->SetError(error);

@@ -23,6 +23,7 @@
 #include "VolumeDataHash.h"
 #include "Rle.h"
 #include "DataBlock.h"
+#include "ParsedMetadata.h"
 #include <OpenVDS/ValueConversion.h>
 
 #include <fmt/format.h>
@@ -478,15 +479,63 @@ bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volume
   return true;
 }
 
-bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error)
+static bool getMetadataValidity(const VolumeDataChunk &volumeDataChunk, CompressionMethod compressionMethod,  const std::vector<uint8_t>& metadata, const ParsedMetadata& parsedMetadata, Error &error)
+{
+  if (metadata.empty())
+  {
+    error.string = fmt::format("Chunk {} - Metadata is empty.", volumeDataChunk.index);
+    error.code = -1;
+    return false;
+  }
+
+  if (parsedMetadata.valid())
+  {
+    ParsedMetadata chunkParsedMetadata = ParseMetadata(metadata.data(), int(metadata.size()), error);
+    if (error.code)
+      return false;
+    if (chunkParsedMetadata != parsedMetadata)
+    {
+      error.string = fmt::format("Chunk {} - Metadata is not the same as metadata from stored metadapage.", volumeDataChunk.index);
+      error.code = -1;
+      return false;
+    }
+  }
+ 
+  //should this be an else
+  if (CompressionMethodIsWavelet(compressionMethod))
+  {
+    if (metadata.size() != sizeof(uint64_t) + sizeof(uint8_t[WAVELET_ADAPTIVE_LEVELS]))
+    {
+      error.string = fmt::format("Chunk {} - Metadata for wavelet chunk does not match the expected length.", volumeDataChunk.index);
+      error.code = -1;
+      return false;
+    }
+  }
+  else
+  {
+    if (metadata.size() != sizeof(uint64_t))
+    {
+      error.string = fmt::format("Chunk {} - Metadata for non wavelet is not the expected size", volumeDataChunk.index);
+      error.code = -1;
+      return false;
+    }
+  }
+  return true;
+}
+
+bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, const ParsedMetadata &parsedMetadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error)
 {
   uint64_t volumeDataHashValue = VolumeDataHash::UNKNOWN;
 
-  if (CompressionMethodIsWavelet(compressionMethod) && metadata.size() == sizeof(uint64_t) + sizeof(uint8_t[WAVELET_ADAPTIVE_LEVELS]) && VolumeDataStore::Verify(volumeDataChunk, serializedData, compressionMethod, false))
+  bool metadataValid = getMetadataValidity(volumeDataChunk, compressionMethod, metadata, parsedMetadata, error);
+  if (!metadataValid)
+    return false;
+
+  if (CompressionMethodIsWavelet(compressionMethod) && VolumeDataStore::Verify(volumeDataChunk, serializedData, compressionMethod, false))
   {
     ;
   }
-  else if (metadata.size() != sizeof(uint64_t) || !Verify(volumeDataChunk, serializedData, compressionMethod, true))
+  else if (!Verify(volumeDataChunk, serializedData, compressionMethod, true))
   {
     error.code = 30;
     error.string = fmt::format("Invalid header for chunk file. Chunk index: {}.", volumeDataChunk.index);

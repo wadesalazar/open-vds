@@ -30,6 +30,7 @@
 
 #include "VolumeDataChunk.h"
 #include "WaveletTypes.h"
+#include "ParsedMetadata.h"
 
 namespace OpenVDS
 {

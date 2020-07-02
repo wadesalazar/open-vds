@@ -196,6 +196,105 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingLayerStatusInvalidJson)
   ASSERT_FALSE(handle);
 }
 
+
+static bool strContains(const std::string& searchIn, const std::string& searchFor)
+{
+  return searchIn.find(searchFor) != std::string::npos;
+}
+
+class SyncTransfer : public OpenVDS::TransferDownloadHandler
+{
+public:
+  void HandleObjectSize(int64_t size) override { }
+  void HandleObjectLastWriteTime(const std::string& lastWriteTimeISO8601) override {}
+  void HandleMetadata(const std::string& key, const std::string& header) { headers.emplace_back(key, header); }
+  void HandleData(std::vector<uint8_t>&& data) { this->data = std::move(data); }
+  void Completed(const OpenVDS::Request& request, const OpenVDS::Error& error) {}
+
+  std::vector<uint8_t> data;
+  std::vector<std::pair<std::string, std::string>> headers;
+};
+
+TEST_F(IOErrorHandlingFixture, ErrorHandlingMissingMetadataTag)
+{
+  OpenVDS::Error error;
+  IOManagerFacade *facadeIoManager = new IOManagerFacade(IOErrorHandlingFixture::inMemoryIOManager);
+
+  std::string objectName = "Dimensions_012LOD0/1";
+  auto syncTransfer = std::make_shared<SyncTransfer>();
+  auto req = IOErrorHandlingFixture::inMemoryIOManager->ReadObject(objectName, syncTransfer);
+  req->WaitForFinish();
+  auto& object = facadeIoManager->m_data[objectName];
+  object.data = std::move(syncTransfer->data);
+  object.metaHeader = std::move(syncTransfer->headers);
+  object.metaHeader.erase(
+    std::remove_if(object.metaHeader.begin(), object.metaHeader.end(), [](const std::pair<std::string, std::string>& a)
+     {
+       return strContains(a.first, "vdschunkmetadata");
+     })
+    , object.metaHeader.end());
+
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(facadeIoManager, error), OpenVDS::Close);
+  ASSERT_TRUE(handle);
+  auto layout = OpenVDS::GetLayout(handle.get());
+  auto accessManager = OpenVDS::GetAccessManager(handle.get());
+
+  int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
+  int32_t maxPos[OpenVDS::Dimensionality_Max] = { 55, 55, 55 };
+  std::vector<float> data;
+  data.resize((maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]));
+  int64_t request = accessManager->RequestVolumeSubset(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+  bool finished = accessManager->WaitForCompletion(request);
+  ASSERT_FALSE(finished);
+  int errorCode = 0;
+  const char* errorString = nullptr;
+  accessManager->GetCurrentDownloadError(&errorCode, &errorString);
+  ASSERT_TRUE(strContains(errorString, "Metadata is empty"));
+  ASSERT_TRUE(accessManager->IsCanceled(request));
+}
+
+TEST_F(IOErrorHandlingFixture, ErrorHandlingChangedMetadataTag)
+{
+  OpenVDS::Error error;
+  IOManagerFacade *facadeIoManager = new IOManagerFacade(IOErrorHandlingFixture::inMemoryIOManager);
+
+  std::string objectName = "Dimensions_012LOD0/1";
+  auto syncTransfer = std::make_shared<SyncTransfer>();
+  auto req = IOErrorHandlingFixture::inMemoryIOManager->ReadObject(objectName, syncTransfer);
+  req->WaitForFinish();
+  auto& object = facadeIoManager->m_data[objectName];
+  object.data = std::move(syncTransfer->data);
+  object.metaHeader = std::move(syncTransfer->headers);
+  for (auto& metaHeader : object.metaHeader)
+  {
+    if (strContains(metaHeader.first, "vdschunkmetadata"))
+    {
+      if (metaHeader.second[4] == 'a')
+        metaHeader.second[4] = 'b';
+      else
+        metaHeader.second[4] = 'a';
+    }
+  }
+  
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(facadeIoManager, error), OpenVDS::Close);
+  ASSERT_TRUE(handle);
+  auto layout = OpenVDS::GetLayout(handle.get());
+  auto accessManager = OpenVDS::GetAccessManager(handle.get());
+
+  int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
+  int32_t maxPos[OpenVDS::Dimensionality_Max] = { 55, 55, 55 };
+  std::vector<float> data;
+  data.resize((maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]));
+  int64_t request = accessManager->RequestVolumeSubset(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+  bool finished = accessManager->WaitForCompletion(request);
+  ASSERT_FALSE(finished);
+  int errorCode = 0;
+  const char* errorString = nullptr;
+  accessManager->GetCurrentDownloadError(&errorCode, &errorString);
+  ASSERT_TRUE(strContains(errorString, "Metadata is not the same"));
+  ASSERT_TRUE(accessManager->IsCanceled(request));
+}
+
 TEST(IOErrorHandlingUpload, ErrorHandlingVolumeDataLayoutHttpError)
 {
   OpenVDS::Error error;

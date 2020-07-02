@@ -37,47 +37,6 @@
 namespace OpenVDS
 {
 
-struct ParsedMetadata
-{
-  ParsedMetadata()
-    : m_chunkHash(0)
-    , m_chunkSize(0)
-  {}
-
-  uint64_t m_chunkHash;
-  
-  int32_t m_chunkSize;
-
-  std::vector<uint8_t> m_adaptiveLevels;
-};
-
-
-static ParsedMetadata ParseMetadata(int metadataByteSize, unsigned char const *metadata)
-{
-  ParsedMetadata parsedMetadata;
-
-  if (metadataByteSize == 4 + 24)
-  {
-    parsedMetadata.m_chunkSize = *reinterpret_cast<int32_t const *>(metadata);
-
-    parsedMetadata.m_chunkHash = *reinterpret_cast<uint64_t const *>(metadata + 4);
-
-    parsedMetadata.m_adaptiveLevels.resize(WAVELET_ADAPTIVE_LEVELS);
-
-    memcpy(parsedMetadata.m_adaptiveLevels.data(), metadata + 4 + 8, WAVELET_ADAPTIVE_LEVELS);
-  }
-  else if (metadataByteSize == 8)
-  {
-    parsedMetadata.m_chunkHash = *reinterpret_cast<uint64_t const *>(metadata);
-  }
-  else
-  {
-    throw std::runtime_error(std::string(" Unsupported chunkMetadataByteSize: ") + std::to_string(metadataByteSize));
-  }
-
-  return parsedMetadata;
-}
-
 static bool IsConstantChunkHash(uint64_t chunkHash)
 {
   const uint64_t unknownHash = 0;
@@ -397,8 +356,10 @@ bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &ch
 
   unsigned char const* metadata = metadataManager->GetPageEntry(metadataPage, entryIndex);
 
-  ParsedMetadata parsedMetadata = ParseMetadata(metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, metadata);
-    
+  ParsedMetadata parsedMetadata = ParseMetadata(metadata, metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, error);
+  if (error.code)
+    return false;
+
   metadataManager->UnlockPage(metadataPage);
 
   int adaptiveLevel;
@@ -410,7 +371,7 @@ bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &ch
   lock.lock();
   if (m_pendingDownloadRequests.find(chunk) == m_pendingDownloadRequests.end())
   {
-    auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, adaptiveLevel);
+    auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, parsedMetadata, adaptiveLevel);
     m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->ReadObject(url, transferHandler, ioRange), transferHandler);
   }
   else
@@ -422,7 +383,7 @@ bool VolumeDataAccessManagerImpl::PrepareReadChunkData(const VolumeDataChunk &ch
   return true;
 }
 
-bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::vector<uint8_t> &serializedData, std::vector<uint8_t> &metadata, CompressionInfo &compressionInfo, Error &error)
+bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::vector<uint8_t> &serializedData, std::vector<uint8_t> &metadata, CompressionInfo &compressionInfo, ParsedMetadata &parsedMetadata, Error &error)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -498,6 +459,10 @@ bool VolumeDataAccessManagerImpl::ReadChunk(const VolumeDataChunk &chunk, std::v
     else
       metadata = transferHandler->m_metadata;
   }
+  if (moveData)
+    parsedMetadata = std::move(transferHandler->m_parsedMetadata);
+  else
+    parsedMetadata = transferHandler->m_parsedMetadata;
 
   compressionInfo = CompressionInfo(transferHandler->m_compressionMethod, transferHandler->m_adaptiveLevel);
   return true;
@@ -566,7 +531,13 @@ void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPa
       {
         uint8_t const *metadata = metadataManager->GetPageEntry(metadataPage, entryIndex);
 
-        ParsedMetadata parsedMetadata = ParseMetadata(metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, metadata);
+        Error metaParseError;
+        ParsedMetadata parsedMetadata = ParseMetadata(metadata, metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, metaParseError);
+        if (metaParseError.code)
+        {
+          pendingRequest.m_metadataPageRequestError = metaParseError;
+          continue;
+        }
       
         int adaptiveLevel;
 
@@ -574,7 +545,7 @@ void VolumeDataAccessManagerImpl::PageTransferCompleted(MetadataPage* metadataPa
 
         std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.index);
 
-        auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, adaptiveLevel);
+        auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, parsedMetadata, adaptiveLevel);
         pendingRequest.m_activeTransfer = m_ioManager->ReadObject(url, transferHandler, ioRange);
         pendingRequest.m_transferHandle = transferHandler;
       }
