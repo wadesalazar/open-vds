@@ -48,43 +48,43 @@ bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, std::vector
   error = Error();
   auto layerFileEntryIterator = m_layerFiles.find(GetLayerName(*chunk.layer));
 
-  if(layerFileEntryIterator != m_layerFiles.end())
+  if(layerFileEntryIterator == m_layerFiles.end())
   {
-    HueBulkDataStore::FileInterface *fileInterface = layerFileEntryIterator->second;
-    metadata.resize(fileInterface->GetChunkMetadataLength());
-    IndexEntry indexEntry;
-    bool success = fileInterface->ReadIndexEntry((int)chunk.index, &indexEntry, metadata.data());
-
-    if(success)
-    {
-      if(indexEntry.m_length > 0)
-      {
-        HueBulkDataStore::Buffer *buffer = m_dataStore->ReadBuffer(indexEntry);
-
-        if(buffer)
-        {
-          auto bufferData = reinterpret_cast<const uint8_t *>(buffer->Data());
-          serializedData.assign(bufferData, bufferData + buffer->Size());
-          m_dataStore->ReleaseBuffer(buffer);
-        }
-        else
-        {
-          success = false;
-        }
-      }
-    }
-
-    if(!success)
-    {
-      error.code = -1;
-      error.string = m_dataStore->GetErrorMessage();
-    }
-    return success;
-  }
-  else
-  {
+    error.code = -1;
+    error.string = "Trying to read from a layer that has not been added";
     return false;
   }
+
+  HueBulkDataStore::FileInterface *fileInterface = layerFileEntryIterator->second;
+  metadata.resize(fileInterface->GetChunkMetadataLength());
+  IndexEntry indexEntry;
+  bool success = fileInterface->ReadIndexEntry((int)chunk.index, &indexEntry, metadata.data());
+
+  if(success)
+  {
+    if(indexEntry.m_length > 0)
+    {
+      HueBulkDataStore::Buffer *buffer = m_dataStore->ReadBuffer(indexEntry);
+
+      if(buffer)
+      {
+        auto bufferData = reinterpret_cast<const uint8_t *>(buffer->Data());
+        serializedData.assign(bufferData, bufferData + buffer->Size());
+        m_dataStore->ReleaseBuffer(buffer);
+      }
+      else
+      {
+        success = false;
+      }
+    }
+  }
+
+  if(!success)
+  {
+    error.code = -1;
+    error.string = m_dataStore->GetErrorMessage();
+  }
+  return success;
 }
 
 bool VolumeDataStoreVDSFile::CancelReadChunk(const VolumeDataChunk& chunk, Error& error)
@@ -94,7 +94,38 @@ bool VolumeDataStoreVDSFile::CancelReadChunk(const VolumeDataChunk& chunk, Error
 
 bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata)
 {
-  assert(0 && "Not implemented");
+  Error error = Error();
+
+  auto layerFileEntryIterator = m_layerFiles.find(GetLayerName(*chunk.layer));
+
+  if(layerFileEntryIterator == m_layerFiles.end())
+  {
+    error.code = -1;
+    error.string = "Trying to write to a layer that has not been added";
+    m_vds.accessManager->AddUploadError(error, fmt::format("{}/{}", GetLayerName(*chunk.layer), chunk.index));
+    return false;
+  }
+
+  HueBulkDataStore::FileInterface *fileInterface = layerFileEntryIterator->second;
+
+  if(metadata.size() != fileInterface->GetChunkMetadataLength())
+  {
+    throw std::runtime_error("Wrong metadata size for chunk");
+  }
+
+  VDSWaveletAdaptiveLevelsChunkMetadata
+    oldMetadata;
+
+  bool success = fileInterface->WriteChunk((int)chunk.index, serializedData.data(), (int)serializedData.size(), metadata.data(), &oldMetadata);
+
+  if(!success)
+  {
+    error.code = -1;
+    error.string = m_dataStore->GetErrorMessage();
+    m_vds.accessManager->AddUploadError(error, fmt::format("{}/{}", GetLayerName(*chunk.layer), chunk.index));
+    return false;
+  }
+
   return true;
 }
 
@@ -184,7 +215,26 @@ std::vector<uint8_t> VolumeDataStoreVDSFile::ParseVDSObject(std::string const &p
 
 bool VolumeDataStoreVDSFile::WriteSerializedVolumeDataLayout(const std::vector<uint8_t>& serializedVolumeDataLayout, Error &error)
 {
-  assert(0 && "Not implemented");
+  HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile("VolumeDataLayout", 1, 1, FILETYPE_JSON_OBJECT, 0, 0, true);
+
+  if(!fileInterface)
+  {
+    error.code = -1;
+    error.string = m_dataStore->GetErrorMessage();
+    return false;
+  }
+
+  bool success = fileInterface->WriteChunk(0, serializedVolumeDataLayout.data(), (int)serializedVolumeDataLayout.size(), nullptr);
+
+  if(!success)
+  {
+    error.code = -1;
+    error.string = m_dataStore->GetErrorMessage();
+    m_dataStore->CloseFile(fileInterface);
+    return false;
+  }
+
+  m_dataStore->CloseFile(fileInterface);
   return true;
 }
 
