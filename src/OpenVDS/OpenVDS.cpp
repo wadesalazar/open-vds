@@ -272,7 +272,7 @@ OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString
   return openOptions.release();
 }
 
-VDS *Open(StringWrapper url, StringWrapper connectionString, Error& error)
+VDSHandle Open(StringWrapper url, StringWrapper connectionString, Error& error)
 {
   error = Error();
   std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(url, connectionString, error));
@@ -304,7 +304,7 @@ static bool Init(VDS *vds, VolumeDataStore *volumeDataStore, Error& error)
   return true;
 }
 
-VDS* Open(IOManager *ioManager, Error& error)
+VDSHandle Open(IOManager *ioManager, Error& error)
 {
   std::unique_ptr<VDS> ret(new VDS());
   error = Error();
@@ -458,12 +458,12 @@ static void copyMetadataToContainer(MetadataContainer &container, const Metadata
   }
 }
 
-VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, Error &error)
+static bool Init(VDS *vds, VolumeDataStore* volumeDataStore, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, Error &error)
 {
-  error = Error();
-  std::unique_ptr<VDS> vds(new VDS);
+  vds->produceStatuses.clear();
+  vds->produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
 
-  vds->volumeDataStore.reset(new VolumeDataStoreIOManager(*vds, ioManager));
+  vds->volumeDataStore.reset(volumeDataStore);
   vds->layoutDescriptor = layoutDescriptor;
 
   DescriptorStringContainer &
@@ -503,11 +503,25 @@ VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutD
   vds->produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
 
   if (!vds->volumeDataStore->WriteSerializedVolumeDataLayout(SerializeVolumeDataLayout(*vds), error))
+    return false;
+
+  vds->accessManager.reset(new VolumeDataAccessManagerImpl(*vds));
+  return true;
+}
+
+VDSHandle Create(IOManager *ioManager, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
+{
+  std::unique_ptr<VDS> ret(new VDS());
+  error = Error();
+
+  if(Init(ret.get(), new VolumeDataStoreIOManager(*ret, ioManager), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error))
+  {
+    return ret.release();
+  }
+  else
+  {
     return nullptr;
-
-  vds->accessManager.reset(new VolumeDataAccessManagerImpl(*vds.get()));
-
-  return vds.release();
+  }
 }
 
 VDSHandle Create(StringWrapper url, StringWrapper connectionString, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
@@ -522,12 +536,34 @@ VDSHandle Create(StringWrapper url, StringWrapper connectionString, VolumeDataLa
 
 VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
 {
+  std::unique_ptr<VDS> ret(new VDS());
+  std::unique_ptr<VolumeDataStore> volumeDataStore;
   error = Error();
-  std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(options, error));
-  if (error.code)
-    return nullptr;
 
-  return Create(ioManager.release(), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error);
+  if(options.connectionType != OpenOptions::VDSFile)
+  {
+    std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(options, error));
+    if (error.code)
+      return nullptr;
+
+    volumeDataStore.reset(new VolumeDataStoreIOManager(*ret, ioManager.release()));
+  }
+  else
+  {
+    const VDSFileOpenOptions &fileOptions = static_cast<const VDSFileOpenOptions &>(options);
+    volumeDataStore.reset(new VolumeDataStoreVDSFile(*ret, fileOptions.fileName, VolumeDataStoreVDSFile::ReadWrite, error));
+    if (error.code)
+      return nullptr;
+  }
+
+  if(Init(ret.get(), volumeDataStore.release(), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error))
+  {
+    return ret.release();
+  }
+  else
+  {
+    return nullptr;
+  }
 }
 
 void Close(VDS *vds)
