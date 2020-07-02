@@ -97,6 +97,9 @@ PyGlobal::initModule(py::module& m)
     InMemoryOpenOptions_(m,"InMemoryOpenOptions", OPENVDS_DOCSTRING(InMemoryOpenOptions));
 
   InMemoryOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(InMemoryOpenOptions_InMemoryOpenOptions));
+  InMemoryOpenOptions_.def(py::init<const char *                  >(), py::arg("name"), OPENVDS_DOCSTRING(InMemoryOpenOptions_InMemoryOpenOptions_2));
+  InMemoryOpenOptions_.def(py::init<const std::string &           >(), py::arg("name"), OPENVDS_DOCSTRING(InMemoryOpenOptions_InMemoryOpenOptions_3));
+  InMemoryOpenOptions_.def_readwrite("name"                        , &InMemoryOpenOptions::name     , OPENVDS_DOCSTRING(InMemoryOpenOptions_name));
 
   // Error
   py::class_<Error, std::unique_ptr<Error>> 

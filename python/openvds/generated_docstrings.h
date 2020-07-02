@@ -527,6 +527,12 @@ static const char *__doc_OpenVDS_InMemoryOpenOptions = R"doc(Options for opening
 
 static const char *__doc_OpenVDS_InMemoryOpenOptions_InMemoryOpenOptions = R"doc()doc";
 
+static const char *__doc_OpenVDS_InMemoryOpenOptions_InMemoryOpenOptions_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_InMemoryOpenOptions_InMemoryOpenOptions_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_InMemoryOpenOptions_name = R"doc()doc";
+
 static const char *__doc_OpenVDS_IndexRegion = R"doc()doc";
 
 static const char *__doc_OpenVDS_IndexRegion_IndexRegion = R"doc()doc";
