@@ -19,6 +19,7 @@
 #define VOLUMEDATASTOREVDSFILE_H
 
 #include <BulkDataStore/HueBulkDataStore.h>
+#include <BulkDataStore/HueBulkDataStoreFileTypes.h>
 
 #include "VDS.h"
 #include "MetadataManager.h"
@@ -31,16 +32,31 @@ namespace OpenVDS
 
 class VolumeDataStoreVDSFile : public VolumeDataStore, public LayerMetadataContainer
 {
+  struct LayerFile
+  {
+    HueBulkDataStore::FileInterface *fileInterface;
+    VDSLayerMetadataWaveletAdaptive layerMetadata;
+    bool dirty;
+
+    LayerFile() = default;
+    LayerFile(HueBulkDataStore::FileInterface *fileInterface, VDSLayerMetadataWaveletAdaptive const &layerMetadata, bool dirty)
+      : fileInterface(fileInterface), layerMetadata(layerMetadata), dirty(dirty)
+    {}
+  };
+
   VDS &m_vds;
 
-  mutable std::mutex    m_mutex;
+  mutable std::mutex m_mutex;
 
   bool m_isVDSObjectFilePresent;
   bool m_isVolumeDataLayoutFilePresent;
-  std::map<std::string, HueBulkDataStore::FileInterface *> m_layerFiles;
+  std::map<std::string, LayerFile> m_layerFiles;
   std::unique_ptr<HueBulkDataStore, void (*)(HueBulkDataStore *)> m_dataStore;
 
   std::vector<uint8_t> ParseVDSObject(std::string const &parseString);
+
+  LayerFile *GetLayerFile(std::string const &layerName) const;
+  LayerFile *GetLayerFile(const VolumeDataLayer &volumeDataLayer) const { return GetLayerFile(GetLayerName(volumeDataLayer)); }
 
 public:
   enum Mode

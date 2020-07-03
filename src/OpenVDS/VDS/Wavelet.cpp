@@ -15,8 +15,8 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "Wavelet.h"
 #include "VolumeDataStore.h"
+#include "Wavelet.h"
 
 #include <assert.h>
 

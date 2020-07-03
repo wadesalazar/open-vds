@@ -16,7 +16,6 @@
 ****************************************************************************/
 
 #include <BulkDataStore/VDSObjectParser.h>
-#include <BulkDataStore/HueBulkDataStoreFileTypes.h>
 
 #include "VolumeDataStoreVDSFile.h"
 
@@ -32,10 +31,40 @@
 namespace OpenVDS
 {
 
+VolumeDataStoreVDSFile::LayerFile *VolumeDataStoreVDSFile::GetLayerFile(std::string const &layerName) const
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  auto layerFileIterator = m_layerFiles.find(layerName);
+  return (layerFileIterator != m_layerFiles.end()) ? const_cast<VolumeDataStoreVDSFile::LayerFile *>(&layerFileIterator->second) : nullptr;
+}
+
 CompressionInfo VolumeDataStoreVDSFile::GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error)
 {
-  assert(0 && "Not implemented");
-  return CompressionInfo();
+  error = Error();
+
+  assert(volumeDataChunk.layer);
+  LayerFile* layerFile = GetLayerFile(*volumeDataChunk.layer);
+
+  if(!layerFile)
+  {
+    metadata.clear();
+    return CompressionInfo();
+  }
+
+  HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
+  metadata.resize(fileInterface->GetChunkMetadataLength());
+  IndexEntry indexEntry;
+  bool success = fileInterface->ReadIndexEntry((int)volumeDataChunk.index, &indexEntry, metadata.data());
+
+  if(!success)
+  {
+    metadata.clear();
+    return CompressionInfo();
+  }
+
+  const int adaptiveLevel = 0;
+  return CompressionInfo(CompressionMethod(layerFile->layerMetadata.m_compressionMethod), adaptiveLevel);
 }
 
 bool VolumeDataStoreVDSFile::PrepareReadChunk(const VolumeDataChunk &volumeDataChunk, Error &error)
@@ -46,16 +75,18 @@ bool VolumeDataStoreVDSFile::PrepareReadChunk(const VolumeDataChunk &volumeDataC
 bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error)
 {
   error = Error();
-  auto layerFileEntryIterator = m_layerFiles.find(GetLayerName(*chunk.layer));
 
-  if(layerFileEntryIterator == m_layerFiles.end())
+  assert(chunk.layer);
+  LayerFile* layerFile = GetLayerFile(*chunk.layer);
+
+  if(!layerFile)
   {
     error.code = -1;
     error.string = "Trying to read from a layer that has not been added";
     return false;
   }
 
-  HueBulkDataStore::FileInterface *fileInterface = layerFileEntryIterator->second;
+  HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
   metadata.resize(fileInterface->GetChunkMetadataLength());
   IndexEntry indexEntry;
   bool success = fileInterface->ReadIndexEntry((int)chunk.index, &indexEntry, metadata.data());
@@ -96,9 +127,10 @@ bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std:
 {
   Error error = Error();
 
-  auto layerFileEntryIterator = m_layerFiles.find(GetLayerName(*chunk.layer));
+  assert(chunk.layer);
+  LayerFile* layerFile = GetLayerFile(*chunk.layer);
 
-  if(layerFileEntryIterator == m_layerFiles.end())
+  if(!layerFile)
   {
     error.code = -1;
     error.string = "Trying to write to a layer that has not been added";
@@ -106,15 +138,15 @@ bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std:
     return false;
   }
 
-  HueBulkDataStore::FileInterface *fileInterface = layerFileEntryIterator->second;
+  HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
 
   if(metadata.size() != fileInterface->GetChunkMetadataLength())
   {
     throw std::runtime_error("Wrong metadata size for chunk");
   }
 
-  VDSWaveletAdaptiveLevelsChunkMetadata
-    oldMetadata;
+  VDSWaveletAdaptiveLevelsChunkMetadata const &newMetadata = *reinterpret_cast<const VDSWaveletAdaptiveLevelsChunkMetadata *>(metadata.data());
+  VDSWaveletAdaptiveLevelsChunkMetadata oldMetadata;
 
   bool success = fileInterface->WriteChunk((int)chunk.index, serializedData.data(), (int)serializedData.size(), metadata.data(), &oldMetadata);
 
@@ -126,20 +158,41 @@ bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std:
     return false;
   }
 
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  layerFile->dirty = true;
+
+  if (newMetadata.m_hash != VolumeDataHash::UNKNOWN)
+  {
+    layerFile->layerMetadata.m_validChunkCount++;
+  }
+
+  if (oldMetadata.m_hash != VolumeDataHash::UNKNOWN)
+  {
+    layerFile->layerMetadata.m_validChunkCount--;
+  }
+
+  assert(layerFile->layerMetadata.m_validChunkCount <= layerFile->fileInterface->GetChunkCount());
   return true;
 }
 
 bool VolumeDataStoreVDSFile::Flush()
 {
+  std::unique_lock<std::mutex> lock(m_mutex);
   bool success = true;
 
-  for(auto &layerFile : m_layerFiles)
+  for(auto &layerFileEntry : m_layerFiles)
   {
-    success = layerFile.second->Commit();
+    LayerFile *layerFile = &layerFileEntry.second;
 
-    if(!success)
+    if(layerFile->dirty)
     {
-      std::string message = fmt::format("Commit on layer {} failed: {}", layerFile.second->GetFileName(), m_dataStore->GetErrorMessage());
+      success = layerFile->fileInterface->Commit();
+
+      if(!success)
+      {
+        std::string message = fmt::format("Commit on layer {} failed: {}", layerFile->fileInterface->GetFileName(), m_dataStore->GetErrorMessage());
+      }
     }
   }
 
@@ -240,22 +293,32 @@ bool VolumeDataStoreVDSFile::WriteSerializedVolumeDataLayout(const std::vector<u
 
 bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer)
 {
-  assert(0 && "Not implemented");
+  assert(volumeDataLayer);
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  std::string fileName = GetLayerName(*volumeDataLayer);
+  HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile(fileName.c_str(), volumeDataLayer->GetTotalChunkCount(), 1024, FILETYPE_VDS_LAYER, sizeof(VDSChunkMetadata), sizeof(VDSLayerMetadata), false);
+  assert(fileInterface);
+
+  VDSLayerMetadataWaveletAdaptive layerMetadata = VDSLayerMetadataWaveletAdaptive();
+  layerMetadata.m_compressionMethod = (int)volumeDataLayer->GetEffectiveCompressionMethod();
+  layerMetadata.m_compressionTolerance = volumeDataLayer->GetEffectiveCompressionTolerance();
+  fileInterface->WriteFileMetadata(&layerMetadata);
+
+  m_layerFiles[fileName] = LayerFile(fileInterface, layerMetadata, true);
   return true;
 }
 
 bool VolumeDataStoreVDSFile::GetMetadataStatus(std::string const &layerName, MetadataStatus &metadataStatus) const
 {
-  auto it = m_layerFiles.find(layerName);
-  if(it == m_layerFiles.end())
+  LayerFile* layerFile = GetLayerFile(layerName);
+
+  if(!layerFile)
   {
     return false;
   }
 
-  HueBulkDataStore::FileInterface *layerFile = it->second;
-
-  VDSLayerMetadataWaveletAdaptive layerFileMetadata;
-  layerFile->ReadFileMetadata(&layerFileMetadata);
+  HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
 
   size_t lodIndex = layerName.rfind("LOD");
   size_t dimensionsIndex = layerName.rfind("Dimensions_");
@@ -265,13 +328,13 @@ bool VolumeDataStoreVDSFile::GetMetadataStatus(std::string const &layerName, Met
     return false;
   }
 
-  metadataStatus.m_chunkIndexCount = layerFile->GetChunkCount();
+  metadataStatus.m_chunkIndexCount = fileInterface->GetChunkCount();
   metadataStatus.m_chunkMetadataPageSize = 0;
-  metadataStatus.m_chunkMetadataByteSize = layerFile->GetChunkMetadataLength();
-  metadataStatus.m_compressionTolerance = layerFileMetadata.m_compressionTolerance;
-  metadataStatus.m_compressionMethod = CompressionMethod(layerFileMetadata.m_compressionMethod);
-  metadataStatus.m_uncompressedSize = layerFileMetadata.m_uncompressedSize;
-  std::copy(layerFileMetadata.m_adaptiveLevelSizes + 0, layerFileMetadata.m_adaptiveLevelSizes + sizeof(layerFileMetadata.m_adaptiveLevelSizes) / sizeof(layerFileMetadata.m_adaptiveLevelSizes[0]), metadataStatus.m_adaptiveLevelSizes);
+  metadataStatus.m_chunkMetadataByteSize = fileInterface->GetChunkMetadataLength();
+  metadataStatus.m_compressionTolerance = layerFile->layerMetadata.m_compressionTolerance;
+  metadataStatus.m_compressionMethod = CompressionMethod(layerFile->layerMetadata.m_compressionMethod);
+  metadataStatus.m_uncompressedSize = layerFile->layerMetadata.m_uncompressedSize;
+  std::copy(layerFile->layerMetadata.m_adaptiveLevelSizes + 0, layerFile->layerMetadata.m_adaptiveLevelSizes + sizeof(layerFile->layerMetadata.m_adaptiveLevelSizes) / sizeof(layerFile->layerMetadata.m_adaptiveLevelSizes[0]), metadataStatus.m_adaptiveLevelSizes);
 
   return true;
 }
@@ -302,7 +365,14 @@ VolumeDataStoreVDSFile::VolumeDataStoreVDSFile(VDS &vds, const std::string &file
 
       if(fileType == FILETYPE_VDS_LAYER)
       {
-        m_layerFiles[fileName] = m_dataStore->OpenFile(m_dataStore->GetFileName(fileIndex));
+        HueBulkDataStore::FileInterface *
+          fileInterface = m_dataStore->OpenFile(m_dataStore->GetFileName(fileIndex));
+
+        assert(fileInterface);
+        VDSLayerMetadataWaveletAdaptive layerMetadata = VDSLayerMetadataWaveletAdaptive();
+        fileInterface->ReadFileMetadata(&layerMetadata);
+
+        m_layerFiles[fileName] = LayerFile(fileInterface, layerMetadata, false);
       }
       else if(fileType == FILETYPE_HUE_OBJECT)
       {
