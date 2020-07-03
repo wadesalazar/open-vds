@@ -296,8 +296,13 @@ bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer)
   assert(volumeDataLayer);
   std::unique_lock<std::mutex> lock(m_mutex);
 
+  if(volumeDataLayer->GetTotalChunkCount() > INT_MAX)
+  {
+    return false;
+  }
+
   std::string fileName = GetLayerName(*volumeDataLayer);
-  HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile(fileName.c_str(), volumeDataLayer->GetTotalChunkCount(), 1024, FILETYPE_VDS_LAYER, sizeof(VDSChunkMetadata), sizeof(VDSLayerMetadata), false);
+  HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile(fileName.c_str(), (int)volumeDataLayer->GetTotalChunkCount(), 1024, FILETYPE_VDS_LAYER, sizeof(VDSChunkMetadata), sizeof(VDSLayerMetadata), false);
   assert(fileInterface);
 
   VDSLayerMetadataWaveletAdaptive layerMetadata = VDSLayerMetadataWaveletAdaptive();
@@ -319,14 +324,6 @@ bool VolumeDataStoreVDSFile::GetMetadataStatus(std::string const &layerName, Met
   }
 
   HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
-
-  size_t lodIndex = layerName.rfind("LOD");
-  size_t dimensionsIndex = layerName.rfind("Dimensions_");
-
-  if(lodIndex == std::string::npos || dimensionsIndex == std::string::npos || lodIndex < dimensionsIndex)
-  {
-    return false;
-  }
 
   metadataStatus.m_chunkIndexCount = fileInterface->GetChunkCount();
   metadataStatus.m_chunkMetadataPageSize = 0;
