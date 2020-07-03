@@ -83,6 +83,7 @@ bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, std::vector
   {
     error.code = -1;
     error.string = "Trying to read from a layer that has not been added";
+    compressionInfo = CompressionInfo();
     return false;
   }
 
@@ -114,7 +115,14 @@ bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, std::vector
   {
     error.code = -1;
     error.string = m_dataStore->GetErrorMessage();
+    compressionInfo = CompressionInfo();
   }
+  else
+  {
+    const int adaptiveLevel = 0;
+    compressionInfo = CompressionInfo(CompressionMethod(layerFile->layerMetadata.m_compressionMethod), adaptiveLevel);
+  }
+
   return success;
 }
 
@@ -235,6 +243,45 @@ bool VolumeDataStoreVDSFile::ReadSerializedVolumeDataLayout(std::vector<uint8_t>
   {
     const char *data = reinterpret_cast<const char *>(buffer->Data());
     serializedVolumeDataLayout.assign(data, data + buffer->Size());
+  }
+
+  for(auto &layerFileEntry : m_layerFiles)
+  {
+    LayerFile *layerFile = &layerFileEntry.second;
+    std::string layerName = layerFile->fileInterface->GetFileName();
+
+    size_t lodIndex = layerName.rfind("LOD");
+    size_t dimensionsIndex = layerName.rfind("Dimensions_");
+    const int dimensionsLength = (int)strlen("Dimensions_");
+
+    if(lodIndex == std::string::npos || dimensionsIndex == std::string::npos || lodIndex < dimensionsIndex)
+    {
+      continue;
+    }
+
+    std::string channelName    = layerName.substr(0, dimensionsIndex);
+    int dimensions[3] = { -1, -1, -1 };
+    bool valid = true;
+    for(int i = 0; i < 3; i++)
+    {
+      if(dimensionsIndex + dimensionsLength + i == lodIndex) break;
+
+      dimensions[i] = layerName[dimensionsIndex + dimensionsLength + i] - '0';
+      if(dimensions[i] < 0 || dimensions[i] >= 6 || (i > 0 && dimensions[i] <= dimensions[i - 1]))
+      {
+        valid = false;
+        break;
+      }
+    }
+    if(!valid) continue;
+
+    DimensionsND dimensionsND = DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(DimensionGroupUtil::GetDimensionGroupFromDimensionIndices(dimensions[0], dimensions[1], dimensions[2]));
+    int lod = std::stoi(layerName.substr(lodIndex + 3));
+
+    if (lod == 0 && m_vds.produceStatuses[dimensionsND] == VolumeDataLayer::ProduceStatus_Unavailable)
+    {
+      m_vds.produceStatuses[dimensionsND] = VolumeDataLayer::ProduceStatus_Normal;
+    }
   }
 
   return true;
