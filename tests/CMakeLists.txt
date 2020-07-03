@@ -84,6 +84,7 @@ add_test_executable(openvds_integration_tests
   OpenVDS/WaitForCompletion.cpp
   OpenVDS/RequestCancellation.cpp
   OpenVDS/VolumeIndexerSymbols.cpp
+  OpenVDS/RequestVolumeError.cpp
   )
 
 add_test_executable(multithreaded_requests
