@@ -23,6 +23,7 @@
 #include "VolumeDataLayoutImpl.h"
 #include "VolumeDataRegion.h"
 #include "VolumeDataChannelMapping.h"
+#include "WaveletTypes.h"
 
 #include <OpenVDS/VolumeDataAccess.h>
 
@@ -33,10 +34,6 @@
 #include <cstdint>
 namespace OpenVDS
 {
-
-//TODO: should be moved so its not a duplicate
-#define WAVELET_MIN_COMPRESSION_TOLERANCE    0.01f
-#define WAVELET_ADAPTIVE_LEVELS 16
 
 VolumeDataLayer::VolumeDataLayer(VolumeDataPartition const &volumeDataPartition, VolumeDataLayoutImpl *volumeDataLayout, int32_t channel, VolumeDataLayer *primaryChannelLayer, VolumeDataLayer *lowerLOD, VolumeDataLayer::LayerType layerType, const VolumeDataChannelMapping *volumeDataChannelMapping)
   : VolumeDataPartition(volumeDataPartition)

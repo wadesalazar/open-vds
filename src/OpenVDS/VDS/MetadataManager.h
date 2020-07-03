@@ -26,14 +26,23 @@
 #include <memory>
 
 
+#include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/VolumeData.h>
 
 #include "VolumeDataChunk.h"
-#include "WaveletTypes.h"
 #include "ParsedMetadata.h"
+
+#ifdef WAVELET_ADAPTIVE_LEVELS
+#error "Don't include WaveletTypes.h before this file!"
+#endif
 
 namespace OpenVDS
 {
+  enum
+  {
+    WAVELET_ADAPTIVE_LEVELS = 16
+  };
+
   enum AdaptiveMode
   {
     AdaptiveMode_BestQuality,

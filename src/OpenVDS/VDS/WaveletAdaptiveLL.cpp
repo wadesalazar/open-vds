@@ -17,7 +17,6 @@
 
 #include "WaveletAdaptiveLL.h"
 
-#include "MetadataManager.h"
 #include <assert.h>
 
 #if defined(_OPENMP)
