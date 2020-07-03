@@ -336,8 +336,11 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
   {
     pageImpl->LeaveSettingData();
     pageListMutexLock.lock();
-    m_pageReadCondition.wait(pageListMutexLock, [pageImpl]{return pageImpl->GetError().code == 0 && !pageImpl->SettingData();});
+    m_pageReadCondition.wait(pageListMutexLock, [pageImpl]{return !pageImpl->SettingData();});
   }
+
+  if (pageImpl->GetError().code)
+    return false;
 
   if(!m_layer)
   {
