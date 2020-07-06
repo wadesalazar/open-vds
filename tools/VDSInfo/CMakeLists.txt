@@ -1,4 +1,4 @@
-add_executable(VDSInfo VDSInfo.cpp)
+add_executable(VDSInfo VDSInfo.cpp Base64.cpp)
 
 target_link_libraries(VDSInfo PUBLIC openvds fmt::fmt jsoncpp_lib_static)
 set_target_properties(VDSInfo PROPERTIES FOLDER tools)

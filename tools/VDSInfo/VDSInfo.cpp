@@ -4,6 +4,8 @@
 #include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/VolumeDataLayout.h>
 
+#include "Base64.h"
+
 #include "cxxopts.hpp"
 
 namespace OpenVDS
@@ -146,8 +148,13 @@ Json::Value getJsonFromMetadata(const OpenVDS::MetadataKey &key, OpenVDS::Volume
   case OpenVDS::MetadataType::String:
     value["value"] = layout->GetMetadataString(key.GetCategory(), key.GetName());
     break;
-  default:
-    break;
+  case OpenVDS::MetadataType::BLOB:
+    std::vector<uint8_t> blob;
+    layout->GetMetadataBLOB(key.GetCategory(), key.GetName(), blob);
+    std::vector<char> base64;
+    OpenVDS::Base64Encode(blob.data(), int64_t(blob.size()), base64);
+    std::string strbase64(base64.data(), base64.data() + base64.size());
+    value["value"] = strbase64;
   }
   return value;
 }
@@ -186,8 +193,9 @@ static void decodedEbcdic(std::vector<uint8_t> &ebcdic)
 int main(int argc, char **argv)
 {
   cxxopts::Options options("VDSInfo", "VDSInfo - A tool for extracting info from a VDS\n\nSee online documentation for connection paramters:\nhttp://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/connection.html\n");
+  options.positional_help("<url>");
 
-  std::string url;
+  std::vector<std::string> urlarg;
   std::string connection;
   std::string persistentID;
   std::string metadataPrintName;
@@ -197,12 +205,13 @@ int main(int argc, char **argv)
   bool channelDescriptors = false;
   bool volumeDataLayout = false;
   bool metaKeys = false;
-  bool metaDataFirstBlob = false;
+  bool metadataFirstBlob = false;
   bool metadataAutoDecodeEBCDIC = false;
+  bool metadataAll = false;
   int  textDecodeWidth = std::numeric_limits<int>::max();
 
 //connection options
-  options.add_option("", "", "url", "Url with vendor specific protocol.", cxxopts::value<std::string>(url), "<string>");
+  options.add_option("", "", "urlpos", "Url with vendor specific protocol.", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
   options.add_option("", "", "connection", "Vendor specific connection string.", cxxopts::value<std::string>(connection), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
@@ -211,12 +220,17 @@ int main(int argc, char **argv)
   options.add_option("", "", "channels", "Print channel descriptors.", cxxopts::value<bool>(channelDescriptors), "");
   options.add_option("", "", "layout", "Print layout.", cxxopts::value<bool>(volumeDataLayout), "");
 
+  options.add_option("", "", "metadata-all", "Print all of the metadata", cxxopts::value<bool>(metadataAll), "");
   options.add_option("", "", "metadatakeys", "Print metadata keys.", cxxopts::value<bool>(metaKeys), "");
   options.add_option("", "", "metadata-name", "Print metadata matching name.", cxxopts::value<std::string>(metadataPrintName), "<string>");
   options.add_option("", "", "metadata-category", "Print metadata matching category.", cxxopts::value<std::string>(metadataPrintCategory), "<string>");
-  options.add_option("", "b", "metadata-firstblob", "Print first blob found.", cxxopts::value<bool>(metaDataFirstBlob), "");
+  options.add_option("", "b", "metadata-firstblob", "Print first blob found.", cxxopts::value<bool>(metadataFirstBlob), "");
   options.add_option("", "e", "metadata-autodecode", "Autodetect EBCDIC and decode to ASCII for blobs.", cxxopts::value<bool>(metadataAutoDecodeEBCDIC), "");
   options.add_option("", "w", "metadata-force-width", "Force output width.", cxxopts::value<int>(textDecodeWidth), "");
+  
+  options.add_option("", "", "url", "Url with vendor specific protocol. (Availabl as positional argument as well).", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
+
+  options.parse_positional("urlpos");
 
   if(argc == 1)
   {
@@ -234,13 +248,21 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  if (url.empty())
+  if (urlarg.empty())
   {
     std::cout << "\nFailed - missing url argument\n\n";
     std::cout << options.help();
     return EXIT_FAILURE;
   }
+  
+  if (urlarg.size() > 1)
+  {
+    std::cout << "\nFailed - can only specify one url argument\n\n";
+    std::cout << options.help();
+    return EXIT_FAILURE;
+  }
 
+  std::string url = urlarg[0];
   // Open the VDS
   if (persistentID.size())
   {
@@ -251,11 +273,12 @@ int main(int argc, char **argv)
     url.insert(url.end(), persistentID.begin(), persistentID.end());
   }
 
-  if (!axisDescriptors && !channelDescriptors && !volumeDataLayout && !metaKeys && metadataPrintName.empty() && metadataPrintCategory.empty())
+  if (!axisDescriptors && !channelDescriptors && !volumeDataLayout && !metaKeys && metadataPrintName.empty() && metadataPrintCategory.empty() && !metadataAll)
   {
     axisDescriptors = true;
     channelDescriptors = true;
     volumeDataLayout = true;
+    metadataAll = true;
   }
 
   OpenVDS::Error openError;
@@ -308,23 +331,26 @@ int main(int argc, char **argv)
     root["metaKeysInfo"] = metaKeysInfo;
   }
 
-  if (metadataPrintName.size() || metadataPrintCategory.size())
+  if (metadataPrintName.size() || metadataPrintCategory.size() || metadataAll)
   {
     std::vector<OpenVDS::MetadataKey> to_print;
     std::vector<OpenVDS::MetadataKey> to_print_blobs;
     for (auto &key : layout->GetMetadataKeys())
     {
-      if (metadataPrintName.size() && metadataPrintName != key.GetName())
-        continue;
-      if (metadataPrintCategory.size() && metadataPrintCategory != key.GetCategory())
-        continue;
-      if (key.GetType() == OpenVDS::MetadataType::BLOB)
+      if (!metadataAll)
+      {
+        if (metadataPrintName.size() && metadataPrintName != key.GetName())
+          continue;
+        if (metadataPrintCategory.size() && metadataPrintCategory != key.GetCategory() && !metadataAll)
+          continue;
+      }
+      if (key.GetType() == OpenVDS::MetadataType::BLOB && metadataFirstBlob && !metadataAll)
         to_print_blobs.push_back(key);
       else
         to_print.push_back(key);
     }
 
-    if (root.empty() && (metaDataFirstBlob || to_print.empty()))
+    if (root.empty() && (metadataFirstBlob || to_print.empty()))
     {
       if (to_print_blobs.size())
       {
