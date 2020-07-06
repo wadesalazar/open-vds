@@ -41,6 +41,8 @@ VolumeDataStoreVDSFile::LayerFile *VolumeDataStoreVDSFile::GetLayerFile(std::str
 
 CompressionInfo VolumeDataStoreVDSFile::GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error)
 {
+  std::unique_lock<std::mutex> lock(m_mutex); // This should be removed once the BulkDataStore uses a file implementation that doesn't seek (using pread/pwrite or equivalent)
+
   error = Error();
 
   assert(volumeDataChunk.layer);
@@ -86,6 +88,8 @@ bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, std::vector
     compressionInfo = CompressionInfo();
     return false;
   }
+
+  std::unique_lock<std::mutex> readWriteLock(m_mutex); // This should be removed once the BulkDataStore uses a file implementation that doesn't seek (using pread/pwrite or equivalent)
 
   HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
   metadata.resize(fileInterface->GetChunkMetadataLength());
@@ -156,7 +160,9 @@ bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std:
   VDSWaveletAdaptiveLevelsChunkMetadata const &newMetadata = *reinterpret_cast<const VDSWaveletAdaptiveLevelsChunkMetadata *>(metadata.data());
   VDSWaveletAdaptiveLevelsChunkMetadata oldMetadata;
 
+  std::unique_lock<std::mutex> readWriteLock(m_mutex); // This should be removed once the BulkDataStore uses a file implementation that doesn't seek (using pread/pwrite or equivalent)
   bool success = fileInterface->WriteChunk((int)chunk.index, serializedData.data(), (int)serializedData.size(), metadata.data(), &oldMetadata);
+  readWriteLock.unlock();
 
   if(!success)
   {
@@ -195,11 +201,16 @@ bool VolumeDataStoreVDSFile::Flush()
 
     if(layerFile->dirty)
     {
+      layerFile->fileInterface->WriteFileMetadata(&layerFile->layerMetadata);
       success = layerFile->fileInterface->Commit();
 
       if(!success)
       {
         std::string message = fmt::format("Commit on layer {} failed: {}", layerFile->fileInterface->GetFileName(), m_dataStore->GetErrorMessage());
+      }
+      else
+      {
+        layerFile->dirty = false;
       }
     }
   }
@@ -324,18 +335,16 @@ bool VolumeDataStoreVDSFile::WriteSerializedVolumeDataLayout(const std::vector<u
     return false;
   }
 
-  bool success = fileInterface->WriteChunk(0, serializedVolumeDataLayout.data(), (int)serializedVolumeDataLayout.size(), nullptr);
+  bool success = fileInterface->WriteChunk(0, serializedVolumeDataLayout.data(), (int)serializedVolumeDataLayout.size(), nullptr) && fileInterface->Commit();
 
   if(!success)
   {
     error.code = -1;
     error.string = m_dataStore->GetErrorMessage();
-    m_dataStore->CloseFile(fileInterface);
-    return false;
   }
 
   m_dataStore->CloseFile(fileInterface);
-  return true;
+  return success;
 }
 
 bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer)
@@ -356,6 +365,7 @@ bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer)
   layerMetadata.m_compressionMethod = (int)volumeDataLayer->GetEffectiveCompressionMethod();
   layerMetadata.m_compressionTolerance = volumeDataLayer->GetEffectiveCompressionTolerance();
   fileInterface->WriteFileMetadata(&layerMetadata);
+  fileInterface->Commit();
 
   m_layerFiles[fileName] = LayerFile(fileInterface, layerMetadata, true);
   return true;
@@ -394,9 +404,16 @@ VolumeDataStoreVDSFile::VolumeDataStoreVDSFile(VDS &vds, const std::string &file
   , m_isVolumeDataLayoutFilePresent(false)
   , m_dataStore(HueBulkDataStore::Open(fileName.c_str()), &HueBulkDataStore::Close)
 {
-  if(!m_dataStore->IsOpen() && mode == ReadWrite)
+  if(mode == ReadWrite)
   {
-    m_dataStore.reset(HueBulkDataStore::CreateNew(fileName.c_str(), false));
+    if(!m_dataStore->IsOpen())
+    {
+      m_dataStore.reset(HueBulkDataStore::CreateNew(fileName.c_str(), false));
+    }
+    else
+    {
+      m_dataStore->EnableWriting();
+    }
   }
 
   if(m_dataStore->IsOpen())
