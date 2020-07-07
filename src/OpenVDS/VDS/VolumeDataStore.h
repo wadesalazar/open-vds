@@ -38,8 +38,11 @@ class VolumeDataStore
 public:
   class WriteError : public Error
   {
-    VolumeDataChunk chunk;
+    VolumeDataChunk chunks;
   };
+
+           VolumeDataStore() {};
+  virtual ~VolumeDataStore() {};
 
   virtual CompressionInfo
                         GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error) = 0;
