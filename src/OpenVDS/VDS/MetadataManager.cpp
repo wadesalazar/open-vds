@@ -217,7 +217,8 @@ void MetadataManager::SetPageEntry(MetadataPage *page, int entryIndex, uint8_t c
 
     m_dirtyPageList.splice(m_dirtyPageList.end(), m_pageList, pageMapIterator->second);
   }
-  std::copy(metadata, metadata + metadataLength, &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize]);
+  //std::copy(metadata, metadata + metadataLength, &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize]);
+  memcpy(&page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize], metadata, metadataLength);
 }
 
 void MetadataManager::UnlockPage(MetadataPage *page)
