@@ -47,8 +47,8 @@ bool FileView::RemoveReference(FileView *pcFileView)
 }
 
 File::File()
-  : _pxPlatformHandle(nullptr)
-  , _isWriteable(false)
+  : _pxPlatformHandleRead(nullptr)
+  , _pxPlatformHandleReadWrite(nullptr)
   , m_pFileMappingObject(nullptr)
 {
 }
@@ -63,12 +63,12 @@ File::~File()
 
 bool File::IsWriteable() const
 {
-  return _isWriteable;
+  return _pxPlatformHandleReadWrite != nullptr;
 }
 
 bool File::IsOpen() const
 {
-  return _pxPlatformHandle != nullptr;
+  return _pxPlatformHandleRead != nullptr;
 }
 
 std::string File::FileName() const
@@ -78,7 +78,7 @@ std::string File::FileName() const
 
 void *File::Handle() const
 {
-  return _pxPlatformHandle;
+  return _pxPlatformHandleReadWrite ? _pxPlatformHandleReadWrite : _pxPlatformHandleRead;
 }
 
 } // namespace OpenVDS
