@@ -107,6 +107,7 @@ public:
   virtual FileInterface *AddFile(const char *fileName, int chunkCount, int indexPageEntryCount, int fileType, int chunkMetadataLength, int fileMetadataLength, bool overwriteExisting) = 0;
   virtual bool          RemoveFile(const char *fileName) = 0;
   virtual bool          IsOpen() = 0;
+  virtual bool          IsReadOnly() = 0;
 
   virtual Buffer*  ReadBuffer(struct IndexEntry const &indexEntry) = 0;
 

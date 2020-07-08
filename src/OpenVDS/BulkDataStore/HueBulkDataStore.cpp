@@ -9,6 +9,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "HueBulkDataStore.h"
+#include "IO/File.h"
+using OpenVDS::File;
+using OpenVDS::Error;
 
 class DataStoreFileDescriptor
 {
@@ -142,10 +145,7 @@ class HueBulkDataStoreImpl : public HueBulkDataStore
     FILENAME_MAX_CHARS = 1024
   };
 
-  std::string
-          m_fileName;
-
-  FILE   *m_fileHandle;
+  File    m_fileHandle;
 
   bool    m_readOnly;
 
@@ -205,6 +205,8 @@ public:
 
   bool CommitFileTable();
 
+  void Flush();
+
   // HueBulkDataStore virtual overrides
   virtual const char
     *GetErrorMessage();
@@ -233,6 +235,7 @@ public:
   virtual bool           RemoveFile(const char *fileName);
 
   virtual bool           IsOpen();
+  virtual bool           IsReadOnly();
 
   virtual Buffer *       ReadBuffer(struct IndexEntry const &indexEntry) { return ReadBuffer(indexEntry.m_offset, indexEntry.m_length); }
 };
@@ -654,6 +657,7 @@ FileInterfaceImpl::Commit()
     }
   }
 
+  m_dataStore.Flush();
   return true;
 }
 
@@ -674,14 +678,14 @@ HueBulkDataStoreImpl::ReadBuffer(int64_t offset, int32_t size)
   }
 
   void *data = malloc(size);
-  fseeko(m_fileHandle, offset, SEEK_SET);
-  if (fread(data, size, 1, m_fileHandle) == 1)
+  Error error;
+  if(m_fileHandle.Read(data, offset, size, error))
   {
     return new DataStoreBuffer(offset, size, false, data, true);
   }
   else
   {
-    SetErrorMessage("Read error");
+    SetErrorMessage("Read error: " + error.string);
     free(data);
     return NULL;
   }
@@ -710,15 +714,15 @@ HueBulkDataStoreImpl::WriteBuffer(DataStoreBuffer const &buffer)
 
   assert(buffer.Offset() >= 0 && buffer.Size() > 0);
 
-  fseeko(m_fileHandle, buffer.Offset(), SEEK_SET);
-  if (fwrite(buffer.Data(), buffer.Size(), 1, m_fileHandle) == 1)
+  Error error;
+  if (m_fileHandle.Write(buffer.Data(), buffer.Offset(), buffer.Size(), error))
   {
     buffer.ClearDirty();
     return true;
   }
   else
   {
-    SetErrorMessage("Write error");
+    SetErrorMessage("Write error: " + error.string);
     return false;
   }
 }
@@ -902,7 +906,6 @@ HueBulkDataStoreImpl::OpenFileInternal(DataStoreFileDescriptor &fileDescriptor, 
 }
 
 HueBulkDataStoreImpl::HueBulkDataStoreImpl() :
-  m_fileHandle(NULL),
   m_readOnly(true),
   m_header(NULL),
   m_fileTable(NULL),
@@ -912,7 +915,7 @@ HueBulkDataStoreImpl::HueBulkDataStoreImpl() :
 
 HueBulkDataStoreImpl::~HueBulkDataStoreImpl()
 {
-  assert(!m_fileHandle && "Must close the datastore before deleting it");
+  assert(!m_fileHandle.IsOpen() && "Must close the datastore before deleting it");
 
   delete m_header;
   delete m_fileTable;
@@ -1018,10 +1021,16 @@ HueBulkDataStoreImpl::BuildExtentAllocator()
     return true;
   }
 
-  fseeko(m_fileHandle, 0, SEEK_END);
+  Error error;
 
   int64_t
-    fileSize = ftello(m_fileHandle);
+    fileSize = m_fileHandle.Size(error);
+
+  if(fileSize < 0)
+  {
+    SetErrorMessage(error.string);
+    return false;
+  }
 
   m_extentAllocator = new ExtentAllocator(fileSize);
 
@@ -1153,31 +1162,21 @@ HueBulkDataStoreImpl::CommitFileTable()
   return WriteBuffer(*m_header);
 }
 
+void
+HueBulkDataStoreImpl::Flush()
+{
+  m_fileHandle.Flush();
+}
+
 bool
 HueBulkDataStoreImpl::EnableWriting()
 {
   if (!m_readOnly) return true;
 
-#if defined(WIN32) || defined(WIN64)
-  wchar_t
-    awFileName[FILENAME_MAX_CHARS + 1];
-
-  awFileName[FILENAME_MAX_CHARS] = 0;
-  MultiByteToWideChar(CP_UTF8, 0, m_fileName.c_str(), -1, awFileName, FILENAME_MAX_CHARS);
-  m_fileHandle = _wfopen(awFileName, L"r+b");
-#else
-  m_fileHandle = fopen(m_fileName.c_str(), "r+b");
-#endif
-
-  if (!m_fileHandle)
+  Error error;
+  if(!m_fileHandle.EnableWriting(error))
   {
-    // Try to open the file in read mode again and hope that it succeeds
-#if defined(WIN32) || defined(WIN64)
-    m_fileHandle = _wfopen(awFileName, L"rb");
-#else
-    m_fileHandle = fopen(m_fileName.c_str(), "rb");
-#endif
-    m_readOnly = true;
+    SetErrorMessage(error.string);
     return false;
   }
 
@@ -1406,34 +1405,24 @@ HueBulkDataStoreImpl::CloseFile(HueBulkDataStore::FileInterface *fileInterface)
 bool
 HueBulkDataStoreImpl::IsOpen()
 {
-  return m_fileHandle != NULL;
+  return m_fileHandle.IsOpen();
+}
+
+bool
+HueBulkDataStoreImpl::IsReadOnly()
+{
+  return m_readOnly;
 }
 
 bool
 HueBulkDataStoreImpl::Open(const char *fileName)
 {
-  assert(!m_fileHandle && "Already open");
+  assert(!m_fileHandle.IsOpen() && "Already open");
 
-  m_fileName = fileName;
-#if defined(WIN32) || defined(WIN64)
-  wchar_t
-    awFileName[FILENAME_MAX_CHARS + 1];
-
-  awFileName[FILENAME_MAX_CHARS] = 0;
-  MultiByteToWideChar(CP_UTF8, 0, fileName, -1, awFileName, FILENAME_MAX_CHARS);
-  m_fileHandle = _wfopen(awFileName, L"rb");
-#else
-  m_fileHandle = fopen(fileName, "rb");
-#endif
-  if (m_fileHandle == NULL)
+  Error error;
+  if(!m_fileHandle.Open(fileName, false, false, false, error))
   {
-    int
-      iErrno = errno;
-
-    std::string
-      sErrorMessage = strerror(iErrno);
-
-    SetErrorMessage(sErrorMessage);
+    SetErrorMessage("Open error: " + error.string);
     return false;
   }
 
@@ -1449,40 +1438,12 @@ HueBulkDataStoreImpl::Open(const char *fileName)
 bool
 HueBulkDataStoreImpl::CreateNew(const char *fileName, bool overwriteExisting)
 {
-  assert(!m_fileHandle && "Already open");
+  assert(!m_fileHandle.IsOpen() && "Already open");
 
-  m_fileName = fileName;
-#if defined(WIN32) || defined(WIN64)
-  wchar_t
-    awFileName[FILENAME_MAX_CHARS + 1];
-
-  awFileName[FILENAME_MAX_CHARS] = 0;
-  MultiByteToWideChar(CP_UTF8, 0, fileName, -1, awFileName, FILENAME_MAX_CHARS);
-
-  if (overwriteExisting || GetFileAttributesW(awFileName) == INVALID_FILE_ATTRIBUTES)
+  Error error;
+  if(!m_fileHandle.Open(fileName, true, overwriteExisting, true, error))
   {
-    m_fileHandle = _wfopen(awFileName, L"wb");
-  }
-  else
-  {
-    m_fileHandle = _wfopen(awFileName, L"r+b");
-  }
-#else
-  struct stat sb;
-
-  if (overwriteExisting || lstat(fileName, &sb) == ENOENT)
-  {
-    m_fileHandle = fopen(fileName, "wb");
-  }
-  else
-  {
-    m_fileHandle = fopen(fileName, "r+b");
-  }
-#endif
-
-  if (!m_fileHandle)
-  {
-    SetErrorMessage("Couldn't open file");
+    SetErrorMessage("Open error: " + error.string);
     return false;
   }
 
@@ -1506,12 +1467,9 @@ HueBulkDataStoreImpl::CreateNew(const char *fileName, bool overwriteExisting)
 void
 HueBulkDataStoreImpl::Close()
 {
-  m_fileName.clear();
-
-  if (m_fileHandle)
+  if(m_fileHandle.IsOpen())
   {
-    fclose(m_fileHandle);
-    m_fileHandle = NULL;
+    m_fileHandle.Close();
   }
 
   m_readOnly = true;
