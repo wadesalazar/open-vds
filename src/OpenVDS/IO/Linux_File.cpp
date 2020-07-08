@@ -190,7 +190,8 @@ bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisti
   assert(!IsOpen());
   assert(!isDestroyExisting || isCreate);
   assert(!isCreate || isWriteAccess || !"it is meaningless to demand creation with RO access");
-  assert(!_pxPlatformHandle || ("RawFileAccess_c::Open: file already open"));
+  assert(!_pxPlatformHandleRead && "RawFileAccess_c::Open: file already open");
+  assert(!_pxPlatformHandleReadWrite && "RawFileAccess_c::Open: file already open");
 
   _cFileName = filename;
 
@@ -203,13 +204,18 @@ bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisti
 
   if (fd < 0)
   {
-    _pxPlatformHandle = 0;
+    _pxPlatformHandleRead = 0;
     SetIoError(errno, "File::open ", error);
     return false;
   }
 
-  _pxPlatformHandle = reinterpret_cast<void*>(fd);
-  _isWriteable = isWriteAccess;
+  _pxPlatformHandleRead = reinterpret_cast<void*>(fd);
+
+  if(isWriteAccess)
+  {
+    _pxPlatformHandleReadWrite = _pxPlatformHandleRead;
+  }
+
   return true;
 }
 
@@ -217,17 +223,51 @@ void File::Close()
 {
   assert(IsOpen());
 
-  int fd  = (int)(intptr_t)_pxPlatformHandle;
-  ::close(fd);
+  if(_pxPlatformHandleRead != _pxPlatformHandleReadWrite)
+  {
+    int fd  = (int)(intptr_t)_pxPlatformHandleRead;
+    ::close(fd);
+    _pxPlatformHandleRead = 0;
+  }
+  if(_pxPlatformHandleReadWrite)
+  {
+    int fd  = (int)(intptr_t)_pxPlatformHandleReadWrite;
+    ::close(fd);
+    _pxPlatformHandleReadWrite = 0;
+  }
 
-  _pxPlatformHandle = 0;
   _cFileName.clear();
   //return isOK;
 }
 
+bool File::EnableWriting(Error &error)
+{
+  assert(IsOpen());
+
+  if(IsWriteable())
+  {
+    return true;
+  }
+
+  int flags = O_RDWR;
+
+  int fd = ::open(_cFileName.c_str(), flags, 0666);
+
+  if (fd < 0)
+  {
+    _pxPlatformHandleReadWrite = 0;
+    SetIoError(errno, "File::open ", error);
+    return false;
+  }
+
+  _pxPlatformHandleReadWrite = reinterpret_cast<void*>(fd);
+
+  return true;
+}
+
 int64_t File::Size(Error& error) const
 {
-  int fd  = (int)(intptr_t)_pxPlatformHandle;
+  int fd  = (int)(intptr_t)_pxPlatformHandleRead;
   int64_t nLength = lseek(fd, 0, SEEK_END);
 
   if (nLength < 0)
@@ -258,7 +298,7 @@ std::string File::LastWriteTime(Error& error) const
 bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, Error& error) const
 {
   assert(nOffset >= 0);
-  int fd = (int)(intptr_t)_pxPlatformHandle;
+  int fd = (int)(intptr_t)_pxPlatformHandleRead;
   ssize_t nread;
 
   while (nLength > 0)
@@ -289,13 +329,13 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
 {
   assert(nOffset >= 0);
 
-  if (!_isWriteable)
+  if (!IsWriteable)
   {
     SetIoError("File::write: file not writeable", error);
     return false;
   }
 
-  int fd  = (int)(intptr_t)_pxPlatformHandle;
+  int fd  = (int)(intptr_t)_pxPlatformHandleReadWrite;
   ssize_t nwritten;
 
   while (nLength > 0)
@@ -323,8 +363,9 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
 
 bool File::Flush()
 {
+  if(!IsWriteable()) return true;
 #ifdef HAVE_SYNCFS
-	int fd  = (int)(intptr_t)_pxPlatformHandle;
+	int fd  = (int)(intptr_t)_pxPlatformHandleReadWrite;
 	return syncfs(fd) == 0;
 #else
   sync();

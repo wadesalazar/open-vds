@@ -229,7 +229,8 @@ bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisti
   assert(!IsOpen());
   assert(!isDestroyExisting || isCreate);
   assert(!isCreate || isWriteAccess || !"it is meaningless to demand creation with RO access");
-  assert(!_pxPlatformHandle || ("RawFileAccess_c::Open: file already open"));
+  assert(!_pxPlatformHandleRead && "RawFileAccess_c::Open: file already open");
+  assert(!_pxPlatformHandleReadWrite && "RawFileAccess_c::Open: file already open");
 
   _cFileName = filename;
 
@@ -237,7 +238,7 @@ bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisti
 
   std::wstring native_name;
   s2ws(_cFileName, native_name);
-  _pxPlatformHandle = CreateFileW(
+  _pxPlatformHandleRead = CreateFileW(
     native_name.c_str(),
     GENERIC_READ | (isWriteAccess ? GENERIC_WRITE : 0),
     FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -246,16 +247,19 @@ bool File::Open(const std::string& filename, bool isCreate, bool isDestroyExisti
     FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS | FILE_FLAG_OVERLAPPED,
     NULL);
 
-  if (_pxPlatformHandle == INVALID_HANDLE_VALUE)
+  if (_pxPlatformHandleRead == INVALID_HANDLE_VALUE)
   {
     SetIoError(GetLastError(), "File::Open: ", error);
 
-    _pxPlatformHandle = 0;
+    _pxPlatformHandleRead = 0;
     _cFileName.clear();
     return false;
   }
 
-  _isWriteable = isWriteAccess;
+  if(isWriteAccess)
+  {
+    _pxPlatformHandleReadWrite = _pxPlatformHandleRead;
+  }
 
   return true;
 }
@@ -264,10 +268,51 @@ void File::Close()
 {
   assert(IsOpen());
 
-  CloseHandle(_pxPlatformHandle);
+  if(_pxPlatformHandleRead != _pxPlatformHandleReadWrite)
+  {
+    CloseHandle(_pxPlatformHandleRead);
+    _pxPlatformHandleRead = 0;
+  }
+  if(_pxPlatformHandleReadWrite)
+  {
+    CloseHandle(_pxPlatformHandleReadWrite);
+    _pxPlatformHandleReadWrite = 0;
+  }
 
-  _pxPlatformHandle = 0;
   _cFileName.clear();
+}
+
+bool File::EnableWriting(Error& error)
+{
+  assert(IsOpen());
+
+  if(IsWriteable())
+  {
+    return true;
+  }
+
+  DWORD dwCreationDisposition = OPEN_EXISTING;
+
+  std::wstring native_name;
+  s2ws(_cFileName, native_name);
+  _pxPlatformHandleReadWrite = CreateFileW(
+    native_name.c_str(),
+    GENERIC_READ | GENERIC_WRITE,
+    FILE_SHARE_READ | FILE_SHARE_WRITE,
+    NULL,
+    dwCreationDisposition,
+    FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS | FILE_FLAG_OVERLAPPED,
+    NULL);
+
+  if (_pxPlatformHandleReadWrite == INVALID_HANDLE_VALUE)
+  {
+    SetIoError(GetLastError(), "File::EnableWriting: ", error);
+
+    _pxPlatformHandleReadWrite = 0;
+    return false;
+  }
+
+  return true;
 }
 
 int64_t File::Size(Error& error) const
@@ -275,7 +320,7 @@ int64_t File::Size(Error& error) const
   LARGE_INTEGER
     li;
 
-  if (!GetFileSizeEx(_pxPlatformHandle, &li))
+  if (!GetFileSizeEx(_pxPlatformHandleRead, &li))
   {
     SetIoError(GetLastError(), "GetFileSizeEx: ", error);
     return -1;
@@ -287,7 +332,7 @@ std::string File::LastWriteTime(Error& error) const
 {
   FILETIME lastWriteTime;
 
-  if(!GetFileTime(_pxPlatformHandle, NULL, NULL, &lastWriteTime))
+  if(!GetFileTime(_pxPlatformHandleRead, NULL, NULL, &lastWriteTime))
   {
     SetIoError(GetLastError(), "GetFileTime: ", error);
     return std::string();
@@ -319,7 +364,7 @@ bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, Error& error) co
     uRead,
     uReadOverlapped;
 
-  BOOL isOK = ReadFile(_pxPlatformHandle, pxData, nLength, &uRead, &ol) && uRead == (DWORD)nLength;
+  BOOL isOK = ReadFile(_pxPlatformHandleRead, pxData, nLength, &uRead, &ol) && uRead == (DWORD)nLength;
 
   // isOK might be true if ReadFile finishes immediately
   if (isOK)
@@ -337,7 +382,7 @@ bool File::Read(void* pxData, int64_t nOffset, int32_t nLength, Error& error) co
     else
     {
       // Wait for overlapped IO to finish.
-      BOOL isOKGetOverlappedResult = GetOverlappedResult(_pxPlatformHandle, &ol, &uReadOverlapped, TRUE);
+      BOOL isOKGetOverlappedResult = GetOverlappedResult(_pxPlatformHandleRead, &ol, &uReadOverlapped, TRUE);
 
       assert(nLength == uReadOverlapped || !isOKGetOverlappedResult);
 
@@ -357,7 +402,7 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
 {
   assert(nOffset >= 0);
 
-  if (!_isWriteable)
+  if (!_pxPlatformHandleReadWrite)
   {
     error.code = -1;
     error.string = "RawFileAccess_c::WriteSync: file not writeable";
@@ -375,8 +420,7 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
   ol.OffsetHigh = (DWORD)(nOffset >> 32);
 
   BOOL
-    isOK
-    = WriteFile(_pxPlatformHandle, pxData, nLength, &uWritten, &ol) && uWritten == (DWORD)nLength;
+    isOK = WriteFile(_pxPlatformHandleReadWrite, pxData, nLength, &uWritten, &ol) && uWritten == (DWORD)nLength;
 
   if (isOK)
   {
@@ -393,7 +437,7 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
     else
     {
       // Wait for overlapped IO to finish.
-      BOOL isOKGetOverlappedResult = GetOverlappedResult(_pxPlatformHandle, &ol, &uWrittenOverlapped, TRUE);
+      BOOL isOKGetOverlappedResult = GetOverlappedResult(_pxPlatformHandleReadWrite, &ol, &uWrittenOverlapped, TRUE);
 
       assert(uWrittenOverlapped == nLength);
 
@@ -411,10 +455,9 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
 
 bool File::Flush()
 {
-  if (!_isWriteable)
-    return false;
+  if(!IsWriteable()) return true;
 
-  BOOL isOK = FlushFileBuffers(_pxPlatformHandle);
+  BOOL isOK = FlushFileBuffers(_pxPlatformHandleReadWrite);
   return isOK == TRUE;
 }
 

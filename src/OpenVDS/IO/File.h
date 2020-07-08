@@ -95,6 +95,7 @@ public:
   OPENVDS_EXPORT static bool Exists(const std::string& filename);
   OPENVDS_EXPORT bool Open(const std::string& filename, bool isCreate, bool isDestroyExisting, bool isWriteAccess, Error& error);
   OPENVDS_EXPORT void Close();
+  OPENVDS_EXPORT bool EnableWriting(Error& error);
 
   OPENVDS_EXPORT int64_t Size(Error& error) const;
   OPENVDS_EXPORT std::string LastWriteTime(Error& error) const;
@@ -111,8 +112,8 @@ public:
 
   OPENVDS_EXPORT void *Handle() const;
 private:
-  void* _pxPlatformHandle;
-  bool _isWriteable;
+  void* _pxPlatformHandleRead;
+  void* _pxPlatformHandleReadWrite;
   std::string _cFileName;
   FileView::SystemFileMappingObject * m_pFileMappingObject;
 };
