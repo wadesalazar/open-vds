@@ -41,8 +41,6 @@ VolumeDataStoreVDSFile::LayerFile *VolumeDataStoreVDSFile::GetLayerFile(std::str
 
 CompressionInfo VolumeDataStoreVDSFile::GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error)
 {
-  std::unique_lock<std::mutex> lock(m_mutex); // This should be removed once the BulkDataStore uses a file implementation that doesn't seek (using pread/pwrite or equivalent)
-
   error = Error();
 
   assert(volumeDataChunk.layer);
@@ -54,6 +52,7 @@ CompressionInfo VolumeDataStoreVDSFile::GetCompressionInfoForChunk(std::vector<u
     return CompressionInfo();
   }
 
+  std::unique_lock<std::mutex> lock(m_mutex); // This should be removed once the BulkDataStore uses a file implementation that doesn't seek (using pread/pwrite or equivalent)
   HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
   metadata.resize(fileInterface->GetChunkMetadataLength());
   IndexEntry indexEntry;
@@ -357,8 +356,20 @@ bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer)
     return false;
   }
 
-  std::string fileName = GetLayerName(*volumeDataLayer);
-  HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile(fileName.c_str(), (int)volumeDataLayer->GetTotalChunkCount(), 1024, FILETYPE_VDS_LAYER, sizeof(VDSChunkMetadata), sizeof(VDSLayerMetadata), false);
+  if(m_dataStore->IsReadOnly())
+  {
+    return false;
+  }
+
+  std::string layerName = GetLayerName(*volumeDataLayer);
+
+  // Check if layer is already added
+  if(m_layerFiles.find(layerName) != m_layerFiles.end())
+  {
+    return true;
+  }
+
+  HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile(layerName.c_str(), (int)volumeDataLayer->GetTotalChunkCount(), 1024, FILETYPE_VDS_LAYER, sizeof(VDSChunkMetadata), sizeof(VDSLayerMetadata), true);
   assert(fileInterface);
 
   VDSLayerMetadataWaveletAdaptive layerMetadata = VDSLayerMetadataWaveletAdaptive();
@@ -367,7 +378,7 @@ bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer)
   fileInterface->WriteFileMetadata(&layerMetadata);
   fileInterface->Commit();
 
-  m_layerFiles[fileName] = LayerFile(fileInterface, layerMetadata, true);
+  m_layerFiles[layerName] = LayerFile(fileInterface, layerMetadata, true);
   return true;
 }
 
