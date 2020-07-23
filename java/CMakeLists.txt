@@ -19,6 +19,7 @@ set(JAVA_SOURCE_FILES
   java/src/org/opengroup/openvds/Dimensionality.java
   java/src/org/opengroup/openvds/DimensionsND.java
   java/src/org/opengroup/openvds/experimental/VariousJavaTests.java
+  java/src/org/opengroup/openvds/GoogleOpenOptions.java
   java/src/org/opengroup/openvds/IndexRegionFloat.java
   java/src/org/opengroup/openvds/IndexRegionLong.java
   java/src/org/opengroup/openvds/InMemoryOpenOptions.java
@@ -34,6 +35,7 @@ set(JAVA_SOURCE_FILES
   java/src/org/opengroup/openvds/OpenOptions.java
   java/src/org/opengroup/openvds/OpenVDS.java
   java/src/org/opengroup/openvds/QuantizingValueConverter_FloatToByte.java
+  java/src/org/opengroup/openvds/VDSFileOpenOptions.java
   java/src/org/opengroup/openvds/VdsHandle.java
   java/src/org/opengroup/openvds/VDSProduceStatus.java
   java/src/org/opengroup/openvds/VolumeDataAccessManager.java

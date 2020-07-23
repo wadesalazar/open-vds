@@ -18,26 +18,26 @@
 package org.opengroup.openvds;
 
 /**
- * Base class for options for opening a VDS
+ * Options for opening a VDS file
  */
-public class OpenOptions {
-    public enum ConnectionType {
-        AWS,
-        Azure,
-        AzurePresigned,
-        GoogleStorage,
-        VDSFile,
-        InMemory
-    }
+public class VDSFileOpenOptions extends OpenOptions {
 
-    public int connectionType;
+    public String fileName;
+
+    /**
+     * Default constructor.
+     */
+    public VDSFileOpenOptions() {
+        super(ConnectionType.VDSFile);
+    }
 
     /**
      * Constructor.
      *
-     * @param ctype the connection type (see static members of this class)
+     * @param fileName The name of the VDS file
      */
-    protected OpenOptions(ConnectionType ctype) {
-        connectionType = ctype.ordinal();
+    public VDSFileOpenOptions(String fileName) {
+        super(ConnectionType.VDSFile);
+        this.fileName = fileName;
     }
 }

@@ -84,6 +84,35 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenAzurePresigned
 
 /*
  * Class:     org_opengroup_openvds_OpenVDS
+ * Method:    cpOpenVDSFile
+ * Signature: (Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenVDSFile
+        (JNIEnv *env, jclass, jstring fileName){
+    OpenVDS::VDSFileOpenOptions openOptions;
+
+    openOptions.fileName = JStringToString(env, fileName);
+
+    return openVDSOrThrowJavaIOException(env, openOptions);
+}
+
+/*
+ * Class:     org_opengroup_openvds_OpenVDS
+ * Method:    cpOpenGoogle
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenGoogle
+        (JNIEnv *env, jclass, jstring bucket, jstring pathPrefix){
+    OpenVDS::GoogleOpenOptions openOptions;
+
+    openOptions.bucket = JStringToString(env, bucket);
+    openOptions.pathPrefix = JStringToString(env, pathPrefix);
+
+    return openVDSOrThrowJavaIOException(env, openOptions);
+}
+
+/*
+ * Class:     org_opengroup_openvds_OpenVDS
  * Method:    cpOpenConnection
  * Signature: (Ljava/lang/String;Ljava/lang/String;)J
  */

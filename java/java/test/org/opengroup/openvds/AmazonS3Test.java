@@ -41,6 +41,16 @@ public class AmazonS3Test {
         assertThrows(IOException.class, () -> OpenVDS.open(new AzurePresignedOpenOptions()));
     }
 
+    @Test
+    void testGoogleFail() {
+        assertThrows(IOException.class, () -> OpenVDS.open(new GoogleOpenOptions()));
+    }
+
+    @Test
+    void testVDSFileFail() {
+        assertThrows(IOException.class, () -> OpenVDS.open(new VDSFileOpenOptions()));
+    }
+
 //    @Test
     void testVolumeSubsetRequestFloatLeak() throws IOException {
         AWSOpenOptions o = new AWSOpenOptions();

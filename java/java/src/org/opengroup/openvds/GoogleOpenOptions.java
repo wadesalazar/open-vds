@@ -18,26 +18,29 @@
 package org.opengroup.openvds;
 
 /**
- * Base class for options for opening a VDS
+ * Options for opening a VDS in Google cloud computing platform.
  */
-public class OpenOptions {
-    public enum ConnectionType {
-        AWS,
-        Azure,
-        AzurePresigned,
-        GoogleStorage,
-        VDSFile,
-        InMemory
-    }
+public class GoogleOpenOptions extends OpenOptions {
 
-    public int connectionType;
+    public String bucket;
+    public String pathPrefix;
+
+    /**
+     * Default constructor.
+     */
+    public GoogleOpenOptions() {
+        super(ConnectionType.GoogleStorage);
+    }
 
     /**
      * Constructor.
      *
-     * @param ctype the connection type (see static members of this class)
+     * @param bucket The bucket of the VDS
+     * @param pathPrefix The prefix of the VDS
      */
-    protected OpenOptions(ConnectionType ctype) {
-        connectionType = ctype.ordinal();
+    public GoogleOpenOptions(String bucket, String pathPrefix) {
+        super(ConnectionType.GoogleStorage);
+        this.bucket = bucket;
+        this.pathPrefix = pathPrefix;
     }
 }

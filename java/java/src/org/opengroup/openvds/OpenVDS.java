@@ -27,6 +27,10 @@ public class OpenVDS extends VdsHandle{
 
     private static native long cpOpenAzurePresigned(String baseUrl, String urlSuffix) throws IOException;
 
+    private static native long cpOpenVDSFile(String fileName) throws IOException;
+
+    private static native long cpOpenGoogle(String bucket, String pathPrefix) throws IOException;
+
     private static native long cpOpenConnection(String url, String connectionString) throws IOException;
 
     private OpenVDS(long handle, boolean ownHandle) {
@@ -46,6 +50,16 @@ public class OpenVDS extends VdsHandle{
     public static OpenVDS open(AzurePresignedOpenOptions o) throws IOException {
         if (o == null) throw new IllegalArgumentException("open option can't be null");
         return new OpenVDS(cpOpenAzurePresigned(o.baseUrl, o.urlSuffix), true);
+    }
+
+    public static OpenVDS open(VDSFileOpenOptions o) throws IOException {
+        if (o == null) throw new IllegalArgumentException("open option can't be null");
+        return new OpenVDS(cpOpenVDSFile(o.fileName), true);
+    }
+
+    public static OpenVDS open(GoogleOpenOptions o) throws IOException {
+        if (o == null) throw new IllegalArgumentException("open option can't be null");
+        return new OpenVDS(cpOpenGoogle(o.bucket, o.pathPrefix), true);
     }
 
     public static OpenVDS open(String url, String connectionString) throws IOException {
