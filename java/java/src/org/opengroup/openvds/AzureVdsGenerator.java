@@ -20,9 +20,16 @@ package org.opengroup.openvds;
 
 public class AzureVdsGenerator extends VdsHandle {
 
-    private static native long cpCreateAzureHandle(AzureOpenOptions o, int nXSamples, int nYSamples, int nZSamples, int format);
+    private static native long cpCreateAzureHandle(AzureOpenOptions o, int nXSamples, int nYSamples, int nZSamples,
+            int format, String[] channel);
 
-    public AzureVdsGenerator(AzureOpenOptions o, int nXSamples, int nYSamples, int nZSamples, VolumeDataChannelDescriptor.Format format) {
-        super(cpCreateAzureHandle(o, nXSamples, nYSamples, nZSamples, format.getCode()), true); // Creation of C++ object; auto delete
+    public AzureVdsGenerator(AzureOpenOptions o, int nXSamples, int nYSamples, int nZSamples,
+            VolumeDataChannelDescriptor.Format format, String[] channel) {
+        super(cpCreateAzureHandle(o, nXSamples, nYSamples, nZSamples, format.getCode(), channel), true);
+    }
+
+    public AzureVdsGenerator(AzureOpenOptions o, int nXSamples, int nYSamples,
+            VolumeDataChannelDescriptor.Format format, String[] channel) {
+        super(cpCreateAzureHandle(o, nXSamples, nYSamples, 0, format.getCode(), channel), true);
     }
 }

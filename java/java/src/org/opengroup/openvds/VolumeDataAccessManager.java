@@ -204,7 +204,7 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * @param channel the channel index the requested data is read from.
      * @return the buffer size needed
      */
-    long getVolumeSubsetBufferSize(VolumeDataLayout volumeDataLayout,
+    public long getVolumeSubsetBufferSize(VolumeDataLayout volumeDataLayout,
                                    NDBox box, VolumeDataChannelDescriptor.Format format, int lod, int channel) {
         return cpGetVolumeSubsetBufferSize(_handle, volumeDataLayout.handle(),
                 box.getMin(), box.getMax(), format.getCode(), lod, channel);

@@ -36,6 +36,7 @@ public class OpenVDS extends VdsHandle{
                                              VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
                                              VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
 
+
     private static native long cpCreateAws(String bucket, String key, String region, String endpointoverhide, String accessKeyId, String secretKey, String sessionToken, String expiration,
                                            VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
                                            VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
@@ -51,6 +52,13 @@ public class OpenVDS extends VdsHandle{
     private static native long cpCreateConnection(String url, String connectionString,
                                                   VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
                                                   VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+
+    private static native void cpWriteData_r64(JniPointer ptr, double[] src_data, String channel);
+    private static native void cpWriteData_r32(JniPointer ptr, float[] src_data, String channel);
+    private static native void cpWriteData_u32(JniPointer ptr, int[] src_data, String channel);
+    private static native void cpWriteData_u8(JniPointer ptr, byte[] src_data, String channel);
+    private static native void cpWriteData_bool(JniPointer ptr, boolean[] src_data, String channel);
+
 
     private OpenVDS(long handle, boolean ownHandle) {
         super(handle, ownHandle);
@@ -95,7 +103,7 @@ public class OpenVDS extends VdsHandle{
         if (md == null) {
             throw new IllegalArgumentException("MetadataReadAccess can't be null");
         }
-	}
+    }
 
     private static <OpenOpt> void validateCreateArguments(OpenOpt o, VolumeDataLayoutDescriptor ld,
                                  VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
@@ -105,7 +113,7 @@ public class OpenVDS extends VdsHandle{
             throw new IllegalArgumentException("open option can't be null");
         }
         validateCreateArguments(ld, vda, vdc, md);
-	}
+    }
 
     public static OpenVDS create(AzureOpenOptions o, VolumeDataLayoutDescriptor ld,
                                  VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
@@ -116,7 +124,7 @@ public class OpenVDS extends VdsHandle{
                                          o.parallelism_factor, o.max_execution_time,
                                          ld, vda, vdc, md), true);
     }
-    
+
     public static OpenVDS create(AWSOpenOptions o, VolumeDataLayoutDescriptor ld,
                                  VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
                                  MetadataReadAccess md) throws IOException {
@@ -125,7 +133,7 @@ public class OpenVDS extends VdsHandle{
         return new OpenVDS(cpCreateAws(o.bucket, o.key, o.region, o.endpointoverhide, o.accessKeyId, o.secretKey, o.sessionToken, o.expiration,
                                          ld, vda, vdc, md), true);
     }
-    
+
     public static OpenVDS create(GoogleOpenOptions o, VolumeDataLayoutDescriptor ld,
                                  VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
                                  MetadataReadAccess md) throws IOException {
@@ -134,7 +142,7 @@ public class OpenVDS extends VdsHandle{
         return new OpenVDS(cpCreateGoogle(o.bucket, o.pathPrefix, 
                                          ld, vda, vdc, md), true);
     }
-    
+
     public static OpenVDS create(AzurePresignedOpenOptions o, VolumeDataLayoutDescriptor ld,
                                  VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
                                  MetadataReadAccess md) throws IOException {
@@ -143,6 +151,7 @@ public class OpenVDS extends VdsHandle{
         return new OpenVDS(cpCreateAzurePresigned(o.baseUrl, o.urlSuffix,
                                          ld, vda, vdc, md), true);
     }
+
     public static OpenVDS create(String url, String connectionString, VolumeDataLayoutDescriptor ld,
                                  VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
                                  MetadataReadAccess md) throws IOException {
@@ -154,5 +163,25 @@ public class OpenVDS extends VdsHandle{
 
         return new OpenVDS(cpCreateConnection(url, connectionString,
                                          ld, vda, vdc, md), true);
+    }
+
+    public static void writeArray(VdsHandle handle, double[] src_data, String channel_name) {
+        cpWriteData_r64(handle, src_data, channel_name);
+    }
+
+    public static void writeArray(VdsHandle handle, float[] src_data, String channel_name) {
+        cpWriteData_r32(handle, src_data, channel_name);
+    }
+
+    public static void writeArray(VdsHandle handle, int[] src_data, String channel_name) {
+        cpWriteData_u32(handle, src_data, channel_name);
+    }
+
+    public static void writeArray(VdsHandle handle, byte[] src_data, String channel_name) {
+        cpWriteData_u8(handle, src_data, channel_name);
+    }
+
+    public static void writeArray(VdsHandle handle, boolean[] src_data, String channel_name) {
+        cpWriteData_bool(handle, src_data, channel_name);
     }
 }

@@ -1,5 +1,9 @@
 include(UseJava)
 
+set(OPENVDS_JAVA_VERSION 0.0.6)
+
+set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
+
 set(GENERATED_JNI_HEADERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cpp/generated)
 #file(REMOVE_RECURSE ${GENERATED_JNI_HEADERS_DIR})
 file(MAKE_DIRECTORY ${GENERATED_JNI_HEADERS_DIR})
@@ -79,6 +83,7 @@ set(JAVA_TEST_SOURCES_FILES
   java/test/org/opengroup/openvds/AmazonS3Test.java
   java/test/org/opengroup/openvds/MemoryVdsGeneratorTest.java
   java/test/org/opengroup/openvds/CreateVDSTest.java
+  java/test/org/opengroup/openvds/WriteDataTest.java
   )
 
 add_jar(openvds-java-test
@@ -105,6 +110,7 @@ add_library(openvds-javacpp
   cpp/src/VolumeDataLayout.cpp
   cpp/src/VolumeDataPage.cpp
   cpp/src/VolumeDataPageAccessor.cpp
+  cpp/src/WriteVolumeData.cpp
   )
 
 set_target_properties(openvds-javacpp PROPERTIES
