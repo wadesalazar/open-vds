@@ -138,6 +138,9 @@ build3rdparty()
 
 include(CMake/CopyDllForTarget.cmake)
 
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+
 add_subdirectory(src)
 add_subdirectory(tools)
 
