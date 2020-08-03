@@ -81,5 +81,6 @@ function(addGoogleCloudToTarget target)
   target_include_directories(${target} PRIVATE
     ${google-cloud-cpp_SOURCE_DIR}
     ${google_nlohmann_SOURCE_DIR}
+    ${absl_SOURCE_DIR}
     )
 endfunction()
