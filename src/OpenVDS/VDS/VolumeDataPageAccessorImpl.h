@@ -48,7 +48,6 @@ private:
   std::atomic_int m_references;
   bool m_isReadWrite;
   bool m_isCommitInProgress;
-  bool m_warnedAboutMissingMetadataTag;
   std::atomic<std::chrono::time_point<std::chrono::steady_clock>> m_lastUsed;
   std::list<VolumeDataPageImpl *> m_pages;
   std::condition_variable m_pageReadCondition;

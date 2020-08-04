@@ -107,6 +107,8 @@ class VolumeDataStoreIOManager : public VolumeDataStore, public LayerMetadataCon
   std::unordered_map<int64_t, PendingUploadRequest>
                         m_pendingUploadRequests;
 
+  bool                  m_warnedAboutMissingMetadataTag;
+
   std::unordered_map<std::string, std::unique_ptr<MetadataManager>> m_metadataManagers;
 
   MetadataManager *GetMetadataMangerForLayer(const std::string &layerName) const;

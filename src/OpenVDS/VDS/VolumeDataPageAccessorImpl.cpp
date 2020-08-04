@@ -45,7 +45,6 @@ VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerIm
   , m_references(1)
   , m_isReadWrite(isReadWrite)
   , m_isCommitInProgress(false)
-  , m_warnedAboutMissingMetadataTag(false)
   , m_lastUsed(std::chrono::steady_clock::now())
 {
 }
@@ -288,10 +287,8 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
     std::vector<uint8_t> serialized_data;
     std::vector<uint8_t> metadata;
     CompressionInfo compressionInfo;
-    ParsedMetadata parsedMetadata;
 
-
-    if (!m_accessManager->ReadChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, parsedMetadata, error))
+    if (!m_accessManager->GetVolumeDataStore()->ReadChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, error))
     {
       pageListMutexLock.lock();
       pageImpl->SetError(error);
@@ -304,7 +301,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
 
     std::vector<uint8_t> page_data;
     DataBlock dataBlock;
-    if (!VolumeDataStore::DeserializeVolumeData(volumeDataChunk, serialized_data, metadata, parsedMetadata, m_warnedAboutMissingMetadataTag, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->GetFormat(), dataBlock, page_data, error))
+    if (!VolumeDataStore::DeserializeVolumeData(volumeDataChunk, serialized_data, metadata, compressionInfo.GetCompressionMethod(), compressionInfo.GetAdaptiveLevel(), m_layer->GetFormat(), dataBlock, page_data, error))
     {
       pageListMutexLock.lock();
       pageImpl->SetError(error);

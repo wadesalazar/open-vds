@@ -23,39 +23,63 @@
 
 #include <fmt/format.h>
 
-#include "WaveletTypes.h"
+#ifdef WAVELET_ADAPTIVE_LEVELS
+#error "Don't include WaveletTypes.h before this file!"
+#endif
 
 namespace OpenVDS
 {
-  
-  struct ParsedMetadata
+  enum
   {
+    WAVELET_ADAPTIVE_LEVELS = 16
+  };
+
+  class ParsedMetadata
+  {
+  public:
     ParsedMetadata()
       : m_chunkHash(0)
       , m_chunkSize(0)
     {}
 
-    uint64_t m_chunkHash;
+    uint64_t    m_chunkHash;
+  
+    int32_t     m_chunkSize;
 
-    int32_t m_chunkSize;
+    std::vector<uint8_t>
+                m_adaptiveLevels;
 
-    std::vector<uint8_t> m_adaptiveLevels;
-
-    bool valid() const
+    std::vector<uint8_t>
+    CreateChunkMetaData() const
     {
-      return m_chunkHash != 0;
-    }
+      std::vector<uint8_t>
+        metadata(sizeof(m_chunkHash) + m_adaptiveLevels.size());
 
-    bool operator!=(const ParsedMetadata& other)
-    {
-      bool isequal = m_chunkHash == other.m_chunkHash;
-      if (m_chunkSize && isequal)
+      memcpy(metadata.data(), &m_chunkHash, sizeof(m_chunkHash));
+
+      if (m_adaptiveLevels.size())
       {
-        isequal &= m_chunkSize == other.m_chunkSize;
-        isequal &= m_adaptiveLevels == other.m_adaptiveLevels;
+        memcpy(metadata.data() + sizeof(m_chunkHash), m_adaptiveLevels.data(), m_adaptiveLevels.size());
       }
-      return !isequal;
+
+      return metadata;
     }
+
+    //bool valid() const
+    //{
+    //  return m_chunkHash != 0;
+    //}
+
+    //bool operator!=(const ParsedMetadata& other)
+    //{
+    //  bool isequal = m_chunkHash == other.m_chunkHash;
+    //  if (m_chunkSize && isequal)
+    //  {
+    //    isequal &= m_chunkSize == other.m_chunkSize;
+    //    isequal &= m_adaptiveLevels == other.m_adaptiveLevels;
+    //  }
+    //  return !isequal;
+    //}
   };
 
   inline ParsedMetadata ParseMetadata(unsigned char const* metadata, int metadataByteSize, Error &error)
@@ -79,7 +103,7 @@ namespace OpenVDS
     else
     {
       error.string = fmt::format("Unsupported chunkMetadataByteSize: {}.", metadataByteSize);
-      error.code = 1;
+      error.code = -1;
     }
 
     return parsedMetadata;

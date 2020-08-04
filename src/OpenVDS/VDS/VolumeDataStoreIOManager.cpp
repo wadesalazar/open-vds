@@ -69,9 +69,9 @@ public:
 class ReadChunkTransfer : public TransferDownloadHandler
 {
 public:
-  ReadChunkTransfer(CompressionMethod compressionMethod, const ParsedMetadata &parsedMetadata, int adaptiveLevel)
+  ReadChunkTransfer(CompressionMethod compressionMethod, std::vector<uint8_t> const &metadataFromPage, int adaptiveLevel)
     : m_compressionMethod(compressionMethod)
-    , m_parsedMetadata(parsedMetadata)
+    , m_metadataFromPage(metadataFromPage)
     , m_adaptiveLevel(adaptiveLevel)
   {}
 
@@ -96,7 +96,7 @@ public:
     {
       if (memcmp(key.data() + key.size() - vdschunkmetadataKeySize, vdschunkmetadata, vdschunkmetadataKeySize) == 0)
       {
-        if (!Base64Decode(header.data(), (int)header.size(), m_metadata))
+        if (!Base64Decode(header.data(), (int)header.size(), m_metadataFromHeader))
         {
           m_error.code = -1;
           m_error.string = "Failed to decode chunk metadata";
@@ -116,7 +116,7 @@ public:
           m_error.string = "Failed to decode chunk metadata";
           return;
         }
-        if (!Base64Decode((const char *)tmp.data(), (int)tmp.size(), m_metadata))
+        if (!Base64Decode((const char *)tmp.data(), (int)tmp.size(), m_metadataFromHeader))
         {
           m_error.code = -1;
           m_error.string = "Failed to decode chunk metadata";
@@ -137,56 +137,14 @@ public:
   }
   
   CompressionMethod m_compressionMethod;
-  ParsedMetadata m_parsedMetadata;
   int m_adaptiveLevel;
 
   Error m_error;
 
   std::vector<uint8_t> m_data;
-  std::vector<uint8_t> m_metadata;
+  std::vector<uint8_t> m_metadataFromHeader;
+  std::vector<uint8_t> m_metadataFromPage;
 };
-
-
-struct ParsedMetadata
-{
-  ParsedMetadata()
-    : m_chunkHash(0)
-    , m_chunkSize(0)
-  {}
-
-  uint64_t m_chunkHash;
-  
-  int32_t m_chunkSize;
-
-  std::vector<uint8_t> m_adaptiveLevels;
-};
-
-
-static ParsedMetadata ParseMetadata(int metadataByteSize, unsigned char const *metadata)
-{
-  ParsedMetadata parsedMetadata;
-
-  if (metadataByteSize == 4 + 24)
-  {
-    parsedMetadata.m_chunkSize = *reinterpret_cast<int32_t const *>(metadata);
-
-    parsedMetadata.m_chunkHash = *reinterpret_cast<uint64_t const *>(metadata + 4);
-
-    parsedMetadata.m_adaptiveLevels.resize(WAVELET_ADAPTIVE_LEVELS);
-
-    memcpy(parsedMetadata.m_adaptiveLevels.data(), metadata + 4 + 8, WAVELET_ADAPTIVE_LEVELS);
-  }
-  else if (metadataByteSize == 8)
-  {
-    parsedMetadata.m_chunkHash = *reinterpret_cast<uint64_t const *>(metadata);
-  }
-  else
-  {
-    throw std::runtime_error(std::string(" Unsupported chunkMetadataByteSize: ") + std::to_string(metadataByteSize));
-  }
-
-  return parsedMetadata;
-}
 
 static bool IsConstantChunkHash(uint64_t chunkHash)
 {
@@ -267,9 +225,10 @@ static int WaveletAdaptiveLevelsMetadataDecode(uint64_t totalSize, int targetLev
   return remainingSize;
 }
 
-VolumeDataStoreIOManager:: VolumeDataStoreIOManager(VDS &vds, IOManager *ioManager) :
-  m_vds(vds),
-  m_ioManager(ioManager)
+VolumeDataStoreIOManager:: VolumeDataStoreIOManager(VDS &vds, IOManager *ioManager)
+  : m_vds(vds)
+  , m_ioManager(ioManager)
+  , m_warnedAboutMissingMetadataTag(false)
 {
 }
 
@@ -402,6 +361,7 @@ static inline std::string CreateUrlForChunk(const std::string &layerName, uint64
 bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Error &error)
 {
   CompressionMethod compressionMethod = CompressionMethod::Wavelet;
+  ParsedMetadata parsedMetadata;
   int adaptiveLevel = -1;
 
   IORange ioRange = IORange();
@@ -455,15 +415,13 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
 
     compressionMethod = metadataManager->GetMetadataStatus().m_compressionMethod;
 
-    unsigned char const* metadata = metadataManager->GetPageEntry(metadataPage, entryIndex);
+    unsigned char const* metadataPageEntry = metadataManager->GetPageEntry(metadataPage, entryIndex);
 
-  Error metaParseError;
-  ParsedMetadata parsedMetadata = ParseMetadata(metadata, metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, metaParseError);
-  if (metaParseError.code)
-  {
-    pendingRequest.m_metadataPageRequestError = metaParseError;
-    continue;
-  }
+    parsedMetadata = ParseMetadata(metadataPageEntry, metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, error);
+    if (error.code)
+    {
+      return false;
+    }
     
     metadataManager->UnlockPage(metadataPage);
 
@@ -475,7 +433,7 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
   if (m_pendingDownloadRequests.find(chunk) == m_pendingDownloadRequests.end())
   {
     std::string url = CreateUrlForChunk(layerName, chunk.index);
-    auto transferHandler = std::make_shared<ReadChunkTransfer>(compressionMethod, adaptiveLevel);
+    auto transferHandler = std::make_shared<ReadChunkTransfer>(compressionMethod, parsedMetadata.CreateChunkMetaData(), adaptiveLevel);
     m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->ReadObject(url, transferHandler, ioRange), transferHandler);
   }
   else
@@ -556,12 +514,40 @@ bool VolumeDataStoreIOManager::ReadChunk(const VolumeDataChunk &chunk, std::vect
       serializedData = transferHandler->m_data;
   }
 
-  if (transferHandler->m_metadata.size())
+  if(!transferHandler->m_metadataFromHeader.empty())
   {
+    if(!transferHandler->m_metadataFromPage.empty() && transferHandler->m_metadataFromPage != transferHandler->m_metadataFromHeader)
+    {
+      error.string = fmt::format("Inconsistent metadata for chunk {}", CreateUrlForChunk(GetLayerName(*chunk.layer), chunk.index));
+      error.code = -1;
+      compressionInfo = CompressionInfo();
+      return false;
+    }
+
     if (moveData)
-      metadata = std::move(transferHandler->m_metadata);
+      metadata = std::move(transferHandler->m_metadataFromHeader);
     else
-      metadata = transferHandler->m_metadata;
+      metadata = transferHandler->m_metadataFromHeader;
+  }
+  else if(!transferHandler->m_metadataFromPage.empty())
+  {
+    if (!m_warnedAboutMissingMetadataTag) // Log once and move along.
+    {
+      fmt::print(stderr, "Dataset has missing metadata tags, degraded data verification, reverting to metadata pages");
+      m_warnedAboutMissingMetadataTag = true;
+    }
+
+    if (moveData)
+      metadata = std::move(transferHandler->m_metadataFromPage);
+    else
+      metadata = transferHandler->m_metadataFromPage;
+  }
+  else
+  {
+    error.string = fmt::format("Missing metadata for chunk {}", CreateUrlForChunk(GetLayerName(*chunk.layer), chunk.index));
+    error.code = -1;
+    compressionInfo = CompressionInfo();
+    return false;
   }
 
   compressionInfo = CompressionInfo(transferHandler->m_compressionMethod, transferHandler->m_adaptiveLevel);
@@ -621,7 +607,6 @@ void VolumeDataStoreIOManager::PageTransferCompleted(MetadataPage* metadataPage,
       int32_t pageIndex = (int)(volumeDataChunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
       int32_t entryIndex = (int)(volumeDataChunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
-      (void)pageIndex;
       assert(pageIndex == metadataPage->PageIndex());
 
       if (error.code != 0)
@@ -631,17 +616,23 @@ void VolumeDataStoreIOManager::PageTransferCompleted(MetadataPage* metadataPage,
       {
         uint8_t const *metadata = metadataManager->GetPageEntry(metadataPage, entryIndex);
 
-        ParsedMetadata parsedMetadata = ParseMetadata(metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, metadata);
-      
-        int adaptiveLevel;
+        Error metaParseError;
+        ParsedMetadata parsedMetadata = ParseMetadata(metadata, metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, metaParseError);
+        if (metaParseError.code)
+        {
+          pendingRequest.m_metadataPageRequestError = metaParseError;
+        }
+        else
+        {
+          int adaptiveLevel;
 
-        IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
+          IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
 
-        std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.index);
-
-        auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, adaptiveLevel);
-        pendingRequest.m_activeTransfer = m_ioManager->ReadObject(url, transferHandler, ioRange);
-        pendingRequest.m_transferHandle = transferHandler;
+          std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.index);
+          auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, parsedMetadata.CreateChunkMetaData(), adaptiveLevel);
+          pendingRequest.m_activeTransfer = m_ioManager->ReadObject(url, transferHandler, ioRange);
+          pendingRequest.m_transferHandle = transferHandler;
+        }
       }
 
       // Unlock the metadata page, even if invalid, to avoid infinite wait for pendingRequest.m_lockedMetadataPage to change in ReadChunk()

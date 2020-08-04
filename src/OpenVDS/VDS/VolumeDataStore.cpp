@@ -25,6 +25,7 @@
 #include "DataBlock.h"
 #include "ParsedMetadata.h"
 #include <OpenVDS/ValueConversion.h>
+#include <VDS/VDS.h>
 
 #include <fmt/format.h>
 
@@ -53,8 +54,7 @@ static uint32_t GetByteSize(const DataBlockDescriptor &descriptor)
   return GetByteSize(size, descriptor.Format, descriptor.Components);
 }
 
-
-bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t> &serializedData, CompressionMethod compressionMethod, bool isFullyRead, const VolumeDataHash &hash)
+bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t> &serializedData, CompressionMethod compressionMethod, bool isFullyRead)
 {
   bool isValid = false;
 
@@ -62,11 +62,11 @@ bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::
 
   volumeDataChunk.layer->GetChunkVoxelSize(volumeDataChunk.index, voxelSize);
 
-  if(serializedData.empty() && hash.IsConstant())
+  if(serializedData.empty())
   {
     isValid = true;
   }
-  else if(CompressionMethodIsWavelet(compressionMethod) && serializedData.size() >= sizeof(int32_t) * 5)
+  else if(CompressionMethodIsWavelet(compressionMethod))
   {
     if(serializedData.size() >= sizeof(int32_t) * 6)
     {
@@ -479,115 +479,62 @@ bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volume
   return true;
 }
 
-static bool getMetadataValidity(const VolumeDataChunk &volumeDataChunk, CompressionMethod compressionMethod,  const std::vector<uint8_t>& metadata, const ParsedMetadata& parsedMetadata, bool &warnedAboutMissingMetadataTag, Error &error)
-{
-  if (metadata.empty())
-  {
-    if (!warnedAboutMissingMetadataTag)
-    {
-      fmt::print(stderr, "Warning: VDS dataset missing metadata tags, degraded data verification.");
-      warnedAboutMissingMetadataTag = true;
-    }
-    return parsedMetadata.m_chunkHash != 0;
-  }
-
-  if (parsedMetadata.valid())
-  {
-    ParsedMetadata chunkParsedMetadata = ParseMetadata(metadata.data(), int(metadata.size()), error);
-    if (error.code)
-      return false;
-    if (chunkParsedMetadata != parsedMetadata)
-    {
-      error.string = fmt::format("Chunk {} - Metadata is not the same as metadata from stored metadapage.", volumeDataChunk.index);
-      error.code = -1;
-      return false;
-    }
-  }
- 
-  //should this be an else
-  if (CompressionMethodIsWavelet(compressionMethod))
-  {
-    if (metadata.size() != sizeof(uint64_t) + sizeof(uint8_t[WAVELET_ADAPTIVE_LEVELS]))
-    {
-      error.string = fmt::format("Chunk {} - Metadata for wavelet chunk does not match the expected length.", volumeDataChunk.index);
-      error.code = -1;
-      return false;
-    }
-  }
-  else
-  {
-    if (metadata.size() != sizeof(uint64_t))
-    {
-      error.string = fmt::format("Chunk {} - Metadata for non wavelet is not the expected size", volumeDataChunk.index);
-      error.code = -1;
-      return false;
-    }
-  }
-  return true;
-}
-
-bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, const ParsedMetadata &parsedMetadata, bool &warnedAboutMissingMetadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error)
+bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error)
 {
   uint64_t volumeDataHashValue = VolumeDataHash::UNKNOWN;
 
-  bool metadataValid = getMetadataValidity(volumeDataChunk, compressionMethod, metadata, parsedMetadata, warnedAboutMissingMetadata, error);
-  if (!metadataValid)
-    return false;
-
-  if (metadata.size())
-    memcpy(&volumeDataHashValue, metadata.data(), sizeof(uint64_t));
-  else
-    volumeDataHashValue = parsedMetadata.m_chunkHash;
-  
-  VolumeDataHash volumeDataHash(volumeDataHashValue);
-
-  if (CompressionMethodIsWavelet(compressionMethod) && VolumeDataStore::Verify(volumeDataChunk, serializedData, compressionMethod, false, volumeDataHashValue))
-  {
-    ;
-  }
-  else if (!Verify(volumeDataChunk, serializedData, compressionMethod, true, volumeDataHashValue))
+  bool waveletAdaptive = CompressionMethodIsWavelet(compressionMethod) && metadata.size() == sizeof(uint64_t) + sizeof(uint8_t[WAVELET_ADAPTIVE_LEVELS]);
+  if (!waveletAdaptive && metadata.size() != sizeof(uint64_t))
   {
     error.code = -1;
-    error.string = fmt::format("Invalid header (e.g. unsupported Wavelet compression version) for chunk index: {}.", volumeDataChunk.index);
+    error.string = fmt::format("Invalid metadata of size {} for chunk: {}/{}", metadata.size(), GetLayerName(*volumeDataChunk.layer), volumeDataChunk.index);
     return false;
   }
 
-  const VolumeDataLayer* volumeDataLayer = volumeDataChunk.layer;
+  memcpy(&volumeDataHashValue, metadata.data(), sizeof(uint64_t));
+
+  VolumeDataHash volumeDataHash(volumeDataHashValue);
+
+  VolumeDataLayer const *volumeDataLayer = volumeDataChunk.layer;
 
   if (volumeDataHash.IsConstant())
   {
-    if (!CreateConstantValueDataBlock(volumeDataChunk, volumeDataLayer->GetFormat(), volumeDataLayer->GetNoValue(), volumeDataLayer->GetComponents(), volumeDataHash, dataBlock, target, error))
-      return false;
+    return CreateConstantValueDataBlock(volumeDataChunk, volumeDataLayer->GetFormat(), volumeDataLayer->GetNoValue(), volumeDataLayer->GetComponents(), volumeDataHash, dataBlock, target, error);
   }
-  else
+  else if(serializedData.empty())
   {
-    volumeDataHash = uint64_t(volumeDataHash) ^ (uint64_t(adaptiveLevel) + 1) * 0x4068934683409867ULL;
+    error.code = -1;
+    error.string = fmt::format("Missing data for chunk: {}/{}", GetLayerName(*volumeDataChunk.layer), volumeDataChunk.index);
+    return false;
+  }
 
+  if (!Verify(volumeDataChunk, serializedData, compressionMethod, !waveletAdaptive))
+  {
+    error.code = -1;
+    error.string = fmt::format("Invalid header (e.g. unsupported Wavelet compression version) for chunk: {}/{}", GetLayerName(*volumeDataChunk.layer), volumeDataChunk.index);
+    return false;
+  }
+
+  volumeDataHash = uint64_t(volumeDataHash) ^ (uint64_t(adaptiveLevel) + 1) * 0x4068934683409867ULL;
+
+  //create a value range from scale and offset so that conversion to 8 or 16 bit is done correctly inside deserialization
+  FloatRange deserializeValueRange = volumeDataLayer->GetValueRange();
+
+  if (volumeDataLayer->GetFormat() == VolumeDataChannelDescriptor::Format_U16 || volumeDataLayer->GetFormat() == VolumeDataChannelDescriptor::Format_U8)
+  {
+    if (loadFormat == VolumeDataChannelDescriptor::Format_U16)
     {
-      //create a value range from scale and offset so that conversion to 8 or 16 bit is done correctly inside deserialization
-      FloatRange deserializeValueRange = volumeDataLayer->GetValueRange();
-
-      if (volumeDataLayer->GetFormat() == VolumeDataChannelDescriptor::Format_U16 || volumeDataLayer->GetFormat() == VolumeDataChannelDescriptor::Format_U8)
-      {
-        if (loadFormat == VolumeDataChannelDescriptor::Format_U16)
-        {
-          deserializeValueRange.Min = volumeDataLayer->GetIntegerOffset();
-          deserializeValueRange.Max = volumeDataLayer->GetIntegerScale() * (volumeDataLayer->IsUseNoValue() ? 65534.0f : 65535.0f) + volumeDataLayer->GetIntegerOffset();
-        }
-        else if (loadFormat == VolumeDataChannelDescriptor::Format_U8 && volumeDataLayer->GetFormat() != VolumeDataChannelDescriptor::Format_U16)
-        {
-          deserializeValueRange.Min = volumeDataLayer->GetIntegerOffset();
-          deserializeValueRange.Max = volumeDataLayer->GetIntegerScale() * (volumeDataLayer->IsUseNoValue() ? 254.0f : 255.0f) + volumeDataLayer->GetIntegerOffset();
-        }
-      }
-
-      if (!OpenVDS::DeserializeVolumeData(serializedData, loadFormat, compressionMethod, deserializeValueRange, volumeDataLayer->GetIntegerScale(), volumeDataLayer->GetIntegerOffset(), volumeDataLayer->IsUseNoValue(), volumeDataLayer->GetNoValue(), adaptiveLevel, dataBlock, target, error))
-        return false;
-
+      deserializeValueRange.Min = volumeDataLayer->GetIntegerOffset();
+      deserializeValueRange.Max = volumeDataLayer->GetIntegerScale() * (volumeDataLayer->IsUseNoValue() ? 65534.0f : 65535.0f) + volumeDataLayer->GetIntegerOffset();
+    }
+    else if (loadFormat == VolumeDataChannelDescriptor::Format_U8 && volumeDataLayer->GetFormat() != VolumeDataChannelDescriptor::Format_U16)
+    {
+      deserializeValueRange.Min = volumeDataLayer->GetIntegerOffset();
+      deserializeValueRange.Max = volumeDataLayer->GetIntegerScale() * (volumeDataLayer->IsUseNoValue() ? 254.0f : 255.0f) + volumeDataLayer->GetIntegerOffset();
     }
   }
 
-  return true;
+  return OpenVDS::DeserializeVolumeData(serializedData, loadFormat, compressionMethod, deserializeValueRange, volumeDataLayer->GetIntegerScale(), volumeDataLayer->GetIntegerOffset(), volumeDataLayer->IsUseNoValue(), volumeDataLayer->GetNoValue(), adaptiveLevel, dataBlock, target, error);
 }
 
 uint64_t
