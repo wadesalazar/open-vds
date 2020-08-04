@@ -205,6 +205,11 @@ static std::unique_ptr<OpenOptions> createGoogleOpenOptions(const StringWrapper&
   return openOptions;
 }
 
+static std::unique_ptr<OpenOptions> createHttpOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
+{
+  std::unique_ptr<HttpOpenOptions> openOptions(new HttpOpenOptions(std::string(url.data, url.data + url.size)));
+  return openOptions;
+}
 static std::unique_ptr<OpenOptions> createInMemoryOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
 {
   std::unique_ptr<InMemoryOpenOptions> openOptions(new InMemoryOpenOptions());
@@ -232,6 +237,10 @@ OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString
   else if (isProtocol(url, "gs://"))
   {
     openOptions = createGoogleOpenOptions(removeProtocol(url, "gs://"), connectionString, error);
+  }
+  else if (isProtocol(url, "http://") || isProtocol(url, "https://"))
+  {
+    openOptions = createHttpOpenOptions(url, connectionString, error);
   }
   else if (isProtocol(url, "inmemory://"))
   {

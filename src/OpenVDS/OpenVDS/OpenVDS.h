@@ -44,6 +44,7 @@ struct OpenOptions
     Azure,
     AzurePresigned,
     GoogleStorage,
+    Http,
     File,
     InMemory
   };
@@ -177,6 +178,25 @@ struct GoogleOpenOptions : OpenOptions
   /// The prefix of the VDS
   /// </param>
   GoogleOpenOptions(std::string const & bucket, std::string const & pathPrefix) : OpenOptions(GoogleStorage), bucket(bucket), pathPrefix(pathPrefix) {}
+};
+
+/// <summary>
+/// Options for opening a VDS with a plain http url.
+/// If there are query parameters in then they will be appended to the different sub urls.
+/// The resulting IO backend will not support uploading data.
+/// </summary>
+struct HttpOpenOptions : OpenOptions
+{
+  std::string url;
+
+  HttpOpenOptions() : OpenOptions(Http) {}
+  /// <summary>
+  /// HttpOpenOptions constructor
+  /// </summary>
+  /// <param name="url">
+  /// The http base url of the VDS
+  /// </param>
+  HttpOpenOptions(std::string const &url) : OpenOptions(Http), url(url) {}
 };
 
 /// <summary>

@@ -33,6 +33,9 @@
 #ifndef OPENVDS_NO_AZURE_PRESIGNED_IOMANAGER
 #include "IOManagerAzurePresigned.h"
 #endif
+#ifndef OPENVDS_NO_HTTP_IOMANAGER
+#include "IOManagerHttp.h"
+#endif
 
 namespace OpenVDS
 {
@@ -64,6 +67,10 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
 #ifndef OPENVDS_NO_GCP_IOMANAGER
   case OpenOptions::GoogleStorage:
     return new IOManagerGoogle(static_cast<const GoogleOpenOptions &>(options), error);
+#endif
+#ifndef OPENVDS_NO_HTTP_IOMANAGER
+  case OpenOptions::Http:
+    return new IOManagerHttp(static_cast<const HttpOpenOptions &>(options), error);
 #endif
   case OpenOptions::InMemory:
     return IOManagerInMemory::CreateIOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
