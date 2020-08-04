@@ -28,7 +28,7 @@ The connection string for s3 could look like this:
 
 .. code-block:: none
 
-  AccessKeyId=xxx;SecretAccessKey=xxx;SessionToken=xxx;Region=eu-north-1
+  AccessKeyId=xxx;SecretKey=xxx;SessionToken=xxx;Region=eu-north-1
 
 while the azure connection string could look like this:
 
