@@ -532,7 +532,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
 
     if(tracePrimaryKey != segmentInfo.m_primaryKey)
     {
-      fmt::print(stderr, "Warning: trace {} has a primary key that doesn't match with the segment. This trace will be ignored.", segmentInfo.m_traceStart + trace);
+      fmt::print(stderr, "Warning: trace {} has a primary key that doesn't match with the segment. This trace will be ignored.\n", segmentInfo.m_traceStart + trace);
       continue;
     }
 
@@ -1077,13 +1077,13 @@ main(int argc, char* argv[])
   bool ignoreWarnings = false;
   std::string url;
   std::string connection;
+  std::string vdsFileName;
   std::string sourceUrl;
   std::string sourceConnection;
   std::string persistentID;
   bool uniqueID;
 
   std::vector<std::string> fileNames;
-
 
   options.add_option("", "h", "header-format", "A JSON file defining the header format for the input SEG-Y file. The expected format is a dictonary of strings (field names) to pairs (byte position, field width) where field width can be \"TwoByte\" or \"FourByte\". Additionally, an \"Endianness\" key can be specified as \"BigEndian\" or \"LittleEndian\".", cxxopts::value<std::string>(headerFormatFileName), "<file>");
   options.add_option("", "p", "primary-key", "The name of the trace header field to use as the primary key.", cxxopts::value<std::string>(primaryKey)->default_value("Inline"), "<field>");
@@ -1099,6 +1099,7 @@ main(int argc, char* argv[])
   options.add_option("", "", "ignore-warnings", "Ignore warnings about import parameters.", cxxopts::value<bool>(ignoreWarnings), "");
   options.add_option("", "", "url", "Url with cloud vendor scheme used for target location.", cxxopts::value<std::string>(url), "<string>");
   options.add_option("", "", "connection", "Connection string used for additional parameters to the target connection", cxxopts::value<std::string>(connection), "<string>");
+  options.add_option("", "", "vdsfile", "File name of output VDS file.", cxxopts::value<std::string>(vdsFileName), "<string>");
   options.add_option("", "", "source-url", "Url with cloud vendor scheme used for source location.", cxxopts::value<std::string>(sourceUrl), "<string>");
   options.add_option("", "", "source-connection", "Connection string used for additional parameters to the source connection", cxxopts::value<std::string>(sourceConnection), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
@@ -1433,11 +1434,7 @@ main(int argc, char* argv[])
 
   createSurveyCoordinateSystemMetadata(fileInfo, measurementSystem, crsWkt, metadataContainer);
 
-  OpenVDS::Error
-    createError;
-
-  if (createError.code)
-    fmt::print(stderr, "{}\n", createError.code);
+  OpenVDS::Error createError;
 
   if (url[url.size() - 1] != '/')
   {
@@ -1445,12 +1442,20 @@ main(int argc, char* argv[])
   }
   url.insert(url.end(), persistentID.begin(), persistentID.end());
 
-  OpenVDS::VDSHandle
+  OpenVDS::VDSHandle handle;
+
+  if(vdsFileName.empty())
+  {
     handle = OpenVDS::Create(url, connection, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
+  }
+  else
+  {
+    handle = OpenVDS::Create(OpenVDS::VDSFileOpenOptions(vdsFileName), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
+  }
 
   if (createError.code != 0)
   {
-    std::cerr << std::string("Create error: " + createError.string);
+    fmt::print(stderr, "Could not create VDS: {}\n", createError.string);
     return EXIT_FAILURE;
   }
 
@@ -1586,7 +1591,7 @@ main(int argc, char* argv[])
         const void* traceData = reinterpret_cast<const void*>(intptr_t(dataView->Pointer(error)) + (segment->m_traceStart - chunkInfo.traceStart) * traceByteSize);
         if (error.code)
         {
-          fmt::print(stderr, "Failed when reading data: {} - {}", error.code, error.string);
+          fmt::print(stderr, "Failed when reading data: {} - {}\n", error.code, error.string);
           break;
         }
         int traceCount = int(segment->m_traceStop - segment->m_traceStart + 1);

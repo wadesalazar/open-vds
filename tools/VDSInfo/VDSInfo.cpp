@@ -194,6 +194,7 @@ int main(int argc, char **argv)
 
   std::vector<std::string> urlarg;
   std::string connection;
+  std::string vdsFileName;
   std::string persistentID;
   std::string metadataPrintName;
   std::string metadataPrintCategory;
@@ -225,7 +226,8 @@ int main(int argc, char **argv)
   options.add_option("", "e", "metadata-autodecode", "Autodetect EBCDIC and decode to ASCII for blobs.", cxxopts::value<bool>(metadataAutoDecodeEBCDIC), "");
   options.add_option("", "w", "metadata-force-width", "Force output width.", cxxopts::value<int>(textDecodeWidth), "");
   
-  options.add_option("", "", "url", "Url with vendor specific protocol. (Availabl as positional argument as well).", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
+  options.add_option("", "", "url", "Url with vendor specific protocol. (Available as positional argument as well).", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
+  options.add_option("", "", "vdsfile", "VDS file.", cxxopts::value<std::string>(vdsFileName), "<string>");
 
   options.parse_positional("urlpos");
 
@@ -241,20 +243,20 @@ int main(int argc, char **argv)
   }
   catch(cxxopts::OptionParseException &e)
   {
-    fmt::print(stderr, "{}", e.what());
+    fmt::print(stderr, "{}\n", e.what());
     return EXIT_FAILURE;
   }
 
-  if (urlarg.empty())
+  if (urlarg.empty() && vdsFileName.empty())
   {
-    std::cout << "\nFailed - missing url argument\n\n";
+    std::cout << "\nFailed - missing url/vdsfile argument\n\n";
     std::cout << options.help();
     return EXIT_FAILURE;
   }
   
-  if (urlarg.size() > 1)
+  if (urlarg.size() + vdsFileName.empty() > 1)
   {
-    std::cout << "\nFailed - can only specify one url argument\n\n";
+    std::cout << "\nFailed - can only specify one url/vdsfile argument\n\n";
     std::cout << options.help();
     return EXIT_FAILURE;
   }
@@ -280,7 +282,16 @@ int main(int argc, char **argv)
 
   OpenVDS::Error openError;
 
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(url, connection, openError), &OpenVDS::Close);
+  OpenVDS::VDSHandle handle;
+
+  if(vdsFileName.empty())
+  {
+    handle = OpenVDS::Open(url, connection, openError);
+  }
+  else
+  {
+    handle = OpenVDS::Open(OpenVDS::VDSFileOpenOptions(vdsFileName), openError);
+  }
 
   if(openError.code != 0)
   {
@@ -288,7 +299,10 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  auto layout = OpenVDS::GetLayout(handle.get());
+  // auto-close vds handle when it goes out of scope
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vdsGuard(handle, &OpenVDS::Close);
+
+  auto layout = OpenVDS::GetLayout(handle);
   if (!layout)
   {
     fmt::print(stderr, "Internal error, no layout\n");
