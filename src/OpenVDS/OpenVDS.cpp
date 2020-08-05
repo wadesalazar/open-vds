@@ -109,6 +109,14 @@ static std::unique_ptr<OpenOptions> createS3OpenOptions(const StringWrapper &url
     {
       openOptions->expiration = connectionPair.second;
     }
+    else if (connectionPair.first == "logfilenameprefix")
+    {
+      openOptions->logFilenamePrefix = connectionPair.second;
+    }
+    else if (connectionPair.first == "loglevel")
+    {
+      openOptions->loglevel = connectionPair.second;
+    }
     else
     {
       error.code = -1;

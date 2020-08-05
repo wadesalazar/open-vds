@@ -31,6 +31,8 @@ The recognised keys for ``s3`` connection string are
   - SecretKey
   - SessionToken
   - Expiration (Note: AWS SDK only accepts 'Z' timezone for ISO 8601 time)
+  - LogFilenamePrefix
+  - LogLevel (Note: this is to control the AWS specific logs. Possible values: Off, Fatal, Error, Warn, Info, Debug, Trace)
 
 ``azure`` will treat the connection string as the connection string you get with your access keys.
 

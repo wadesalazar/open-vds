@@ -68,6 +68,8 @@ struct AWSOpenOptions : OpenOptions
   std::string secretKey;
   std::string sessionToken;
   std::string expiration;
+  std::string logFilenamePrefix;
+  std::string loglevel;
 
   AWSOpenOptions() : OpenOptions(AWS) {}
   /// <summary>

@@ -58,7 +58,36 @@ namespace OpenVDS
     return std::string(s.begin(), s.end());
   }
 
-  static void initializeAWSSDK()
+  static char asciitolower(char in)
+  {
+    if (in <= 'Z' && in >= 'A')
+      return in - ('Z' - 'z');
+    return in;
+  }
+
+  static Aws::Utils::Logging::LogLevel resolveLoglevel(const std::string &loglevel)
+  {
+    std::string lowercase = loglevel;
+    std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), asciitolower);
+    if (lowercase == "off")
+      return Aws::Utils::Logging::LogLevel::Off;
+    else if (lowercase == "fatal")
+      return Aws::Utils::Logging::LogLevel::Fatal;
+    else if (lowercase == "error")
+      return Aws::Utils::Logging::LogLevel::Error;
+    else if (lowercase == "warn")
+      return Aws::Utils::Logging::LogLevel::Warn;
+    else if (lowercase == "info")
+      return Aws::Utils::Logging::LogLevel::Info;
+    else if (lowercase == "debug")
+      return Aws::Utils::Logging::LogLevel::Debug;
+    else if (lowercase == "trace")
+      return Aws::Utils::Logging::LogLevel::Trace;
+
+    return Aws::Utils::Logging::LogLevel::Off;
+  }
+
+  static void initializeAWSSDK(const std::string &logfilePrefix, const std::string &loglevelstr)
   {
 
     std::unique_lock<std::mutex> lock(initialize_sdk_mutex);
@@ -66,12 +95,20 @@ namespace OpenVDS
     if (initialize_sdk == 1)
     {
 
-      Aws::Utils::Logging::InitializeAWSLogging(
-        Aws::MakeShared<Aws::Utils::Logging::DefaultLogSystem>(
-          "OpenVDS-S3 Integration", Aws::Utils::Logging::LogLevel::Trace, "aws_sdk_"));
-      //Aws::Utils::Logging::InitializeAWSLogging(
-      //  Aws::MakeShared<Aws::Utils::Logging::ConsoleLogSystem>(
-      //    "OpenVDS-S3 Integration", Aws::Utils::Logging::LogLevel::Trace));
+      Aws::Utils::Logging::LogLevel loglevel = resolveLoglevel(loglevelstr);
+
+      if (logfilePrefix.size())
+      {
+        Aws::Utils::Logging::InitializeAWSLogging(
+          Aws::MakeShared<Aws::Utils::Logging::DefaultLogSystem>(
+            "OpenVDS-S3 Integration", loglevel, logfilePrefix.c_str()));
+      }
+      else
+      {
+        Aws::Utils::Logging::InitializeAWSLogging(
+          Aws::MakeShared<Aws::Utils::Logging::ConsoleLogSystem>(
+            "OpenVDS-S3 Integration", loglevel));
+      }
       Aws::InitAPI(initialize_sdk_options);
     }
   }
@@ -359,7 +396,7 @@ namespace OpenVDS
 
     if (m_objectId.size() && m_objectId[m_objectId.size() -1] == '/')
       m_objectId.resize(m_objectId.size() - 1);
-    initializeAWSSDK();
+    initializeAWSSDK(openOptions.logFilenamePrefix, openOptions.loglevel);
 
     Aws::String profileName = "";
 
