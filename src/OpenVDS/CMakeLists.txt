@@ -7,7 +7,6 @@ set(SOURCE_FILES
   IO/IOManagerAWS.cpp
   IO/IOManagerAzure.cpp
   IO/IOManagerInMemory.cpp
-  IO/IOManagerVDSFile.cpp
   IO/IOManagerCurl.cpp
   IO/IOManagerAzurePresigned.cpp
   IO/IOManagerGoogle.cpp
