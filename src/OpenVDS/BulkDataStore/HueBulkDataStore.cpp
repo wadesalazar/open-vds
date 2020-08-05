@@ -99,10 +99,6 @@ class FileInterfaceImpl : public HueBulkDataStore::FileInterface
 
   bool    ReadIndexPage(int indexPage, DataStoreBuffer **indexPageBuffer, bool makeWritable);
 
-  bool    ReadChunkInternal(int chunk, HueBulkDataStore::Buffer **buffer, void *metadata, IndexEntry *indexEntry);
-
-  bool    WriteChunkInternal(int chunk, const DataStoreBuffer &buffer, const void *metadata, void *oldMetadata);
-
 public:
   FileInterfaceImpl(HueBulkDataStoreImpl &dataStore, DataStoreBuffer *pageDirectory, DataStoreFileDescriptor &fileDescriptor, int revision, int chunkCount);
   ~FileInterfaceImpl();
@@ -125,6 +121,7 @@ public:
   virtual bool WriteChunk(int chunk, const void *data, int size, const void *metadata, void *oldMetadata);
   virtual bool WriteChunkData(int chunk, const void *data, int size);
   virtual bool WriteChunkMetadata(int chunk, const void *metadata, void *oldMetadata);
+  virtual bool WriteIndexEntry(int chunk, const IndexEntry &indexEntry, const void *metadata, void *oldMetadata);
 
   virtual int  GetRevision();
   virtual int  GetChunkCount();
@@ -149,7 +146,7 @@ class HueBulkDataStoreImpl : public HueBulkDataStore
 
   bool    m_readOnly;
 
-  std::string
+  static thread_local std::string
          m_errorMessage;
 
   DataStoreBuffer
@@ -238,7 +235,11 @@ public:
   virtual bool           IsReadOnly();
 
   virtual Buffer *       ReadBuffer(struct IndexEntry const &indexEntry) { return ReadBuffer(indexEntry.m_offset, indexEntry.m_length); }
+  virtual Buffer*        CreateBuffer(struct IndexEntry &indexEntry, int size) { indexEntry = IndexEntry(); DataStoreBuffer *buffer = CreateBuffer(size, ExtentAllocator::ChunkExtent); indexEntry.m_length = buffer->Size(); indexEntry.m_offset = buffer->Offset(); return buffer; }
+  virtual bool           WriteBuffer(Buffer *buffer) { return WriteBuffer(static_cast<DataStoreBuffer &>(*buffer)); }
 };
+
+thread_local std::string HueBulkDataStoreImpl::m_errorMessage;
 
 FileInterfaceImpl::FileInterfaceImpl(HueBulkDataStoreImpl &dataStore, DataStoreBuffer *pageDirectory, DataStoreFileDescriptor &fileDescriptor, int revision, int chunkCount) :
   m_dataStore(dataStore),
@@ -416,7 +417,7 @@ FileInterfaceImpl::ReadIndexEntry(int chunk, IndexEntry *indexEntry, void *metad
 }
 
 bool
-FileInterfaceImpl::WriteChunkInternal(int chunk, const DataStoreBuffer &buffer, const void *metadata, void *oldMetadata)
+FileInterfaceImpl::WriteIndexEntry(int chunk, const IndexEntry &indexEntry, const void *metadata, void *oldMetadata)
 {
   assert(chunk >= 0 && chunk < m_chunkCount);
 
@@ -427,11 +428,6 @@ FileInterfaceImpl::WriteChunkInternal(int chunk, const DataStoreBuffer &buffer, 
     *indexPageBuffer;
 
   if (!ReadIndexPage(indexPage, &indexPageBuffer, true))
-  {
-    return false;
-  }
-
-  if (!m_dataStore.WriteBuffer(buffer))
   {
     return false;
   }
@@ -447,8 +443,7 @@ FileInterfaceImpl::WriteChunkInternal(int chunk, const DataStoreBuffer &buffer, 
   IndexEntry
     *indexPageEntry = reinterpret_cast<IndexEntry *>(static_cast<char *>(indexPageBuffer->WritableData()) + entryIndex * indexEntrySize);
 
-  indexPageEntry->m_offset = buffer.Offset();
-  indexPageEntry->m_length = buffer.Size();
+  *indexPageEntry = indexEntry;
 
   if (m_fileDescriptor.m_fileHeader.m_chunkMetadataLength > 0)
   {
@@ -552,36 +547,46 @@ FileInterfaceImpl::ReadChunkMetadata(int chunk, void *metadata)
 bool
 FileInterfaceImpl::WriteChunk(int chunk, const void *data, int size, const void *metadata, void *oldMetadata)
 {
-  assert(data && size > 0);
+  assert(data || size == 0);
   assert((m_fileDescriptor.m_fileHeader.m_chunkMetadataLength > 0 && metadata) ||
-    (m_fileDescriptor.m_fileHeader.m_chunkMetadataLength == 0 && !metadata));
+         (m_fileDescriptor.m_fileHeader.m_chunkMetadataLength == 0 && !metadata));
 
-  DataStoreBuffer
-    buffer(m_dataStore.GetExtentAllocator().Allocate(size, ExtentAllocator::ChunkExtent), size, true, const_cast<void *>(data), false);
+  IndexEntry
+    indexEntry = IndexEntry();
 
-  return WriteChunkInternal(chunk, buffer, metadata, oldMetadata);
+  if(size > 0)
+  {
+    DataStoreBuffer
+      buffer = DataStoreBuffer(m_dataStore.GetExtentAllocator().Allocate(size, ExtentAllocator::ChunkExtent), size, true, const_cast<void *>(data), false);
+
+    bool
+      written = m_dataStore.WriteBuffer(buffer);
+
+    if(!written)
+    {
+      return false;
+    }
+
+    indexEntry.m_length = buffer.Size();
+    indexEntry.m_offset = buffer.Offset();
+  }
+
+  return WriteIndexEntry(chunk, indexEntry, metadata, oldMetadata);
 }
 
 bool
 FileInterfaceImpl::WriteChunkData(int chunk, const void *data, int size)
 {
   assert(data && size > 0);
-
-  DataStoreBuffer
-    buffer(m_dataStore.GetExtentAllocator().Allocate(size, ExtentAllocator::ChunkExtent), size, true, const_cast<void *>(data), false);
-
-  return WriteChunkInternal(chunk, buffer, NULL, NULL);
+  std::vector<char> metadata(m_fileDescriptor.m_fileHeader.m_chunkMetadataLength);
+  return WriteChunk(chunk, data, size, metadata.data(), NULL);
 }
 
 bool
 FileInterfaceImpl::WriteChunkMetadata(int chunk, const void *metadata, void *oldMetadata)
 {
   assert(m_fileDescriptor.m_fileHeader.m_chunkMetadataLength > 0 && metadata);
-
-  DataStoreBuffer
-    buffer;
-
-  return WriteChunkInternal(chunk, buffer, metadata, oldMetadata);
+  return WriteChunk(chunk, NULL, 0, metadata, oldMetadata);
 }
 
 int

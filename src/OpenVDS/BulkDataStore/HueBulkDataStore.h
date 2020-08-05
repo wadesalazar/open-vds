@@ -68,6 +68,7 @@ public:
     virtual bool WriteChunk(int chunk, const void *data, int size, const void *metadata, void *oldMetadata = NULL) = 0;
     virtual bool WriteChunkData(int chunk, const void *data, int size) = 0;
     virtual bool WriteChunkMetadata(int chunk, const void *metadata, void *oldMetadata = NULL) = 0;
+    virtual bool WriteIndexEntry(int chunk, const struct IndexEntry &indexEntry, const void *metadata, void *oldMetadata = NULL) = 0;
 
     virtual int  GetRevision() = 0;
     virtual int  GetChunkCount() = 0;
@@ -110,6 +111,8 @@ public:
   virtual bool          IsReadOnly() = 0;
 
   virtual Buffer*  ReadBuffer(struct IndexEntry const &indexEntry) = 0;
+  virtual Buffer*  CreateBuffer(struct IndexEntry &indexEntry, int size) = 0;
+  virtual bool     WriteBuffer(Buffer *buffer) = 0;
 
   static HueBulkDataStore *Open(const char *fileName);
   static HueBulkDataStore *CreateNew(const char *fileName, bool overwriteExisting);
