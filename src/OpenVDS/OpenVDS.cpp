@@ -62,6 +62,33 @@ static StringWrapper removeProtocol(const StringWrapper& str, const char(&litera
   return ret;
 }
 
+static std::string urlDecode(const StringWrapper& url)
+{
+  const char *input = url.data;
+  std::vector<char> output;
+  output.reserve(url.size);
+
+  for(int i = 0; i < url.size; i++)
+  {
+    if(input[i] == '+')
+    {
+      output.push_back(' ');
+    }
+    else if(input[i] == '%')
+    {
+      char temp[5] = "0x";
+      if(i + 1 < url.size) temp[2] = input[++i];
+      if(i + 1 < url.size) temp[3] = input[++i];
+      output.push_back(atoi(temp));
+    }
+    else
+    {
+      output.push_back(input[i]);
+    }
+  }
+  return std::string(output.data(), output.data() + output.size());
+}
+
 static std::unique_ptr<OpenOptions> createS3OpenOptions(const StringWrapper &url, const StringWrapper &connectionString, Error &error)
 {
   std::unique_ptr<AWSOpenOptions> openOptions(new AWSOpenOptions());
@@ -222,10 +249,18 @@ static std::unique_ptr<OpenOptions> createHttpOpenOptions(const StringWrapper& u
   std::unique_ptr<HttpOpenOptions> openOptions(new HttpOpenOptions(std::string(url.data, url.data + url.size)));
   return openOptions;
 }
+
+static std::unique_ptr<OpenOptions> createVDSFileOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
+{
+  std::unique_ptr<VDSFileOpenOptions> openOptions(new VDSFileOpenOptions());
+  openOptions->fileName = urlDecode(url);
+  return openOptions;
+}
+
 static std::unique_ptr<OpenOptions> createInMemoryOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
 {
   std::unique_ptr<InMemoryOpenOptions> openOptions(new InMemoryOpenOptions());
-  openOptions->name.insert(0, url.data, url.size);
+  openOptions->name =  urlDecode(url);
   return openOptions;
 }
 
@@ -254,6 +289,10 @@ OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString
   {
     openOptions = createHttpOpenOptions(url, connectionString, error);
   }
+  else if (isProtocol(url, "file://"))
+  {
+    openOptions = createVDSFileOpenOptions(removeProtocol(url, "file://"), connectionString, error);
+  }
   else if (isProtocol(url, "inmemory://"))
   {
     openOptions = createInMemoryOpenOptions(removeProtocol(url, "inmemory://"), connectionString, error);
@@ -274,12 +313,11 @@ OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString
 
 VDSHandle Open(StringWrapper url, StringWrapper connectionString, Error& error)
 {
-  error = Error();
-  std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(url, connectionString, error));
-  if (error.code)
+  std::unique_ptr<OpenOptions> openOptions(CreateOpenOptions(url, connectionString, error));
+  if (error.code || !openOptions)
     return nullptr;
 
-  return Open(ioManager.release(), error);
+  return Open(*(openOptions.get()), error);
 }
 
 static bool Init(VDS *vds, VolumeDataStore *volumeDataStore, Error& error)
@@ -526,12 +564,11 @@ VDSHandle Create(IOManager *ioManager, VolumeDataLayoutDescriptor const& layoutD
 
 VDSHandle Create(StringWrapper url, StringWrapper connectionString, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
 {
-  error = Error();
-  std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(url, connectionString, error));
-  if (error.code)
+  std::unique_ptr<OpenOptions> openOptions(CreateOpenOptions(url, connectionString, error));
+  if (error.code || !openOptions)
     return nullptr;
 
-  return Create(ioManager.release(), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error);
+  return Create(*openOptions, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error);
 }
 
 VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
