@@ -186,7 +186,7 @@ namespace OpenVDS
 
         if(indexEntry.m_length > 0)
         {
-          HueBulkDataStore::Buffer *buffer = m_dataStore->ReadBuffer(indexEntry);
+          HueBulkDataStore::Buffer *buffer = m_dataStore->ReadChunkData(indexEntry);
 
           if(buffer)
           {

@@ -88,18 +88,20 @@ bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, std::vector
     return false;
   }
 
-  std::unique_lock<std::mutex> readWriteLock(m_mutex); // This should be removed once the BulkDataStore uses a file implementation that doesn't seek (using pread/pwrite or equivalent)
-
+  std::unique_lock<std::mutex> lock(m_mutex);
   HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
+
   metadata.resize(fileInterface->GetChunkMetadataLength());
   IndexEntry indexEntry;
+
   bool success = fileInterface->ReadIndexEntry((int)chunk.index, &indexEntry, metadata.data());
+  lock.unlock();
 
   if(success)
   {
     if(indexEntry.m_length > 0)
     {
-      HueBulkDataStore::Buffer *buffer = m_dataStore->ReadBuffer(indexEntry);
+      HueBulkDataStore::Buffer *buffer = m_dataStore->ReadChunkData(indexEntry);
 
       if(buffer)
       {
@@ -149,6 +151,7 @@ bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std:
     return false;
   }
 
+  std::unique_lock<std::mutex> lock(m_mutex);
   HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
 
   if(metadata.size() != fileInterface->GetChunkMetadataLength())
@@ -159,9 +162,17 @@ bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std:
   VDSWaveletAdaptiveLevelsChunkMetadata const &newMetadata = *reinterpret_cast<const VDSWaveletAdaptiveLevelsChunkMetadata *>(metadata.data());
   VDSWaveletAdaptiveLevelsChunkMetadata oldMetadata;
 
-  std::unique_lock<std::mutex> readWriteLock(m_mutex); // This should be removed once the BulkDataStore uses a file implementation that doesn't seek (using pread/pwrite or equivalent)
-  bool success = fileInterface->WriteChunk((int)chunk.index, serializedData.data(), (int)serializedData.size(), metadata.data(), &oldMetadata);
-  readWriteLock.unlock();
+  IndexEntry indexEntry = IndexEntry();
+
+  if(!serializedData.empty())
+  {
+    m_dataStore->CreateChunkDataIndexEntry(indexEntry, (int)serializedData.size());
+    lock.unlock();
+    m_dataStore->WriteChunkData(indexEntry, serializedData.data(), (int)serializedData.size());
+    lock.lock();
+  }
+
+  bool success = fileInterface->WriteIndexEntry((int)chunk.index, indexEntry, metadata.data(), &oldMetadata);
 
   if(!success)
   {
@@ -170,8 +181,6 @@ bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std:
     m_vds.accessManager->AddUploadError(error, fmt::format("{}/{}", GetLayerName(*chunk.layer), chunk.index));
     return false;
   }
-
-  std::unique_lock<std::mutex> lock(m_mutex);
 
   layerFile->dirty = true;
 

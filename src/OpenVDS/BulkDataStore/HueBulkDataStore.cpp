@@ -234,9 +234,10 @@ public:
   virtual bool           IsOpen();
   virtual bool           IsReadOnly();
 
-  virtual Buffer *       ReadBuffer(struct IndexEntry const &indexEntry) { return ReadBuffer(indexEntry.m_offset, indexEntry.m_length); }
-  virtual Buffer*        CreateBuffer(struct IndexEntry &indexEntry, int size) { indexEntry = IndexEntry(); DataStoreBuffer *buffer = CreateBuffer(size, ExtentAllocator::ChunkExtent); indexEntry.m_length = buffer->Size(); indexEntry.m_offset = buffer->Offset(); return buffer; }
-  virtual bool           WriteBuffer(Buffer *buffer) { return WriteBuffer(static_cast<DataStoreBuffer &>(*buffer)); }
+  virtual void           CreateChunkDataIndexEntry(IndexEntry &indexEntry, int size) { assert(size > 0); indexEntry = IndexEntry(); indexEntry.m_offset = m_extentAllocator->Allocate(size, ExtentAllocator::ChunkExtent); indexEntry.m_length = size; }
+
+  virtual Buffer *       ReadChunkData(IndexEntry const &indexEntry) { return ReadBuffer(indexEntry.m_offset, indexEntry.m_length); }
+  virtual bool           WriteChunkData(IndexEntry const &indexEntry, const void *data, int size) { assert(size == indexEntry.m_length); return WriteBuffer(DataStoreBuffer(indexEntry.m_offset, size, true, const_cast<void *>(data), false)); }
 };
 
 thread_local std::string HueBulkDataStoreImpl::m_errorMessage;
@@ -556,19 +557,15 @@ FileInterfaceImpl::WriteChunk(int chunk, const void *data, int size, const void 
 
   if(size > 0)
   {
-    DataStoreBuffer
-      buffer = DataStoreBuffer(m_dataStore.GetExtentAllocator().Allocate(size, ExtentAllocator::ChunkExtent), size, true, const_cast<void *>(data), false);
+    m_dataStore.CreateChunkDataIndexEntry(indexEntry, size);
 
     bool
-      written = m_dataStore.WriteBuffer(buffer);
+      written = m_dataStore.WriteChunkData(indexEntry, data, size);
 
     if(!written)
     {
       return false;
     }
-
-    indexEntry.m_length = buffer.Size();
-    indexEntry.m_offset = buffer.Offset();
   }
 
   return WriteIndexEntry(chunk, indexEntry, metadata, oldMetadata);

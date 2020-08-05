@@ -110,15 +110,17 @@ public:
   virtual bool          IsOpen() = 0;
   virtual bool          IsReadOnly() = 0;
 
-  virtual Buffer*  ReadBuffer(struct IndexEntry const &indexEntry) = 0;
-  virtual Buffer*  CreateBuffer(struct IndexEntry &indexEntry, int size) = 0;
-  virtual bool     WriteBuffer(Buffer *buffer) = 0;
+  virtual void     CreateChunkDataIndexEntry(struct IndexEntry &indexEntry, int size) = 0;
+
+  // These two methods are thread-safe if the underlying file implementation is thread-safe
+  virtual Buffer*  ReadChunkData(struct IndexEntry const &indexEntry) = 0;
+  virtual bool     WriteChunkData(struct IndexEntry const &indexEntry, const void *data, int size) = 0;
 
   static HueBulkDataStore *Open(const char *fileName);
   static HueBulkDataStore *CreateNew(const char *fileName, bool overwriteExisting);
   static void              Close(HueBulkDataStore *hueBulkDataStore);
 
-  static void  ReleaseBuffer(Buffer *buffer);
+  static void     ReleaseBuffer(Buffer *buffer);
 };
 
 #endif //HUEBULKDATASTORE_H
