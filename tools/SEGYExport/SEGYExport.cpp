@@ -76,9 +76,9 @@ main(int argc, char *argv[])
   }
 
   // Open the VDS
-  if (persistentID.size())
+  if (!persistentID.empty())
   {
-    if (url[url.size() - 1] != '/')
+    if (!url.empty() && url.back() != '/')
     {
       url.push_back('/');
     }

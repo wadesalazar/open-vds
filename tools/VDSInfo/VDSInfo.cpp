@@ -263,9 +263,9 @@ int main(int argc, char **argv)
 
   std::string url = urlarg[0];
   // Open the VDS
-  if (persistentID.size())
+  if (!persistentID.empty())
   {
-    if (url[url.size() - 1] != '/')
+    if (!url.empty() && url.back() != '/')
     {
       url.push_back('/');
     }

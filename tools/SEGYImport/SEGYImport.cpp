@@ -1436,11 +1436,14 @@ main(int argc, char* argv[])
 
   OpenVDS::Error createError;
 
-  if (url[url.size() - 1] != '/')
+  if (!persistentID.empty())
   {
-    url.push_back('/');
+    if (!url.empty() && url.back() != '/')
+    {
+      url.push_back('/');
+    }
+    url.insert(url.end(), persistentID.begin(), persistentID.end());
   }
-  url.insert(url.end(), persistentID.begin(), persistentID.end());
 
   OpenVDS::VDSHandle handle;
 
