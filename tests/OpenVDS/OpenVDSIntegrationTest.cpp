@@ -34,3 +34,12 @@ GTEST_TEST(OpenVDS_integration, OpenClose)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(url, connectionString, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 }
+
+GTEST_TEST(OpenVDS_integration, OpenCloseVDSFile)
+{
+  OpenVDS::Error error;
+  std::string fileName = TEST_DATA_PATH "/subset.vds";
+
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(OpenVDS::VDSFileOpenOptions(fileName), error), &OpenVDS::Close);
+  ASSERT_TRUE(handle);
+}

@@ -67,7 +67,44 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
   ASSERT_TRUE(pos[0] <  max[0]);
   ASSERT_TRUE(pos[1] <  max[1]);
   ASSERT_TRUE(pos[2] <  max[2]);
+}
 
+GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageReadVDSFile)
+{
+  OpenVDS::Error error;
+  std::string fileName = TEST_DATA_PATH "/subset.vds";
+
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(OpenVDS::VDSFileOpenOptions(fileName), error), &OpenVDS::Close);
+  ASSERT_TRUE(handle);
+
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  ASSERT_TRUE(accessManager);
+
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
+
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  ASSERT_TRUE(pageAccessor);
+
+  int pos[OpenVDS::Dimensionality_Max] = {layout->GetDimensionNumSamples(0) / 2, layout->GetDimensionNumSamples(1) /2, layout->GetDimensionNumSamples(2) / 2};
+  OpenVDS::VolumeDataPage *page = pageAccessor->ReadPageAtPosition(pos);
+  ASSERT_TRUE(page);
+
+  int pitch[OpenVDS::Dimensionality_Max] = {}; 
+  const void *buffer = page->GetBuffer(pitch);
+  ASSERT_TRUE(buffer);
+  for (int i = 0; i < layout->GetDimensionality(); i++)
+    ASSERT_NE(pitch[i], 0);
+
+  int min[6];
+  int max[6];
+  page->GetMinMax(min, max);
+
+  ASSERT_TRUE(min[0] <=  pos[0]);
+  ASSERT_TRUE(min[1] <=  pos[1]);
+  ASSERT_TRUE(min[2] <=  pos[2]);
+  ASSERT_TRUE(pos[0] <  max[0]);
+  ASSERT_TRUE(pos[1] <  max[1]);
+  ASSERT_TRUE(pos[2] <  max[2]);
 }
 
 template<typename T, size_t N> inline T (&PODArrayReference(std::array<T,N> &a))[N] { return *reinterpret_cast<T (*)[N]>(a.data()); }

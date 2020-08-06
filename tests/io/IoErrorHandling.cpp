@@ -286,7 +286,7 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingChangedMetadataTag)
   int errorCode = 0;
   const char* errorString = nullptr;
   accessManager->GetCurrentDownloadError(&errorCode, &errorString);
-  ASSERT_TRUE(strContains(errorString, "Metadata is not the same"));
+  ASSERT_TRUE(strContains(errorString, "Inconsistent metadata"));
   ASSERT_TRUE(accessManager->IsCanceled(request));
 }
 
