@@ -43,6 +43,7 @@ PyGlobal::initModule(py::module& m)
   OpenOptions_ConnectionType_.value("Azure"                       , OpenOptions::ConnectionType::Azure      , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_Azure));
   OpenOptions_ConnectionType_.value("AzurePresigned"              , OpenOptions::ConnectionType::AzurePresigned, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_AzurePresigned));
   OpenOptions_ConnectionType_.value("GoogleStorage"               , OpenOptions::ConnectionType::GoogleStorage, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_GoogleStorage));
+  OpenOptions_ConnectionType_.value("Http"                        , OpenOptions::ConnectionType::Http       , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_Http));
   OpenOptions_ConnectionType_.value("File"                        , OpenOptions::ConnectionType::File       , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_File));
   OpenOptions_ConnectionType_.value("InMemory"                    , OpenOptions::ConnectionType::InMemory   , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_InMemory));
 
@@ -60,6 +61,8 @@ PyGlobal::initModule(py::module& m)
   AWSOpenOptions_.def_readwrite("secretKey"                   , &AWSOpenOptions::secretKey     , OPENVDS_DOCSTRING(AWSOpenOptions_secretKey));
   AWSOpenOptions_.def_readwrite("sessionToken"                , &AWSOpenOptions::sessionToken  , OPENVDS_DOCSTRING(AWSOpenOptions_sessionToken));
   AWSOpenOptions_.def_readwrite("expiration"                  , &AWSOpenOptions::expiration    , OPENVDS_DOCSTRING(AWSOpenOptions_expiration));
+  AWSOpenOptions_.def_readwrite("logFilenamePrefix"           , &AWSOpenOptions::logFilenamePrefix, OPENVDS_DOCSTRING(AWSOpenOptions_logFilenamePrefix));
+  AWSOpenOptions_.def_readwrite("loglevel"                    , &AWSOpenOptions::loglevel      , OPENVDS_DOCSTRING(AWSOpenOptions_loglevel));
 
   // AzureOpenOptions
   py::class_<AzureOpenOptions, OpenOptions, std::unique_ptr<AzureOpenOptions>> 
@@ -91,6 +94,14 @@ PyGlobal::initModule(py::module& m)
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &>(), py::arg("bucket"), py::arg("pathPrefix"), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_2));
   GoogleOpenOptions_.def_readwrite("bucket"                      , &GoogleOpenOptions::bucket     , OPENVDS_DOCSTRING(GoogleOpenOptions_bucket));
   GoogleOpenOptions_.def_readwrite("pathPrefix"                  , &GoogleOpenOptions::pathPrefix , OPENVDS_DOCSTRING(GoogleOpenOptions_pathPrefix));
+
+  // HttpOpenOptions
+  py::class_<HttpOpenOptions, OpenOptions, std::unique_ptr<HttpOpenOptions>> 
+    HttpOpenOptions_(m,"HttpOpenOptions", OPENVDS_DOCSTRING(HttpOpenOptions));
+
+  HttpOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(HttpOpenOptions_HttpOpenOptions));
+  HttpOpenOptions_.def(py::init<const std::string &           >(), py::arg("url"), OPENVDS_DOCSTRING(HttpOpenOptions_HttpOpenOptions_2));
+  HttpOpenOptions_.def_readwrite("url"                         , &HttpOpenOptions::url          , OPENVDS_DOCSTRING(HttpOpenOptions_url));
 
   // InMemoryOpenOptions
   py::class_<InMemoryOpenOptions, OpenOptions, std::unique_ptr<InMemoryOpenOptions>> 

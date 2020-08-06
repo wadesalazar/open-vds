@@ -55,6 +55,10 @@ static const char *__doc_OpenVDS_AWSOpenOptions_expiration = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_key = R"doc()doc";
 
+static const char *__doc_OpenVDS_AWSOpenOptions_logFilenamePrefix = R"doc()doc";
+
+static const char *__doc_OpenVDS_AWSOpenOptions_loglevel = R"doc()doc";
+
 static const char *__doc_OpenVDS_AWSOpenOptions_region = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_secretKey = R"doc()doc";
@@ -506,6 +510,24 @@ pathPrefix :
 static const char *__doc_OpenVDS_GoogleOpenOptions_bucket = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_pathPrefix = R"doc()doc";
+
+static const char *__doc_OpenVDS_HttpOpenOptions =
+R"doc(Options for opening a VDS with a plain http url. If there are query
+parameters in then they will be appended to the different sub urls.
+The resulting IO backend will not support uploading data.)doc";
+
+static const char *__doc_OpenVDS_HttpOpenOptions_HttpOpenOptions = R"doc()doc";
+
+static const char *__doc_OpenVDS_HttpOpenOptions_HttpOpenOptions_2 =
+R"doc(HttpOpenOptions constructor
+
+Parameters:
+-----------
+
+url :
+    The http base url of the VDS)doc";
+
+static const char *__doc_OpenVDS_HttpOpenOptions_url = R"doc()doc";
 
 static const char *__doc_OpenVDS_IJKGridDefinition = R"doc()doc";
 
@@ -1187,6 +1209,8 @@ static const char *__doc_OpenVDS_OpenOptions_ConnectionType_AzurePresigned = R"d
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_File = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_GoogleStorage = R"doc()doc";
+
+static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Http = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_InMemory = R"doc()doc";
 
