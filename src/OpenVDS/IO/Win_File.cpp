@@ -271,13 +271,14 @@ void File::Close()
   if(_pxPlatformHandleRead != _pxPlatformHandleReadWrite)
   {
     CloseHandle(_pxPlatformHandleRead);
-    _pxPlatformHandleRead = 0;
   }
   if(_pxPlatformHandleReadWrite)
   {
     CloseHandle(_pxPlatformHandleReadWrite);
-    _pxPlatformHandleReadWrite = 0;
   }
+
+  _pxPlatformHandleRead = 0;
+  _pxPlatformHandleReadWrite = 0;
 
   _cFileName.clear();
 }

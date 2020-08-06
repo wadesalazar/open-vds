@@ -227,17 +227,17 @@ void File::Close()
   {
     int fd  = (int)(intptr_t)_pxPlatformHandleRead;
     ::close(fd);
-    _pxPlatformHandleRead = 0;
   }
   if(_pxPlatformHandleReadWrite)
   {
     int fd  = (int)(intptr_t)_pxPlatformHandleReadWrite;
     ::close(fd);
-    _pxPlatformHandleReadWrite = 0;
   }
 
+  _pxPlatformHandleRead = 0;
+  _pxPlatformHandleReadWrite = 0;
+
   _cFileName.clear();
-  //return isOK;
 }
 
 bool File::EnableWriting(Error &error)
