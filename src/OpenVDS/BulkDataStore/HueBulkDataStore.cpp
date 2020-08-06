@@ -35,9 +35,9 @@ class DataStoreBuffer : public HueBulkDataStore::Buffer
     m_dirty;
 
 public:
-  DataStoreBuffer(int64_t offset, int32_t size, bool dirty, void *data, bool takeOwnership) : m_offset(offset), m_size(size), m_dirty(dirty), m_data(data), m_owner(takeOwnership) { assert(data && size > 0); }
-  DataStoreBuffer(int64_t offset, int32_t size) : m_offset(offset), m_size(size), m_dirty(true), m_data(calloc(1, size)), m_owner(true) { assert(size > 0); }
-  DataStoreBuffer() : m_offset(0), m_size(0), m_dirty(false), m_data(NULL), m_owner(false) {}
+  DataStoreBuffer(int64_t offset, int32_t size, bool dirty, void *data, bool takeOwnership) : m_offset(offset), m_size(size), m_owner(takeOwnership), m_data(data), m_dirty(dirty) { assert(data && size > 0); }
+  DataStoreBuffer(int64_t offset, int32_t size) : m_offset(offset), m_size(size), m_owner(true), m_data(calloc(1, size)), m_dirty(true) { assert(size > 0); }
+  DataStoreBuffer() : m_offset(0), m_size(0), m_owner(false),  m_data(NULL), m_dirty(false) {}
   virtual ~DataStoreBuffer() { assert(!m_owner || m_data); if (m_owner) free(m_data); }
 
   int64_t
@@ -1374,8 +1374,7 @@ HueBulkDataStoreImpl::RemoveFile(const char *fileName)
       fileTableEntryCount = GetDataStoreHeader().m_fileTableCount;
 
     int
-      fileTableEntrySize = (int)sizeof(FileHeader) + GetDataStoreHeader().m_fileNameLength,
-      fileTableSize = fileTableEntrySize * fileTableEntryCount;
+      fileTableEntrySize = (int)sizeof(FileHeader) + GetDataStoreHeader().m_fileNameLength;
 
     DataStoreBuffer
       *fileTable = CreateBuffer(fileTableEntrySize * (fileTableEntryCount - 1), ExtentAllocator::FileTableExtent);

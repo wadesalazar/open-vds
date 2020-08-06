@@ -793,7 +793,6 @@ bool KeyValue(ParserState *ps, const char **buffer, Json::Value &root)
 
 bool KeyValueSeq(ParserState *ps, const char ** buffer, Json::Value & root)
 {
-  size_t tokenLength = ps->getTokenEnd() - ps->getTokenStart();
   // This funtion will only return false if there is an error getting the next token.
   // According to the grammar, this function is called when matching a SUBOBJECT non-terminal and is 
   // always followed by a match of '}'.

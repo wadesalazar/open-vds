@@ -71,8 +71,8 @@ class ReadChunkTransfer : public TransferDownloadHandler
 public:
   ReadChunkTransfer(CompressionMethod compressionMethod, std::vector<uint8_t> const &metadataFromPage, int adaptiveLevel)
     : m_compressionMethod(compressionMethod)
-    , m_metadataFromPage(metadataFromPage)
     , m_adaptiveLevel(adaptiveLevel)
+    , m_metadataFromPage(metadataFromPage)
   {}
 
   ~ReadChunkTransfer() override

@@ -48,7 +48,6 @@ typedef class ParserState
 {
 private:
   const char *_tokenStart, *_tokenEnd;
-  char * currentToken;
   bool foundNumber;
   bool foundFractionalNumber;
   bool foundQuotedString;
@@ -58,7 +57,6 @@ private:
 public:
   ParserState(Json::Value &objectRoot) :
     _tokenStart(nullptr), _tokenEnd(nullptr),
-    currentToken(nullptr),
     foundNumber(false),
     foundFractionalNumber(false),
     foundQuotedString(false),

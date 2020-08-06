@@ -36,11 +36,6 @@ namespace OpenVDS
 class VolumeDataStore
 {
 public:
-  class WriteError : public Error
-  {
-    VolumeDataChunk chunks;
-  };
-
            VolumeDataStore() {};
   virtual ~VolumeDataStore() {};
 

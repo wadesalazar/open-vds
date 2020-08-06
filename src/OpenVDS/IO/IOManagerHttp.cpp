@@ -81,8 +81,8 @@ namespace OpenVDS
     public:
     ErrorRequest(const std::string &objectName) : Request(objectName) {}
     void WaitForFinish() override {}
-    bool IsDone() const { return true; }
-    bool IsSuccess(Error &error) const
+    bool IsDone() const override { return true; }
+    bool IsSuccess(Error &error) const override
     {
       error.code = -1;
       error.string = "The http IO backend does not support writing data, use one of the cloud vendor specific backends such as S3 Azure or Google.";
