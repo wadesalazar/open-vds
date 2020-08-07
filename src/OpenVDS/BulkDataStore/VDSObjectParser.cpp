@@ -1036,10 +1036,6 @@ long long PositiveNumber(ParserState *ps, const char ** buffer)
     pc++;
   }
 
-  size_t tokenLength = (size_t)(ps->getTokenEnd() - ps->getTokenStart());
-  std::vector<char> token;
-  token.resize(tokenLength+1);
-  strncpy(&(token[0]), ps->getTokenStart(), tokenLength);
-  token[tokenLength] = 0;
-  return std::stoll(&(token[0]));
+  std::string token(ps->getTokenStart(), ps->getTokenEnd());
+  return std::stoll(token);
 }
