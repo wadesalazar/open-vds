@@ -11,7 +11,7 @@ function(add_python_test scope test_file)
 
   add_test(NAME "python.${scope}.${test_name}"
     COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=$<TARGET_FILE_DIR:core>/..${separator}${CMAKE_CURRENT_BINARY_DIR}"
-      ${PYTHON_EXECUTABLE} ${test_file}
+      ${Python3_EXECUTABLE} ${test_file}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   )
 endfunction()

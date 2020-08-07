@@ -28,6 +28,10 @@ pybind11_add_module(core MODULE SYSTEM
     PyVolumeSampler.h
 )
 
+if (MSVC AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+  target_compile_options(core BEFORE PRIVATE "SHELL:/imsvc\ \"${PYBIND11_INCLUDE_DIR}\" /imsvc\ \"${PYTHON_INCLUDE_DIRS}\"")
+endif()
+
 set_target_properties(core
   PROPERTIES
   VERSION ${CMAKE_PROJECT_VERSION}
