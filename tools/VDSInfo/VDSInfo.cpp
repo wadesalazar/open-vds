@@ -261,7 +261,9 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  std::string url = urlarg[0];
+  std::string url;
+  if(!urlarg.empty()) url = urlarg[0];
+
   // Open the VDS
   if (!persistentID.empty())
   {
