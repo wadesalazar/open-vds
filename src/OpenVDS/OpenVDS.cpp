@@ -68,7 +68,7 @@ static std::string urlDecode(const StringWrapper& url)
   std::vector<char> output;
   output.reserve(url.size);
 
-  for(int i = 0; i < url.size; i++)
+  for(int i = 0; i < (int)url.size; i++)
   {
     if(input[i] == '+')
     {
@@ -77,8 +77,8 @@ static std::string urlDecode(const StringWrapper& url)
     else if(input[i] == '%')
     {
       char temp[5] = "0x";
-      if(i + 1 < url.size) temp[2] = input[++i];
-      if(i + 1 < url.size) temp[3] = input[++i];
+      if(i + 1 < (int)url.size) temp[2] = input[++i];
+      if(i + 1 < (int)url.size) temp[3] = input[++i];
       output.push_back(atoi(temp));
     }
     else

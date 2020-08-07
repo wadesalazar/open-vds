@@ -10,10 +10,14 @@
 
 #define CREATEOBJECT "CreateObj"
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
-#include "json/json.h"
+#endif
+#include <json/json.h>
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 #ifdef _MSC_VER
 #define snprintf _snprintf

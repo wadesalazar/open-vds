@@ -90,8 +90,7 @@ class FileInterfaceImpl : public HueBulkDataStore::FileInterface
   DataStoreBuffer
           **m_indexPages;
 
-  const int64_t
-          IndexPageOffset(int indexPage) { return reinterpret_cast<const int64_t *>(static_cast<const char *>(m_pageDirectory->Data()) + sizeof(PageDirectory) + m_fileDescriptor.m_fileHeader.m_fileMetadataLength)[indexPage]; }
+  int64_t IndexPageOffset(int indexPage) const { return reinterpret_cast<const int64_t *>(static_cast<const char *>(m_pageDirectory->Data()) + sizeof(PageDirectory) + m_fileDescriptor.m_fileHeader.m_fileMetadataLength)[indexPage]; }
 
   void    SetIndexPageOffset(int indexPage, int64_t indexPageOffset) { reinterpret_cast<int64_t *>(static_cast<char *>(m_pageDirectory->WritableData()) + sizeof(PageDirectory) + m_fileDescriptor.m_fileHeader.m_fileMetadataLength)[indexPage] = indexPageOffset; }
 
@@ -1070,10 +1069,9 @@ HueBulkDataStoreImpl::UpdateFileTable(DataStoreFileDescriptor const &fileDescrip
     fileTableEntryCount = GetDataStoreHeader().m_fileTableCount;
 
   size_t
-    fileTableEntrySize = sizeof(FileHeader) + GetDataStoreHeader().m_fileNameLength,
-    fileTableSize = fileTableEntrySize * fileTableEntryCount;
+    fileTableEntrySize = sizeof(FileHeader) + GetDataStoreHeader().m_fileNameLength;
 
-  assert((m_fileTable ? m_fileTable->Size() : 0) == fileTableSize);
+  assert((m_fileTable ? m_fileTable->Size() : 0) == fileTableEntrySize * fileTableEntryCount);
 
   int32_t
     fileNameLength = std::max(int32_t(fileDescriptor.m_fileName.length()), GetDataStoreHeader().m_fileNameLength);
@@ -1107,9 +1105,7 @@ HueBulkDataStoreImpl::UpdateFileTable(DataStoreFileDescriptor const &fileDescrip
     header->m_fileNameLength = fileNameLength;
 
     fileTableEntryCount = header->m_fileTableCount;
-    fileTableEntrySize = newFileTableEntrySize,
-      fileTableSize = fileTableEntrySize * fileTableEntryCount;
-
+    fileTableEntrySize = newFileTableEntrySize;
     changed = true;
   }
 
@@ -1312,7 +1308,7 @@ HueBulkDataStoreImpl::AddFile(const char *fileName, int chunkCount, int indexPag
     *pageDirectory = CreateBuffer(pageDirectorySize, ExtentAllocator::PageDirectoryExtent);
 
   FileHeader
-    fileHeader = { 0 };
+    fileHeader = FileHeader();
 
   fileHeader.m_headPageDirectoryOffset = pageDirectory->Offset();
   fileHeader.m_headChunkCount = chunkCount;
@@ -1456,7 +1452,7 @@ HueBulkDataStoreImpl::CreateNew(const char *fileName, bool overwriteExisting)
   DataStoreHeader
     *header = static_cast<DataStoreHeader *>(m_header->WritableData());
 
-  strncpy(header->m_magic, "HueDataStore", sizeof(header->m_magic));
+  memcpy(header->m_magic, "HueDataStore", sizeof(header->m_magic));
   header->m_version = (1 << 16) + 0; // (major << 16) + minor
 
   m_fileTable = NULL;

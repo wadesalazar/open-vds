@@ -26,6 +26,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <limits.h>
 #include <algorithm>
 
 namespace OpenVDS
@@ -154,7 +155,7 @@ bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std:
   std::unique_lock<std::mutex> lock(m_mutex);
   HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
 
-  if(metadata.size() != fileInterface->GetChunkMetadataLength())
+  if((int)metadata.size() != fileInterface->GetChunkMetadataLength())
   {
     throw std::runtime_error("Wrong metadata size for chunk");
   }

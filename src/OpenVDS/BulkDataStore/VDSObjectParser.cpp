@@ -2,6 +2,7 @@
 #include "Base64.h"
 #include <sstream>
 #include <locale.h>
+#include <stdint.h>
 
 #include <fmt/format.h>
 
@@ -267,8 +268,8 @@ Json::Value TranslateVector(Json::Value const & root)
   int i = 0;
   switch(root.size())
   {
-  case 4: vectorJson.append(root[element[i++]]);
-  case 3: vectorJson.append(root[element[i++]]);
+  case 4: vectorJson.append(root[element[i++]]); // falls through
+  case 3: vectorJson.append(root[element[i++]]); // falls through
   case 2: vectorJson.append(root[element[i++]]);
           vectorJson.append(root[element[i++]]);
   }
@@ -392,7 +393,7 @@ bool ParserState::getNextToken(const char ** buffer)
         pbuffer += 2;
         break;
       }
-      // Fall through deliberately:
+      // Falls through
     case '+':
       pbuffer++;
 
@@ -400,7 +401,7 @@ bool ParserState::getNextToken(const char ** buffer)
       {
         break;
       }
-      // Fall through deliberately:
+      // Falls through
       // Number
     case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
       foundNumber = true;
@@ -687,8 +688,7 @@ bool SubBody(ParserState *ps, const char **buffer, Json::Value & root)
 
 bool parseChildCreateObj(ParserState *ps, const char **buffer, Json::Value &root)
 {
-  std::vector<char> key(strlen(ps->getKey()) + 1, 0);
-  strncpy(&key[0], ps->getKey(), strlen(ps->getKey()) + 1);
+  std::vector<char> key(ps->getKey(), ps->getKey() + strlen(ps->getKey()) + 1);
 
   if (ps->getObjectRoot().find(&key[0], &key[0] + strlen(&key[0])) == NULL)
   {
@@ -936,11 +936,11 @@ bool PNNumber(ParserState *ps, const char ** buffer, Json::Value &root)
     {
       if(ps->getStringVal()[0] == '-' || ps->getStringVal()[0] == '+')
       {
-        root[ps->getKey()] = Json::Value(strtoll(ps->getStringVal(), NULL, 10));
+        root[ps->getKey()] = Json::Value((int64_t)strtoll(ps->getStringVal(), NULL, 10));
       }
       else
       {
-        root[ps->getKey()] = Json::Value(strtoull(ps->getStringVal(), NULL, 10));
+        root[ps->getKey()] = Json::Value((uint64_t)strtoull(ps->getStringVal(), NULL, 10));
       }
     }
   }

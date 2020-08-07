@@ -607,6 +607,7 @@ void VolumeDataStoreIOManager::PageTransferCompleted(MetadataPage* metadataPage,
       int32_t pageIndex = (int)(volumeDataChunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
       int32_t entryIndex = (int)(volumeDataChunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
 
+      (void)pageIndex; // Silence gcc warning in release builds
       assert(pageIndex == metadataPage->PageIndex());
 
       if (error.code != 0)

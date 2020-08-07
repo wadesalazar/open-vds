@@ -329,7 +329,7 @@ bool File::Write(const void* pxData, int64_t nOffset, int32_t nLength, Error & e
 {
   assert(nOffset >= 0);
 
-  if (!IsWriteable)
+  if (!IsWriteable())
   {
     SetIoError("File::write: file not writeable", error);
     return false;
