@@ -114,7 +114,7 @@ set (EXPORTED_HEADER_FILES
   OpenVDS/SimplexNoiseKernel.h
   )
 
-if (MSVC)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   set(DISABLE_WARNING_FLAG "/w")
 else()
   set(DISABLE_WARNING_FLAG "-w")
