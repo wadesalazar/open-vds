@@ -454,10 +454,7 @@ extern "C" {
         try {
             jclass keyClass = env->FindClass( "Lorg/opengroup/openvds/MetadataKey;" );
             MetadataKeyRange keys = GetAccess( handle )->GetMetadataKeys();
-            int nKeys = 0;
-            for( MetadataKey key : keys ) {
-                ++nKeys;
-            }
+            int nKeys = keys.end() - keys.begin();
 
             jmethodID initMethod = env->GetMethodID( keyClass, "<init>", "(ILjava/lang/String;Ljava/lang/String;)V" );
             jobjectArray jKeysArray = env->NewObjectArray( nKeys, keyClass, (jobject)NULL );
