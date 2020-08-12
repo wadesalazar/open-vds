@@ -369,6 +369,8 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
   std::string layerName = GetLayerName(*chunk.layer);
   auto metadataManager = GetMetadataMangerForLayer(layerName);
 
+  std::unique_lock<std::mutex> lock(m_mutex);
+
   if (metadataManager)
   {
     int pageIndex  = (int)(chunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
@@ -380,7 +382,6 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
 
     assert(pageIndex == metadataPage->PageIndex());
 
-    std::unique_lock<std::mutex> lock(m_mutex);
     if (metadataPage->transferError().code != 0)
     {
       error = metadataPage->transferError();
