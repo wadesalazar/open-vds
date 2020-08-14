@@ -2,6 +2,8 @@ This folder contains the different docker files used for building OpenVDS for di
 
 There is also a devenv docker file setting up a minimal developement environment. Following are some basic instructions for setting up the development environment on Windows.
 
+It is important to shut down visual studio, since it will lock some files and building the docker image will not work.
+
 1. Build an image.
 From the root OpenVDS source folder write the following command:
 $ docker build --tag ovds-alpine-devenv -f docker/alpine-devenv.Dockerfile .
