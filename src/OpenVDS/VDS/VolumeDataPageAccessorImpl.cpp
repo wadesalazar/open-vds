@@ -273,8 +273,10 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
   std::unique_lock<std::mutex> pageListMutexLock(m_pagesMutex, std::defer_lock);
 
   VolumeDataPageImpl *pageImpl = static_cast<VolumeDataPageImpl *>(page);
+
   if (!pageImpl->RequestPrepared())
-    return true;
+    return pageImpl->GetError().code == 0;
+
   if (pageImpl->EnterSettingData())
   {
     if (!pageImpl->RequestPrepared())
