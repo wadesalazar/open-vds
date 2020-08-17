@@ -419,17 +419,17 @@ void VolumeDataStoreVDSFile::SetMetadataStatus(std::string const &layerName, Met
   assert(0 && "Not implemented");
 }
 
-VolumeDataStoreVDSFile::VolumeDataStoreVDSFile(VDS &vds, const std::string &fileName, Mode mode, Error &error)
+VolumeDataStoreVDSFile::VolumeDataStoreVDSFile(VDS &vds, const std::string &vdsFileName, Mode mode, Error &error)
   : m_vds(vds)
   , m_isVDSObjectFilePresent(false)
   , m_isVolumeDataLayoutFilePresent(false)
-  , m_dataStore(HueBulkDataStore::Open(fileName.c_str()), &HueBulkDataStore::Close)
+  , m_dataStore(HueBulkDataStore::Open(vdsFileName.c_str()), &HueBulkDataStore::Close)
 {
   if(mode == ReadWrite)
   {
     if(!m_dataStore->IsOpen())
     {
-      m_dataStore.reset(HueBulkDataStore::CreateNew(fileName.c_str(), false));
+      m_dataStore.reset(HueBulkDataStore::CreateNew(vdsFileName.c_str(), false));
     }
     else
     {

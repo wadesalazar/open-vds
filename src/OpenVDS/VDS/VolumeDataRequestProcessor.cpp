@@ -37,13 +37,13 @@ namespace OpenVDS
 
 OPENVDS_EXPORT int _cleanupthread_timeoutseconds = 30;
 
-static void CleanupThread(std::atomic_bool &exit, std::condition_variable &wakeup,  std::map<PageAccessorKey, VolumeDataPageAccessorImpl *> &pageAccessors, std::mutex &pageAccessorsMutex)
+static void CleanupThread(PageAccessorNotifier &pageAccessorNotifier,  std::map<PageAccessorKey, VolumeDataPageAccessorImpl *> &pageAccessors)
 {
   auto long_block = std::chrono::hours(24 * 32 * 12);
   auto in_progress_block = std::chrono::seconds(_cleanupthread_timeoutseconds);
-  while(!exit)
+  while(!pageAccessorNotifier.exit)
   {
-    std::unique_lock<std::mutex> lock(pageAccessorsMutex);
+    std::unique_lock<std::mutex> lock(pageAccessorNotifier.mutex);
     std::chrono::seconds waitFor = long_block;
     for (auto &it: pageAccessors)
     {
@@ -68,21 +68,25 @@ static void CleanupThread(std::atomic_bool &exit, std::condition_variable &wakeu
         }
       }
     }
-    wakeup.wait_for(lock, waitFor);
+    pageAccessorNotifier.dirty = false;
+    pageAccessorNotifier.jobNotification.wait_for(lock, waitFor, [&pageAccessorNotifier]
+      {
+        return pageAccessorNotifier.exit || pageAccessorNotifier.dirty;
+      }
+    );
   }
 }
 
 VolumeDataRequestProcessor::VolumeDataRequestProcessor(VolumeDataAccessManagerImpl& manager)
   : m_manager(manager)
   , m_threadPool(std::thread::hardware_concurrency())
-  , m_cleanupExit(false)
-  , m_cleanupThread([this]() { CleanupThread(m_cleanupExit, m_jobNotification, m_pageAccessors, m_mutex); } )
+  , m_pageAccessorNotifier(m_mutex)
+  , m_cleanupThread([this]() { CleanupThread(m_pageAccessorNotifier, m_pageAccessors); } )
 {}
 
 VolumeDataRequestProcessor::~VolumeDataRequestProcessor()
 {
-  m_cleanupExit = true;
-  m_jobNotification.notify_all();
+  m_pageAccessorNotifier.setExit();
   m_cleanupThread.join();
   for (auto &pair : m_pageAccessors)
   {
@@ -111,11 +115,11 @@ struct MarkJobAsDoneOnExit
     }
     if (++job->pagesProcessed == job->pagesCount)
     {
-      std::unique_lock<std::mutex> lock(job->completed_mutex);
+      std::unique_lock<std::mutex> lock(job->pageAccessorNotifier.mutex);
       job->pageAccessor.SetLastUsed(std::chrono::steady_clock::now());
       job->pageAccessor.RemoveReference();
       job->done = true;
-      job->doneNotify.notify_all();
+      job->pageAccessorNotifier.setDirtyNoLock();
     }
   }
   Job *job;
@@ -208,7 +212,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
 
   pageAccessor->AddReference();
 
-  m_jobs.emplace_back(new Job(GenJobId(), m_jobNotification, *pageAccessor, int(chunks.size()), m_mutex));
+  m_jobs.emplace_back(new Job(GenJobId(), m_pageAccessorNotifier, *pageAccessor, int(chunks.size())));
   auto &job = m_jobs.back();
 
   job->pages.reserve(chunks.size());
@@ -346,14 +350,14 @@ bool VolumeDataRequestProcessor::WaitForCompletion(int64_t jobID, int millisecon
     if (millisecondsBeforeTimeout > 0)
     {
       std::chrono::milliseconds toWait(millisecondsBeforeTimeout);
-      job->doneNotify.wait_for(lock, toWait, [job]
+      job->pageAccessorNotifier.jobNotification.wait_for(lock, toWait, [job]
         {
           return job->done.load();
         });
     }
     else
     {
-      job->doneNotify.wait(lock, [job]
+      job->pageAccessorNotifier.jobNotification.wait(lock, [job]
         {
           return job->done.load();
         });
@@ -381,7 +385,7 @@ void VolumeDataRequestProcessor::Cancel(int64_t jobID)
   if (job_it == m_jobs.end())
     return;
   job_it->get()->cancelled = true;
-  m_jobNotification.notify_all();
+  m_pageAccessorNotifier.setDirtyNoLock();
 }
 
 float VolumeDataRequestProcessor::GetCompletionFactor(int64_t jobID)

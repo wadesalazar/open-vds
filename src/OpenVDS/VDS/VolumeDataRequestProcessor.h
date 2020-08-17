@@ -56,21 +56,53 @@ struct JobPage
   VolumeDataChunk chunk;
 };
 
+struct PageAccessorNotifier
+{
+  PageAccessorNotifier(std::mutex &mutex)
+    : dirty(false)
+    , exit(false)
+    , mutex(mutex)
+  {}
+
+  void setDirty()
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    dirty = true;
+    jobNotification.notify_all();
+  }
+  void setDirtyNoLock()
+  {
+    dirty = true;
+    jobNotification.notify_all();
+  }
+
+  void setExit()
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    exit = true;
+    jobNotification.notify_all();
+  }
+
+  bool dirty;
+  bool exit;
+  std::mutex &mutex;
+  std::condition_variable jobNotification;
+};
+
 struct Job
 {
-  Job(int64_t jobId, std::condition_variable &doneNotify, VolumeDataPageAccessorImpl &pageAccessor, int pagesCount, std::mutex &completed_mutex)
+  Job(int64_t jobId, PageAccessorNotifier &pageAccessorNotifier, VolumeDataPageAccessorImpl &pageAccessor, int pagesCount)
     : jobId(jobId)
-    , doneNotify(doneNotify)
+    , pageAccessorNotifier(pageAccessorNotifier)
     , pageAccessor(pageAccessor)
     , pagesProcessed(0)
     , done(false)
     , cancelled(false)
     , pagesCount(pagesCount)
-    , completed_mutex(completed_mutex)
   {}
 
   int64_t jobId;
-  std::condition_variable &doneNotify;
+  PageAccessorNotifier &pageAccessorNotifier;
   VolumeDataPageAccessorImpl &pageAccessor;
   std::vector<JobPage> pages;
   std::vector<std::future<Error>> future;
@@ -78,7 +110,6 @@ struct Job
   std::atomic_bool done;
   std::atomic_bool cancelled;
   int pagesCount;
-  std::mutex &completed_mutex;
   Error completedError;
 };
 
@@ -101,9 +132,8 @@ private:
   std::map<PageAccessorKey, VolumeDataPageAccessorImpl *> m_pageAccessors;
   std::vector<std::unique_ptr<Job>> m_jobs;
   std::mutex m_mutex;
-  std::condition_variable m_jobNotification;
   ThreadPool m_threadPool;
-  std::atomic_bool m_cleanupExit;
+  PageAccessorNotifier m_pageAccessorNotifier;
   std::thread m_cleanupThread;
 };
 
