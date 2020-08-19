@@ -742,7 +742,7 @@ bool VolumeDataStoreIOManager::WriteChunk(const VolumeDataChunk& chunk, const st
   m_vds.volumeDataLayout->ChangePendingWriteRequestCount(1);
   std::unique_lock<std::mutex> lock(m_mutex);
   m_pendingUploadRequests[jobId].StartNewUpload(*m_ioManager, url, contentDispositionName, meta_map, to_write, completedCallback);
-  return jobId;
+  return true;
 }
 
 bool VolumeDataStoreIOManager::Flush()
