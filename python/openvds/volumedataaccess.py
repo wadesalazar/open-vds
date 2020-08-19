@@ -1,5 +1,7 @@
 import openvds.core
 import numpy as np
+import weakref
+
 from openvds.core import VolumeDataLayout, VolumeDataPageAccessor
 
 from .volumedataaccessors import VolmeDataAccessorManager
@@ -47,7 +49,15 @@ def _ndarrayarray(tuples: List[Tuple[float]]):
     for i in range(l):
         arr[i][:len(tuples[i])] = tuples[i]
     return arr
-    
+
+def _finalizeVolumeDataRequest(volumeDataRequest):
+    if not volumeDataRequest.isCompleted:
+      volumeDataRequest._accessManager.cancel(volumeDataRequest.requestID)
+      volumeDataRequest._accessManager.waitForCompletion(volumeDataRequest.requestID, 0)
+      volumeDataRequest._accessManager.isCanceled(volumeDataRequest.requestID)
+
+
+
 class VolumeDataRequest(object):
     def __init__(self, accessManager: openvds.core.VolumeDataAccessManager, layout: openvds.core.VolumeDataLayout, data_out: np.array = None, dimensionsND: DimensionsND = DimensionsND.Dimensions_012, lod: int = 0, channel: int = 0, min: Tuple[int] = None, max: Tuple[int] = None, format: VoxelFormat = VoxelFormat.Format_R32, replacementNoValue = None):
         array_interface = None
@@ -77,7 +87,9 @@ class VolumeDataRequest(object):
         self._iscanceled        = False
         self._iscompleted       = False
 
-    @property                      
+        self._finalizer = weakref.finalize(self, _finalizeVolumeDataRequest, self)
+
+    @property
     def isCompleted(self):
         """Has request completed successfully"""
         if self._iscompleted:
@@ -86,7 +98,7 @@ class VolumeDataRequest(object):
             return False
         self._iscompleted = True if self._accessManager.isCompleted(self.requestID) else False
         return self._iscompleted
-        
+
     @property
     def isCanceled(self):
         """Has request been canceled"""
@@ -111,7 +123,7 @@ class VolumeDataRequest(object):
         if self.isCompleted:
             raise RuntimeError("Operation already completed")
         if not self.isCanceled:
-            self._accessManager.Cancel(self.requestID)
+            self._accessManager.cancel(self.requestID)
         
     def waitForCompletion(self, timeout = 0.0):
         """Wait for request to complete, or time out after a specified amount of time.
@@ -131,7 +143,8 @@ class VolumeDataRequest(object):
         if not self.isCompleted:
             nMillisecondsBeforeTimeout = int(timeout * 1000)
             self._iscompleted = True if self._accessManager.waitForCompletion(self.requestID, nMillisecondsBeforeTimeout) else False
-        return self.isCompleted  
+        return self.isCompleted
+
 
 class VolumeDataSubsetRequest(VolumeDataRequest):
     """Encapsulates volume data subset request.
@@ -158,6 +171,7 @@ class VolumeDataSubsetRequest(VolumeDataRequest):
             self.requestID = self._accessManager.requestVolumeSubset(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, self.format)
         else:
             self.requestID = self._accessManager.requestVolumeSubset(self._data_out, self._layout, self.dimensionsND, self.lod, self.channel, self.min, self.max, self.format, self.replacementNoValue)
+
 
 class ProjectedVolumeDataSubsetRequest(VolumeDataRequest):
     """Encapsulates a projected volume data subset request.

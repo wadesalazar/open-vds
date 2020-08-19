@@ -49,9 +49,9 @@ SET(pythonsources
     ${CMAKE_CURRENT_SOURCE_DIR}/volumedataaccessors.py
 )
 
-add_custom_command(TARGET core
-  POST_BUILD
+add_custom_target(core_py_files ALL
   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${pythonsources} $<TARGET_FILE_DIR:core>)
+#add_dependencies(core core_py_files)
 
 copyDllForTarget(core)
 setWarningFlagsForTarget(core)
