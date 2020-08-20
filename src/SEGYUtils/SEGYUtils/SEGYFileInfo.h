@@ -15,6 +15,9 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#ifndef SEGY_FILE_INFO_H
+#define SEGY_FILE_INFO_H
+
 #include "SEGY.h"
 #include "DataProvider.h"
 
@@ -99,3 +102,5 @@ struct SEGYFileInfo
 
   OPENVDS_EXPORT bool Scan(DataProvider &dataprovider, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::StandardHeaderFields());
 };
+
+#endif  // SEGY_FILE_INFO_H

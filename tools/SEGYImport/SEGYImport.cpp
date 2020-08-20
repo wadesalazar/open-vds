@@ -20,6 +20,7 @@
 #include "IO/File.h"
 #include "VDS/Hash.h"
 #include <SEGYUtils/DataProvider.h>
+#include <SEGYUtils/TraceDataManager.h>
 
 #include <OpenVDS/OpenVDS.h>
 #include <OpenVDS/KnownMetadata.h>
@@ -925,38 +926,37 @@ createChannelDescriptors(SEGYFileInfo const& fileInfo, OpenVDS::FloatRange const
   return channelDescriptors;
 }
 
-int
-findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, const void* traceData, int traceCount, int secondaryStart, int secondaryStop)
+int64_t
+findFirstTrace(TraceDataManager& traceDataManager, int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, int64_t traceStart, int64_t traceStop, int secondaryStart, int secondaryStop, OpenVDS::Error& error)
 {
-  int traceStart = 0,
-    traceStop = traceCount - 1;
-
-  bool isSecondaryIncreasing = (secondaryStop >= secondaryStart);
+  const bool isSecondaryIncreasing = (secondaryStop >= secondaryStart);
 
   // Check if trace is at the start of the range or completely outside the range (this also handles cases where secondaryStart == secondaryStop which would fail to make a guess below)
   if (isSecondaryIncreasing ? (secondaryKey <= secondaryStart) :
     (secondaryKey >= secondaryStart))
   {
-    return 0;
+    return traceStart;
   }
   else if (isSecondaryIncreasing ? (secondaryKey > secondaryStop) :
     (secondaryKey < secondaryStop))
   {
-    return traceCount;
+    return traceStop + 1;
   }
 
   // Make an initial guess at which trace we start on based on linear interpolation
-  int trace = (int)((long long)(secondaryKey - secondaryStart) * (traceStop - traceStart) / (secondaryStop - secondaryStart));
-
-  assert(trace >= 0 && trace < traceCount && "The guessed trace must be in [traceStart = 0, traceStop = traceCount -1]");
+  int64_t trace = traceStart + (secondaryKey - secondaryStart) * (traceStop - traceStart) / (secondaryStop - secondaryStart);
 
   while (traceStart < traceStop - 1)
   {
-    const char* header = reinterpret_cast<const char*>(intptr_t(traceData) + ptrdiff_t(fileInfo.TraceByteSize()) * trace);
+    const char* header = traceDataManager.getTraceData(trace, error);
+    if (error.code != 0)
+    {
+      return traceStart;
+    }
 
     int primaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness),
-      secondaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness),
-      traceDelta;
+      secondaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
+    int64_t traceDelta;
 
     if (primaryTest == primaryKey)
     {
@@ -976,9 +976,14 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, c
     else
     {
       // We need to handle corrupted traces without hanging, so we scan backwards until we find a valid trace and then we update the interval to not include the corrupted traces
-      for (int scan = trace - 1; scan > traceStart; scan--)
+      for (int64_t scan = trace - 1; scan > traceStart; scan--)
       {
-        header = reinterpret_cast<const char*>(intptr_t(traceData) + ptrdiff_t(fileInfo.TraceByteSize()) * scan);
+        header = traceDataManager.getTraceData(scan, error);
+        if (error.code != 0)
+        {
+          return traceStart;
+        }
+
         primaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness);
         if (primaryTest == primaryKey)
         {
@@ -1023,19 +1028,14 @@ findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, c
   return traceStop;
 }
 
-int
-findFirstTrace(int primaryKey, int secondaryKey, SEGYFileInfo const& fileInfo, const void* traceData, int traceCount)
+int64_t
+findFirstTrace(TraceDataManager& traceDataManager, const SEGYSegmentInfo& segment, int secondaryKey, SEGYFileInfo const& fileInfo, OpenVDS::Error error)
 {
-  int traceStart = 0,
-    traceStop = traceCount - 1;
+  // TODO do the info start and stop reflect the start and stop for reverse-sorted inlines, or are they simply min and max?
+  const int secondaryStart = segment.m_binInfoStart.m_crosslineNumber;
+  const int secondaryStop = segment.m_binInfoStop.m_crosslineNumber;
 
-  const char* headerStart = reinterpret_cast<const char*>(intptr_t(traceData) + ptrdiff_t(fileInfo.TraceByteSize()) * traceStart);
-  const char* headerStop = reinterpret_cast<const char*>(intptr_t(traceData) + ptrdiff_t(fileInfo.TraceByteSize()) * traceStop);
-
-  int secondaryStart = SEGY::ReadFieldFromHeader(headerStart, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
-  int secondaryStop = SEGY::ReadFieldFromHeader(headerStop, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
-
-  return findFirstTrace(primaryKey, secondaryKey, fileInfo, traceData, traceCount, secondaryStart, secondaryStop);
+  return findFirstTrace(traceDataManager, segment.m_primaryKey, secondaryKey, fileInfo, segment.m_traceStart, segment.m_traceStop, secondaryStart, secondaryStop, error);
 }
 
 static DataProvider CreateDataProvider(const std::string &fileName,
@@ -1049,7 +1049,6 @@ static DataProvider CreateDataProvider(const std::string &fileName,
   }
   return CreateDataProviderFromOpenOptions(url, connection, fileName, error);
 }
-
 
 int
 main(int argc, char* argv[])
@@ -1492,10 +1491,17 @@ main(int argc, char* argv[])
     int primaryKeyStop;
     size_t lowerSegmentIndex;
     size_t upperSegmentIndex;
-    int64_t traceStart;
-    int64_t traceStop;
-    DataRequestInfo dataRequestInfo;
+    //int64_t traceStart;
+    //int64_t traceStop;
+    //DataRequestInfo dataRequestInfo;
   };
+
+  // limit DataViewManager's memory use to 1.5 sets of brick inlines
+  const int64_t dvmMemoryLimit = 3LL * brickSize * axisDescriptors[1].GetNumSamples() * fileInfo.TraceByteSize() / 2LL;
+
+  DataViewManager dataViewManager(dataProvider, dvmMemoryLimit);
+
+  TraceDataManager traceDataManager(dataViewManager, 128, traceByteSize, fileInfo.m_traceCount);
 
   std::vector<ChunkInfo> chunkInfos;
   chunkInfos.resize(amplitudeAccessor->GetChunkCount());
@@ -1520,18 +1526,17 @@ main(int argc, char* argv[])
     auto upper = std::upper_bound(fileInfo.m_segmentInfo.begin(), fileInfo.m_segmentInfo.end(), chunkInfo.primaryKeyStop, [](int primaryKey, SEGYSegmentInfo const& segmentInfo)->bool { return primaryKey < segmentInfo.m_primaryKey; });
     chunkInfo.upperSegmentIndex = std::distance(fileInfo.m_segmentInfo.begin(), upper);
 
-    chunkInfo.traceStart = lower->m_traceStart;
-    chunkInfo.traceStop = std::prev(upper)->m_traceStop;
+    //chunkInfo.traceStart = lower->m_traceStart;
+    //chunkInfo.traceStop = std::prev(upper)->m_traceStop;
 
-    assert(chunkInfo.traceStop > chunkInfo.traceStart);
+    //assert(chunkInfo.traceStop > chunkInfo.traceStart);
 
-    chunkInfo.dataRequestInfo.offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + chunkInfo.traceStart * traceByteSize;
-    chunkInfo.dataRequestInfo.size = (chunkInfo.traceStop - chunkInfo.traceStart + 1) * traceByteSize;
-    dataRequests.push_back(chunkInfo.dataRequestInfo);
+    //chunkInfo.dataRequestInfo.offset = SEGY::TextualFileHeaderSize + SEGY::BinaryFileHeaderSize + chunkInfo.traceStart * traceByteSize;
+    //chunkInfo.dataRequestInfo.size = (chunkInfo.traceStop - chunkInfo.traceStart + 1) * traceByteSize;
+    //dataRequests.push_back(chunkInfo.dataRequestInfo);
+
+    traceDataManager.addDataRequests(chunkInfo.secondaryKeyStart, chunkInfo.secondaryKeyStop, lower, upper);
   }
-
-  int64_t memoryAvailable = GetTotalSystemMemory();
-  DataViewManager dataViewManager(dataProvider, memoryAvailable / 3, std::move(dataRequests));
 
   for (int64_t chunk = 0; chunk < amplitudeAccessor->GetChunkCount() && error.code == 0; chunk++)
   {
@@ -1558,95 +1563,99 @@ main(int argc, char* argv[])
 
     auto &chunkInfo = chunkInfos[chunk];
 
-    // This acquires the new file view before releasing the previous so we usually end up re-using the same file view
-    dataView = dataViewManager.acquireDataView(chunkInfo.dataRequestInfo, false, error);
-
-    if (error.code == 0)
+    // if we've crossed to a new inline then trim the trace page cache
+    if (chunk > 0 && chunkInfo.lowerSegmentIndex > chunkInfos[chunk - 1].lowerSegmentIndex)
     {
-      OpenVDS::VolumeDataPage* amplitudePage = amplitudeAccessor->CreatePage(chunk);
-      OpenVDS::VolumeDataPage* traceFlagPage = nullptr;
-      OpenVDS::VolumeDataPage* segyTraceHeaderPage = nullptr;
+      // we've progressed to a new set of inlines; remove earlier pages from the cache
+      traceDataManager.retirePagesBefore(fileInfo.m_segmentInfo[chunkInfo.lowerSegmentIndex].m_traceStart);
+    }
 
-      if (chunkInfo.min[0] == 0)
+    OpenVDS::VolumeDataPage* amplitudePage = amplitudeAccessor->CreatePage(chunk);
+    OpenVDS::VolumeDataPage* traceFlagPage = nullptr;
+    OpenVDS::VolumeDataPage* segyTraceHeaderPage = nullptr;
+
+    if (chunkInfo.min[0] == 0)
+    {
+      traceFlagPage = traceFlagAccessor->CreatePage(traceFlagAccessor->GetChunkIndex(chunkInfo.min));
+      segyTraceHeaderPage = segyTraceHeaderAccessor->CreatePage(segyTraceHeaderAccessor->GetChunkIndex(chunkInfo.min));
+    }
+
+    int amplitudePitch[OpenVDS::Dimensionality_Max];
+    int traceFlagPitch[OpenVDS::Dimensionality_Max];
+    int segyTraceHeaderPitch[OpenVDS::Dimensionality_Max];
+
+    void* amplitudeBuffer = amplitudePage->GetWritableBuffer(amplitudePitch);
+    void* traceFlagBuffer = traceFlagPage ? traceFlagPage->GetWritableBuffer(traceFlagPitch) : nullptr;
+    void* segyTraceHeaderBuffer = segyTraceHeaderPage ? segyTraceHeaderPage->GetWritableBuffer(segyTraceHeaderPitch) : nullptr;
+
+    assert(amplitudePitch[0] == 1);
+    assert(!traceFlagBuffer || traceFlagPitch[1] == 1);
+    assert(!segyTraceHeaderBuffer || segyTraceHeaderPitch[1] == SEGY::TraceHeaderSize);
+
+    // We loop through the segments that have primary keys inside this block and copy the traces that have secondary keys inside this block
+    auto lower = fileInfo.m_segmentInfo.begin() + chunkInfo.lowerSegmentIndex;
+    auto upper = fileInfo.m_segmentInfo.begin() + chunkInfo.upperSegmentIndex;
+
+    for (auto segment = lower; segment != upper; ++segment)
+    {
+      int64_t firstTrace = findFirstTrace(traceDataManager, *segment, chunkInfo.secondaryKeyStart, fileInfo, error);
+      if (error.code)
       {
-        traceFlagPage = traceFlagAccessor->CreatePage(traceFlagAccessor->GetChunkIndex(chunkInfo.min));
-        segyTraceHeaderPage = segyTraceHeaderAccessor->CreatePage(segyTraceHeaderAccessor->GetChunkIndex(chunkInfo.min));
+        fmt::print(stderr, "Failed when reading data: {} - {}", error.code, error.string);
+        break;
       }
 
-      int amplitudePitch[OpenVDS::Dimensionality_Max];
-      int traceFlagPitch[OpenVDS::Dimensionality_Max];
-      int segyTraceHeaderPitch[OpenVDS::Dimensionality_Max];
-
-      void* amplitudeBuffer = amplitudePage->GetWritableBuffer(amplitudePitch);
-      void* traceFlagBuffer = traceFlagPage ? traceFlagPage->GetWritableBuffer(traceFlagPitch) : nullptr;
-      void* segyTraceHeaderBuffer = segyTraceHeaderPage ? segyTraceHeaderPage->GetWritableBuffer(segyTraceHeaderPitch) : nullptr;
-
-      assert(amplitudePitch[0] == 1);
-      assert(!traceFlagBuffer || traceFlagPitch[1] == 1);
-      assert(!segyTraceHeaderBuffer || segyTraceHeaderPitch[1] == SEGY::TraceHeaderSize);
-
-      // We loop through the segments that have primary keys inside this block and copy the traces that have secondary keys inside this block
-      auto lower = fileInfo.m_segmentInfo.begin() + chunkInfo.lowerSegmentIndex;
-      auto upper = fileInfo.m_segmentInfo.begin() + chunkInfo.upperSegmentIndex;
-
-      for (auto segment = lower; segment != upper; ++segment)
+      for (int64_t trace = firstTrace; trace <= segment->m_traceStop; trace++)
       {
-        const void* traceData = reinterpret_cast<const void*>(intptr_t(dataView->Pointer(error)) + (segment->m_traceStart - chunkInfo.traceStart) * traceByteSize);
+        const char* header = traceDataManager.getTraceData(trace, error);
         if (error.code)
         {
           fmt::print(stderr, "Failed when reading data: {} - {}\n", error.code, error.string);
           break;
         }
-        int traceCount = int(segment->m_traceStop - segment->m_traceStart + 1);
 
-        int firstTrace = findFirstTrace(segment->m_primaryKey, chunkInfo.secondaryKeyStart, fileInfo, traceData, traceCount);
+        const void* data = header + SEGY::TraceHeaderSize;
 
-        for (int trace = firstTrace; trace < traceCount; trace++)
+        int primaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness),
+          secondaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
+
+        // Check if the trace is outside the secondary range and go to the next segment if it is
+        if (primaryTest == segment->m_primaryKey && secondaryTest > chunkInfo.secondaryKeyStop)
         {
-          const char* header = reinterpret_cast<const char*>(intptr_t(traceData) + traceByteSize * trace);
-          const void* data = header + SEGY::TraceHeaderSize;
+          break;
+        }
 
-          int primaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness),
-            secondaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
+        int primaryIndex = layout->GetAxisDescriptor(2).CoordinateToSampleIndex((float)segment->m_primaryKey);
+        int secondaryIndex = layout->GetAxisDescriptor(1).CoordinateToSampleIndex((float)secondaryTest);
 
-          // Check if the trace is outside the secondary range and go to the next segment if it is
-          if (primaryTest == segment->m_primaryKey && secondaryTest > chunkInfo.secondaryKeyStop)
-          {
-            break;
-          }
+        assert(primaryIndex >= chunkInfo.min[2] && primaryIndex < chunkInfo.max[2]);
+        assert(secondaryIndex >= chunkInfo.min[1] && secondaryIndex < chunkInfo.max[1]);
 
-          int primaryIndex = layout->GetAxisDescriptor(2).CoordinateToSampleIndex((float)segment->m_primaryKey);
-          int secondaryIndex = layout->GetAxisDescriptor(1).CoordinateToSampleIndex((float)secondaryTest);
+        {
+          int targetOffset = (primaryIndex - chunkInfo.min[2]) * amplitudePitch[2] + (secondaryIndex - chunkInfo.min[1]) * amplitudePitch[1];
 
-          assert(primaryIndex >= chunkInfo.min[2] && primaryIndex < chunkInfo.max[2]);
-          assert(secondaryIndex >= chunkInfo.min[1] && secondaryIndex < chunkInfo.max[1]);
+          copySamples(data, fileInfo.m_dataSampleFormatCode, fileInfo.m_headerEndianness, &reinterpret_cast<float*>(amplitudeBuffer)[targetOffset], chunkInfo.sampleStart, chunkInfo.sampleCount);
+        }
 
-          {
-            int targetOffset = (primaryIndex - chunkInfo.min[2]) * amplitudePitch[2] + (secondaryIndex - chunkInfo.min[1]) * amplitudePitch[1];
+        if (traceFlagBuffer)
+        {
+          int targetOffset = (primaryIndex - chunkInfo.min[2]) * traceFlagPitch[2] + (secondaryIndex - chunkInfo.min[1]) * traceFlagPitch[1];
 
-            copySamples(data, fileInfo.m_dataSampleFormatCode, fileInfo.m_headerEndianness, &reinterpret_cast<float*>(amplitudeBuffer)[targetOffset], chunkInfo.sampleStart, chunkInfo.sampleCount);
-          }
+          reinterpret_cast<uint8_t*>(traceFlagBuffer)[targetOffset] = true;
+        }
 
-          if (traceFlagBuffer)
-          {
-            int targetOffset = (primaryIndex - chunkInfo.min[2]) * traceFlagPitch[2] + (secondaryIndex - chunkInfo.min[1]) * traceFlagPitch[1];
+        if (segyTraceHeaderBuffer)
+        {
+          int targetOffset = (primaryIndex - chunkInfo.min[2]) * segyTraceHeaderPitch[2] + (secondaryIndex - chunkInfo.min[1]) * segyTraceHeaderPitch[1];
 
-            reinterpret_cast<uint8_t*>(traceFlagBuffer)[targetOffset] = true;
-          }
-
-          if (segyTraceHeaderBuffer)
-          {
-            int targetOffset = (primaryIndex - chunkInfo.min[2]) * segyTraceHeaderPitch[2] + (secondaryIndex - chunkInfo.min[1]) * segyTraceHeaderPitch[1];
-
-            memcpy(&reinterpret_cast<uint8_t*>(segyTraceHeaderBuffer)[targetOffset], header, SEGY::TraceHeaderSize);
-          }
+          memcpy(&reinterpret_cast<uint8_t*>(segyTraceHeaderBuffer)[targetOffset], header, SEGY::TraceHeaderSize);
         }
       }
-
-      amplitudePage->Release();
-      if (traceFlagPage) traceFlagPage->Release();
-      if (segyTraceHeaderPage) segyTraceHeaderPage->Release();
     }
+
+    amplitudePage->Release();
+    if (traceFlagPage) traceFlagPage->Release();
+    if (segyTraceHeaderPage) segyTraceHeaderPage->Release();
   }
 
   amplitudeAccessor->Commit();

@@ -1,6 +1,8 @@
 set(EXPORTED_HEADER_FILES
+    SEGYUtils/DataProvider.h
     SEGYUtils/SEGY.h
     SEGYUtils/SEGYFileInfo.h
+    SEGYUtils/TraceDataManager.h
 )
 add_library(segyutils
     ${EXPORTED_HEADER_FILES}

@@ -291,21 +291,11 @@ struct DataRequestInfo
 class DataViewManager
 {
 public:
-  DataViewManager(DataProvider &dataProvider, int64_t prefetchLimit, std::vector<DataRequestInfo> dataRequestInfo)
+  DataViewManager(DataProvider &dataProvider, int64_t prefetchLimit)
     : m_dataProvider(dataProvider)
     , m_memoryLimit(prefetchLimit)
     , m_usage(0)
   {
-
-    if (m_requests.empty())
-    {
-      m_requests = std::move(dataRequestInfo);
-    }
-    else
-    {
-      m_requests.insert(m_requests.end(), dataRequestInfo.begin(), dataRequestInfo.end());
-    }
-    prefetchUntilMemoryLimit();
   }
 
   std::shared_ptr<DataView> acquireDataView(DataRequestInfo &dataRequestInfo, bool isPopulate, OpenVDS::Error& error)
@@ -321,57 +311,64 @@ public:
     auto it = m_dataViewMap.lower_bound(dataRequestInfo);
     if (it == m_dataViewMap.end() || it->first != dataRequestInfo)
     {
-      auto dataView = new DataView(m_dataProvider, dataRequestInfo.offset, dataRequestInfo.size, isPopulate, error);
-      dataView->ref();
-      it = m_dataViewMap.insert(it, {dataRequestInfo, dataView});
-    }
-    else
-    {
-      it->second->ref();
+      // if we've called acquire and it's not already in the map then we need to initiate the request and not just stick it in the queue
+      auto dataView = std::make_shared<DataView>(m_dataProvider, dataRequestInfo.offset, dataRequestInfo.size, true, m_error);
+      it = m_dataViewMap.insert(it, { dataRequestInfo, dataView });
+      m_usage += dataRequestInfo.size;
     }
 
-    auto ptr = std::shared_ptr<DataView>(it->second, [this](DataView* dataView) { if (dataView) this->releaseDataView(dataView); });
-    return ptr;
+    return it->second;
+  }
+
+  void addDataRequests(const std::vector<DataRequestInfo>& dataRequestInfos)
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+
+    if (m_error.code == 0)
+    {
+      m_requests.insert(m_requests.end(), dataRequestInfos.begin(), dataRequestInfos.end());
+      prefetchUntilMemoryLimit();
+    }
+  }
+
+  void retireDataViewsBefore(const DataRequestInfo& dataRequestInfo)
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+
+    auto it = m_dataViewMap.begin();
+    while (it != m_dataViewMap.end() && it->first < dataRequestInfo)
+    {
+      m_usage -= it->second->Size();
+      it = m_dataViewMap.erase(it);
+    }
+
+    prefetchUntilMemoryLimit();
   }
 
 private:
-  typedef std::map<DataRequestInfo, DataView *> DataViewMap;
+  typedef std::map<DataRequestInfo, std::shared_ptr<DataView>> DataViewMap;
 
   DataProvider &m_dataProvider;
   std::vector<DataRequestInfo> m_requests;
   DataViewMap m_dataViewMap;
   std::mutex m_mutex;
-  int64_t m_memoryLimit;
+  const int64_t m_memoryLimit;
   int64_t m_usage;
   OpenVDS::Error m_error;
-
-  void releaseDataView(DataView *dataView)
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-
-    if (dataView->deref())
-    {
-      m_usage -= dataView->Size();
-      auto it = m_dataViewMap.find(DataViewMap::key_type{dataView->Pos(), dataView->Size()});
-      assert(it != m_dataViewMap.end());
-      delete it->second;
-      m_dataViewMap.erase(it);
-      prefetchUntilMemoryLimit();
-    }
-  }
 
   void prefetchUntilMemoryLimit()
   {
     if (m_usage >= m_memoryLimit)
       return;
-    int i;
-    for (i = 0; i < int(m_requests.size()) && m_usage < m_memoryLimit && m_error.code == 0; i++)
+
+    size_t i;
+    for (i = 0; i < m_requests.size() && m_usage < m_memoryLimit && m_error.code == 0; i++)
     {
       auto &req = m_requests[i];
       auto it = m_dataViewMap.find(req);
       if (it != m_dataViewMap.end())
         continue;
-      auto dataView = new DataView(m_dataProvider, req.offset, req.size, true, m_error);
+      auto dataView = std::make_shared<DataView>(m_dataProvider, req.offset, req.size, true, m_error);
       m_dataViewMap.insert(it, {req, dataView});
       m_usage += req.size;
     }
