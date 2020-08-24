@@ -488,7 +488,7 @@ static bool getMetadataValidity(const VolumeDataChunk &volumeDataChunk, Compress
       fmt::print(stderr, "Warning: VDS dataset missing metadata tags, degraded data verification.");
       warnedAboutMissingMetadataTag = true;
     }
-    return parsedMetadata.m_chunkHash;
+    return parsedMetadata.m_chunkHash != 0;
   }
 
   if (parsedMetadata.valid())

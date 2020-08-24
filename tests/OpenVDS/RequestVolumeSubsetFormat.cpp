@@ -25,6 +25,10 @@
 
 #include "../utils/GenerateVDS.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable:4800)
+#endif
+
 void setupNoiseTestHandle(std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> &handle)
 {
   OpenVDS::Error error;
