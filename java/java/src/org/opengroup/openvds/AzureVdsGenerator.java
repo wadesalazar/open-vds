@@ -21,15 +21,25 @@ package org.opengroup.openvds;
 public class AzureVdsGenerator extends VdsHandle {
 
     private static native long cpCreateAzureHandle(AzureOpenOptions o, int nXSamples, int nYSamples, int nZSamples,
-            int format, String[] channel);
+            int format, String[] channel, String[] units);
 
     public AzureVdsGenerator(AzureOpenOptions o, int nXSamples, int nYSamples, int nZSamples,
             VolumeDataChannelDescriptor.Format format, String[] channel) {
-        super(cpCreateAzureHandle(o, nXSamples, nYSamples, nZSamples, format.getCode(), channel), true);
+        super(cpCreateAzureHandle(o, nXSamples, nYSamples, nZSamples, format.getCode(), channel, null), true);
+    }
+
+    public AzureVdsGenerator(AzureOpenOptions o, int nXSamples, int nYSamples, int nZSamples,
+            VolumeDataChannelDescriptor.Format format, String[] channel, String[] units) {
+        super(cpCreateAzureHandle(o, nXSamples, nYSamples, nZSamples, format.getCode(), channel, units), true);
     }
 
     public AzureVdsGenerator(AzureOpenOptions o, int nXSamples, int nYSamples,
             VolumeDataChannelDescriptor.Format format, String[] channel) {
-        super(cpCreateAzureHandle(o, nXSamples, nYSamples, 0, format.getCode(), channel), true);
+        super(cpCreateAzureHandle(o, nXSamples, nYSamples, 0, format.getCode(), channel, null), true);
+    }
+
+    public AzureVdsGenerator(AzureOpenOptions o, int nXSamples, int nYSamples,
+            VolumeDataChannelDescriptor.Format format, String[] channel, String[] units) {
+        super(cpCreateAzureHandle(o, nXSamples, nYSamples, 0, format.getCode(), channel, units), true);
     }
 }

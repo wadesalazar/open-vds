@@ -224,7 +224,9 @@ public abstract class BufferUtils {
      * @return The capacity in bytes of the provided buffer
      */
     public static int getCapacityInBytes(Buffer outBuf) {
-        if (outBuf instanceof FloatBuffer)
+        if (outBuf instanceof DoubleBuffer)
+            return outBuf.capacity() * Double.BYTES;
+        else if (outBuf instanceof FloatBuffer)
             return outBuf.capacity() * Float.BYTES;
         else if (outBuf instanceof IntBuffer)
             return outBuf.capacity() * Integer.BYTES;

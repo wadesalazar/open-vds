@@ -25,13 +25,19 @@
 #include <OpenVDS/KnownMetadata.h>
 
 #include <limits>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 
 static OpenVDS::VDS *generate(const OpenVDS::AzureOpenOptions& opts, int32_t samplesX, int32_t samplesY, int32_t samplesZ,
-                              OpenVDS::VolumeDataChannelDescriptor::Format format, const std::vector<std::string>& channels)
+                              OpenVDS::VolumeDataChannelDescriptor::Format format, const std::vector<std::string>& channels,
+                              const std::vector<std::string>& units)
 {
+    if (channels.size() != units.size()) {
+        throw std::runtime_error("Channel and unit array size differ in length");
+    }
+ 
     OpenVDS::VolumeDataLayoutDescriptor::BrickSize brickSize;
     if (samplesZ == 0) {
         brickSize = OpenVDS::VolumeDataLayoutDescriptor::BrickSize_1024;
@@ -62,9 +68,9 @@ static OpenVDS::VDS *generate(const OpenVDS::AzureOpenOptions& opts, int32_t sam
     float intScale = 1.f;
     float intOffset = 0.f;
 
-    for (auto& name : channels) {
+    for (int i = 0; i < channels.size(); i++) {
         channelDescriptors.emplace_back(format, OpenVDS::VolumeDataChannelDescriptor::Components_1,
-            name.c_str(), "", rangeMin, rangeMax, OpenVDS::VolumeDataMapping::Direct, 1,
+            channels[i].c_str(), units[i].c_str(), rangeMin, rangeMax, OpenVDS::VolumeDataMapping::Direct, 1,
             OpenVDS::VolumeDataChannelDescriptor::Default, std::numeric_limits<float>::lowest(), intScale, intOffset);
     }
 
@@ -101,11 +107,11 @@ extern "C" {
     /*
      * Class:     org_opengroup_openvds_AzureVdsGenerator
      * Method:    cpCreateAzureHandle
-     * Signature: (Lorg/opengroup/openvds/AzureOpenOptions;IIII)J
+     * Signature: (Lorg/opengroup/openvds/AzureOpenOptions;IIII[Ljava/lang/String;[Ljava/lang/String;)J
      */
     jlong JNICALL Java_org_opengroup_openvds_AzureVdsGenerator_cpCreateAzureHandle(JNIEnv *env, jclass,
             jobject azureOptions, jint nXSamples, jint nYSamples, jint nZSamples, jint format,
-            jobjectArray jChannelNames)
+            jobjectArray jChannelNames, jobjectArray jUnitNames)
     {
         try {
             std::string conn_str = getStringField(env, azureOptions, "connectionString");
@@ -115,9 +121,24 @@ extern "C" {
             OpenVDS::AzureOpenOptions opts(conn_str, cont_str, blob_str);
             auto channel_names = convertStringArray(env, jChannelNames);
 
+            std::vector<std::string> unit_names;
+
+            if (jUnitNames != nullptr) {
+                unit_names = convertStringArray(env, jUnitNames);
+
+                if (unit_names.size() != channel_names.size()) {
+                    ThrowJavaException(env, "OpenVDS::Channels and units must have the same size");
+                    return 0;
+                }
+            }
+            else {
+                for (auto& name : channel_names) {
+                    unit_names.push_back("");
+                }
+            }
 
             OpenVDS::VDSHandle handle = generate(opts, nXSamples, nYSamples, nZSamples, 
-                                                 (OpenVDS::VolumeDataChannelDescriptor::Format)format, channel_names);
+                                                 (OpenVDS::VolumeDataChannelDescriptor::Format)format, channel_names, unit_names);
 
             if (!handle) {
                 ThrowJavaException(env,"OpenVDS::Create returned NULL");

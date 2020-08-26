@@ -224,6 +224,16 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * @return the requestID which can be used to query the status of the
      * request, cancel the request or wait for the request to complete.
      */
+    public long requestVolumeSubset(DoubleBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                    DimensionsND dimensionsND, int lod, int channel,
+                                    NDBox box) {
+        B.checkDirectBuffer(outBuf);
+        if (B.getCapacityInBytes(outBuf) < getVolumeSubsetBufferSize(volumeDataLayout, box, FORMAT_R64, lod, channel))
+            throwBufferTooSmallException();
+        return cpRequestVolumeSubset(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                box.getMin(), box.getMax(), FORMAT_R64.getCode());
+    }
     public long requestVolumeSubset(FloatBuffer outBuf, VolumeDataLayout volumeDataLayout,
                                     DimensionsND dimensionsND, int lod, int channel,
                                     NDBox box) {
@@ -271,6 +281,17 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * @return the requestID which can be used to query the status of the
      * request, cancel the request or wait for the request to complete.
      */
+    public long requestVolumeSubset(DoubleBuffer outBuf, VolumeDataLayout volumeDataLayout,
+                                    DimensionsND dimensionsND, int lod, int channel,
+                                    NDBox box,
+                                    float replacementNoValue) {
+        B.checkDirectBuffer(outBuf);
+        if (B.getCapacityInBytes(outBuf) < getVolumeSubsetBufferSize(volumeDataLayout, box, FORMAT_R64, lod, channel))
+            throwBufferTooSmallException();
+        return cpRequestVolumeSubsetR(_handle, outBuf,
+                volumeDataLayout.handle(), dimensionsND.ordinal(), lod, channel,
+                box.getMin(), box.getMax(), FORMAT_R64.getCode(), replacementNoValue);
+    }
     public long requestVolumeSubset(FloatBuffer outBuf, VolumeDataLayout volumeDataLayout,
                                     DimensionsND dimensionsND, int lod, int channel,
                                     NDBox box,
