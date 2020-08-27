@@ -2,7 +2,6 @@
 set(Fetch3rdPartyDirInternal "${CMAKE_CURRENT_LIST_DIR}")
 
 macro(Fetch3rdParty_File name dir_prefix version ext url url_hash)
-  message("OPENVDS_3RD_PARTY_DIR ${OPENVDS_3RD_PARTY_DIR}")
   if (OPENVDS_3RD_PARTY_DIR)
     set(Fetch3rdPartyDir "${OPENVDS_3RD_PARTY_DIR}")
   else()
