@@ -18,6 +18,8 @@ set (TEST_CONNECTION "" CACHE STRING "Test connection string for OpenOptions")
 set (OPENVDS_LIBDIR_SUFFIX "" CACHE STRING "Suffix to add to lib directories on linux")
 set (OPENVDS_PYTHON_VERSION "" CACHE STRING "Exact Python 3 version to discover")
 set (OPENVDS_JAVA_VERSION "" CACHE STRING "Exact Java version to discover")
+set (OPENVDS_3RD_PARTY_DIR "" CACHE PATH "Path to put 3rd party source code, should be absolute path")
+
 option(FORCE_NO_LIBDIR_SUFFIX "Force there to be no suffix on lib directories linux")
 
 get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
