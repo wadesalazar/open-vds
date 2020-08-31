@@ -25,6 +25,7 @@
 
 #include "../utils/GenerateVDS.h"
 #include "../utils/SlowIOManager.h"
+#include "../utils/FacadeIOManager.h"
 
 #include <OpenVDS/IO/IOManager.h>
 #include <OpenVDS/IO/IOManagerInMemory.h>
@@ -40,9 +41,16 @@ TEST(Multithreading, requests)
   OpenVDS::InMemoryOpenOptions options;
   OpenVDS::Error error;
   std::unique_ptr<OpenVDS::IOManager> inMemory(OpenVDS::IOManagerInMemory::CreateIOManager(options, error));
+
+  {
+    IOManagerFacadeLight *iomanager = new IOManagerFacadeLight(inMemory.get());
+    std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(datasetSize, datasetSize, datasetSize, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, iomanager), OpenVDS::Close);
+
+    fill3DVDSWithBitNoise(handle.get());
+  }
+  
   SlowIOManager* slowIOManager = new SlowIOManager(requestDelayMs, inMemory.get());
-  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(datasetSize, datasetSize, datasetSize, OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, slowIOManager), OpenVDS::Close);
-  fill3DVDSWithBitNoise(handle.get());
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(slowIOManager, error), OpenVDS::Close);
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
 
