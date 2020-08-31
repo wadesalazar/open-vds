@@ -72,28 +72,16 @@ int main(int argc, char **argv)
   options.positional_help("<output file>");
 
   std::string file_name;
-  std::string bucket;
-  std::string region;
+  std::string url;
   std::string connectionString;
-  std::string container;
-  int azureParallelismFactor = 0;
-  std::string object;
-  std::string azurePresignBase;
-  std::string azurePresignSuffix;
   std::string axis = "0,1,2";
   int axis_position = std::numeric_limits<int>::min();
   int32_t output_width = 500;
   int32_t output_height = 500;
   bool generate_noise = false;
 
-  options.add_option("", "", "bucket",   "AWS S3 bucket to download from.", cxxopts::value(bucket), "<string>");
-  options.add_option("", "", "region", "AWS region of bucket to download from.", cxxopts::value<std::string>(region), "<string>");
+  options.add_option("", "", "url", "Url for the VDS", cxxopts::value<std::string>(url), "<string>");
   options.add_option("", "", "connection-string", "Azure Blob Storage connection string.", cxxopts::value<std::string>(connectionString), "<string>");
-  options.add_option("", "", "container", "Azure Blob Storage container to download from .", cxxopts::value<std::string>(container), "<string>");
-  options.add_option("", "", "parallelism-factor", "Azure parallelism factor.", cxxopts::value<int>(azureParallelismFactor), "<value>");
-  options.add_option("", "", "object",   "ObjectId of the VDS", cxxopts::value(object), "<string>");
-  options.add_option("", "", "azure-presign-base", "Base URL for presigned Azure requests", cxxopts::value(azurePresignBase), "<value>");
-  options.add_option("", "", "azure-presign-suffix", "Suffix of the presigned URL for Azure requests", cxxopts::value(azurePresignSuffix), "<value>");
   options.add_option("", "", "axis",     "Axis mapping. Comma seperated list. First digite is the axis for the slice. "
                                          "Second is the x axis and third is the y axis", cxxopts::value(axis), "<axis id>");
   options.add_option("", "", "noise",    "Generate a noise VDS in memory, and grab a slice from this (default off).", cxxopts::value(generate_noise), "<enable>");
@@ -107,23 +95,31 @@ int main(int argc, char **argv)
   {
     options.parse(argc, argv);
   }
-  catch(cxxopts::OptionParseException *e)
+  catch(cxxopts::OptionParseException &e)
   {
-    fmt::print(stderr, "{}\n", e->what());
+    fmt::print(stderr, "{}\n", e.what());
     return EXIT_FAILURE;
   }
 
-  if (bucket.empty() && container.empty() && !generate_noise && azurePresignBase.empty())
+  OpenVDS::Error error;
+  OpenVDS::VDSHandle handle = nullptr;
+
+  if (generate_noise)
   {
-    fmt::print(stderr, "Either an Azure Blob Storage container name or an AWS S3 bucket name must be specified");
+    handle = generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+    if (handle)
+      fill3DVDSWithNoise(handle);
+  }
+  else if(url.empty())
+  {
+    fmt::print(stderr, "Either specify noise generation or provide a url.\n");
     return EXIT_FAILURE;
   }
-
-  if(azureParallelismFactor && container.empty())
+  else
   {
-    fmt::print(stderr, "Cannot specify parallelism-factor with other backends than Azure");
+    handle = OpenVDS::Open(url, connectionString, error);
   }
-
+  
   if (file_name.empty())
   {
     fmt::print(stderr, "No output filename specified");
@@ -139,46 +135,6 @@ int main(int argc, char **argv)
   }
   fmt::print(stdout, "Using axis mapping [{}, {}, {}]\n", axis_mapper[0], axis_mapper[1], axis_mapper[2]);
 
-  OpenVDS::Error error;
-  OpenVDS::VDSHandle handle = nullptr;
-
-  if (generate_noise)
-  {
-    handle = generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
-    if (handle)
-      fill3DVDSWithNoise(handle);
-  }
-  else if(!bucket.empty())
-  {
-    OpenVDS::AWSOpenOptions openOptions;
-    openOptions.key = object;
-    openOptions.bucket = bucket;
-    openOptions.region = region;
-
-    handle = OpenVDS::Open(openOptions, error);
-  }
-  else if(!container.empty())
-  {
-    OpenVDS::AzureOpenOptions openOptions;
-    openOptions.blob = object;
-    openOptions.container = container;
-    openOptions.connectionString = connectionString;
-
-    if(azureParallelismFactor)
-    {
-      openOptions.parallelism_factor = azureParallelismFactor;
-    }
-
-    handle = OpenVDS::Open(openOptions, error);
-  }
-  else if (!azurePresignBase.empty())
-  {
-    OpenVDS::AzurePresignedOpenOptions openOptions;
-    openOptions.baseUrl = azurePresignBase;
-    openOptions.urlSuffix = azurePresignSuffix;
-
-    handle = OpenVDS::Open(openOptions, error);
-  }
 
   if (!handle)
   {
