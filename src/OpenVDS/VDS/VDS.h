@@ -30,6 +30,7 @@
 #include "VDS/VolumeDataAccessManagerImpl.h"
 #include "VDS/VolumeDataRequestProcessor.h"
 #include "VDS/VolumeDataStore.h"
+#include "VDS/GlobalStateImpl.h"
 
 #include <vector>
 #include <map>
@@ -85,6 +86,8 @@ struct VDS
                     accessManager;
   std::unique_ptr<VolumeDataStore>
                     volumeDataStore;
+
+  GlobalStateImpl * globalState;
 };
 
 void CreateVolumeDataLayout(VDS &handle);

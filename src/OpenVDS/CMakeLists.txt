@@ -91,6 +91,7 @@ set (PRIVATE_HEADER_FILES
   VDS/ThreadPool.h
   VDS/Env.h
   VDS/ConnectionStringParser.h
+  VDS/GlobalStateImpl.h
   )
 
 set (EXPORTED_HEADER_FILES
@@ -112,6 +113,7 @@ set (EXPORTED_HEADER_FILES
   OpenVDS/CoordinateTransformer.h
   OpenVDS/VolumeIndexer.h
   OpenVDS/SimplexNoiseKernel.h
+  OpenVDS/GlobalState.h
   )
 
 if (MSVC)

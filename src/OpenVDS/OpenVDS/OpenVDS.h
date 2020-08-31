@@ -34,6 +34,7 @@ namespace OpenVDS
 class VolumeDataLayoutDescriptor;
 class VolumeDataAxisDescriptor;
 class VolumeDataChannelDescriptor;
+class GlobalState;
 class IOManager;
 
 struct OpenOptions
@@ -46,7 +47,9 @@ struct OpenOptions
     GoogleStorage,
     Http,
     VDSFile,
-    InMemory
+    InMemory,
+    Other,
+    ConnectionTypeCount
   };
 
   ConnectionType connectionType;
@@ -415,6 +418,14 @@ OPENVDS_EXPORT VolumeDataAccessManager *GetAccessManager(VDSHandle handle);
 /// The handle of the VDS
 /// </param>
 OPENVDS_EXPORT void Close(VDSHandle handle);
+
+/// <summary>
+/// Get the GlobalState interface 
+/// </summary>
+/// <returns>
+/// A pointer to the GlobalState interface
+/// </returns>
+OPENVDS_EXPORT GlobalState *GetGlobalState();
 
 }
 

@@ -61,6 +61,7 @@ namespace OpenVDS
   class IOManager
   {
   public:
+    IOManager(OpenOptions::ConnectionType connectionType);
     virtual ~IOManager();
     virtual std::shared_ptr<Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler) = 0;
     virtual std::shared_ptr<Request> ReadObject(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange &range = IORange()) = 0;
@@ -74,11 +75,16 @@ namespace OpenVDS
       return WriteObject(objectName, "", "application/json", std::vector<std::pair<std::string, std::string>>(), data, completedCallback);
     }
 
+    OpenOptions::ConnectionType connectionType() const { return m_connectionType; }
+
     OPENVDS_EXPORT
     static IOManager *CreateIOManager(const OpenOptions &options, Error &error);
 
     OPENVDS_EXPORT
     static IOManager *CreateIOManager(const StringWrapper& url, const StringWrapper& connectionString, Error& error);
+
+  protected:
+    OpenOptions::ConnectionType m_connectionType;
   };
 
 }

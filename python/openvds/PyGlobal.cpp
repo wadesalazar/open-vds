@@ -161,6 +161,8 @@ PyGlobal::initModule(py::module& m)
       case OpenOptions::ConnectionType::Http           : conn = std::string("Http"           ); break;
       case OpenOptions::ConnectionType::VDSFile        : conn = std::string("VDSFile"        ); break;
       case OpenOptions::ConnectionType::InMemory       : conn = std::string("InMemory"       ); break;
+      case OpenOptions::ConnectionType::Other          : conn = std::string("Other"          ); break;
+      case OpenOptions::ConnectionType::ConnectionTypeCount : conn = std::string("ConnectionTypeCount"); break;
       }
       return std::string("OpenOptions(connectionType='" + conn + "')");
     });

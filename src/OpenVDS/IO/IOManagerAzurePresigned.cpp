@@ -22,7 +22,8 @@
 namespace OpenVDS
 {
   IOManagerAzurePresigned::IOManagerAzurePresigned(const std::string& base, const std::string& suffix, Error &error)
-    : m_curlHandler(error)
+    : IOManager(OpenOptions::AzurePresigned)
+    , m_curlHandler(error)
     , m_base(base)
     , m_suffix(suffix)
   {

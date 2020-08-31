@@ -383,7 +383,8 @@ namespace OpenVDS
   }
 
   IOManagerAWS::IOManagerAWS(const AWSOpenOptions& openOptions, Error &error)
-    : m_region(openOptions.region)
+    : IOManager(OpenOptions::AWS)
+    , m_region(openOptions.region)
     , m_bucket(openOptions.bucket)
     , m_objectId(openOptions.key)
   {

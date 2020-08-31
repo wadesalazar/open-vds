@@ -26,6 +26,7 @@
 #include "ParsedMetadata.h"
 #include <OpenVDS/ValueConversion.h>
 #include <VDS/VDS.h>
+#include <VDS/GlobalStateImpl.h>
 
 #include <fmt/format.h>
 
@@ -36,6 +37,16 @@
 
 namespace OpenVDS
 {
+
+VolumeDataStore::VolumeDataStore(OpenOptions::ConnectionType connectionType)
+  : m_globalStateVds(static_cast<GlobalStateImpl *>(GetGlobalState())->downloaded[connectionType],
+                     static_cast<GlobalStateImpl *>(GetGlobalState())->downloadedChunks[connectionType],
+                     static_cast<GlobalStateImpl *>(GetGlobalState())->decompressed[connectionType],
+                     static_cast<GlobalStateImpl *>(GetGlobalState())->decompressedChunks[connectionType])
+{
+}
+
+
 static bool CompressionMethodIsWavelet(CompressionMethod compressionMethod)
 {
   return compressionMethod == CompressionMethod::Wavelet ||
@@ -479,7 +490,7 @@ bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volume
   return true;
 }
 
-bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error)
+bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk& volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock& dataBlock, std::vector<uint8_t>& target, Error& error)
 {
   uint64_t volumeDataHashValue = VolumeDataHash::UNKNOWN;
 
@@ -534,7 +545,9 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk &volumeDataChu
     }
   }
 
-  return OpenVDS::DeserializeVolumeData(serializedData, loadFormat, compressionMethod, deserializeValueRange, volumeDataLayer->GetIntegerScale(), volumeDataLayer->GetIntegerOffset(), volumeDataLayer->IsUseNoValue(), volumeDataLayer->GetNoValue(), adaptiveLevel, dataBlock, target, error);
+  bool ret = OpenVDS::DeserializeVolumeData(serializedData, loadFormat, compressionMethod, deserializeValueRange, volumeDataLayer->GetIntegerScale(), volumeDataLayer->GetIntegerOffset(), volumeDataLayer->IsUseNoValue(), volumeDataLayer->GetNoValue(), adaptiveLevel, dataBlock, target, error);
+  m_globalStateVds.addDecompressed(target.size());
+  return ret;
 }
 
 uint64_t

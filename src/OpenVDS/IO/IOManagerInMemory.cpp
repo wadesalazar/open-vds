@@ -49,7 +49,8 @@ public:
 };
 
 IOManagerInMemory::IOManagerInMemory(const InMemoryOpenOptions &openOptions, Error &error)
-  : m_threadPool(std::thread::hardware_concurrency())
+  : IOManager(OpenOptions::InMemory)
+  , m_threadPool(std::thread::hardware_concurrency())
 {
 
 }
@@ -171,7 +172,8 @@ class IOManagerProxy : public OpenVDS::IOManager
 {
 public:
   IOManagerProxy(OpenVDS::IOManager *backend)
-    : backend(backend)
+    : IOManager(backend->connectionType())
+    , backend(backend)
   {}
 
   std::shared_ptr<OpenVDS::Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler) override

@@ -70,7 +70,8 @@ class IOManagerFacadeLight : public OpenVDS::IOManager
 {
 public:
   IOManagerFacadeLight(OpenVDS::IOManager *backend)
-    : backend(backend)
+    : IOManager(backend->connectionType())
+    , backend(backend)
   {}
 
   std::shared_ptr<OpenVDS::Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<OpenVDS::TransferDownloadHandler> handler) override
@@ -94,7 +95,8 @@ class IOManagerFacade : public OpenVDS::IOManager
 {
 public:
   IOManagerFacade(OpenVDS::IOManager *backend)
-    : backend(backend)
+    : IOManager(backend->connectionType())
+    , backend(backend)
     , threadPool(1)
   {}
 

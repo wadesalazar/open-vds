@@ -42,7 +42,8 @@ namespace OpenVDS
   static const std::string GOOGLEAPIS = "https://storage.googleapis.com";
 
   IOManagerGoogle::IOManagerGoogle(const GoogleOpenOptions& openOptions, Error &error)
-    : m_curlHandler(error)
+    : IOManager(OpenOptions::GoogleStorage)
+    , m_curlHandler(error)
     , m_bucket(openOptions.bucket)
     , m_pathPrefix(openOptions.pathPrefix)
   {

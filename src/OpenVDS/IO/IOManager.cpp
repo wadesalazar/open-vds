@@ -46,6 +46,10 @@ Request::Request(const std::string& objectName)
 Request::~Request()
 {}
 
+IOManager::IOManager(OpenOptions::ConnectionType connectionType)
+  : m_connectionType(connectionType)
+{
+}
 IOManager::~IOManager()
 {}
 IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)

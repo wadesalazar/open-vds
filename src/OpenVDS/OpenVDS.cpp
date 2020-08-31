@@ -34,6 +34,7 @@
 #include "VDS/ConnectionStringParser.h"
 #include "VDS/VolumeDataStoreIOManager.h"
 #include "VDS/VolumeDataStoreVDSFile.h"
+#include "VDS/GlobalStateImpl.h"
 
 #include "IO/IOManager.h"
 
@@ -606,6 +607,12 @@ VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& l
 void Close(VDS *vds)
 {
   delete vds;
+}
+
+GlobalState *GetGlobalState()
+{
+  static GlobalState *globalState = new GlobalStateImpl();
+  return globalState;
 }
 
 }

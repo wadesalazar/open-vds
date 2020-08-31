@@ -347,7 +347,8 @@ void UploadRequestAzure::Cancel()
 }
 
 IOManagerAzure::IOManagerAzure(const AzureOpenOptions& openOptions, Error& error)
-  : m_connStr(openOptions.connectionString)
+  : IOManager(OpenOptions::Azure)
+  , m_connStr(openOptions.connectionString)
   , m_containerStr(openOptions.container)
   , m_prefix(openOptions.blob)
 {

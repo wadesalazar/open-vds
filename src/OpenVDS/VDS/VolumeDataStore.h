@@ -27,6 +27,7 @@
 #include "DataBlock.h"
 #include "VolumeDataHash.h"
 #include "ParsedMetadata.h"
+#include "GlobalStateImpl.h"
 
 #include <vector>
 
@@ -36,7 +37,7 @@ namespace OpenVDS
 class VolumeDataStore
 {
 public:
-           VolumeDataStore() {};
+           VolumeDataStore(OpenOptions::ConnectionType connectionType);
   virtual ~VolumeDataStore() {};
 
   virtual CompressionInfo
@@ -51,11 +52,15 @@ public:
   virtual bool          AddLayer(VolumeDataLayer* volumeDataLayer) = 0;
   virtual bool          RemoveLayer(VolumeDataLayer* volumeDataLayer) = 0;
 
+  bool DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error);
+
   static bool Verify(const VolumeDataChunk& volumeDataChunk, const std::vector<uint8_t>& serializedData, CompressionMethod compressionMethod, bool isFullyRead);
-  static bool DeserializeVolumeData(const VolumeDataChunk &volumeDataChunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata, CompressionMethod compressionMethod, int32_t adaptiveLevel, VolumeDataChannelDescriptor::Format loadFormat, DataBlock &dataBlock, std::vector<uint8_t>& target, Error& error);
   static bool CreateConstantValueDataBlock(VolumeDataChunk const &volumeDataChunk, VolumeDataChannelDescriptor::Format format, float noValue, VolumeDataChannelDescriptor::Components components, VolumeDataHash const &constantValueVolumeDataHash, DataBlock &dataBlock, std::vector<uint8_t> &buffer, Error &error);
   static uint64_t
               SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlock &dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, std::vector<uint8_t>& destinationBuffer);
+
+protected:
+  GlobalStateVds        m_globalStateVds; 
 };
 
 }

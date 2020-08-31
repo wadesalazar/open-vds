@@ -139,7 +139,8 @@ class SlowIOManager : public OpenVDS::IOManager
 {
 public:
   SlowIOManager(int delayMs, OpenVDS::IOManager *target)
-    : m_delayMs(delayMs)
+    : IOManager(target->connectionType())
+    , m_delayMs(delayMs)
     , m_target(target)
   {}
 

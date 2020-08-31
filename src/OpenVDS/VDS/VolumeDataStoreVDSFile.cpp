@@ -21,6 +21,7 @@
 
 #include "VDS.h"
 #include "ParseVDSJson.h"
+#include <OpenVDS/OpenVDS.h>
 
 #include <fmt/format.h>
 
@@ -106,6 +107,7 @@ bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, std::vector
 
       if(buffer)
       {
+        m_globalStateVds.addDownload(buffer->Size());
         auto bufferData = reinterpret_cast<const uint8_t *>(buffer->Data());
         serializedData.assign(bufferData, bufferData + buffer->Size());
         m_dataStore->ReleaseBuffer(buffer);
@@ -420,7 +422,8 @@ void VolumeDataStoreVDSFile::SetMetadataStatus(std::string const &layerName, Met
 }
 
 VolumeDataStoreVDSFile::VolumeDataStoreVDSFile(VDS &vds, const std::string &vdsFileName, Mode mode, Error &error)
-  : m_vds(vds)
+  : VolumeDataStore(OpenOptions::VDSFile)
+  , m_vds(vds)
   , m_isVDSObjectFilePresent(false)
   , m_isVolumeDataLayoutFilePresent(false)
   , m_dataStore(HueBulkDataStore::Open(vdsFileName.c_str()), &HueBulkDataStore::Close)

@@ -226,7 +226,8 @@ static int WaveletAdaptiveLevelsMetadataDecode(uint64_t totalSize, int targetLev
 }
 
 VolumeDataStoreIOManager:: VolumeDataStoreIOManager(VDS &vds, IOManager *ioManager)
-  : m_vds(vds)
+  : VolumeDataStore(ioManager->connectionType())
+  , m_vds(vds)
   , m_ioManager(ioManager)
   , m_warnedAboutMissingMetadataTag(false)
 {
@@ -509,6 +510,7 @@ bool VolumeDataStoreIOManager::ReadChunk(const VolumeDataChunk &chunk, std::vect
 
   if (transferHandler->m_data.size())
   {
+    m_globalStateVds.addDownload(transferHandler->m_data.size());
     if (moveData)
       serializedData = std::move(transferHandler->m_data);
     else
