@@ -254,7 +254,7 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
   
-  if (urlarg.size() + vdsFileName.empty() > 1)
+  if (urlarg.size() + vdsFileName.size() > 1)
   {
     std::cout << "\nFailed - can only specify one url/vdsfile argument\n\n";
     std::cout << options.help();
