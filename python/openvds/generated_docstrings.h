@@ -230,6 +230,26 @@ Returns:
     the VolumeDataAccessManager)doc";
 
 static const char *__doc_OpenVDS_Create_2 =
+R"doc(Create a new VDS This is a simple wrapper that uses an empty
+connectionString
+
+Parameters:
+-----------
+
+url :
+    The url scheme specific to each cloud provider Available schemes
+    are s3:// azure://
+
+error :
+    If an error occured, the error code and message will be written to
+    this output parameter
+
+Returns:
+--------
+    The VDS handle that can be used to get the VolumeDataLayout and
+    the VolumeDataAccessManager)doc";
+
+static const char *__doc_OpenVDS_Create_3 =
 R"doc(Create a new VDS
 
 Parameters:
@@ -247,7 +267,7 @@ Returns:
     The VDS handle that can be used to get the VolumeDataLayout and
     the VolumeDataAccessManager)doc";
 
-static const char *__doc_OpenVDS_Create_3 =
+static const char *__doc_OpenVDS_Create_4 =
 R"doc(<summary> Create a new VDS
 
 </summary> <param name="ioManager"> The IOManager for the connection,
@@ -453,6 +473,13 @@ static const char *__doc_OpenVDS_GetDataBlockDimensionality = R"doc()doc";
 
 static const char *__doc_OpenVDS_GetDataBlockDimensionality_Dimensionality = R"doc()doc";
 
+static const char *__doc_OpenVDS_GetGlobalState =
+R"doc(Get the GlobalState interface
+
+Returns:
+--------
+    A pointer to the GlobalState interface)doc";
+
 static const char *__doc_OpenVDS_GetLODSize =
 R"doc(Get the number of voxels at a particular LOD from a voxel range
 (ranges are exclusive).
@@ -490,6 +517,65 @@ handle :
 Returns:
 --------
     The VolumeDataLayout of the VDS)doc";
+
+static const char *__doc_OpenVDS_GlobalState = R"doc(Object that contains global runtime data)doc";
+
+static const char *__doc_OpenVDS_GlobalState_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GlobalState_GetBytesDecompressed =
+R"doc(Get the global amount of decompressed bytes. This amount might be
+smaller than the amount of downloaded bytes because of a small header
+pr chunk. It can also be larger for non compressed data sets since
+chunks can be cached.
+
+Parameters:
+-----------
+
+connectionType :
+    $Returns:
+--------
+
+Amount of decompressed bytes served the process.)doc";
+
+static const char *__doc_OpenVDS_GlobalState_GetBytesDownloaded =
+R"doc(Get the global amount of downloaded bytes from a cloud vendor.
+
+Parameters:
+-----------
+
+connectionType :
+    The counter to be retireved.
+
+Returns:
+--------
+    Global number of bytes downloaded from the connection. This does
+    not include any http header data.)doc";
+
+static const char *__doc_OpenVDS_GlobalState_GetChunksDecompressed =
+R"doc(Get the global count of decompressed chunks.
+
+Parameters:
+-----------
+
+connectionType :
+    The counter to be retireved.
+
+Returns:
+--------
+    Number of chunks decompressed.)doc";
+
+static const char *__doc_OpenVDS_GlobalState_GetChunksDownloaded =
+R"doc(Get the global count of downloaded chunks.
+
+Parameters:
+-----------
+
+connectionType :
+    The counter to be retireved.
+
+Returns:
+--------
+    Number of chunks downloaded.)doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions = R"doc(Options for opening a VDS in Google Cloud Storage)doc";
 
@@ -1160,6 +1246,26 @@ Returns:
     the VolumeDataAccessManager)doc";
 
 static const char *__doc_OpenVDS_Open_2 =
+R"doc(Open an existing VDS. This is a simple wrapper that uses an empty
+connectionString
+
+Parameters:
+-----------
+
+url :
+    The url scheme specific to each cloud provider Available schemes
+    are s3:// azure://
+
+error :
+    If an error occured, the error code and message will be written to
+    this output parameter
+
+Returns:
+--------
+    The VDS handle that can be used to get the VolumeDataLayout and
+    the VolumeDataAccessManager)doc";
+
+static const char *__doc_OpenVDS_Open_3 =
 R"doc(Open an existing VDS
 
 Parameters:
@@ -1177,7 +1283,7 @@ Returns:
     The VDS handle that can be used to get the VolumeDataLayout and
     the VolumeDataAccessManager)doc";
 
-static const char *__doc_OpenVDS_Open_3 =
+static const char *__doc_OpenVDS_Open_4 =
 R"doc(Open an existing VDS
 
 Parameters:
@@ -1206,11 +1312,15 @@ static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Azure = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_AzurePresigned = R"doc()doc";
 
+static const char *__doc_OpenVDS_OpenOptions_ConnectionType_ConnectionTypeCount = R"doc()doc";
+
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_GoogleStorage = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Http = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_InMemory = R"doc()doc";
+
+static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Other = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_VDSFile = R"doc()doc";
 

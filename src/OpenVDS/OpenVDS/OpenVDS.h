@@ -314,6 +314,22 @@ OPENVDS_EXPORT OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper c
 OPENVDS_EXPORT VDSHandle Open(StringWrapper url, StringWrapper connectionString, Error& error);
 
 /// <summary>
+/// Open an existing VDS.
+/// This is a simple wrapper that uses an empty connectionString
+/// </summary>
+/// <param name="url">
+/// The url scheme specific to each cloud provider
+/// Available schemes are s3:// azure://
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+inline VDSHandle Open(StringWrapper url, Error& error) { std::string connectionString; return Open(url, connectionString, error); }
+
+/// <summary>
 /// Open an existing VDS
 /// </summary>
 /// <param name="options">
@@ -359,6 +375,26 @@ OPENVDS_EXPORT VDSHandle Open(IOManager*ioManager, Error &error);
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
 OPENVDS_EXPORT VDSHandle Create(StringWrapper url, StringWrapper connectionString, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error);
+
+/// <summary>
+/// Create a new VDS
+/// This is a simple wrapper that uses an empty connectionString
+/// </summary>
+/// <param name="url">
+/// The url scheme specific to each cloud provider
+/// Available schemes are s3:// azure://
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+inline VDSHandle Create(StringWrapper url, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
+{
+  std::string connectionString;
+  return Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error);
+}
 
 /// <summary>
 /// Create a new VDS

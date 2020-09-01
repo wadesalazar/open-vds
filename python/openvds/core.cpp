@@ -32,6 +32,7 @@
 #include "PyVolumeDataLayout.h"
 #include "PyVolumeDataLayoutDescriptor.h"
 #include "PyVolumeSampler.h"
+#include "PyGlobalState.h"
 
 
 PYBIND11_MODULE(core, m) {
@@ -48,4 +49,5 @@ PYBIND11_MODULE(core, m) {
   PyVolumeDataLayout::initModule(m);
   PyVolumeDataLayoutDescriptor::initModule(m);
   PyVolumeSampler::initModule(m);
+  PyGlobalState::initModule(m);
 }

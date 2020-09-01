@@ -25,6 +25,7 @@
 #include <OpenVDS/VolumeData.h>
 #include <OpenVDS/VolumeDataAccess.h>
 #include <OpenVDS/KnownMetadata.h>
+#include <OpenVDS/GlobalState.h>
 
 #include "generated_docstrings.h"
 

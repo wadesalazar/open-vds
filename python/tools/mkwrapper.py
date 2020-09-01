@@ -375,7 +375,7 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
     output.append(line)
     # Generate read-only property for get...() and is...() methods with no arguments
     pname = getpyname(fnname[3:]) if fnname.startswith("get") else getpyname(fnname[2:]) if fnname.startswith("is") else ""
-    if pname and not argnames and not pname.isdigit() and not pname == "LODLevels":
+    if pname and not argnames and not pname.isdigit() and not pname == "LODLevels" and not pname == "globalState":
         getter_code = """.def_property_readonly("{}", &{}, {});""".format(
             pname,
             getnativename(node, all_),
