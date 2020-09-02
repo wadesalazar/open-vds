@@ -21,7 +21,7 @@
 #include <OpenVDS/VolumeDataLayoutDescriptor.h>
 #include <OpenVDS/VolumeDataAxisDescriptor.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
-#include <OpenVDS/Metadata.h>
+#include <OpenVDS/MetadataContainer.h>
 #include <OpenVDS/Vector.h>
 
 #include "VDS/VolumeDataLayoutImpl.h"

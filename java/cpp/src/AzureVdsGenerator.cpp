@@ -23,6 +23,7 @@
 #include <OpenVDS/VolumeDataAxisDescriptor.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/KnownMetadata.h>
+#include <OpenVDS/MetadataContainer.h>
 
 #include <limits>
 #include <stdexcept>

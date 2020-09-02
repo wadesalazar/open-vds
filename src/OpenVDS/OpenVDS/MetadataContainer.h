@@ -15,226 +15,16 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#ifndef OPENVDS_METADATA_H
-#define OPENVDS_METADATA_H
+#ifndef OPENVDS_METADATACONTAINER_H
+#define OPENVDS_METADATACONTAINER_H
 
-#include <unordered_map>
-#include <OpenVDS/Vector.h>
+#include <OpenVDS/MetadataAccess.h>
 
 #include <string>
 #include <vector>
-#include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
-
-#include <cassert>
 #include <cstring>
-
-class PyMetadata;
-
-namespace OpenVDS
-{
-
-enum class MetadataType
-{
-  Int,
-  IntVector2,
-  IntVector3,
-  IntVector4,
-  Float,
-  FloatVector2,
-  FloatVector3,
-  FloatVector4,
-  Double,
-  DoubleVector2,
-  DoubleVector3,
-  DoubleVector4,
-  String,
-  BLOB
-};
-
-/// <summary>
-/// A metadata key uniquely identifies a metadata item
-/// </summary>
-class MetadataKey
-{
-  MetadataType  m_type;
-  const char   *m_category;
-  const char   *m_name;
-public:
-  /// <summary>
-  /// Default constructor
-  /// </summary>
-  MetadataKey() : m_type(), m_category(), m_name() {}
-
-  /// <summary>
-  /// Constructor
-  /// </summary>
-  /// <param name="type">
-  /// The type of the metadata that this key identifies. The possible types are (Int, Float, Double, {Int,Float,Double}Vector{2,3,4}, String or BLOB).
-  /// </param>
-  /// <param name="category">
-  /// The category of the metadata that this key identifies. A category is a collection of related metadata items, e.g. SurveyCoordinateSystem consists of Origin, InlineSpacing, CrosslineSpacing and Unit metadata.
-  /// </param>
-  /// <param name="name">
-  /// The name of the metadata that this key identifies
-  /// </param>
-  MetadataKey(MetadataType type, const char *category, const char *name) : m_type(type), m_category(category), m_name(name) {}
-
-  /// <summary>
-  /// Get the type of metadata that this key identifies
-  /// </summary>
-  /// <returns>
-  /// The type of the metadata that this key identifies
-  /// </returns>
-  MetadataType GetType() const { return m_type; }
-
-  /// <summary>
-  /// Get the category of metadata that this key identifies
-  /// </summary>
-  /// <returns>
-  /// The category of the metadata that this key identifies
-  /// </returns>
-  const char  *GetCategory() const { return m_category; }
-
-  /// <summary>
-  /// Get the name of metadata that this key identifies
-  /// </summary>
-  /// <returns>
-  /// The name of the metadata that this key identifies
-  /// </returns>
-  const char  *GetName() const { return m_name; }
-
-  bool operator==(const MetadataKey& other) const { return m_type == other.m_type && strcmp(m_category, other.m_category) == 0 && strcmp(m_name, other.m_name) == 0; }
-  bool operator!=(const MetadataKey& other) const { return m_type != other.m_type || strcmp(m_category, other.m_category) != 0 || strcmp(m_name, other.m_name) != 0; }
-};
-
-/// \brief A range of metadata keys that can be iterated over using range-based 'for'
-class MetadataKeyRange
-{
-  const MetadataKey *m_begin;
-  const MetadataKey *m_end;
-public:
-  using const_iterator = const MetadataKey *;
-  MetadataKeyRange(const_iterator begin, const_iterator end) : m_begin(begin), m_end(end) {}
-  const_iterator begin() const { return m_begin; } ///< Returns a const iterator pointing to the first element in the MetadataKey collection
-  const_iterator end() const   { return m_end; } ///< Returns a const iterator pointing to the past-the-end element in the MetadataKey collection
-};
-
-/// \brief Interface for read access to Metadata
-class MetadataReadAccess
-{
-protected:
-  virtual ~MetadataReadAccess() {}
-
-  virtual void        GetMetadataBLOB(const char* category, const char* name, const void **data, size_t *size) const = 0; ///< Returns the metadata BLOB with the given category and name
-public:
-  // These functions provide access to Metadata
-  virtual bool        IsMetadataIntAvailable(const char* category, const char* name) const = 0;           ///< Returns true if a metadata int with the given category and name is available
-  virtual bool        IsMetadataIntVector2Available(const char* category, const char* name) const = 0;    ///< Returns true if a metadata IntVector2 with the given category and name is available
-  virtual bool        IsMetadataIntVector3Available(const char* category, const char* name) const = 0;    ///< Returns true if a metadata IntVector3 with the given category and name is available
-  virtual bool        IsMetadataIntVector4Available(const char* category, const char* name) const = 0;    ///< Returns true if a metadata IntVector4 with the given category and name is available
-  virtual bool        IsMetadataFloatAvailable(const char* category, const char* name) const = 0;         ///< Returns true if a metadata float with the given category and name is available
-  virtual bool        IsMetadataFloatVector2Available(const char* category, const char* name) const = 0;  ///< Returns true if a metadata FloatVector2 with the given category and name is available
-  virtual bool        IsMetadataFloatVector3Available(const char* category, const char* name) const = 0;  ///< Returns true if a metadata FloatVector3 with the given category and name is available
-  virtual bool        IsMetadataFloatVector4Available(const char* category, const char* name) const = 0;  ///< Returns true if a metadata FloatVector4 with the given category and name is available
-  virtual bool        IsMetadataDoubleAvailable(const char* category, const char* name) const = 0;        ///< Returns true if a metadata double with the given category and name is available
-  virtual bool        IsMetadataDoubleVector2Available(const char* category, const char* name) const = 0; ///< Returns true if a metadata DoubleVector2 with the given category and name is available
-  virtual bool        IsMetadataDoubleVector3Available(const char* category, const char* name) const = 0; ///< Returns true if a metadata DoubleVector3 with the given category and name is available
-  virtual bool        IsMetadataDoubleVector4Available(const char* category, const char* name) const = 0; ///< Returns true if a metadata DoubleVector4 with the given category and name is available
-  virtual bool        IsMetadataStringAvailable(const char* category, const char* name) const = 0;        ///< Returns true if a metadata string with the given category and name is available
-  virtual bool        IsMetadataBLOBAvailable(const char* category, const char* name) const = 0;          ///< Returns true if a metadata BLOB with the given category and name is available
-
-  virtual int         GetMetadataInt(const char* category, const char* name) const = 0;        ///< Returns the metadata int with the given category and name
-  virtual IntVector2  GetMetadataIntVector2(const char* category, const char* name) const = 0; ///< Returns the metadata IntVector2 with the given category and name
-  virtual IntVector3  GetMetadataIntVector3(const char* category, const char* name) const = 0; ///< Returns the metadata IntVector3 with the given category and name
-  virtual IntVector4  GetMetadataIntVector4(const char* category, const char* name) const = 0; ///< Returns the metadata IntVector4 with the given category and name
-
-  virtual float        GetMetadataFloat(const char* category, const char* name) const = 0;        ///< Returns the metadata float with the given category and name
-  virtual FloatVector2 GetMetadataFloatVector2(const char* category, const char* name) const = 0; ///< Returns the metadata FloatVector2 with the given category and name
-  virtual FloatVector3 GetMetadataFloatVector3(const char* category, const char* name) const = 0; ///< Returns the metadata FloatVector3 with the given category and name
-  virtual FloatVector4 GetMetadataFloatVector4(const char* category, const char* name) const = 0; ///< Returns the metadata FloatVector4 with the given category and name
-
-  virtual double        GetMetadataDouble(const char* category, const char* name) const = 0;        ///< Returns the metadata double with the given category and name
-  virtual DoubleVector2 GetMetadataDoubleVector2(const char* category, const char* name) const = 0; ///< Returns the metadata DoubleVector2 with the given category and name
-  virtual DoubleVector3 GetMetadataDoubleVector3(const char* category, const char* name) const = 0; ///< Returns the metadata DoubleVector3 with the given category and name
-  virtual DoubleVector4 GetMetadataDoubleVector4(const char* category, const char* name) const = 0; ///< Returns the metadata DoubleVector4 with the given category and name
-
-  virtual const char* GetMetadataString(const char* category, const char* name) const = 0; ///< Returns the metadata string with the given category and name
-  template <typename T>
-  inline void         GetMetadataBLOB(const char* category, const char* name, std::vector<T> &value) const
-                      {
-                        const void* data; size_t size;
-                        GetMetadataBLOB(category, name, &data, &size);
-                        value.assign(reinterpret_cast<const T *>(data), reinterpret_cast<const T *>(data) + size/sizeof(T));
-                      }
-  virtual MetadataKeyRange
-                      GetMetadataKeys() const = 0; ///< Returns a range of metadata keys that can be iterated over using range-based 'for'
-
-  friend PyMetadata;
-};
-
-/// \brief Interface for write access to Metadata
-class MetadataWriteAccess
-{
-protected:
-  virtual ~MetadataWriteAccess() {}
-
-public:
-  virtual void        SetMetadataInt(const char* category, const char* name, int value) = 0;               ///< Sets a metadata int with the given category and name to the given value
-  virtual void        SetMetadataIntVector2(const char* category, const char* name, IntVector2 value) = 0; ///< Sets a metadata IntVector2 with the given category and name to the given value
-  virtual void        SetMetadataIntVector3(const char* category, const char* name, IntVector3 value) = 0; ///< Sets a metadata IntVector3 with the given category and name to the given value
-  virtual void        SetMetadataIntVector4(const char* category, const char* name, IntVector4 value) = 0; ///< Sets a metadata IntVector4 with the given category and name to the given value
-
-  virtual void        SetMetadataFloat(const char* category, const char* name, float value) = 0;               ///< Sets a metadata float with the given category and name to the given value
-  virtual void        SetMetadataFloatVector2(const char* category, const char* name, FloatVector2 value) = 0; ///< Sets a metadata FloatVector2 with the given category and name to the given value
-  virtual void        SetMetadataFloatVector3(const char* category, const char* name, FloatVector3 value) = 0; ///< Sets a metadata FloatVector3 with the given category and name to the given value
-  virtual void        SetMetadataFloatVector4(const char* category, const char* name, FloatVector4 value) = 0; ///< Sets a metadata FloatVector4 with the given category and name to the given value
-
-  virtual void        SetMetadataDouble(const char* category, const char* name, double value) = 0;               ///< Sets a metadata double with the given category and name to the given value
-  virtual void        SetMetadataDoubleVector2(const char* category, const char* name, DoubleVector2 value) = 0; ///< Sets a metadata DoubleVector2 with the given category and name to the given value
-  virtual void        SetMetadataDoubleVector3(const char* category, const char* name, DoubleVector3 value) = 0; ///< Sets a metadata DoubleVector3 with the given category and name to the given value
-  virtual void        SetMetadataDoubleVector4(const char* category, const char* name, DoubleVector4 value) = 0; ///< Sets a metadata DoubleVector4 with the given category and name to the given value
-
-  virtual void        SetMetadataString(const char* category, const char* name, const char* value) = 0;   ///< Sets a metadata string with the given category and name to the given value
-  inline  void        SetMetadataString(const char* category, const char* name, std::string const &value) ///< Sets a metadata string with the given category and name to the given value
-                      {
-                        SetMetadataString(category, name, value.c_str());
-                      }
-
-  virtual void        SetMetadataBLOB(const char* category, const char* name, const void *data, size_t size) = 0; ///< Sets a metadata BLOB with the given category and name to the given value
-  template <typename T>
-  inline void         SetMetadataBLOB(const char* category, const char* name, std::vector<T> const &value) ///< Sets a metadata BLOB with the given category and name to the given value
-                      {
-                        SetMetadataBLOB(category, name, value.empty() ? NULL : &value.front(), value.size() * sizeof(T));
-                      }
-
-  /// Copy the metadata from another MetadataContainer
-  /// \param category the metadata category to copy
-  /// \param metadataReadAccess the MetadataReadAccess interface to copy from
-  virtual void        CopyMetadata(const char* category, MetadataReadAccess const *metadataReadAccess) = 0;
-
-  virtual void        ClearMetadata(const char* category, const char* name) = 0; ///< Clear the metadata with the given category and name
-  virtual void        ClearMetadata(const char* category) = 0; ///< Clear the metadata with the given category
-};
-
-} // end namespace OpenVDS
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-namespace std
-{
-template<>
-struct hash<OpenVDS::MetadataKey>
-{
-  std::size_t operator()(const OpenVDS::MetadataKey &k) const
-  {
-    size_t const h1= std::hash<std::string>()(k.GetCategory());
-    size_t const h2= std::hash<std::string>()(k.GetName());
-    return h1 ^ (h2 << 1);
-  }
-};
-} // end namespace std
-#endif
 
 namespace OpenVDS
 {
@@ -481,9 +271,8 @@ private:
   std::vector<MetadataKey> m_keys;
   std::unordered_set<std::string> m_categories;
   std::unordered_set<std::string> m_names;
-
 };
 
 } // end namespace OpenVDS
 
-#endif // OPENVDS_METADATA_H
+#endif // OPENVDS_METADATACONTAINER_H

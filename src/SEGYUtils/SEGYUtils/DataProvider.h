@@ -24,6 +24,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <cassert>
 
 struct DataTransfer : public OpenVDS::TransferDownloadHandler
 {

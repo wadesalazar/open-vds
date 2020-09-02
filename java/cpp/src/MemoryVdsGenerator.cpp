@@ -29,6 +29,7 @@
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/KnownMetadata.h>
 #include <OpenVDS/GlobalMetadataCommon.h>
+#include <OpenVDS/MetadataContainer.h>
 #include <OpenVDS/VolumeDataLayout.h>
 #include <OpenVDS/VolumeDataAccess.h>
 #include <OpenVDS/SimplexNoiseKernel.h>

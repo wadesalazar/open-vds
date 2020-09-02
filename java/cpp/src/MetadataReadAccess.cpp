@@ -17,7 +17,7 @@
 
 #include <org_opengroup_openvds_MetadataReadAccess.h>
 #include <CommonJni.h>
-#include <OpenVDS/Metadata.h>
+#include <OpenVDS/MetadataAccess.h>
 
 using namespace OpenVDS;
 

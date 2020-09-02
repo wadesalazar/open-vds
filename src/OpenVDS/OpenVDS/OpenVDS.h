@@ -21,7 +21,7 @@
 #define OPENVDS_H
 
 #include <OpenVDS/openvds_export.h>
-#include <OpenVDS/Metadata.h>
+#include <OpenVDS/MetadataAccess.h>
 #include <OpenVDS/VolumeData.h>
 
 

@@ -23,7 +23,7 @@
 #include <SEGYUtils/TraceDataManager.h>
 
 #include <OpenVDS/OpenVDS.h>
-#include <OpenVDS/KnownMetadata.h>
+#include <OpenVDS/MetadataContainer.h>
 #include <OpenVDS/VolumeDataLayoutDescriptor.h>
 #include <OpenVDS/VolumeDataAxisDescriptor.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>

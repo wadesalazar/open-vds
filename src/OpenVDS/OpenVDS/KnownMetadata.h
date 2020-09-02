@@ -18,7 +18,7 @@
 #ifndef KNOWNMETADATA_H
 #define KNOWNMETADATA_H
 
-#include "Metadata.h"
+#include "MetadataKey.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // <copyright>

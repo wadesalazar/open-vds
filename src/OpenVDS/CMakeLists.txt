@@ -96,8 +96,10 @@ set (PRIVATE_HEADER_FILES
 
 set (EXPORTED_HEADER_FILES
   OpenVDS/GlobalMetadataCommon.h
+  OpenVDS/MetadataKey.h
   OpenVDS/KnownMetadata.h
-  OpenVDS/Metadata.h
+  OpenVDS/MetadataAccess.h
+  OpenVDS/MetadataContainer.h
   OpenVDS/OpenVDS.h
   OpenVDS/openvds_export.h
   OpenVDS/Range.h
