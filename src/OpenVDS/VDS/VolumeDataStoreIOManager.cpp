@@ -363,6 +363,7 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
 {
   CompressionMethod compressionMethod = CompressionMethod::Wavelet;
   ParsedMetadata parsedMetadata;
+  unsigned char const* metadataPageEntry;
   int adaptiveLevel = -1;
 
   IORange ioRange = IORange();
@@ -417,7 +418,7 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
 
     compressionMethod = metadataManager->GetMetadataStatus().m_compressionMethod;
 
-    unsigned char const* metadataPageEntry = metadataManager->GetPageEntry(metadataPage, entryIndex);
+    metadataPageEntry = metadataManager->GetPageEntry(metadataPage, entryIndex);
 
     parsedMetadata = ParseMetadata(metadataPageEntry, metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, error);
     if (error.code)
@@ -435,7 +436,8 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
   if (m_pendingDownloadRequests.find(chunk) == m_pendingDownloadRequests.end())
   {
     std::string url = CreateUrlForChunk(layerName, chunk.index);
-    auto transferHandler = std::make_shared<ReadChunkTransfer>(compressionMethod, parsedMetadata.CreateChunkMetaData(), adaptiveLevel);
+    std::vector<uint8_t> metadata(metadataPageEntry, metadataPageEntry + metadataManager->GetMetadataStatus().m_chunkMetadataByteSize);
+    auto transferHandler = std::make_shared<ReadChunkTransfer>(compressionMethod, metadata, adaptiveLevel);
     m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->ReadObject(url, transferHandler, ioRange), transferHandler);
   }
   else
@@ -633,7 +635,8 @@ void VolumeDataStoreIOManager::PageTransferCompleted(MetadataPage* metadataPage,
           IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
 
           std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.index);
-          auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, parsedMetadata.CreateChunkMetaData(), adaptiveLevel);
+          std::vector<uint8_t> metadata_vec(metadata, metadata + metadataManager->GetMetadataStatus().m_chunkMetadataByteSize);
+          auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, metadata_vec, adaptiveLevel);
           pendingRequest.m_activeTransfer = m_ioManager->ReadObject(url, transferHandler, ioRange);
           pendingRequest.m_transferHandle = transferHandler;
         }

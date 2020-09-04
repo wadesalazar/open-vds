@@ -49,22 +49,6 @@ namespace OpenVDS
     std::vector<uint8_t>
                 m_adaptiveLevels;
 
-    std::vector<uint8_t>
-    CreateChunkMetaData() const
-    {
-      std::vector<uint8_t>
-        metadata(sizeof(m_chunkHash) + m_adaptiveLevels.size());
-
-      memcpy(metadata.data(), &m_chunkHash, sizeof(m_chunkHash));
-
-      if (m_adaptiveLevels.size())
-      {
-        memcpy(metadata.data() + sizeof(m_chunkHash), m_adaptiveLevels.data(), m_adaptiveLevels.size());
-      }
-
-      return metadata;
-    }
-
     //bool valid() const
     //{
     //  return m_chunkHash != 0;
