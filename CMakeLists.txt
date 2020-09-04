@@ -12,6 +12,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 include(GNUInstallDirs)
 
 set (TEST_DATA_PATH "" CACHE PATH "Test data path")
+set (TEST_SEGY_FILE "" CACHE FILEPATH "SEGY test file")
 set (TEST_URL "" CACHE STRING "Test url for OpenOptions")
 set (TEST_CONNECTION "" CACHE STRING "Test connection string for OpenOptions")
 

@@ -104,6 +104,18 @@ add_test_executable(openvds_mixed_request
   OpenVDS/RequestVolumeSubsetAndPageAccessor.cpp
   )
 
+if (TEST_SEGY_FILE AND TEST_URL)
+  add_test(NAME "tools.SegyRoundtrip"
+    COMMAND ${CMAKE_COMMAND}
+                -DSEGYImport=$<TARGET_FILE:SEGYImport>
+                -DSEGYExport=$<TARGET_FILE:SEGYExport>
+                -DTEST_URL=${TEST_URL}
+                -DTEST_CONNECTION=${TEST_CONNECTION_ESCAPED}
+                -DTEST_SEGY_FILE=${TEST_SEGY_FILE}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/RunRoundtrip.cmake
+    )
+endif()
+
 if (BUILD_PYTHON)
   add_subdirectory(python)
 endif()
