@@ -160,7 +160,7 @@ void MetadataManager::UploadDirtyPages(VolumeDataStoreIOManager *volumeDataStore
 
   for(MetadataPageList::iterator it = m_dirtyPageList.begin(), next; it != m_dirtyPageList.end(); it = next)
   {
-    auto page = *it;
+    auto &page = *it;
     assert(page.IsDirty());
 
     // We need to keep a separate 'next' iterator since we're moving the current element to another list if the write is successful

@@ -331,7 +331,6 @@ bool VolumeDataRequestProcessor::IsCanceled(int64_t jobID)
     SetErrorForJob(job);
     m_manager.SetCurrentDownloadError(job->completedError);
     m_jobs.erase(job_it);
-    fmt::print(stderr, "C++ cancelledand removed\n");
     return true;
   }
   return false;
