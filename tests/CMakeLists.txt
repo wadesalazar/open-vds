@@ -112,6 +112,7 @@ if (TEST_SEGY_FILE AND TEST_URL)
                 -DTEST_URL=${TEST_URL}
                 -DTEST_CONNECTION=${TEST_CONNECTION_ESCAPED}
                 -DTEST_SEGY_FILE=${TEST_SEGY_FILE}
+                -DTEST_SEGY_HEADER_FILE=${TEST_SEGY_HEADER_FILE}
                 -P ${CMAKE_CURRENT_SOURCE_DIR}/RunRoundtrip.cmake
     )
 endif()

@@ -9,18 +9,22 @@ check_variable(SEGYExport)
 check_variable(TEST_URL)
 check_variable(TEST_SEGY_FILE)
 
-set(connection_parameter "--url ${TEST_URL}")
 if (TEST_CONNECTION)
   set(CONNECTION "--connection")
 endif()
 
+if (TEST_SEGY_HEADER_FILE)
+  set(HEADER "-h")
+endif()
 
 
-execute_process(COMMAND ${SEGYImport} --persistentID roundtrip_test --url "${TEST_URL}" ${CONNECTION} ${TEST_CONNECTION} ${TEST_SEGY_FILE} RESULT_VARIABLE CMD_RESULT)
+message("Running: ${SEGYImport} --persistentID roundtrip_test --url "${TEST_URL}" ${CONNECTION} ${TEST_CONNECTION} ${HEADER} ${TEST_SEGY_HEADER_FILE} ${TEST_SEGY_FILE}")
+execute_process(COMMAND ${SEGYImport} --persistentID roundtrip_test --url "${TEST_URL}" ${CONNECTION} ${TEST_CONNECTION} ${HEADER} ${TEST_SEGY_HEADER_FILE} ${TEST_SEGY_FILE} RESULT_VARIABLE CMD_RESULT)
 if (CMD_RESULT)
   message(FATAL_ERROR "Failed to run SEGYImport")
 endif()
 
+message("Running: ${SEGYExport} --persistentID roundtrip_test --url "${TEST_URL}" ${CONNECTION} ${TEST_CONNECTION} roundtrip_test.segy")
 execute_process(COMMAND ${SEGYExport} --persistentID roundtrip_test --url "${TEST_URL}" ${CONNECTION} ${TEST_CONNECTION} roundtrip_test.segy RESULT_VARIABLE CMD_RESULT)
 if (CMD_RESULT)
   message(FATAL_ERROR "Failed to run SEGYExport")
