@@ -1080,7 +1080,8 @@ main(int argc, char* argv[])
   std::string sourceUrl;
   std::string sourceConnection;
   std::string persistentID;
-  bool uniqueID;
+  bool uniqueID = false;
+  bool disablePersistentID = false;
 
   std::vector<std::string> fileNames;
 
@@ -1103,6 +1104,7 @@ main(int argc, char* argv[])
   options.add_option("", "", "source-connection", "Connection string used for additional parameters to the source connection", cxxopts::value<std::string>(sourceConnection), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
   options.add_option("", "", "uniqueID", "Generate a new globally unique ID when scanning the input SEG-Y file.", cxxopts::value<bool>(uniqueID), "");
+  options.add_option("", "", "disable-persistentID", "Disable the persistentID usage, placing the VDS directly into the url location.", cxxopts::value<bool>(disablePersistentID), "");
 
   options.add_option("", "", "input", "", cxxopts::value<std::vector<std::string>>(fileNames), "");
   options.parse_positional("input");
@@ -1138,6 +1140,12 @@ main(int argc, char* argv[])
   if(uniqueID && !persistentID.empty())
   {
     std::cerr << std::string("--uniqueID does not make sense when the persistentID is specified");
+    return EXIT_FAILURE;
+  }
+  
+  if(disablePersistentID && !persistentID.empty())
+  {
+    std::cerr << std::string("--disable-PersistentID does not make sense when the persistentID is specified");
     return EXIT_FAILURE;
   }
 
@@ -1300,7 +1308,7 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  if (persistentID.empty())
+  if (persistentID.empty() && !disablePersistentID)
   {
     persistentID = fmt::format("{:X}", fileInfo.m_persistentID);
   }
@@ -1476,7 +1484,7 @@ main(int argc, char* argv[])
   std::shared_ptr<DataView> dataView;
 
   int percentage = -1;
-  fmt::print("\nImporting into PersistentID: {}\n\n", persistentID);
+  fmt::print("\nImporting into: {}\n\n", url);
 
   struct ChunkInfo
   {
@@ -1668,7 +1676,7 @@ main(int argc, char* argv[])
   {
     return EXIT_FAILURE;
   }
-  fmt::print("\r100% done processing {}.\n", persistentID);
+  fmt::print("\r100% done processing {}.\n", url);
   //double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
   //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 
