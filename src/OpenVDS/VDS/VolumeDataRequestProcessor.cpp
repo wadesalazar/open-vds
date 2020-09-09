@@ -173,7 +173,7 @@ static void SetErrorForJob(Job* job)
       continue;
 
     job->completedError = jobError;
-    if (jobError.code != 4)
+    if (jobError.code != -4)
     {
       break;
     }
