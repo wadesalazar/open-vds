@@ -1,6 +1,5 @@
 import openvds.core
 import numpy as np
-import weakref
 
 from openvds.core import VolumeDataLayout, VolumeDataPageAccessor
 
@@ -50,13 +49,6 @@ def _ndarrayarray(tuples: List[Tuple[float]]):
         arr[i][:len(tuples[i])] = tuples[i]
     return arr
 
-def _finalizeVolumeDataRequest(volumeDataRequest):
-    if not volumeDataRequest.isCompleted:
-      volumeDataRequest._accessManager.cancel(volumeDataRequest.requestID)
-      volumeDataRequest._accessManager.waitForCompletion(volumeDataRequest.requestID, 0)
-      volumeDataRequest._accessManager.isCanceled(volumeDataRequest.requestID)
-
-
 
 class VolumeDataRequest(object):
     def __init__(self, accessManager: openvds.core.VolumeDataAccessManager, layout: openvds.core.VolumeDataLayout, data_out: np.array = None, dimensionsND: DimensionsND = DimensionsND.Dimensions_012, lod: int = 0, channel: int = 0, min: Tuple[int] = None, max: Tuple[int] = None, format: VoxelFormat = VoxelFormat.Format_R32, replacementNoValue = None):
@@ -87,7 +79,13 @@ class VolumeDataRequest(object):
         self._iscanceled        = False
         self._iscompleted       = False
 
-        self._finalizer = weakref.finalize(self, _finalizeVolumeDataRequest, self)
+    def __del__(self):
+        if not self.isCompleted:
+            self._accessManager.cancel(self.requestID)
+            self._accessManager.waitForCompletion(self.requestID, 0)
+            self._accessManager.isCanceled(self.requestID)
+
+
 
     @property
     def isCompleted(self):
