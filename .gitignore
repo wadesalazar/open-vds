@@ -1,16 +1,15 @@
 .vs
+.vscode
 Builds
 Dist
 CMakeSettings.json
 CMakeLists.txt.user
 python/openvds/test/aws_defs.py
-CMakeSettings.json
 out
 *.pyc
 build/
 python/tools/tmpinclude/
 python/tools/generated
-python/tools/.vscode
 python/tools/WrapperReport.txt
 /.pytest_cache
 /_skbuild
