@@ -16,4 +16,9 @@ channelDescriptors = [ openvds.VolumeDataChannelDescriptor(openvds.VolumeDataCha
                      ]
 
 metaData = openvds.MetadataContainer()
+metaData.setMetadataDoubleVector2(openvds.KnownMetadata.surveyCoordinateSystemOrigin().category, openvds.KnownMetadata.surveyCoordinateSystemOrigin().name, (1234.0, 4321.0))
 vds = openvds.create(opt, layoutDescriptor, axisDescriptors, channelDescriptors, metaData)
+layout = openvds.getLayout(vds)
+origin = layout.getMetadata(openvds.KnownMetadata.surveyCoordinateSystemOrigin())
+if origin != (1234.0, 4321.0):
+    raise "Origin not set correctly"

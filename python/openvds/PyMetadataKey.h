@@ -14,18 +14,13 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 ****************************************************************************/
-#ifndef PYMETADATA_H_INCLUDED
-#define PYMETADATA_H_INCLUDED
+#ifndef PYMETADATAKEY_H_INCLUDED
+#define PYMETADATAKEY_H_INCLUDED
 
 #include "PyGlobal.h"
 
-namespace internal {
-  class PyMetadataVariant;
-}
-
-class PyMetadata
+class PyMetadataKey
 {
-  static internal::PyMetadataVariant GetMetadata(native::MetadataReadAccess* self, const char* category, const char* name, native::MetadataType type);
 public:
   static void initModule(py::module& m);
 };

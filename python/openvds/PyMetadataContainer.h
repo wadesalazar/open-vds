@@ -14,15 +14,15 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 ****************************************************************************/
+#ifndef PYMETADATACONTAINER_H_INCLUDED
+#define PYMETADATACONTAINER_H_INCLUDED
 
-#include "PyGlobalMetadataCommon.h"
+#include "PyGlobal.h"
 
-using namespace native;
-
-void 
-PyGlobalMetadataCommon::initModule(py::module& m)
+class PyMetadataContainer
 {
-//AUTOGEN-BEGIN
-//AUTOGEN-END
-}
+public:
+  static void initModule(py::module& m);
+};
 
+#endif

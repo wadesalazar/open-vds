@@ -2,12 +2,14 @@ pybind11_add_module(core MODULE SYSTEM
     core.cpp
     PyGlobal.cpp
     PyGlobal.h
-    PyGlobalMetadataCommon.cpp
-    PyGlobalMetadataCommon.h
+    PyMetadataKey.cpp
+    PyMetadataKey.h
     PyKnownMetadata.cpp
     PyKnownMetadata.h
-    PyMetadata.cpp
-    PyMetadata.h
+    PyMetadataAccess.cpp
+    PyMetadataAccess.h
+    PyMetadataContainer.cpp
+    PyMetadataContainer.h
     PyRange.cpp
     PyRange.h
     PyVector.cpp

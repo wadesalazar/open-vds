@@ -20,9 +20,10 @@
 #include <pybind11/numpy.h>
 
 #include "PyGlobal.h"
-#include "PyGlobalMetadataCommon.h"
+#include "PyMetadataKey.h"
 #include "PyKnownMetadata.h"
-#include "PyMetadata.h"
+#include "PyMetadataAccess.h"
+#include "PyMetadataContainer.h"
 #include "PyRange.h"
 #include "PyVector.h"
 #include "PyVolumeData.h"
@@ -37,9 +38,10 @@
 
 PYBIND11_MODULE(core, m) {
   PyGlobal::initModule(m);
-  PyGlobalMetadataCommon::initModule(m);
+  PyMetadataKey::initModule(m);
   PyKnownMetadata::initModule(m);
-  PyMetadata::initModule(m);
+  PyMetadataAccess::initModule(m);
+  PyMetadataContainer::initModule(m);
   PyRange::initModule(m);
   PyVector::initModule(m);
   PyVolumeData::initModule(m);

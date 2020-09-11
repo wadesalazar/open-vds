@@ -15,7 +15,7 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "PyMetadata.h"
+#include "PyMetadataAccess.h"
 
 using namespace native;
 
@@ -158,7 +158,7 @@ namespace pybind11 { namespace detail {
 }} // namespace pybind11::detail
 
 internal::PyMetadataVariant
-PyMetadata::GetMetadata(native::MetadataReadAccess* self, const char* category, const char* name, native::MetadataType type)
+PyMetadataAccess::GetMetadata(native::MetadataReadAccess* self, const char* category, const char* name, native::MetadataType type)
 {
   internal::PyMetadataVariant variant;
   BLOB blob;
@@ -190,7 +190,7 @@ PyMetadata::GetMetadata(native::MetadataReadAccess* self, const char* category, 
 }
 
 void 
-PyMetadata::initModule(py::module& m)
+PyMetadataAccess::initModule(py::module& m)
 {
   py::class_<BLOB> BLOB_(m, "BLOB", py::buffer_protocol());
   BLOB_.def_buffer([](BLOB& blob)
@@ -206,47 +206,6 @@ PyMetadata::initModule(py::module& m)
     });
 
 //AUTOGEN-BEGIN
-  py::enum_<MetadataType> 
-    MetadataType_(m,"MetadataType", OPENVDS_DOCSTRING(MetadataType));
-
-  MetadataType_.value("Int"                         , MetadataType::Int                       , OPENVDS_DOCSTRING(MetadataType_Int));
-  MetadataType_.value("IntVector2"                  , MetadataType::IntVector2                , OPENVDS_DOCSTRING(MetadataType_IntVector2));
-  MetadataType_.value("IntVector3"                  , MetadataType::IntVector3                , OPENVDS_DOCSTRING(MetadataType_IntVector3));
-  MetadataType_.value("IntVector4"                  , MetadataType::IntVector4                , OPENVDS_DOCSTRING(MetadataType_IntVector4));
-  MetadataType_.value("Float"                       , MetadataType::Float                     , OPENVDS_DOCSTRING(MetadataType_Float));
-  MetadataType_.value("FloatVector2"                , MetadataType::FloatVector2              , OPENVDS_DOCSTRING(MetadataType_FloatVector2));
-  MetadataType_.value("FloatVector3"                , MetadataType::FloatVector3              , OPENVDS_DOCSTRING(MetadataType_FloatVector3));
-  MetadataType_.value("FloatVector4"                , MetadataType::FloatVector4              , OPENVDS_DOCSTRING(MetadataType_FloatVector4));
-  MetadataType_.value("Double"                      , MetadataType::Double                    , OPENVDS_DOCSTRING(MetadataType_Double));
-  MetadataType_.value("DoubleVector2"               , MetadataType::DoubleVector2             , OPENVDS_DOCSTRING(MetadataType_DoubleVector2));
-  MetadataType_.value("DoubleVector3"               , MetadataType::DoubleVector3             , OPENVDS_DOCSTRING(MetadataType_DoubleVector3));
-  MetadataType_.value("DoubleVector4"               , MetadataType::DoubleVector4             , OPENVDS_DOCSTRING(MetadataType_DoubleVector4));
-  MetadataType_.value("String"                      , MetadataType::String                    , OPENVDS_DOCSTRING(MetadataType_String));
-  MetadataType_.value("BLOB"                        , MetadataType::BLOB                      , OPENVDS_DOCSTRING(MetadataType_BLOB));
-
-  // MetadataKey
-  py::class_<MetadataKey, std::unique_ptr<MetadataKey>> 
-    MetadataKey_(m,"MetadataKey", OPENVDS_DOCSTRING(MetadataKey));
-
-  MetadataKey_.def(py::init<                              >(), OPENVDS_DOCSTRING(MetadataKey_MetadataKey));
-  MetadataKey_.def(py::init<native::MetadataType, const char *, const char *>(), py::arg("type"), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataKey_MetadataKey_2));
-  MetadataKey_.def("getType"                     , static_cast<native::MetadataType(MetadataKey::*)() const>(&MetadataKey::GetType), OPENVDS_DOCSTRING(MetadataKey_GetType));
-  MetadataKey_.def_property_readonly("type", &MetadataKey::GetType, OPENVDS_DOCSTRING(MetadataKey_GetType));
-  MetadataKey_.def("getCategory"                 , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::GetCategory), OPENVDS_DOCSTRING(MetadataKey_GetCategory));
-  MetadataKey_.def_property_readonly("category", &MetadataKey::GetCategory, OPENVDS_DOCSTRING(MetadataKey_GetCategory));
-  MetadataKey_.def("getName"                     , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::GetName), OPENVDS_DOCSTRING(MetadataKey_GetName));
-  MetadataKey_.def_property_readonly("name", &MetadataKey::GetName, OPENVDS_DOCSTRING(MetadataKey_GetName));
-  MetadataKey_.def(py::self == py::self);
-  MetadataKey_.def(py::self != py::self);
-
-  // MetadataKeyRange
-  py::class_<MetadataKeyRange, std::unique_ptr<MetadataKeyRange>> 
-    MetadataKeyRange_(m,"MetadataKeyRange", OPENVDS_DOCSTRING(MetadataKeyRange));
-
-  MetadataKeyRange_.def(py::init<native::MetadataKeyRange::const_iterator, native::MetadataKeyRange::const_iterator>(), py::arg("begin"), py::arg("end"), OPENVDS_DOCSTRING(MetadataKeyRange_MetadataKeyRange));
-  MetadataKeyRange_.def("begin"                       , static_cast<native::MetadataKeyRange::const_iterator(MetadataKeyRange::*)() const>(&MetadataKeyRange::begin), OPENVDS_DOCSTRING(MetadataKeyRange_begin));
-  MetadataKeyRange_.def("end"                         , static_cast<native::MetadataKeyRange::const_iterator(MetadataKeyRange::*)() const>(&MetadataKeyRange::end), OPENVDS_DOCSTRING(MetadataKeyRange_end));
-
   // MetadataReadAccess
   py::class_<MetadataReadAccess, std::unique_ptr<MetadataReadAccess, py::nodelete>> 
     MetadataReadAccess_(m,"MetadataReadAccess", OPENVDS_DOCSTRING(MetadataReadAccess));
@@ -304,59 +263,15 @@ PyMetadata::initModule(py::module& m)
   MetadataWriteAccess_.def("clearMetadata"               , static_cast<void(MetadataWriteAccess::*)(const char *, const char *)>(&MetadataWriteAccess::ClearMetadata), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataWriteAccess_ClearMetadata));
   MetadataWriteAccess_.def("clearMetadata"               , static_cast<void(MetadataWriteAccess::*)(const char *)>(&MetadataWriteAccess::ClearMetadata), py::arg("category"), OPENVDS_DOCSTRING(MetadataWriteAccess_ClearMetadata_2));
 
-  // MetadataContainer
-  py::class_<MetadataContainer, MetadataReadAccess, MetadataWriteAccess, std::unique_ptr<MetadataContainer>> 
-    MetadataContainer_(m,"MetadataContainer", OPENVDS_DOCSTRING(MetadataContainer));
-
-  MetadataContainer_.def("isMetadataIntAvailable"      , static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataIntAvailable), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataIntAvailable));
-  MetadataContainer_.def("isMetadataIntVector2Available", static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataIntVector2Available), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataIntVector2Available));
-  MetadataContainer_.def("isMetadataIntVector3Available", static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataIntVector3Available), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataIntVector3Available));
-  MetadataContainer_.def("isMetadataIntVector4Available", static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataIntVector4Available), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataIntVector4Available));
-  MetadataContainer_.def("isMetadataFloatAvailable"    , static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataFloatAvailable), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataFloatAvailable));
-  MetadataContainer_.def("isMetadataFloatVector2Available", static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataFloatVector2Available), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataFloatVector2Available));
-  MetadataContainer_.def("isMetadataFloatVector3Available", static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataFloatVector3Available), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataFloatVector3Available));
-  MetadataContainer_.def("isMetadataFloatVector4Available", static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataFloatVector4Available), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataFloatVector4Available));
-  MetadataContainer_.def("isMetadataDoubleAvailable"   , static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataDoubleAvailable), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataDoubleAvailable));
-  MetadataContainer_.def("isMetadataDoubleVector2Available", static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataDoubleVector2Available), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataDoubleVector2Available));
-  MetadataContainer_.def("isMetadataDoubleVector3Available", static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataDoubleVector3Available), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataDoubleVector3Available));
-  MetadataContainer_.def("isMetadataDoubleVector4Available", static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataDoubleVector4Available), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataDoubleVector4Available));
-  MetadataContainer_.def("isMetadataStringAvailable"   , static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataStringAvailable), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataStringAvailable));
-  MetadataContainer_.def("isMetadataBLOBAvailable"     , static_cast<bool(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::IsMetadataBLOBAvailable), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_IsMetadataBLOBAvailable));
-  MetadataContainer_.def("getMetadataInt"              , static_cast<int(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::GetMetadataInt), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataInt));
-  MetadataContainer_.def("getMetadataIntVector2"       , [](MetadataContainer* self, const char * category, const char * name) { return (IntVector2Adapter::AdaptedType)(self->GetMetadataIntVector2(category, name)); }, py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataIntVector2));
-  MetadataContainer_.def("getMetadataIntVector3"       , [](MetadataContainer* self, const char * category, const char * name) { return (IntVector3Adapter::AdaptedType)(self->GetMetadataIntVector3(category, name)); }, py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataIntVector3));
-  MetadataContainer_.def("getMetadataIntVector4"       , [](MetadataContainer* self, const char * category, const char * name) { return (IntVector4Adapter::AdaptedType)(self->GetMetadataIntVector4(category, name)); }, py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataIntVector4));
-  MetadataContainer_.def("getMetadataFloat"            , static_cast<float(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::GetMetadataFloat), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataFloat));
-  MetadataContainer_.def("getMetadataFloatVector2"     , [](MetadataContainer* self, const char * category, const char * name) { return (FloatVector2Adapter::AdaptedType)(self->GetMetadataFloatVector2(category, name)); }, py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataFloatVector2));
-  MetadataContainer_.def("getMetadataFloatVector3"     , [](MetadataContainer* self, const char * category, const char * name) { return (FloatVector3Adapter::AdaptedType)(self->GetMetadataFloatVector3(category, name)); }, py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataFloatVector3));
-  MetadataContainer_.def("getMetadataFloatVector4"     , [](MetadataContainer* self, const char * category, const char * name) { return (FloatVector4Adapter::AdaptedType)(self->GetMetadataFloatVector4(category, name)); }, py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataFloatVector4));
-  MetadataContainer_.def("getMetadataDouble"           , static_cast<double(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::GetMetadataDouble), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataDouble));
-  MetadataContainer_.def("getMetadataDoubleVector2"    , [](MetadataContainer* self, const char * category, const char * name) { return (DoubleVector2Adapter::AdaptedType)(self->GetMetadataDoubleVector2(category, name)); }, py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataDoubleVector2));
-  MetadataContainer_.def("getMetadataDoubleVector3"    , [](MetadataContainer* self, const char * category, const char * name) { return (DoubleVector3Adapter::AdaptedType)(self->GetMetadataDoubleVector3(category, name)); }, py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataDoubleVector3));
-  MetadataContainer_.def("getMetadataDoubleVector4"    , [](MetadataContainer* self, const char * category, const char * name) { return (DoubleVector4Adapter::AdaptedType)(self->GetMetadataDoubleVector4(category, name)); }, py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataDoubleVector4));
-  MetadataContainer_.def("getMetadataString"           , static_cast<const char *(MetadataContainer::*)(const char *, const char *) const>(&MetadataContainer::GetMetadataString), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataString));
-  MetadataContainer_.def("setMetadataInt"              , static_cast<void(MetadataContainer::*)(const char *, const char *, int)>(&MetadataContainer::SetMetadataInt), py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataInt));
-  MetadataContainer_.def("setMetadataIntVector2"       , [](MetadataContainer* self, const char * category, const char * name, IntVector2Adapter::AdaptedType value) { return self->SetMetadataIntVector2(category, name, value); }, py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataIntVector2));
-  MetadataContainer_.def("setMetadataIntVector3"       , [](MetadataContainer* self, const char * category, const char * name, IntVector3Adapter::AdaptedType value) { return self->SetMetadataIntVector3(category, name, value); }, py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataIntVector3));
-  MetadataContainer_.def("setMetadataIntVector4"       , [](MetadataContainer* self, const char * category, const char * name, IntVector4Adapter::AdaptedType value) { return self->SetMetadataIntVector4(category, name, value); }, py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataIntVector4));
-  MetadataContainer_.def("setMetadataFloat"            , static_cast<void(MetadataContainer::*)(const char *, const char *, float)>(&MetadataContainer::SetMetadataFloat), py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataFloat));
-  MetadataContainer_.def("setMetadataFloatVector2"     , [](MetadataContainer* self, const char * category, const char * name, FloatVector2Adapter::AdaptedType value) { return self->SetMetadataFloatVector2(category, name, value); }, py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataFloatVector2));
-  MetadataContainer_.def("setMetadataFloatVector3"     , [](MetadataContainer* self, const char * category, const char * name, FloatVector3Adapter::AdaptedType value) { return self->SetMetadataFloatVector3(category, name, value); }, py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataFloatVector3));
-  MetadataContainer_.def("setMetadataFloatVector4"     , [](MetadataContainer* self, const char * category, const char * name, FloatVector4Adapter::AdaptedType value) { return self->SetMetadataFloatVector4(category, name, value); }, py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataFloatVector4));
-  MetadataContainer_.def("setMetadataDouble"           , static_cast<void(MetadataContainer::*)(const char *, const char *, double)>(&MetadataContainer::SetMetadataDouble), py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataDouble));
-  MetadataContainer_.def("setMetadataDoubleVector2"    , [](MetadataContainer* self, const char * category, const char * name, DoubleVector2Adapter::AdaptedType value) { return self->SetMetadataDoubleVector2(category, name, value); }, py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataDoubleVector2));
-  MetadataContainer_.def("setMetadataDoubleVector3"    , [](MetadataContainer* self, const char * category, const char * name, DoubleVector3Adapter::AdaptedType value) { return self->SetMetadataDoubleVector3(category, name, value); }, py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataDoubleVector3));
-  MetadataContainer_.def("setMetadataDoubleVector4"    , [](MetadataContainer* self, const char * category, const char * name, DoubleVector4Adapter::AdaptedType value) { return self->SetMetadataDoubleVector4(category, name, value); }, py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataDoubleVector4));
-  MetadataContainer_.def("setMetadataString"           , static_cast<void(MetadataContainer::*)(const char *, const char *, const char *)>(&MetadataContainer::SetMetadataString), py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataString));
-// AUTOGENERATE FAIL :   MetadataContainer_.def("setMetadataBLOB"             , static_cast<void(MetadataContainer::*)(const char *, const char *, const void *, size_t)>(&MetadataContainer::SetMetadataBLOB), py::arg("category"), py::arg("name"), py::arg("data"), py::arg("size"), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataBLOB));
-  MetadataContainer_.def("copyMetadata"                , static_cast<void(MetadataContainer::*)(const char *, const native::MetadataReadAccess *)>(&MetadataContainer::CopyMetadata), py::arg("category"), py::arg("metadataReadAccess"), OPENVDS_DOCSTRING(MetadataContainer_CopyMetadata));
-  MetadataContainer_.def("clearMetadata"               , static_cast<void(MetadataContainer::*)(const char *, const char *)>(&MetadataContainer::ClearMetadata), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataContainer_ClearMetadata));
-  MetadataContainer_.def("clearMetadata"               , static_cast<void(MetadataContainer::*)(const char *)>(&MetadataContainer::ClearMetadata), py::arg("category"), OPENVDS_DOCSTRING(MetadataContainer_ClearMetadata_2));
-// AUTOGENERATE FAIL :   MetadataContainer_.def("getMetadataBLOB"             , static_cast<void(MetadataContainer::*)(const char *, const char *, const void **, size_t *) const>(&MetadataContainer::GetMetadataBLOB), py::arg("category"), py::arg("name"), py::arg("data"), py::arg("size"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB));
-  MetadataContainer_.def("getMetadataKeys"             , static_cast<native::MetadataKeyRange(MetadataContainer::*)() const>(&MetadataContainer::GetMetadataKeys), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataKeys));
-  MetadataContainer_.def_property_readonly("metadataKeys", &MetadataContainer::GetMetadataKeys, OPENVDS_DOCSTRING(MetadataContainer_GetMetadataKeys));
-
 //AUTOGEN-END
+  // IMPLEMENTED :   MetadataWriteAccess_.def("setMetadataBLOB"             , static_cast<void(MetadataWriteAccess::*)(const char *, const char *, const void *, size_t)>(&MetadataWriteAccess::SetMetadataBLOB), py::arg("category"), py::arg("name"), py::arg("data"), py::arg("size"), OPENVDS_DOCSTRING(MetadataWriteAccess_SetMetadataBLOB));
+  MetadataWriteAccess_.def("setMetadataBLOB", [](MetadataWriteAccess* self, const char * category, const char * name, py::buffer data)
+    {
+      py::buffer_info buffer = data.request();
+      size_t size = buffer.size * buffer.itemsize;
+      self->SetMetadataBLOB(category, name, buffer.ptr, size);
+    },
+    py::arg("category"), py::arg("name"), py::arg("value"), OPENVDS_DOCSTRING(MetadataWriteAccess_SetMetadataBLOB));
 
   // IMPLEMENTED :   MetadataContainer_.def("getMetadataBLOB"             , static_cast<void(MetadataContainer::*)(const char *, const char *, const void **, size_t *) const>(&MetadataContainer::GetMetadataBLOB), py::arg("category"), py::arg("name"), py::arg("data"), py::arg("size"), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB));
   MetadataReadAccess_.def("getMetadataBLOB", [](MetadataReadAccess* self, const char* category, const char* name) 
@@ -375,40 +290,5 @@ PyMetadata::initModule(py::module& m)
     {
       return GetMetadata(self, category, name, type);
     }, py::arg("category"), py::arg("name"), py::arg("type"));
-
-  MetadataKeyRange_.def("__len__", [](MetadataKeyRange* self) 
-    {
-      return (Py_ssize_t)(self->end() - self->begin());
-    });
-  MetadataKeyRange_.def("__iter__", [](MetadataKeyRange* self) 
-    {
-      return py::make_iterator(self->begin(), self->end());
-    });
-
-  MetadataKey_.def("__repr__", [](MetadataKey* self)
-    {
-      const char* type = "unknown";
-      switch(self->GetType())
-      {
-      case MetadataType::Int          : type = "Int"           ; break;
-      case MetadataType::IntVector2   : type = "IntVector2"    ; break;
-      case MetadataType::IntVector3   : type = "IntVector3"    ; break;
-      case MetadataType::IntVector4   : type = "IntVector4"    ; break;
-      case MetadataType::Float        : type = "Float"         ; break;
-      case MetadataType::FloatVector2 : type = "FloatVector2"  ; break;
-      case MetadataType::FloatVector3 : type = "FloatVector3"  ; break;
-      case MetadataType::FloatVector4 : type = "FloatVector4"  ; break;
-      case MetadataType::Double       : type = "Double"        ; break;
-      case MetadataType::DoubleVector2: type = "DoubleVector2" ; break;
-      case MetadataType::DoubleVector3: type = "DoubleVector3" ; break;
-      case MetadataType::DoubleVector4: type = "DoubleVector4" ; break;
-      case MetadataType::String       : type = "String"        ; break;
-      case MetadataType::BLOB         : type = "BLOB"          ; break;
-      }
-      return std::string("MetadataKey(category='") + self->GetCategory() + "', name='" + self->GetName() + "', type=MetadataType." + type + ")";
-    });
-
-  // Add a default constructor since the constructor of this class is implicit
-  MetadataContainer_.def(py::init<>(), R"doc(Default constructor)doc");
 }
 

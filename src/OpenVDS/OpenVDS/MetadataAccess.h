@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 
-class PyMetadata;
+class PyMetadataAccess;
 
 namespace OpenVDS
 {
@@ -79,7 +79,7 @@ public:
   virtual MetadataKeyRange
                       GetMetadataKeys() const = 0; ///< Returns a range of metadata keys that can be iterated over using range-based 'for'
 
-  friend PyMetadata;
+  friend PyMetadataAccess;
 };
 
 /// \brief Interface for write access to Metadata
