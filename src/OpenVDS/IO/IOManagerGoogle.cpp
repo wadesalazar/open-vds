@@ -22,21 +22,6 @@
 #include <sstream>
 #include <iomanip>
 
-#ifdef WIN32
-#ifdef __clang__
-namespace google {
-namespace cloud {
-inline namespace GOOGLE_CLOUD_CPP_NS {
-  void Terminate(char const *)
-  {
-    abort();
-  }
-}
-}
-}
-#endif
-#endif
-
 namespace OpenVDS
 {
   static const std::string GOOGLEAPIS = "https://storage.googleapis.com";
