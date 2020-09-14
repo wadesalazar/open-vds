@@ -88,14 +88,48 @@ PyGlobal::initModule(py::module& m)
   AzurePresignedOpenOptions_.def_readwrite("baseUrl"                     , &AzurePresignedOpenOptions::baseUrl, OPENVDS_DOCSTRING(AzurePresignedOpenOptions_baseUrl));
   AzurePresignedOpenOptions_.def_readwrite("urlSuffix"                   , &AzurePresignedOpenOptions::urlSuffix, OPENVDS_DOCSTRING(AzurePresignedOpenOptions_urlSuffix));
 
+  // GoogleCredentialsToken
+  py::class_<GoogleCredentialsToken, std::unique_ptr<GoogleCredentialsToken>> 
+    GoogleCredentialsToken_(m,"GoogleCredentialsToken", OPENVDS_DOCSTRING(GoogleCredentialsToken));
+
+  GoogleCredentialsToken_.def(py::init<const std::string &           >(), py::arg("token"), OPENVDS_DOCSTRING(GoogleCredentialsToken_GoogleCredentialsToken));
+  GoogleCredentialsToken_.def(py::init<std::string &&                >(), py::arg("token"), OPENVDS_DOCSTRING(GoogleCredentialsToken_GoogleCredentialsToken_2));
+
+  // GoogleCredentialsPath
+  py::class_<GoogleCredentialsPath, std::unique_ptr<GoogleCredentialsPath>> 
+    GoogleCredentialsPath_(m,"GoogleCredentialsPath", OPENVDS_DOCSTRING(GoogleCredentialsPath));
+
+  GoogleCredentialsPath_.def(py::init<const std::string &           >(), py::arg("path"), OPENVDS_DOCSTRING(GoogleCredentialsPath_GoogleCredentialsPath));
+  GoogleCredentialsPath_.def(py::init<std::string &&                >(), py::arg("path"), OPENVDS_DOCSTRING(GoogleCredentialsPath_GoogleCredentialsPath_2));
+
+  // GoogleCredentialsJson
+  py::class_<GoogleCredentialsJson, std::unique_ptr<GoogleCredentialsJson>> 
+    GoogleCredentialsJson_(m,"GoogleCredentialsJson", OPENVDS_DOCSTRING(GoogleCredentialsJson));
+
+  GoogleCredentialsJson_.def(py::init<const std::string &           >(), py::arg("json"), OPENVDS_DOCSTRING(GoogleCredentialsJson_GoogleCredentialsJson));
+  GoogleCredentialsJson_.def(py::init<std::string &&                >(), py::arg("json"), OPENVDS_DOCSTRING(GoogleCredentialsJson_GoogleCredentialsJson_2));
+
   // GoogleOpenOptions
   py::class_<GoogleOpenOptions, OpenOptions, std::unique_ptr<GoogleOpenOptions>> 
     GoogleOpenOptions_(m,"GoogleOpenOptions", OPENVDS_DOCSTRING(GoogleOpenOptions));
 
   GoogleOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions));
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &>(), py::arg("bucket"), py::arg("pathPrefix"), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_2));
+  GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsToken &>(), py::arg("bucket"), py::arg("pathPrefix"), py::arg("credentials"), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_3));
+  GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsPath &>(), py::arg("bucket"), py::arg("pathPrefix"), py::arg("credentials"), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_4));
+  GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsJson &>(), py::arg("bucket"), py::arg("pathPrefix"), py::arg("credentials"), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_5));
+  GoogleOpenOptions_.def_readwrite("credentialsType"             , &GoogleOpenOptions::credentialsType, OPENVDS_DOCSTRING(GoogleOpenOptions_credentialsType));
   GoogleOpenOptions_.def_readwrite("bucket"                      , &GoogleOpenOptions::bucket     , OPENVDS_DOCSTRING(GoogleOpenOptions_bucket));
   GoogleOpenOptions_.def_readwrite("pathPrefix"                  , &GoogleOpenOptions::pathPrefix , OPENVDS_DOCSTRING(GoogleOpenOptions_pathPrefix));
+  GoogleOpenOptions_.def_readwrite("credentials"                 , &GoogleOpenOptions::credentials, OPENVDS_DOCSTRING(GoogleOpenOptions_credentials));
+
+  py::enum_<GoogleOpenOptions::CredentialsType> 
+    GoogleOpenOptions_CredentialsType_(GoogleOpenOptions_,"CredentialsType", OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType));
+
+  GoogleOpenOptions_CredentialsType_.value("Default"                     , GoogleOpenOptions::CredentialsType::Default, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_Default));
+  GoogleOpenOptions_CredentialsType_.value("AccessToken"                 , GoogleOpenOptions::CredentialsType::AccessToken, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_AccessToken));
+  GoogleOpenOptions_CredentialsType_.value("JsonPath"                    , GoogleOpenOptions::CredentialsType::JsonPath, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_JsonPath));
+  GoogleOpenOptions_CredentialsType_.value("Json"                        , GoogleOpenOptions::CredentialsType::Json, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_Json));
 
   // HttpOpenOptions
   py::class_<HttpOpenOptions, OpenOptions, std::unique_ptr<HttpOpenOptions>> 

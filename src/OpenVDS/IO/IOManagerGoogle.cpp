@@ -26,6 +26,22 @@ namespace OpenVDS
 {
   static const std::string GOOGLEAPIS = "https://storage.googleapis.com";
 
+  class OAuthTokenCredentials : public google::cloud::storage::v1::oauth2::Credentials
+  {
+      std::string token;
+
+  public:
+      explicit OAuthTokenCredentials(const std::string& token) : token(token) {}
+      explicit OAuthTokenCredentials(std::string&& token) : token(std::move(token)) {}
+
+      google::cloud::v1::StatusOr<std::string> AuthorizationHeader() override;
+  };
+
+  google::cloud::v1::StatusOr<std::string> OAuthTokenCredentials::AuthorizationHeader()
+  {
+      return token;
+  }
+
   IOManagerGoogle::IOManagerGoogle(const GoogleOpenOptions& openOptions, Error &error)
     : IOManager(OpenOptions::GoogleStorage)
     , m_curlHandler(error)
@@ -39,14 +55,49 @@ namespace OpenVDS
       return;
     }
 
-    auto credentials = google::cloud::storage::v1::oauth2::GoogleDefaultCredentials();
-    if (!credentials) {
-        error.code = -2;
-        error.string = "Google Cloud Storage Config error. Unable to get Google Default Credentials.";
-        return;
+    switch (openOptions.credentialsType) {
+    case GoogleOpenOptions::CredentialsType::Default:
+      {
+        auto credentials = google::cloud::storage::v1::oauth2::GoogleDefaultCredentials();
+        if (!credentials) {
+            error.code = -2;
+            error.string = "Google Cloud Storage Config error. Unable to get Google Default Credentials.";
+            return;
+        }
+        m_credentials = *credentials;
+      }
+      break;
+    case GoogleOpenOptions::CredentialsType::AccessToken:
+      if (openOptions.credentials.empty()) {
+          error.code = -2;
+          error.string = "Google Cloud Storage Config error. Authorization Token is empty";
+          return;
+      }
+      m_credentials = std::make_shared<OAuthTokenCredentials>(openOptions.credentials);
+      break;
+    case GoogleOpenOptions::CredentialsType::JsonPath:
+      {
+        auto credentials = google::cloud::storage::v1::oauth2::CreateServiceAccountCredentialsFromJsonFilePath(openOptions.credentials);
+        if (!credentials) {
+            error.code = -2;
+            error.string = "Google Cloud Storage Config error. Unable to create service account credentials fromJson file path.";
+            return;
+        }
+        m_credentials = *credentials;
+      }
+      break;
+    case GoogleOpenOptions::CredentialsType::Json:
+      {
+        auto credentials = google::cloud::storage::v1::oauth2::CreateServiceAccountCredentialsFromJsonContents(openOptions.credentials);
+        if (!credentials) {
+            error.code = -2;
+            error.string = "Google Cloud Storage Config error. Unable to create service account credentials from json contents";
+            return;
+        }
+        m_credentials = *credentials;
+      }
+      break;
     }
-    m_credentials = *credentials;
-
   }
 
   static std::string downloadUrl(const std::string& googleapi, const std::string& bucket, const std::string& pathPrefix, const std::string& objectName)

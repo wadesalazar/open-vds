@@ -165,12 +165,89 @@ struct AzurePresignedOpenOptions : OpenOptions
 };
 
 /// <summary>
+/// Credentials for opening a VDS in Google Cloud Storage
+/// by using the string containing an access token
+/// Using OAuth
+/// </summary>
+class GoogleCredentialsToken
+{
+    friend struct GoogleOpenOptions;
+    
+    std::string token;
+
+public:
+    /// <summary>
+    /// GoogleCredentialsPath constructor
+    /// </summary>
+    /// <param name="token">
+    /// The string containing an access token
+    /// </param>
+    explicit GoogleCredentialsToken(std::string const& token) : token(token) {}
+    explicit GoogleCredentialsToken(std::string&& token) noexcept : token(std::move(token)) {}
+};
+
+/// <summary>
+/// Credentials for opening a VDS in Google Cloud Storage
+/// by path to the service account json file
+/// Using OAuth
+/// </summary>
+class GoogleCredentialsPath
+{
+    friend struct GoogleOpenOptions;
+
+    std::string path;
+
+public:
+    /// <summary>
+    /// GoogleCredentialsPath constructor
+    /// </summary>
+    /// <param name="path">
+    /// The path to the service account json file
+    /// </param>
+    explicit GoogleCredentialsPath(std::string const& path) : path(path) {}
+    explicit GoogleCredentialsPath(std::string&& path) noexcept : path(std::move(path)) {}
+};
+
+/// <summary>
+/// Credentials for opening a VDS in Google Cloud Storage
+/// by the string containing json with credentials
+/// Using OAuth
+/// </summary>
+class GoogleCredentialsJson
+{
+    friend struct GoogleOpenOptions;
+
+    std::string json;
+
+public:
+    /// <summary>
+    /// GoogleCredentialsPath constructor
+    /// </summary>
+    /// <param name="json">
+    /// The string containing json with credentials
+    /// </param>
+    explicit GoogleCredentialsJson(std::string const& json) : json(json) {}
+    explicit GoogleCredentialsJson(std::string&& json) noexcept : json(std::move(json)) {}
+};
+
+/// <summary>
 /// Options for opening a VDS in Google Cloud Storage
 /// </summary>
 struct GoogleOpenOptions : OpenOptions
 {
+  enum class CredentialsType
+  {
+    Default = 0,
+    AccessToken,
+    JsonPath,
+    Json
+  };
+
+  CredentialsType credentialsType = CredentialsType::Default;
+
   std::string bucket;
   std::string pathPrefix;
+  std::string credentials;
 
   GoogleOpenOptions() : OpenOptions(GoogleStorage) {}
   /// <summary>
@@ -182,7 +259,35 @@ struct GoogleOpenOptions : OpenOptions
   /// <param name="pathPrefix">
   /// The prefix of the VDS
   /// </param>
-  GoogleOpenOptions(std::string const & bucket, std::string const & pathPrefix) : OpenOptions(GoogleStorage), bucket(bucket), pathPrefix(pathPrefix) {}
+  /// <param name="credentials">
+  /// Google Cloud Storage access credentials
+  /// </param>
+  GoogleOpenOptions(std::string const& bucket, std::string const& pathPrefix) 
+      : OpenOptions(GoogleStorage)
+      , bucket(bucket)
+      , pathPrefix(pathPrefix)
+  {}
+  GoogleOpenOptions(std::string const& bucket, std::string const& pathPrefix, GoogleCredentialsToken const& credentials)
+      : OpenOptions(GoogleStorage)
+      , credentialsType(CredentialsType::AccessToken)
+      , bucket(bucket)
+      , pathPrefix(pathPrefix)
+      , credentials(credentials.token)
+  {}
+  GoogleOpenOptions(std::string const& bucket, std::string const& pathPrefix, GoogleCredentialsPath const& credentials)
+      : OpenOptions(GoogleStorage)
+      , credentialsType(CredentialsType::JsonPath)
+      , bucket(bucket)
+      , pathPrefix(pathPrefix)
+      , credentials(credentials.path)
+  {}
+  GoogleOpenOptions(std::string const& bucket, std::string const& pathPrefix, GoogleCredentialsJson const& credentials)
+      : OpenOptions(GoogleStorage)
+      , credentialsType(CredentialsType::Json)
+      , bucket(bucket)
+      , pathPrefix(pathPrefix)
+      , credentials(credentials.json)
+  {}
 };
 
 /// <summary>

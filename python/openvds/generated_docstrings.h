@@ -577,7 +577,68 @@ Returns:
 --------
     Number of chunks downloaded.)doc";
 
+static const char *__doc_OpenVDS_GoogleCredentialsJson =
+R"doc(Credentials for opening a VDS in Google Cloud Storage by the string
+containing json with credentials Using OAuth)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsJson_GoogleCredentialsJson =
+R"doc(GoogleCredentialsPath constructor
+
+Parameters:
+-----------
+
+json :
+    The string containing json with credentials)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsJson_GoogleCredentialsJson_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsJson_json = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsPath =
+R"doc(Credentials for opening a VDS in Google Cloud Storage by path to the
+service account json file Using OAuth)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsPath_GoogleCredentialsPath =
+R"doc(GoogleCredentialsPath constructor
+
+Parameters:
+-----------
+
+path :
+    The path to the service account json file)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsPath_GoogleCredentialsPath_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsPath_path = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsToken =
+R"doc(Credentials for opening a VDS in Google Cloud Storage by using the
+string containing an access token Using OAuth)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsToken_GoogleCredentialsToken =
+R"doc(GoogleCredentialsPath constructor
+
+Parameters:
+-----------
+
+token :
+    The string containing an access token)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsToken_GoogleCredentialsToken_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsToken_token = R"doc()doc";
+
 static const char *__doc_OpenVDS_GoogleOpenOptions = R"doc(Options for opening a VDS in Google Cloud Storage)doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_AccessToken = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_Default = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_Json = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_JsonPath = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions = R"doc()doc";
 
@@ -591,9 +652,22 @@ bucket :
     The bucket of the VDS
 
 pathPrefix :
-    The prefix of the VDS)doc";
+    The prefix of the VDS
+
+credentials :
+    Google Cloud Storage access credentials)doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_4 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_5 = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_bucket = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_credentials = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_credentialsType = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_pathPrefix = R"doc()doc";
 
