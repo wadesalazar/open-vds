@@ -3521,7 +3521,7 @@ static const char *__doc_OpenVDS_operator_bor_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_rangeSize = R"doc()doc";
 
-static const char *__doc_PyMetadata = R"doc()doc";
+static const char *__doc_PyMetadataAccess = R"doc()doc";
 
 static const char *__doc_std_hash = R"doc()doc";
 
