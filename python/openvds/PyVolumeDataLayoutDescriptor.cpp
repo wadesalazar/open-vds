@@ -28,7 +28,7 @@ PyVolumeDataLayoutDescriptor::initModule(py::module& m)
     VolumeDataLayoutDescriptor_(m,"VolumeDataLayoutDescriptor", OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor));
 
   VolumeDataLayoutDescriptor_.def(py::init<                              >(), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_VolumeDataLayoutDescriptor));
-  VolumeDataLayoutDescriptor_.def(py::init<native::VolumeDataLayoutDescriptor::BrickSize, int, int, int, native::VolumeDataLayoutDescriptor::LODLevels, native::VolumeDataLayoutDescriptor::Options, int>(), py::arg("brickSize"), py::arg("negativeMargin"), py::arg("positiveMargin"), py::arg("brickSize2DMultiplier"), py::arg("lodLevels"), py::arg("options"), py::arg("fullResolutionDimension"), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_VolumeDataLayoutDescriptor_2));
+  VolumeDataLayoutDescriptor_.def(py::init<native::VolumeDataLayoutDescriptor::BrickSize, int, int, int, native::VolumeDataLayoutDescriptor::LODLevels, native::VolumeDataLayoutDescriptor::Options, int>(), py::arg("brickSize").none(false), py::arg("negativeMargin").none(false), py::arg("positiveMargin").none(false), py::arg("brickSize2DMultiplier").none(false), py::arg("lodLevels").none(false), py::arg("options").none(false), py::arg("fullResolutionDimension").none(false), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_VolumeDataLayoutDescriptor_2));
   VolumeDataLayoutDescriptor_.def("isValid"                     , static_cast<bool(VolumeDataLayoutDescriptor::*)() const>(&VolumeDataLayoutDescriptor::IsValid), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_IsValid));
   VolumeDataLayoutDescriptor_.def_property_readonly("valid", &VolumeDataLayoutDescriptor::IsValid, OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_IsValid));
   VolumeDataLayoutDescriptor_.def("getBrickSize"                , static_cast<native::VolumeDataLayoutDescriptor::BrickSize(VolumeDataLayoutDescriptor::*)() const>(&VolumeDataLayoutDescriptor::GetBrickSize), OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_GetBrickSize));
@@ -83,7 +83,7 @@ PyVolumeDataLayoutDescriptor::initModule(py::module& m)
   VolumeDataLayoutDescriptor_Options_.value("Options_Create2DLODs"        , VolumeDataLayoutDescriptor::Options::Options_Create2DLODs, OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_Options_Options_Create2DLODs));
   VolumeDataLayoutDescriptor_Options_.value("Options_ForceFullResolutionDimension", VolumeDataLayoutDescriptor::Options::Options_ForceFullResolutionDimension, OPENVDS_DOCSTRING(VolumeDataLayoutDescriptor_Options_Options_ForceFullResolutionDimension));
 
-  m.def("operator_bor"                , static_cast<VolumeDataLayoutDescriptor::Options(*)(VolumeDataLayoutDescriptor::Options, VolumeDataLayoutDescriptor::Options)>(&operator|), py::arg("lhs"), py::arg("rhs"), OPENVDS_DOCSTRING(operator_bor));
+  m.def("operator_bor"                , static_cast<VolumeDataLayoutDescriptor::Options(*)(VolumeDataLayoutDescriptor::Options, VolumeDataLayoutDescriptor::Options)>(&operator|), py::arg("lhs").none(false), py::arg("rhs").none(false), OPENVDS_DOCSTRING(operator_bor));
 //AUTOGEN-END
 }
 
