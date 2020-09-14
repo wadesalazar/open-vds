@@ -93,7 +93,7 @@ PyVolumeData::initModule(py::module& m)
     CompressionInfo_(m,"CompressionInfo", OPENVDS_DOCSTRING(CompressionInfo));
 
   CompressionInfo_.def(py::init<                              >(), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo));
-  CompressionInfo_.def(py::init<native::CompressionMethod, int>(), py::arg("compressionMethod"), py::arg("adaptiveLevel"), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo_2));
+  CompressionInfo_.def(py::init<native::CompressionMethod, int>(), py::arg("compressionMethod").none(false), py::arg("adaptiveLevel").none(false), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo_2));
   CompressionInfo_.def("getCompressionMethod"        , static_cast<native::CompressionMethod(CompressionInfo::*)() const>(&CompressionInfo::GetCompressionMethod), OPENVDS_DOCSTRING(CompressionInfo_GetCompressionMethod));
   CompressionInfo_.def_property_readonly("compressionMethod", &CompressionInfo::GetCompressionMethod, OPENVDS_DOCSTRING(CompressionInfo_GetCompressionMethod));
   CompressionInfo_.def("getAdaptiveLevel"            , static_cast<int(CompressionInfo::*)() const>(&CompressionInfo::GetAdaptiveLevel), OPENVDS_DOCSTRING(CompressionInfo_GetAdaptiveLevel));
@@ -110,7 +110,7 @@ PyVolumeData::initModule(py::module& m)
   Dimensionality_.value("Dimensionality_6"            , Dimensionality::Dimensionality_6        , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_6));
   Dimensionality_.value("Dimensionality_Max"          , Dimensionality::Dimensionality_Max      , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_Max));
 
-  m.def("getLODSize"                  , static_cast<int(*)(int, int, int, bool)>(&GetLODSize), py::arg("voxelMin"), py::arg("voxelMax"), py::arg("lod"), py::arg("includePartialUpperVoxel"), OPENVDS_DOCSTRING(GetLODSize));
+  m.def("getLODSize"                  , static_cast<int(*)(int, int, int, bool)>(&GetLODSize), py::arg("voxelMin").none(false), py::arg("voxelMax").none(false), py::arg("lod").none(false), py::arg("includePartialUpperVoxel").none(false), OPENVDS_DOCSTRING(GetLODSize));
 //AUTOGEN-END
 }
 

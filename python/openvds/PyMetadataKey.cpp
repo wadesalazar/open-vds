@@ -46,7 +46,7 @@ PyMetadataKey::initModule(py::module& m)
     MetadataKey_(m,"MetadataKey", OPENVDS_DOCSTRING(MetadataKey));
 
   MetadataKey_.def(py::init<                              >(), OPENVDS_DOCSTRING(MetadataKey_MetadataKey));
-  MetadataKey_.def(py::init<native::MetadataType, const char *, const char *>(), py::arg("type"), py::arg("category"), py::arg("name"), OPENVDS_DOCSTRING(MetadataKey_MetadataKey_2));
+  MetadataKey_.def(py::init<native::MetadataType, const char *, const char *>(), py::arg("type").none(false), py::arg("category").none(false), py::arg("name").none(false), OPENVDS_DOCSTRING(MetadataKey_MetadataKey_2));
   MetadataKey_.def("getType"                     , static_cast<native::MetadataType(MetadataKey::*)() const>(&MetadataKey::GetType), OPENVDS_DOCSTRING(MetadataKey_GetType));
   MetadataKey_.def_property_readonly("type", &MetadataKey::GetType, OPENVDS_DOCSTRING(MetadataKey_GetType));
   MetadataKey_.def("getCategory"                 , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::GetCategory), OPENVDS_DOCSTRING(MetadataKey_GetCategory));
@@ -60,7 +60,7 @@ PyMetadataKey::initModule(py::module& m)
   py::class_<MetadataKeyRange, std::unique_ptr<MetadataKeyRange>> 
     MetadataKeyRange_(m,"MetadataKeyRange", OPENVDS_DOCSTRING(MetadataKeyRange));
 
-  MetadataKeyRange_.def(py::init<native::MetadataKeyRange::const_iterator, native::MetadataKeyRange::const_iterator>(), py::arg("begin"), py::arg("end"), OPENVDS_DOCSTRING(MetadataKeyRange_MetadataKeyRange));
+  MetadataKeyRange_.def(py::init<native::MetadataKeyRange::const_iterator, native::MetadataKeyRange::const_iterator>(), py::arg("begin").none(false), py::arg("end").none(false), OPENVDS_DOCSTRING(MetadataKeyRange_MetadataKeyRange));
   MetadataKeyRange_.def("begin"                       , static_cast<native::MetadataKeyRange::const_iterator(MetadataKeyRange::*)() const>(&MetadataKeyRange::begin), OPENVDS_DOCSTRING(MetadataKeyRange_begin));
   MetadataKeyRange_.def("end"                         , static_cast<native::MetadataKeyRange::const_iterator(MetadataKeyRange::*)() const>(&MetadataKeyRange::end), OPENVDS_DOCSTRING(MetadataKeyRange_end));
 

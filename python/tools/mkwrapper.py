@@ -227,7 +227,7 @@ def get_argnames(node, all_):
     if params:   
         for p in params:
             typ, name = p
-            argnames += ', py::arg("{}")'.format(name)
+            argnames += ', py::arg("{}").none(false)'.format(name)
     return argnames
 
 def generate_constructor(node, all_, output, indent, parent_prefix, context):
