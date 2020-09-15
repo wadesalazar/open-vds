@@ -47,6 +47,7 @@ namespace OpenVDS
     , m_curlHandler(error)
     , m_bucket(openOptions.bucket)
     , m_pathPrefix(openOptions.pathPrefix)
+    , m_storageClass(openOptions.storageClass)
   {
     if (m_bucket.empty())
     {
@@ -198,6 +199,11 @@ namespace OpenVDS
     size_t uploadSize = multipartMsgHeader.size() + data->size() + multipartMsgFooter.size();
 
     headers.push_back(fmt::format("Content-Length: {}", uploadSize));
+
+    if (!m_storageClass.empty())
+    {
+        headers.push_back(fmt::format("x-goog-storage-class: {}", m_storageClass));
+    }
 
     m_curlHandler.addUploadRequest(request, url, headers, true, std::move(upload_buffers), uploadSize);
     return request;

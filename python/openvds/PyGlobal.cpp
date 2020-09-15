@@ -121,6 +121,7 @@ PyGlobal::initModule(py::module& m)
   GoogleOpenOptions_.def_readwrite("bucket"                      , &GoogleOpenOptions::bucket     , OPENVDS_DOCSTRING(GoogleOpenOptions_bucket));
   GoogleOpenOptions_.def_readwrite("pathPrefix"                  , &GoogleOpenOptions::pathPrefix , OPENVDS_DOCSTRING(GoogleOpenOptions_pathPrefix));
   GoogleOpenOptions_.def_readwrite("credentials"                 , &GoogleOpenOptions::credentials, OPENVDS_DOCSTRING(GoogleOpenOptions_credentials));
+  GoogleOpenOptions_.def_readwrite("storageClass"                , &GoogleOpenOptions::storageClass, OPENVDS_DOCSTRING(GoogleOpenOptions_storageClass));
 
   py::enum_<GoogleOpenOptions::CredentialsType> 
     GoogleOpenOptions_CredentialsType_(GoogleOpenOptions_,"CredentialsType", OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType));

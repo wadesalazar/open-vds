@@ -248,6 +248,7 @@ struct GoogleOpenOptions : OpenOptions
   std::string bucket;
   std::string pathPrefix;
   std::string credentials;
+  std::string storageClass;
 
   GoogleOpenOptions() : OpenOptions(GoogleStorage) {}
   /// <summary>

@@ -671,6 +671,8 @@ static const char *__doc_OpenVDS_GoogleOpenOptions_credentialsType = R"doc()doc"
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_pathPrefix = R"doc()doc";
 
+static const char *__doc_OpenVDS_GoogleOpenOptions_storageClass = R"doc()doc";
+
 static const char *__doc_OpenVDS_HttpOpenOptions =
 R"doc(Options for opening a VDS with a plain http url. If there are query
 parameters in then they will be appended to the different sub urls.
