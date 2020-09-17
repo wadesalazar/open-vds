@@ -207,12 +207,13 @@ static int32_t CompileTransformData(uint8_t* compiledTransformData, int32_t* fir
 WaveletAdaptiveLL_DecodeIterator WaveletAdaptiveLL_CreateDecodeIterator(uint8_t* stream, float* picture, int sizeX, int sizeY, int sizeZ,
   const float threshold, const float startThreshold, int* transformMask, Wavelet_TransformData* transformData, int transformDataCount,
   Wavelet_PixelSetChildren* pixelSetChildren, int pixelSetChildrenCount, Wavelet_PixelSetPixel* pixelSetPixelInSignificant, int pixelSetPixelInsignificantCount,
-  int maxSizeX, int maxSizeXY, uint8_t* tempBufferCPU, int maxChildren, int maxPixels, int decompressLevel)
+  int maxSizeX, int maxSizeXY, uint8_t* tempBufferCPU, int maxChildren, int maxPixels, int decompressLevel, bool isInteger)
 {
   int sizeXY = sizeX * sizeY;
 
   WaveletAdaptiveLL_DecodeIterator decodeIterator;
 
+  decodeIterator.isInteger = isInteger;
   decodeIterator.sizeX = sizeX;
   decodeIterator.sizeY = sizeY;
   decodeIterator.sizeZ = sizeZ;
@@ -955,6 +956,13 @@ static void DecodeAllBits(const WaveletAdaptiveLL_DecodeIterator& decodeIterator
   int threads = std::min(8, omp_get_max_threads());
   (void)threads;
 
+  float startValue = 0.0f;
+
+  if (!decodeIterator.isInteger)
+  {
+    startValue = threshold * 0.5f;
+  }
+
 #pragma omp parallel for schedule(dynamic, 256) num_threads(threads)
   for (int32_t parentValue = 0; parentValue < values; parentValue++)
   {
@@ -965,7 +973,7 @@ static void DecodeAllBits(const WaveletAdaptiveLL_DecodeIterator& decodeIterator
       int32_t bit = value & 7;
       int32_t bytePos = value >> 3;
 
-      float rvalue = threshold * 0.5f;
+      float rvalue = startValue;
 
       float currentThreshold = minLevelThreshold;
 

@@ -29,10 +29,61 @@
 #include <mmintrin.h>
 #include <xmmintrin.h>
 #include <emmintrin.h>
+#include <smmintrin.h>
 
 
 namespace OpenVDS
 {
+
+inline void Wavelet_UpdateCoarseSSEInt(float* write, float* readLow, const __m128& mm0, const __m128& mm1, const __m128& mm2, const __m128& mm3, const __m128& mmNine, const __m128& mmSign, const __m128& mmVal)
+{
+  __m128 mmIntRounded = _mm_mul_ps(_mm_loadu_ps(readLow), mmVal);
+  __m128 mmIntCeil = _mm_ceil_ps(mmIntRounded);
+  __m128 mmIntFloor = _mm_floor_ps(mmIntRounded);
+
+  // select ceil or floor based on sign bit in floating point in mmIntRounded
+  mmIntRounded = _mm_blendv_ps(mmIntCeil, mmIntFloor, mmIntRounded);
+
+  _mm_storeu_ps(
+    write,
+    _mm_add_ps(
+      _mm_round_ps(
+        _mm_mul_ps(
+          _mm_add_ps(
+            _mm_add_ps(mm0, mm3),
+            _mm_mul_ps(
+              _mm_add_ps(mm1, mm2),
+              mmNine
+            )
+          ),
+          mmSign
+        ),
+        _MM_FROUND_RINT),
+      mmIntRounded)
+  );
+}
+
+inline void Wavelet_PredictDetailSSEInt(float* write, float* prReadHigh, const __m128& mm0, const __m128& mm1, const __m128& mm2, const __m128& mm3, const __m128& mmNine, const __m128& mmSign)
+{
+  _mm_storeu_ps(
+    write,
+    _mm_add_ps(
+      _mm_round_ps(
+        _mm_mul_ps(
+          _mm_add_ps(
+            _mm_add_ps(mm0, mm3),
+            _mm_mul_ps(
+              _mm_add_ps(mm1, mm2),
+              mmNine
+            )
+          ),
+          mmSign),
+        _MM_FROUND_RINT),
+      _mm_loadu_ps(prReadHigh)
+    )
+  );
+}
+
 static inline void Wavelet_UpdateCoarseSSE(float* write, float* readLow, const __m128& mm0, const __m128& mm1, const __m128& mm2, const __m128& mm3, const __m128& mmNine, const __m128& mmSign, const __m128& mmVal)
 {
   _mm_storeu_ps(
@@ -78,8 +129,9 @@ Wavelet_PredictDetailSSE(float* write, float* readHigh, const __m128& mm0, const
 }
 
 // readLow and write may be equal.
+template<bool isInteger>
 inline void
-Wavelet_TransformSlice_UpdateCoarse(float* write, int32_t nWritePitch, float* readLow, int32_t nReadLowPitch, float* readHigh, int32_t nReadHighPitch, int32_t nSliceWidth, int32_t nSliceHeight, float rSign, float rVal, bool isOdd)
+Wavelet_TransformSlice_UpdateCoarse(float* write, int32_t nWritePitch, float* readLow, int32_t nReadLowPitch, float* readHigh, int32_t nReadHighPitch, int32_t nSliceWidth, int32_t nSliceHeight, float rSign, float rVal, bool isOdd, uint32_t integerInfo)
 {
   float
     * aprLine[5];
@@ -93,6 +145,11 @@ Wavelet_TransformSlice_UpdateCoarse(float* write, int32_t nWritePitch, float* re
   int32_t
     nExtra = isOdd ? 2 : 1,
     nDstHeightMiddle = nSliceHeight - nExtra;
+
+  if (integerInfo & WAVELET_INTEGERINFO_ISLOSSLESSOPTIMIZED)
+  {
+    rVal = 1.0f;
+  }
 
   __m128
     mmNine = _mm_set1_ps(-9.0f),
@@ -111,20 +168,44 @@ Wavelet_TransformSlice_UpdateCoarse(float* write, int32_t nWritePitch, float* re
     int32_t
       i = 0;
 
-    for (; i + 4 <= nSliceWidth; i += 4)
+    if (isInteger)
     {
-      __m128
-        mm0 = _mm_loadu_ps(aprLine[0] + i),
-        mm1 = _mm_loadu_ps(aprLine[1] + i),
-        mm2 = _mm_loadu_ps(aprLine[2] + i),
-        mm3 = _mm_loadu_ps(aprLine[3] + i);
+      for (; i + 4 <= nSliceWidth; i += 4)
+      {
+        __m128
+          mm0 = _mm_loadu_ps(aprLine[0] + i),
+          mm1 = _mm_loadu_ps(aprLine[1] + i),
+          mm2 = _mm_loadu_ps(aprLine[2] + i),
+          mm3 = _mm_loadu_ps(aprLine[3] + i);
 
-      Wavelet_UpdateCoarseSSE(write + i, readLow + i, mm0, mm1, mm2, mm3, mmNine, mmSign, mmVal);
+        Wavelet_UpdateCoarseSSEInt(write + i, readLow + i, mm0, mm1, mm2, mm3, mmNine, mmSign, mmVal);
+      }
+      for (; i < nSliceWidth; ++i)
+      {
+        float rInt = readLow[i] * rVal;
+        if (rInt < 0.0f) rInt = floorf(rInt);
+        else             rInt = ceilf(rInt);
+
+        write[i] = rInt + rintf(rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i])));
+      }
     }
-
-    for (; i < nSliceWidth; ++i)
+    else
     {
-      write[i] = rVal * readLow[i] + rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i]));
+      for (; i + 4 <= nSliceWidth; i += 4)
+      {
+        __m128
+          mm0 = _mm_loadu_ps(aprLine[0] + i),
+          mm1 = _mm_loadu_ps(aprLine[1] + i),
+          mm2 = _mm_loadu_ps(aprLine[2] + i),
+          mm3 = _mm_loadu_ps(aprLine[3] + i);
+
+        Wavelet_UpdateCoarseSSE(write + i, readLow + i, mm0, mm1, mm2, mm3, mmNine, mmSign, mmVal);
+      }
+
+      for (; i < nSliceWidth; ++i)
+      {
+        write[i] = rVal * readLow[i] + rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i]));
+      }
     }
 
     write += nWritePitch;
@@ -146,20 +227,46 @@ Wavelet_TransformSlice_UpdateCoarse(float* write, int32_t nWritePitch, float* re
     int32_t
       i = 0;
 
-    for (; i + 4 <= nSliceWidth; i += 4)
+    if (isInteger)
     {
-      __m128
-        mm0 = _mm_loadu_ps(aprLine[0] + i),
-        mm1 = _mm_loadu_ps(aprLine[1] + i),
-        mm2 = _mm_loadu_ps(aprLine[2] + i),
-        mm3 = _mm_loadu_ps(aprLine[3] + i);
+      for (; i + 4 <= nSliceWidth; i += 4)
+      {
+        __m128 mm0 = _mm_loadu_ps(aprLine[0] + i);
+        __m128 mm1 = _mm_loadu_ps(aprLine[1] + i);
+        __m128 mm2 = _mm_loadu_ps(aprLine[2] + i);
+        __m128 mm3 = _mm_loadu_ps(aprLine[3] + i);
 
-      Wavelet_UpdateCoarseSSE(write + i, readLow + i, mm0, mm1, mm2, mm3, mmNine, mmSign, mmVal);
+        Wavelet_UpdateCoarseSSEInt(write + i, readLow + i, mm0, mm1, mm2, mm3, mmNine, mmSign, mmVal);
+      }
+
+      for (; i < nSliceWidth; ++i)
+      {
+        float
+          rInt = readLow[i] * rVal;
+
+        if (rInt < 0.0f) rInt = floorf(rInt);
+        else             rInt = ceilf(rInt);
+
+        write[i] = rInt + rintf(rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i])));
+      }
     }
-
-    for (; i < nSliceWidth; ++i)
+    else
     {
-      write[i] = rVal * readLow[i] + rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i]));
+      for (; i + 4 <= nSliceWidth; i += 4)
+      {
+        __m128
+          mm0 = _mm_loadu_ps(aprLine[0] + i),
+          mm1 = _mm_loadu_ps(aprLine[1] + i),
+          mm2 = _mm_loadu_ps(aprLine[2] + i),
+          mm3 = _mm_loadu_ps(aprLine[3] + i);
+
+        Wavelet_UpdateCoarseSSE(write + i, readLow + i, mm0, mm1, mm2, mm3, mmNine, mmSign, mmVal);
+      }
+
+      for (; i < nSliceWidth; ++i)
+      {
+        write[i] = rVal * readLow[i] + rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i]));
+      }
     }
 
     write += nWritePitch;
@@ -172,8 +279,9 @@ Wavelet_TransformSlice_UpdateCoarse(float* write, int32_t nWritePitch, float* re
 }
 
 // readHigh and write may be equal.
+template<bool isInteger>
 inline void
-Wavelet_TransformSlice_PredictDetail(float* write, int32_t nWritePitch, float* readLow, int32_t nReadLowPitch, float* readHigh, int32_t nReadHighPitch, int32_t nSliceWidth, int32_t nSliceHeight, float rSign, bool isOdd)
+Wavelet_TransformSlice_PredictDetail(float* write, int32_t nWritePitch, float* readLow, int32_t nReadLowPitch, float* readHigh, int32_t nReadHighPitch, int32_t nSliceWidth, int32_t nSliceHeight, float rSign, bool isOdd, uint32_t integerInfo)
 {
   float
     * aprLine[5];
@@ -203,22 +311,41 @@ Wavelet_TransformSlice_PredictDetail(float* write, int32_t nWritePitch, float* r
     int32_t
       i = 0;
 
-    for (; i + 4 <= nSliceWidth; i += 4)
+    if (isInteger)
     {
-      __m128
-        mm0 = _mm_loadu_ps(aprLine[0] + i),
-        mm1 = _mm_loadu_ps(aprLine[1] + i),
-        mm2 = _mm_loadu_ps(aprLine[2] + i),
-        mm3 = _mm_loadu_ps(aprLine[3] + i);
+      for (; i + 4 <= nSliceWidth; i += 4)
+      {
+        __m128
+          mm0 = _mm_loadu_ps(aprLine[0] + i),
+          mm1 = _mm_loadu_ps(aprLine[1] + i),
+          mm2 = _mm_loadu_ps(aprLine[2] + i),
+          mm3 = _mm_loadu_ps(aprLine[3] + i);
+        Wavelet_PredictDetailSSEInt(write + i, readHigh + i, mm0, mm1, mm2, mm3, mmNine, mmSign);
+      }
 
-      Wavelet_PredictDetailSSE(write + i, readHigh + i, mm0, mm1, mm2, mm3, mmNine, mmSign);
+      for (; i < nSliceWidth; ++i)
+      {
+        write[i] = readHigh[i] - rintf(rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i])));
+      }
     }
-
-    for (; i < nSliceWidth; ++i)
+    else
     {
-      write[i] = readHigh[i] - rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i]));
-    }
+      for (; i + 4 <= nSliceWidth; i += 4)
+      {
+        __m128
+          mm0 = _mm_loadu_ps(aprLine[0] + i),
+          mm1 = _mm_loadu_ps(aprLine[1] + i),
+          mm2 = _mm_loadu_ps(aprLine[2] + i),
+          mm3 = _mm_loadu_ps(aprLine[3] + i);
 
+        Wavelet_PredictDetailSSE(write + i, readHigh + i, mm0, mm1, mm2, mm3, mmNine, mmSign);
+      }
+
+      for (; i < nSliceWidth; ++i)
+      {
+        write[i] = readHigh[i] - rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i]));
+      }
+    }
     write += nWritePitch;
     readHigh += nReadHighPitch;
 
@@ -238,20 +365,41 @@ Wavelet_TransformSlice_PredictDetail(float* write, int32_t nWritePitch, float* r
     int32_t
       i = 0;
 
-    for (; i + 4 <= nSliceWidth; i += 4)
+    if (isInteger)
     {
-      __m128
-        mm0 = _mm_loadu_ps(aprLine[0] + i),
-        mm1 = _mm_loadu_ps(aprLine[1] + i),
-        mm2 = _mm_loadu_ps(aprLine[2] + i),
-        mm3 = _mm_loadu_ps(aprLine[3] + i);
+      for (; i + 4 <= nSliceWidth; i += 4)
+      {
+        __m128
+          mm0 = _mm_loadu_ps(aprLine[0] + i),
+          mm1 = _mm_loadu_ps(aprLine[1] + i),
+          mm2 = _mm_loadu_ps(aprLine[2] + i),
+          mm3 = _mm_loadu_ps(aprLine[3] + i);
 
-      Wavelet_PredictDetailSSE(write + i, readHigh + i, mm0, mm1, mm2, mm3, mmNine, mmSign);
+        Wavelet_PredictDetailSSEInt(write + i, readHigh + i, mm0, mm1, mm2, mm3, mmNine, mmSign);
+      }
+
+      for (; i < nSliceWidth; ++i)
+      {
+        write[i] = readHigh[i] - rintf(rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i])));
+      }
     }
-
-    for (; i < nSliceWidth; ++i)
+    else
     {
-      write[i] = readHigh[i] - rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i]));
+      for (; i + 4 <= nSliceWidth; i += 4)
+      {
+        __m128
+          mm0 = _mm_loadu_ps(aprLine[0] + i),
+          mm1 = _mm_loadu_ps(aprLine[1] + i),
+          mm2 = _mm_loadu_ps(aprLine[2] + i),
+          mm3 = _mm_loadu_ps(aprLine[3] + i);
+
+        Wavelet_PredictDetailSSE(write + i, readHigh + i, mm0, mm1, mm2, mm3, mmNine, mmSign);
+      }
+
+      for (; i < nSliceWidth; ++i)
+      {
+        write[i] = readHigh[i] - rSign * (9.0f * (aprLine[1][i] + aprLine[2][i]) - (aprLine[0][i] + aprLine[3][i]));
+      }
     }
 
     write += nWritePitch;
@@ -264,25 +412,41 @@ Wavelet_TransformSlice_PredictDetail(float* write, int32_t nWritePitch, float* r
 }
 
 void
-Wavelet_InverseTransformSliceInterleave(float* write, int32_t nWritePitch, float* read, int32_t nReadPitch, int32_t nSliceWidth, int32_t nSliceHeight)
+Wavelet_InverseTransformSliceInterleave(float* write, int32_t nWritePitch, float* read, int32_t nReadPitch, int32_t nSliceWidth, int32_t nSliceHeight, uint32_t integerInfo)
 {
   int32_t
     nHeightLow = (nSliceHeight + 1) >> 1,
     nHeightHigh = nSliceHeight >> 1;
 
-  Wavelet_TransformSlice_UpdateCoarse(write, 2 * nWritePitch, read, nReadPitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightLow, -1.0f / 32.0f, (float)REAL_INVSQRT2, nSliceHeight & 1);
-  Wavelet_TransformSlice_PredictDetail(write + nWritePitch, 2 * nWritePitch, write, 2 * nWritePitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightHigh, -1.0f / 16.0f, nSliceHeight & 1);
+  if (integerInfo & WAVELET_INTEGERINFO_ISINTEGER)
+  {
+    Wavelet_TransformSlice_UpdateCoarse<true>(write, 2 * nWritePitch, read, nReadPitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightLow, -1.0f / 32.0f, (float)REAL_INVSQRT2, nSliceHeight & 1, integerInfo);
+    Wavelet_TransformSlice_PredictDetail<true>(write + nWritePitch, 2 * nWritePitch, write, 2 * nWritePitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightHigh, -1.0f / 16.0f, nSliceHeight & 1, integerInfo);
+  }
+  else
+  {
+    Wavelet_TransformSlice_UpdateCoarse<false>(write, 2 * nWritePitch, read, nReadPitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightLow, -1.0f / 32.0f, (float)REAL_INVSQRT2, nSliceHeight & 1, integerInfo);
+    Wavelet_TransformSlice_PredictDetail<false>(write + nWritePitch, 2 * nWritePitch, write, 2 * nWritePitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightHigh, -1.0f / 16.0f, nSliceHeight & 1, integerInfo);
+  }
 }
 
 void
-Wavelet_InverseTransformSlice(float* write, int32_t nWritePitch, float* read, int32_t nReadPitch, int32_t nSliceWidth, int32_t nSliceHeight)
+Wavelet_InverseTransformSlice(float* write, int32_t nWritePitch, float* read, int32_t nReadPitch, int32_t nSliceWidth, int32_t nSliceHeight, uint32_t integerInfo)
 {
   int32_t
     nHeightLow = (nSliceHeight + 1) >> 1,
     nHeightHigh = nSliceHeight >> 1;
 
-  Wavelet_TransformSlice_UpdateCoarse(write, nWritePitch, read, nReadPitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightLow, -1.0f / 32.0f, (float)REAL_INVSQRT2, nSliceHeight & 1);
-  Wavelet_TransformSlice_PredictDetail(write + nHeightLow * nWritePitch, nWritePitch, write, nWritePitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightHigh, -1.0f / 16.0f, nSliceHeight & 1);
+  if (integerInfo & WAVELET_INTEGERINFO_ISINTEGER)
+  {
+    Wavelet_TransformSlice_UpdateCoarse<true>(write, nWritePitch, read, nReadPitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightLow, -1.0f / 32.0f, (float)REAL_INVSQRT2, nSliceHeight & 1, integerInfo);
+    Wavelet_TransformSlice_PredictDetail<true>(write + nHeightLow * nWritePitch, nWritePitch, write, nWritePitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightHigh, -1.0f / 16.0f, nSliceHeight & 1, integerInfo);
+  }
+  else
+  {
+    Wavelet_TransformSlice_UpdateCoarse<false>(write, nWritePitch, read, nReadPitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightLow, -1.0f / 32.0f, (float)REAL_INVSQRT2, nSliceHeight & 1, integerInfo);
+    Wavelet_TransformSlice_PredictDetail<false>(write + nHeightLow * nWritePitch, nWritePitch, write, nWritePitch, read + nHeightLow * nReadPitch, nReadPitch, nSliceWidth, nHeightHigh, -1.0f / 16.0f, nSliceHeight & 1, integerInfo);
+  }
 }
 
 void
@@ -296,8 +460,9 @@ Wavelet_CopySlice(float* write, int32_t nWritePitch, float* read, int32_t nReadP
   }
 }
 
+template<bool isInteger>
 inline void
-Wavelet_TransformLine_PredictDetail(float* write, float* read, int32_t nLength, float rSign, bool isOdd)
+Wavelet_TransformLine_PredictDetail(float* write, float* read, int32_t nLength, float rSign, bool isOdd, uint32_t integerInfo)
 {
   int
     nExtra = isOdd ? 1 : 2;
@@ -346,7 +511,14 @@ Wavelet_TransformLine_PredictDetail(float* write, float* read, int32_t nLength, 
         mmReadR2 = _mm_loadu_ps(read + i + 2),
         mmReadR1 = _mm_loadu_ps(read + i + 1); // On my computer, it's faster to load multiple times from memory with offsets than to read once and shuffle around.
 
-      Wavelet_PredictDetailSSE(write + i, write + i, mmReadL1, mmRead, mmReadR1, mmReadR2, mmNine, mmSign);
+      if (isInteger)
+      {
+        Wavelet_PredictDetailSSEInt(write + i, write + i, mmReadL1, mmRead, mmReadR1, mmReadR2, mmNine, mmSign);
+      }
+      else
+      {
+        Wavelet_PredictDetailSSE(write + i, write + i, mmReadL1, mmRead, mmReadR1, mmReadR2, mmNine, mmSign);
+      }
 
       //mmRead = mmReadR4;
       //mmReadL1 = mmReadR3;
@@ -378,7 +550,14 @@ Wavelet_TransformLine_PredictDetail(float* write, float* read, int32_t nLength, 
       rValue = (arFloat[1] + arFloat[2]) * 9.0f -
       (arFloat[0] + arFloat[3]);
 
-    *write++ += (rValue * -rSign);
+    if (isInteger)
+    {
+      *write++ += rintf(rValue * -rSign);
+    }
+    else
+    {
+      *write++ += (rValue * -rSign);
+    }
 
     arFloat[0] = arFloat[1];
     arFloat[1] = arFloat[2];
@@ -396,7 +575,14 @@ Wavelet_TransformLine_PredictDetail(float* write, float* read, int32_t nLength, 
       rValue = (arFloat[1] + arFloat[2]) * 9.0f -
       (arFloat[0] + arFloat[3]);
 
-    *write++ += (rValue * -rSign);
+    if (isInteger)
+    {
+      *write++ += rintf(rValue * -rSign);
+    }
+    else
+    {
+      *write++ += (rValue * -rSign);
+    }
 
     arFloat[0] = arFloat[1];
     arFloat[1] = arFloat[2];
@@ -404,8 +590,9 @@ Wavelet_TransformLine_PredictDetail(float* write, float* read, int32_t nLength, 
   }
 }
 
+template<bool isInteger>
 inline void
-Wavelet_TransformLine_UpdateCoarse(float* write, float* read, int32_t nLength, float rSign, float rVal, bool isOdd)
+Wavelet_TransformLine_UpdateCoarse(float* write, float* read, int32_t nLength, float rSign, float rVal, bool isOdd, uint32_t integerInfo)
 {
   int32_t
     nExtra = isOdd ? 2 : 1;
@@ -416,6 +603,10 @@ Wavelet_TransformLine_UpdateCoarse(float* write, float* read, int32_t nLength, f
   float
     arFloat[4];
 
+  if (integerInfo & WAVELET_INTEGERINFO_ISLOSSLESSOPTIMIZED)
+  {
+    rVal = 1.0f;
+  }
   __m128
     mmNine = _mm_set1_ps(-9.0f),
     mmSign = _mm_set1_ps(-rSign),
@@ -455,7 +646,14 @@ Wavelet_TransformLine_UpdateCoarse(float* write, float* read, int32_t nLength, f
         mmReadL1 = _mm_shuffle_ps(mmReadL2, mmRead, _MM_SHUFFLE(2, 1, 2, 1)),
         mmReadR1 = _mm_loadu_ps(read + i + 1); // On my computer, it's faster to load multiple times from memory with offsets than to read once and shuffle around.
 
-      Wavelet_UpdateCoarseSSE(write + i, write + i, mmReadL2, mmReadL1, mmRead, mmReadR1, mmNine, mmSign, mmVal);
+      if (isInteger)
+      {
+        Wavelet_UpdateCoarseSSEInt(write + i, write + i, mmReadL2, mmReadL1, mmRead, mmReadR1, mmNine, mmSign, mmVal);
+      }
+      else
+      {
+        Wavelet_UpdateCoarseSSE(write + i, write + i, mmReadL2, mmReadL1, mmRead, mmReadR1, mmNine, mmSign, mmVal);
+      }
 
       //mmRead = mmReadR4;
       //mmReadL2 = mmReadR2;
@@ -489,8 +687,21 @@ Wavelet_TransformLine_UpdateCoarse(float* write, float* read, int32_t nLength, f
 
     rValue *= rSign;
 
-    *write *= rVal;
-    *write += rValue;
+    if (isInteger)
+    {
+      float
+        rInt = *write * rVal;
+
+      if (rInt < 0.0f) rInt = floorf(rInt);
+      else             rInt = ceilf(rInt);
+
+      *write = rintf(rValue) + rInt;
+    }
+    else
+    {
+      *write *= rVal;
+      *write += rValue;
+    }
     ++write;
 
     arFloat[0] = arFloat[1];
@@ -514,8 +725,22 @@ Wavelet_TransformLine_UpdateCoarse(float* write, float* read, int32_t nLength, f
 
     rValue *= rSign;
 
-    *write *= rVal;
-    *write += rValue;
+    if (isInteger)
+    {
+      float
+        rInt = *write * rVal;
+
+      if (rInt < 0.0f) rInt = floorf(rInt);
+      else             rInt = ceilf(rInt);
+
+      *write = rintf(rValue) + rInt;
+    }
+    else
+    {
+      *write *= rVal;
+      *write += rValue;
+    }
+
     ++write;
 
     arFloat[0] = arFloat[1];
@@ -525,13 +750,21 @@ Wavelet_TransformLine_UpdateCoarse(float* write, float* read, int32_t nLength, f
 }
 
 inline void
-Wavelet_InverseTransformLine(float* readWrite, int32_t nLength)
+Wavelet_InverseTransformLine(float* readWrite, int32_t nLength, uint32_t integerInfo)
 {
   int32_t nLengthLow = (nLength + 1) >> 1;
   int32_t nLengthHigh = nLength >> 1;
 
-  Wavelet_TransformLine_UpdateCoarse(readWrite, readWrite + nLengthLow, nLengthLow, -1.0f / 32.0f, (float)REAL_INVSQRT2, nLength & 1);
-  Wavelet_TransformLine_PredictDetail(readWrite + nLengthLow, readWrite, nLengthHigh, -1.0f / 16.0f, nLength & 1);
+  if (integerInfo & WAVELET_INTEGERINFO_ISINTEGER)
+  {
+    Wavelet_TransformLine_UpdateCoarse<true>(readWrite, readWrite + nLengthLow, nLengthLow, -1.0f / 32.0f, (float)REAL_INVSQRT2, nLength & 1, integerInfo);
+    Wavelet_TransformLine_PredictDetail<true>(readWrite + nLengthLow, readWrite, nLengthHigh, -1.0f / 16.0f, nLength & 1, integerInfo);
+  }
+  else
+  {
+    Wavelet_TransformLine_UpdateCoarse<false>(readWrite, readWrite + nLengthLow, nLengthLow, -1.0f / 32.0f, (float)REAL_INVSQRT2, nLength & 1, integerInfo);
+    Wavelet_TransformLine_PredictDetail<false>(readWrite + nLengthLow, readWrite, nLengthHigh, -1.0f / 16.0f, nLength & 1, integerInfo);
+  }
 }
 
 inline void

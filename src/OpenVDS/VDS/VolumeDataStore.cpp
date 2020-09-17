@@ -90,7 +90,8 @@ bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::
       int32_t createSizeZ    = waveletHeader[4];
       int32_t dimensions     = waveletHeader[5];
 
-      isValid = dataVersion == WAVELET_DATA_VERSION_1_4 &&
+      isValid = dataVersion >= WAVELET_DATA_VERSION_1_4 &&
+                dataVersion <= WAVELET_DATA_VERSION_1_5 &&
                 (compressedSize <= int32_t(serializedData.size()) || !isFullyRead) &&
                 (createSizeX == voxelSize[0]                  ) &&
                 (createSizeY == voxelSize[1] || dimensions < 2) &&
@@ -269,7 +270,7 @@ bool DeserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
 
     int32_t dataVersion = ((int32_t *)data)[0];
     (void)dataVersion;
-    assert(dataVersion == WAVELET_DATA_VERSION_1_4);
+    assert(dataVersion >= WAVELET_DATA_VERSION_1_4 && dataVersion <= WAVELET_DATA_VERSION_1_5);
 
     bool isNormalize = false;
     bool isLossless = false;

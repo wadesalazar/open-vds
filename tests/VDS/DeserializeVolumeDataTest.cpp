@@ -20,6 +20,8 @@
 #include <VDS/VolumeDataStore.h>
 #include <VDS/DataBlock.h>
 #include <IO/File.h>
+#include <OpenVDS/ValueConversion.h>
+#include <OpenVDS/Range.h>
 
 #include <cstdlib>
 #include <cmath>
@@ -31,50 +33,61 @@ namespace OpenVDS
   bool DeserializeVolumeData(const std::vector<uint8_t>& serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, const FloatRange& valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, DataBlock& dataBlock, std::vector<uint8_t>& destination, Error& error);
 }
 
-static void Stats(const OpenVDS::DataBlock &aDataBlock, const std::vector<uint8_t> &aData, const OpenVDS::DataBlock &bDataBlock, const std::vector<uint8_t> &bData, double &diff, double &maxError, double &deviation, double &samples)
+template<typename T>
+float getErrorDelta(const OpenVDS::QuantizingValueConverterWithNoValue<T, float, false> &resultConverter, const void *referenceDataPtr, const void *waveletDataPtr, int offset)
+{
+  T waveletValue = *(reinterpret_cast<const T *>(waveletDataPtr) + offset);
+  float waveletFloatValue = float(waveletValue);
+
+  float referenceValue = *(reinterpret_cast<const float *>(referenceDataPtr) + offset);
+  T referenceValueConverted = resultConverter.ConvertValue(referenceValue);
+  float referenceValueConvertedFloat = float(referenceValueConverted);
+  return waveletFloatValue - referenceValueConvertedFloat;
+}
+
+static void Stats(const OpenVDS::FloatRange &valueRange, const OpenVDS::DataBlock &referenceDataBlock, const std::vector<uint8_t> &referenceData, const OpenVDS::DataBlock &waveletDataBlock, const std::vector<uint8_t> &waveletData, float &diff, float &maxError, float &deviation, float &samples)
 {
   diff = 0.0;
   samples = 0.0;
 
-  assert(aDataBlock.Size[0] == bDataBlock.Size[0] &&
-         aDataBlock.Size[1] == bDataBlock.Size[1] &&
-         aDataBlock.Size[2] == bDataBlock.Size[2]);
+  assert(referenceDataBlock.Size[0] == waveletDataBlock.Size[0] &&
+         referenceDataBlock.Size[1] == waveletDataBlock.Size[1] &&
+         referenceDataBlock.Size[2] == waveletDataBlock.Size[2]);
 
-  assert(aDataBlock.Format == bDataBlock.Format);
+  assert(referenceDataBlock.Format == OpenVDS::VolumeDataChannelDescriptor::Format_R32);
 
-  OpenVDS::VolumeDataChannelDescriptor::Format format = aDataBlock.Format;
-
-  const void *a = bData.data();
+  OpenVDS::VolumeDataChannelDescriptor::Format waveletFormat = waveletDataBlock.Format;
+  const void *referenceDataPtr = referenceData.data();
   
-  const void *b = aData.data();
+  const void *waveletDataPtr = waveletData.data();
 
-  double localAverage = 0.0;
+  float localAverage = 0.0;
   maxError = 0.0;
 
+  OpenVDS::QuantizingValueConverterWithNoValue<uint8_t, float, false> resultConverter8(valueRange.Min, valueRange.Max, 1.0f, 0.0f, 0.0f, 0.0f);
+  OpenVDS::QuantizingValueConverterWithNoValue<uint16_t, float, false> resultConverter16(valueRange.Min, valueRange.Max, 1.0f, 0.0f, 0.0f, 0.0f);
 
-  for (int i2 = 0; i2 < aDataBlock.Size[2]; i2++)
+  for (int i2 = 0; i2 < referenceDataBlock.Size[2]; i2++)
   {
-    for (int i1 = 0; i1 < aDataBlock.Size[1]; i1++)
+    for (int i1 = 0; i1 < referenceDataBlock.Size[1]; i1++)
     {
-      for (int i0 = 0; i0 < aDataBlock.Size[0]; i0++)
+      for (int i0 = 0; i0 < referenceDataBlock.Size[0]; i0++)
       {
-        int32_t offset = i0 + i1 * aDataBlock.Pitch[1] + i2 * aDataBlock.Pitch[2];
+        int32_t offset = i0 + i1 * referenceDataBlock.Pitch[1] + i2 * referenceDataBlock.Pitch[2];
 
-        double errorDelta;
+        float errorDelta;
 
-        if (format == OpenVDS::VolumeDataChannelDescriptor::Format_R32)
+        if (waveletFormat == OpenVDS::VolumeDataChannelDescriptor::Format_R32)
         {
-          errorDelta = *(((float *)b) + offset) - *(((float *)a) + offset);
+          errorDelta = *((float *)waveletDataPtr + offset) - *((float *)referenceDataPtr + offset);
         }
-        else if (format == OpenVDS::VolumeDataChannelDescriptor::Format_U16)
+        else if (waveletFormat == OpenVDS::VolumeDataChannelDescriptor::Format_U16)
         {
-          errorDelta = (float)*(((uint16_t *)b) + offset) - (float)*(((uint16_t*)a) + offset);
-          errorDelta /= 65535.0f;
+          errorDelta = getErrorDelta<uint16_t>(resultConverter16, referenceDataPtr, waveletDataPtr, offset);
         }
-        else if (format == OpenVDS::VolumeDataChannelDescriptor::Format_U8)
+        else if (waveletFormat == OpenVDS::VolumeDataChannelDescriptor::Format_U8)
         {
-          errorDelta = (float)*(((uint8_t *)b) + offset) - (float)*(((uint8_t *)a) + offset);
-          errorDelta /= 255.0f;
+          errorDelta = getErrorDelta<uint8_t>(resultConverter8, referenceDataPtr, waveletDataPtr, offset);
         }
         else
         {
@@ -91,32 +104,29 @@ static void Stats(const OpenVDS::DataBlock &aDataBlock, const std::vector<uint8_
     }
   }
 
-  double average = localAverage / samples;
+  float average = localAverage / samples;
   deviation = 0.0;
 
-  for (int i2 = 0; i2 < aDataBlock.Size[2]; i2++)
-  {
-    for (int i1 = 0; i1 < aDataBlock.Size[1]; i1++)
+  for (int i2 = 0; i2 < referenceDataBlock.Size[2]; i2++)
+  { for (int i1 = 0; i1 < referenceDataBlock.Size[1]; i1++)
     {
-      for (int i0 = 0; i0 < aDataBlock.Size[0]; i0++)
+      for (int i0 = 0; i0 < referenceDataBlock.Size[0]; i0++)
       {
-        int32_t offset = i0 + i1 * aDataBlock.Pitch[1] + i2 * aDataBlock.Pitch[2];
+        int32_t offset = i0 + i1 * referenceDataBlock.Pitch[1] + i2 * referenceDataBlock.Pitch[2];
 
-        double errorDelta;
+        float errorDelta;
 
-        if (format == OpenVDS::VolumeDataChannelDescriptor::Format_R32)
+        if (waveletFormat == OpenVDS::VolumeDataChannelDescriptor::Format_R32)
         {
-          errorDelta = *(((float *)b) + offset) - *(((float *)a) + offset);
+          errorDelta = *(((float *)waveletDataPtr) + offset) - *(((float *)referenceDataPtr) + offset);
         }
-        else if (format == OpenVDS::VolumeDataChannelDescriptor::Format_U16)
+        else if (waveletFormat == OpenVDS::VolumeDataChannelDescriptor::Format_U16)
         {
-          errorDelta = (float)*(((uint16_t *)b) + offset) - (float)*(((uint16_t *)a) + offset);
-          errorDelta /= 65535.0f;
+          errorDelta = getErrorDelta<uint16_t>(resultConverter16, referenceDataPtr, waveletDataPtr, offset);
         }
-        else if (format == OpenVDS::VolumeDataChannelDescriptor::Format_U8)
+        else if (waveletFormat == OpenVDS::VolumeDataChannelDescriptor::Format_U8)
         {
-          errorDelta = (float)*(((uint8_t *)b) + offset) - (float)*(((uint8_t *)a) + offset);
-          errorDelta /= 255.0f;
+          errorDelta = getErrorDelta<uint8_t>(resultConverter8, referenceDataPtr, waveletDataPtr, offset);
         }
         else
         {
@@ -146,63 +156,130 @@ static std::vector<uint8_t> LoadTestFile(const std::string &file)
     return serializedData;
 }
 
+float getOnePercentValueRange(const OpenVDS::FloatRange &range, OpenVDS::VolumeDataChannelDescriptor::Format format)
+{
+  if (format == OpenVDS::VolumeDataChannelDescriptor::Format_R32)
+  {
+    return (range.Max - range.Min) / 100.0f;
+  }
+  else if (format == OpenVDS::VolumeDataChannelDescriptor::Format_U8)
+  {
+    return float(std::numeric_limits<uint8_t>::max()) / 100.0f;
+  }
+  else if (format == OpenVDS::VolumeDataChannelDescriptor::Format_U16)
+  {
+    return float(std::numeric_limits<uint16_t>::max()) / 100.0f;
+  }
+
+  return 0.0;
+}
+
+void verify_wavelet(const OpenVDS::FloatRange &valueRange, const OpenVDS::DataBlock &dataBlockNone, const std::vector<uint8_t> &dataNone, const std::string &file, OpenVDS::VolumeDataChannelDescriptor::Format format)
+{
+  OpenVDS::Error error;
+  std::vector<uint8_t> serializedWavelet = LoadTestFile(file);
+  std::vector<uint8_t> dataWavelet;
+  OpenVDS::DataBlock dataBlockWavelet;
+  OpenVDS::DeserializeVolumeData(serializedWavelet, format, OpenVDS::CompressionMethod::Wavelet, valueRange, 1.0f, 0.0f, false, 0.0f, 0, dataBlockWavelet, dataWavelet, error);
+  EXPECT_EQ(error.code, 0);
+
+  int dataNoneScale = OpenVDS::GetVoxelFormatByteSize(dataBlockNone.Format);
+  int compressedDataScale = OpenVDS::GetVoxelFormatByteSize(format);
+  EXPECT_EQ(dataNone.size() / dataNoneScale, dataWavelet.size() / compressedDataScale);
+
+  float diff;
+  float maxError;
+  float deviation;
+  float samples = 0;
+  Stats(valueRange, dataBlockNone, dataNone, dataBlockWavelet, dataWavelet, diff, maxError, deviation, samples);
+  //double variance = deviation / samples;
+  //double std_dev = sqrt(variance);
+  double avg_diff = diff / samples;
+  double one_procent_range = getOnePercentValueRange(valueRange, format);
+  EXPECT_TRUE(avg_diff < one_procent_range * 2);
+}
+
+template<typename T>
+void verify_lossless_typed(const OpenVDS::FloatRange &valueRange, const OpenVDS::DataBlock &referenceDataBlock, const std::vector<uint8_t> &referenceData, const std::vector<uint8_t> &deserializedData)
+{
+  OpenVDS::QuantizingValueConverterWithNoValue<T, float, false> resultConverter(valueRange.Min, valueRange.Max, 1.0f, 0.0f, 0.0f, 0.0f);
+  const T* deserializedDataPtr = reinterpret_cast<const T*>(deserializedData.data());
+  const float* referenceDataPtr = reinterpret_cast<const float*>(referenceData.data());
+  for (int i2 = 0; i2 < referenceDataBlock.Size[2]; i2++)
+  {
+    for (int i1 = 0; i1 < referenceDataBlock.Size[1]; i1++)
+    {
+      for (int i0 = 0; i0 < referenceDataBlock.Size[0]; i0++)
+      {
+        int32_t offset = i0 + i1 * referenceDataBlock.Pitch[1] + i2 * referenceDataBlock.Pitch[2];
+        T convertedReferenceValue = resultConverter.ConvertValue(referenceDataPtr[offset]);
+        T deserializedValue = deserializedDataPtr[offset];
+        if (deserializedValue != convertedReferenceValue)
+        {
+          fmt::print(stderr, "Failed to verify equality: non_compression = {}, compressed = {}\n", convertedReferenceValue, deserializedValue);
+          EXPECT_TRUE(false);
+        }
+      }
+    }
+  }
+}
+
+void verify_lossless(const OpenVDS::FloatRange &valueRange, const OpenVDS::DataBlock &referenceDataBlock, const std::vector<uint8_t> &referenceData, const std::string &file, OpenVDS::CompressionMethod compressionMethod, OpenVDS::VolumeDataChannelDescriptor::Format format)
+{
+  OpenVDS::Error error;
+  std::vector<uint8_t> serializedLossless = LoadTestFile(file);
+  std::vector<uint8_t> deserializedData;
+  OpenVDS::DataBlock deserializedDataBlock;
+  OpenVDS::DeserializeVolumeData(serializedLossless, format, compressionMethod, valueRange, 1.0f, 0.0f, false, 0.0f, -1, deserializedDataBlock, deserializedData, error);
+  EXPECT_EQ(error.code, 0);
+
+  int referenceTypeScale = OpenVDS::GetVoxelFormatByteSize(referenceDataBlock.Format);
+  int deserializedTypeScale = OpenVDS::GetVoxelFormatByteSize(deserializedDataBlock.Format);
+  EXPECT_EQ(referenceData.size() / referenceTypeScale, deserializedData.size() / deserializedTypeScale);
+  if (referenceDataBlock.Format == format)
+  {
+    int comp_lossless = memcmp(referenceData.data(), deserializedData.data(), referenceData.size());
+    EXPECT_TRUE(comp_lossless == 0);
+  }
+  else
+  {
+    if (format == OpenVDS::VolumeDataChannelDescriptor::Format_U8)
+    {
+      verify_lossless_typed<uint8_t>(valueRange, referenceDataBlock, referenceData, deserializedData);
+    }
+    else if (format == OpenVDS::VolumeDataChannelDescriptor::Format_U16)
+    {
+      verify_lossless_typed<uint16_t>(valueRange, referenceDataBlock, referenceData, deserializedData);
+    }
+    else
+    {
+      fmt::print(stderr, "Unsuported compare of data in different formats.\n");
+      EXPECT_TRUE(false);
+    }
+  }
+}
+
 GTEST_TEST(VDS_integration, DeSerializeVolumeData)
 {
   OpenVDS::Error error;
 
+  OpenVDS::FloatRange valueRange(-0.07883811742067337f, 0.07883811742067337f);
   std::vector<uint8_t> serializedNone = LoadTestFile("/chunk.CompressionMethod_None");
   std::vector<uint8_t> dataNone;
   OpenVDS::DataBlock dataBlockNone;
-  OpenVDS::DeserializeVolumeData(serializedNone, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::None, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockNone, dataNone, error);
+  OpenVDS::DeserializeVolumeData(serializedNone, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::None, valueRange, 1.0f, 0.0f, false, 0.0f, 0, dataBlockNone, dataNone, error);
   EXPECT_EQ(error.code, 0);
   
-  std::vector<uint8_t> serializedWavelet = LoadTestFile("/chunk.CompressionMethod_Wavelet");
-  std::vector<uint8_t> dataWavelet;
-  OpenVDS::DataBlock dataBlockWavelet;
-  OpenVDS::DeserializeVolumeData(serializedWavelet, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::Wavelet, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockWavelet, dataWavelet, error);
-  EXPECT_EQ(error.code, 0);
+  verify_lossless(valueRange, dataBlockNone, dataNone, "/chunk.CompressionMethod_RLE", OpenVDS::CompressionMethod::RLE, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+  verify_lossless(valueRange, dataBlockNone, dataNone, "/chunk.CompressionMethod_Zip", OpenVDS::CompressionMethod::Zip, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+  verify_lossless(valueRange, dataBlockNone, dataNone, "/chunk.CompressionMethod_WaveletLossless", OpenVDS::CompressionMethod::WaveletLossless, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+  verify_lossless(valueRange, dataBlockNone, dataNone, "/chunk.U8.CompressionMethod_None", OpenVDS::CompressionMethod::None, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+  verify_lossless(valueRange, dataBlockNone, dataNone, "/chunk.U16.CompressionMethod_None", OpenVDS::CompressionMethod::None, OpenVDS::VolumeDataChannelDescriptor::Format_U16);
+  verify_lossless(valueRange, dataBlockNone, dataNone, "/chunk.U8.CompressionMethod_WaveletLossless", OpenVDS::CompressionMethod::Wavelet, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+  verify_lossless(valueRange, dataBlockNone, dataNone, "/chunk.U16.CompressionMethod_WaveletLossless",OpenVDS::CompressionMethod::Wavelet, OpenVDS::VolumeDataChannelDescriptor::Format_U16);
 
-  EXPECT_EQ(dataNone.size(), dataWavelet.size());
+  verify_wavelet(valueRange, dataBlockNone, dataNone, "/chunk.CompressionMethod_Wavelet",  OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+  verify_wavelet(valueRange, dataBlockNone, dataNone, "/chunk.U8.CompressionMethod_Wavelet", OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+  verify_wavelet(valueRange, dataBlockNone, dataNone, "/chunk.U16.CompressionMethod_Wavelet", OpenVDS::VolumeDataChannelDescriptor::Format_U16);
 
-  double diff;
-  double maxError;
-  double deviation;
-  double samples = 0;
-  Stats(dataBlockNone, dataNone, dataBlockWavelet, dataWavelet, diff, maxError, deviation, samples);
-
-  //double variance = deviation / samples;
-  //double std_dev = sqrt(variance);
-  double avg_diff = diff / samples;
-  double one_procent_range = (0.07883811742067337 + 0.07883811742067337) / 100;
-  EXPECT_TRUE(avg_diff < one_procent_range * 2);
-
-  std::vector<uint8_t> serializedWaveletLossless = LoadTestFile("/chunk.CompressionMethod_WaveletLossless");
-  std::vector<uint8_t> dataWaveletLossless;
-  OpenVDS::DataBlock dataBlockWaveletLossless;
-  OpenVDS::DeserializeVolumeData(serializedWaveletLossless, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::WaveletLossless, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, -1, dataBlockWaveletLossless, dataWaveletLossless, error);
-  EXPECT_EQ(error.code, 0);
-
-  EXPECT_EQ(dataNone.size(), dataWaveletLossless.size());
-  int comp_lossless = memcmp(dataNone.data(), dataWaveletLossless.data(), dataNone.size());
-  EXPECT_TRUE(comp_lossless == 0);
-
-  std::vector<uint8_t> serializedRLE = LoadTestFile("/chunk.CompressionMethod_RLE");
-  std::vector<uint8_t> dataRLE;
-  OpenVDS::DataBlock dataBlockRLE;
-  OpenVDS::DeserializeVolumeData(serializedRLE, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::RLE, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockRLE, dataRLE, error);
-  EXPECT_EQ(error.code, 0);
-
-  EXPECT_EQ(dataNone.size(), dataRLE.size());
-  int comp_rle = memcmp(dataNone.data(), dataRLE.data(), dataNone.size());
-  EXPECT_TRUE(comp_rle == 0);
-  
-  std::vector<uint8_t> serializedZip = LoadTestFile("/chunk.CompressionMethod_Zip");
-  std::vector<uint8_t> dataZip;
-  OpenVDS::DataBlock dataBlockZip;
-  OpenVDS::DeserializeVolumeData(serializedZip, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::CompressionMethod::Zip, OpenVDS::FloatRange(-0.07883811742067337f, 0.07883811742067337f), 1.0f, 0.0f, false, 0.0f, 0, dataBlockZip, dataZip, error);
-  EXPECT_EQ(error.code, 0);
-
-  EXPECT_EQ(dataNone.size(), dataZip.size());
-  int comp_zip = memcmp(dataNone.data(), dataZip.data(), dataNone.size());
-  EXPECT_TRUE(comp_zip == 0);
 }

@@ -25,6 +25,7 @@
 #define WAVELET_MIN_COMPRESSION_TOLERANCE 0.01f
 
 #define WAVELET_DATA_VERSION_1_4 (671) // progressive wavelet transform
+#define WAVELET_DATA_VERSION_1_5 (672) // U8, U16 and U32 native/lossless compression
 
 #define WAVELET_MIN_COMPRESSED_HEADER (6 * 4)
 
@@ -42,6 +43,14 @@
 
 namespace OpenVDS
 {
+
+enum Wavelet_IntegerInfo
+{
+  WAVELET_INTEGERINFO_ISINTEGER = (1 << 0),
+  WAVELET_INTEGERINFO_ISLOSSLESSOPTIMIZED = (1 << 1),
+  WAVELET_INTEGERINFO_ISCOMPRESSEDWITHDIFFPASS = (1 << 2),
+  WAVELET_INTEGERINFO_16BIT = (1 << 3)
+};
 
 bool Wavelet_Decompress(const void *compressedData, int nCompressedAdaptiveDataSize, VolumeDataChannelDescriptor::Format dataBlockFormat, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, bool isNormalize, int nDecompressLevel, bool isLossless, DataBlock &dataBlock, std::vector<uint8_t> &target, Error &error);
 

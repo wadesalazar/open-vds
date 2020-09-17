@@ -56,6 +56,7 @@ class Wavelet
   int32_t m_allocatedHalfSizeY;
   int32_t m_allocatedHalfSizeZ;
   int32_t m_pixelSetChildrenCount;
+  uint32_t m_integerInfo;
 
   std::unique_ptr<float[]> m_maxTree;
   std::unique_ptr<float[]> m_maxTreeMaxOnly;
@@ -70,10 +71,10 @@ class Wavelet
   int32_t m_pixelSetPixelInSignificantCount;
 
 public:
-  Wavelet(const void *compressedData, int32_t transformSizeX, int32_t transformSizeY, int32_t transformSizeZ, int32_t allocatedSizeX, int32_t allocatedSizeY, int32_t allocatedSizeZ, int32_t dimensions, int32_t dataVersion);
+  Wavelet(uint32_t integerIfno, const void *compressedData, int32_t transformSizeX, int32_t transformSizeY, int32_t transformSizeZ, int32_t allocatedSizeX, int32_t allocatedSizeY, int32_t allocatedSizeZ, int32_t dimensions, int32_t dataVersion);
   void InitCoder();
 
-  bool DeCompress(bool isTransform, int32_t decompressInfo, float decompressSlice, int32_t decompressFlip, float *startThreshold, float *threshold, VolumeDataChannelDescriptor::Format dataBlockFormat, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, bool *isAnyNoValue, float *waveletNoValue, bool isNormalize, int decompressLevel, bool isLossless, int compressedAdaptiveDataSize, DataBlock &dataBlock, std::vector<uint8_t> &target, Error &error);
+  bool DeCompress(bool isTransform, int32_t decompressInfo, float decompressSlice, int32_t decompressFlip, float *startThreshold, float *threshold, VolumeDataChannelDescriptor::Format dataBlockFormat, const FloatRange &originalValueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, bool *isAnyNoValue, float *waveletNoValue, bool isNormalize, int decompressLevel, bool isLossless, int compressedAdaptiveDataSize, DataBlock &dataBlock, std::vector<uint8_t> &target, Error &error);
   void DeCompressNoValuesHeader();
   void InverseTransform(float *source);
   void DeCompressNoValues(float* noValue, std::vector<uint32_t> &buffer);

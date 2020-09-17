@@ -169,6 +169,11 @@ target_include_directories(openvds_objects PRIVATE "VDS")
 target_compile_definitions(openvds_objects PRIVATE openvds_EXPORTS)
 target_compile_definitions(openvds_objects PRIVATE -DHUEBDS_EXPORTS= ) # We're not building HueBulkDataStore as a shared library
 
+#needed for ENABLE_SSE_TRANSFORM
+ if (NOT (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
+  target_compile_options(openvds_objects PRIVATE -msse4.1)
+endif()
+
 addSystemHeadersToTarget(openvds_objects "${include_3rdparty}")
 
 if (WIN32)

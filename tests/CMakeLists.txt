@@ -71,9 +71,10 @@ add_test_executable(segy_tests
   ../src/SEGYUtils/SEGYUtils/SEGYFileInfo.h)
 target_include_directories(segy_tests PRIVATE ../src/SEGYUtils)
 
+add_test_executable(deserialize VDS/DeserializeVolumeDataTest.cpp)
+
 add_test_executable(vds_integration_tests
   VDS/ParseVDSJsonTest.cpp
-  VDS/DeserializeVolumeDataTest.cpp
   VDS/RequestVolumeCleanupThread.cpp
   VDS/ParseConnectionStringTest.cpp
   )
