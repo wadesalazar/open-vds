@@ -231,6 +231,84 @@ public:
 };
 
 /// <summary>
+/// Credentials for opening a VDS in Google Cloud Storage
+/// by using the default credentials
+/// Using signed URL mechanism
+/// </summary>
+class GoogleCredentialsSignedUrl
+{
+    friend struct GoogleOpenOptions;
+
+    std::string region;
+
+public:
+    /// <summary>
+    /// GoogleCredentialsSignedUrl constructor
+    /// </summary>
+    /// <param name="region">
+    /// The string containing the region required for signature generation
+    /// </param>
+    explicit GoogleCredentialsSignedUrl(std::string const& region) : region(region) {}
+    explicit GoogleCredentialsSignedUrl(std::string&& region) noexcept : region(std::move(region)) {}
+};
+
+/// <summary>
+/// Credentials for opening a VDS in Google Cloud Storage
+/// by path to the service account json file
+/// Using signed URL mechanism
+/// </summary>
+class GoogleCredentialsSignedUrlPath
+{
+    friend struct GoogleOpenOptions;
+
+    std::string region;
+    std::string path;
+
+public:
+    /// <summary>
+    /// GoogleCredentialsSignedUrlPath constructor
+    /// </summary>
+    /// <param name="region">
+    /// The string containing the region required for signature generation
+    /// </param>
+    /// <param name="path">
+    /// The path to the service account json file
+    /// </param>
+    explicit GoogleCredentialsSignedUrlPath(std::string const& region, std::string const& path) : region(region), path(path) {}
+    explicit GoogleCredentialsSignedUrlPath(std::string&& region, std::string const& path) : region(std::move(region)), path(path) {}
+    explicit GoogleCredentialsSignedUrlPath(std::string const& region, std::string&& path) : region(region), path(std::move(path)) {}
+    explicit GoogleCredentialsSignedUrlPath(std::string&& region, std::string&& path) noexcept : region(std::move(region)), path(std::move(path)) {}
+};
+
+/// <summary>
+/// Credentials for opening a VDS in Google Cloud Storage
+/// by the string containing json with credentials
+/// Using signed URL mechanism
+/// </summary>
+class GoogleCredentialsSignedUrlJson
+{
+    friend struct GoogleOpenOptions;
+
+    std::string region;
+    std::string json;
+
+public:
+    /// <summary>
+    /// GoogleCredentialsSignedUrlJson constructor
+    /// </summary>
+    /// <param name="region">
+    /// The string containing the region required for signature generation
+    /// </param>
+    /// <param name="json">
+    /// The string containing json with credentials
+    /// </param>
+    explicit GoogleCredentialsSignedUrlJson(std::string const& region, std::string const& json) : region(region), json(json) {}
+    explicit GoogleCredentialsSignedUrlJson(std::string&& region, std::string const& json) : region(std::move(region)), json(json) {}
+    explicit GoogleCredentialsSignedUrlJson(std::string const& region, std::string&& json) : region(region), json(std::move(json)) {}
+    explicit GoogleCredentialsSignedUrlJson(std::string&& region, std::string&& json) noexcept : region(std::move(region)), json(std::move(json)) {}
+};
+
+/// <summary>
 /// Options for opening a VDS in Google Cloud Storage
 /// </summary>
 struct GoogleOpenOptions : OpenOptions
@@ -240,7 +318,10 @@ struct GoogleOpenOptions : OpenOptions
     Default = 0,
     AccessToken,
     JsonPath,
-    Json
+    Json,
+    SignedUrl,
+    SignedUrlJsonPath,
+    SignedUrlJson
   };
 
   CredentialsType credentialsType = CredentialsType::Default;
@@ -249,6 +330,7 @@ struct GoogleOpenOptions : OpenOptions
   std::string pathPrefix;
   std::string credentials;
   std::string storageClass;
+  std::string region;
 
   GoogleOpenOptions() : OpenOptions(GoogleStorage) {}
   /// <summary>
@@ -288,6 +370,29 @@ struct GoogleOpenOptions : OpenOptions
       , bucket(bucket)
       , pathPrefix(pathPrefix)
       , credentials(credentials.json)
+  {}
+  GoogleOpenOptions(std::string const& bucket, std::string const& pathPrefix, GoogleCredentialsSignedUrl const& credentials)
+      : OpenOptions(GoogleStorage)
+      , credentialsType(CredentialsType::SignedUrl)
+      , bucket(bucket)
+      , pathPrefix(pathPrefix)
+      , region(credentials.region)
+  {}
+  GoogleOpenOptions(std::string const& bucket, std::string const& pathPrefix, GoogleCredentialsSignedUrlPath const& credentials)
+      : OpenOptions(GoogleStorage)
+      , credentialsType(CredentialsType::SignedUrlJsonPath)
+      , bucket(bucket)
+      , pathPrefix(pathPrefix)
+      , credentials(credentials.path)
+      , region(credentials.region)
+  {}
+  GoogleOpenOptions(std::string const& bucket, std::string const& pathPrefix, GoogleCredentialsSignedUrlJson const& credentials)
+      : OpenOptions(GoogleStorage)
+      , credentialsType(CredentialsType::SignedUrlJson)
+      , bucket(bucket)
+      , pathPrefix(pathPrefix)
+      , credentials(credentials.json)
+      , region(credentials.region)
   {}
 };
 

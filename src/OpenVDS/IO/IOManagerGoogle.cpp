@@ -25,21 +25,140 @@
 namespace OpenVDS
 {
   static const std::string GOOGLEAPIS = "https://storage.googleapis.com";
+  static const std::string HEADER = "HEADER";
+  static const std::string GET = "GET";
+  static const std::string PUT = "PUT";
 
-  class OAuthTokenCredentials : public google::cloud::storage::v1::oauth2::Credentials
+  class CredentialManagerGoogle
+  {
+  public:
+      typedef std::pair<const std::string, const std::string> Option;
+
+      virtual bool Authorize(
+          std::string& url,
+          std::vector<std::string>& headers,
+          const std::string& verb,
+          const std::string& bucket_name,
+          const std::string& path_prefix,
+          const std::string& object_name,
+          const Option& option = Option()) = 0;
+  
+      virtual ~CredentialManagerGoogle() = default;
+  };
+
+  class CredentialManagerGoogleOAuthToken : public CredentialManagerGoogle
   {
       std::string token;
 
   public:
-      explicit OAuthTokenCredentials(const std::string& token) : token(token) {}
-      explicit OAuthTokenCredentials(std::string&& token) : token(std::move(token)) {}
+      explicit CredentialManagerGoogleOAuthToken(const std::string& token) : token(token) {}
 
-      google::cloud::v1::StatusOr<std::string> AuthorizationHeader() override;
+      bool Authorize(
+          std::string& url,
+          std::vector<std::string>& headers,
+          const std::string& verb,
+          const std::string& bucket_name,
+          const std::string& path_prefix,
+          const std::string& object_name,
+          const Option& option = Option()) override;
   };
 
-  google::cloud::v1::StatusOr<std::string> OAuthTokenCredentials::AuthorizationHeader()
+  bool CredentialManagerGoogleOAuthToken::Authorize(
+      std::string& url,
+      std::vector<std::string>& headers,
+      const std::string& verb,
+      const std::string& bucket_name,
+      const std::string& path_prefix,
+      const std::string& object_name,
+      const Option& option)
   {
-      return token;
+      headers.push_back(token);
+      return true;
+  }
+
+  class CredentialManagerGoogleOAuth2 : public CredentialManagerGoogle
+  {
+      typedef std::shared_ptr<google::cloud::storage::v1::oauth2::Credentials> CredentialsPtr;
+
+      CredentialsPtr m_credentials;
+
+  public:
+      explicit CredentialManagerGoogleOAuth2(CredentialsPtr&& credentials) : m_credentials(std::move(credentials)) {}
+
+      bool Authorize(
+          std::string& url,
+          std::vector<std::string>& headers,
+          const std::string& verb,
+          const std::string& bucket_name,
+          const std::string& path_prefix,
+          const std::string& object_name,
+          const Option& option = Option()) override;
+  };
+
+  bool CredentialManagerGoogleOAuth2::Authorize(
+      std::string& url,
+      std::vector<std::string>& headers,
+      const std::string& verb,
+      const std::string& bucket_name,
+      const std::string& path_prefix,
+      const std::string& object_name,
+      const Option& option)
+  {
+      auto authorization_header = m_credentials->AuthorizationHeader();
+      if (!authorization_header) {
+          return false;
+      }
+      
+      headers.push_back(*authorization_header);
+      return true;
+  }
+
+  class CredentialManagerGoogleSignedUrl : public CredentialManagerGoogle
+  {
+      typedef std::shared_ptr<google::cloud::storage::v1::oauth2::Credentials> CredentialsPtr;
+
+      const std::chrono::seconds duration = std::chrono::minutes(15);
+      google::cloud::storage::v1::Client m_client;
+
+  public:
+      explicit CredentialManagerGoogleSignedUrl(CredentialsPtr&& credentials) : m_client(std::move(credentials)) {}
+
+      bool Authorize(
+          std::string& url,
+          std::vector<std::string>& headers,
+          const std::string& verb,
+          const std::string& bucket_name,
+          const std::string& path_prefix,
+          const std::string& object_name,
+          const Option& option = Option()) override;
+  };
+
+  bool CredentialManagerGoogleSignedUrl::Authorize(
+      std::string& url,
+      std::vector<std::string>& headers,
+      const std::string& verb,
+      const std::string& bucket_name,
+      const std::string& path_prefix,
+      const std::string& object_name,
+      const Option& option)
+  {
+      namespace gcs = google::cloud::storage;
+
+      std::string object_prefix_name = (path_prefix.empty())
+          ? object_name
+          : fmt::format("{}/{}", path_prefix, object_name);
+
+      auto signed_url = option.first.empty()
+          ? m_client.CreateV4SignedUrl(verb, bucket_name, object_prefix_name, gcs::SignedUrlDuration(duration))
+          : m_client.CreateV4SignedUrl(verb, bucket_name, object_prefix_name, gcs::SignedUrlDuration(duration),
+              gcs::AddExtensionHeader(option.first, option.second));
+      
+      if (!signed_url) {
+          return false;
+      }
+
+      url = *signed_url;
+      return true;
   }
 
   IOManagerGoogle::IOManagerGoogle(const GoogleOpenOptions& openOptions, Error &error)
@@ -48,6 +167,7 @@ namespace OpenVDS
     , m_bucket(openOptions.bucket)
     , m_pathPrefix(openOptions.pathPrefix)
     , m_storageClass(openOptions.storageClass)
+    , m_region(openOptions.region)
   {
     if (m_bucket.empty())
     {
@@ -65,7 +185,7 @@ namespace OpenVDS
             error.string = "Google Cloud Storage Config error. Unable to get Google Default Credentials.";
             return;
         }
-        m_credentials = *credentials;
+        m_credentialsManager.reset(new CredentialManagerGoogleOAuth2(std::move(*credentials)));
       }
       break;
     case GoogleOpenOptions::CredentialsType::AccessToken:
@@ -74,7 +194,7 @@ namespace OpenVDS
           error.string = "Google Cloud Storage Config error. Authorization Token is empty";
           return;
       }
-      m_credentials = std::make_shared<OAuthTokenCredentials>(openOptions.credentials);
+      m_credentialsManager.reset(new CredentialManagerGoogleOAuthToken(openOptions.credentials));
       break;
     case GoogleOpenOptions::CredentialsType::JsonPath:
       {
@@ -84,7 +204,7 @@ namespace OpenVDS
             error.string = "Google Cloud Storage Config error. Unable to create service account credentials fromJson file path.";
             return;
         }
-        m_credentials = *credentials;
+        m_credentialsManager.reset(new CredentialManagerGoogleOAuth2(std::move(*credentials)));
       }
       break;
     case GoogleOpenOptions::CredentialsType::Json:
@@ -95,7 +215,40 @@ namespace OpenVDS
             error.string = "Google Cloud Storage Config error. Unable to create service account credentials from json contents";
             return;
         }
-        m_credentials = *credentials;
+        m_credentialsManager.reset(new CredentialManagerGoogleOAuth2(std::move(*credentials)));
+      }
+      break;
+    case GoogleOpenOptions::CredentialsType::SignedUrl:
+      {
+        auto credentials = google::cloud::storage::v1::oauth2::GoogleDefaultCredentials();
+        if (!credentials) {
+            error.code = -2;
+            error.string = "Google Cloud Storage Config error. Unable to get Google Default Credentials.";
+            return;
+        }
+        m_credentialsManager.reset(new CredentialManagerGoogleSignedUrl(std::move(*credentials)));
+      }
+      break;
+    case GoogleOpenOptions::CredentialsType::SignedUrlJsonPath:
+      {
+        auto credentials = google::cloud::storage::v1::oauth2::CreateServiceAccountCredentialsFromJsonFilePath(openOptions.credentials);
+        if (!credentials) {
+            error.code = -2;
+            error.string = "Google Cloud Storage Config error. Unable to create service account credentials fromJson file path.";
+            return;
+        }
+        m_credentialsManager.reset(new CredentialManagerGoogleSignedUrl(std::move(*credentials)));
+      }
+      break;
+    case GoogleOpenOptions::CredentialsType::SignedUrlJson:
+      {
+        auto credentials = google::cloud::storage::v1::oauth2::CreateServiceAccountCredentialsFromJsonContents(openOptions.credentials);
+        if (!credentials) {
+            error.code = -2;
+            error.string = "Google Cloud Storage Config error. Unable to create service account credentials from json contents";
+            return;
+        }
+        m_credentialsManager.reset(new CredentialManagerGoogleSignedUrl(std::move(*credentials)));
       }
       break;
     }
@@ -115,15 +268,13 @@ namespace OpenVDS
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
 
-    auto authorization_header = m_credentials->AuthorizationHeader();
-    if (!authorization_header) {
+    if (!m_credentialsManager->Authorize(url, headers, HEADER, m_bucket, m_pathPrefix, objectName)) {
       request->m_done = true;
       request->m_cancelled = true;
       request->m_error.code = -3;
       request->m_error.string = "Google Cloud Storage Config error. Unable to generate Authorization Header.";
       return request;
     }
-    headers.push_back(*authorization_header);
     m_curlHandler.addDownloadRequest(request, url, headers, convertToISO8601, CurlDownloadHandler::HEADER);
     return request;
   }
@@ -133,20 +284,23 @@ namespace OpenVDS
     std::string url = downloadUrl(GOOGLEAPIS, m_bucket, m_pathPrefix, objectName);
     std::shared_ptr<DownloadRequestCurl> request = std::make_shared<DownloadRequestCurl>(objectName, handler);
     std::vector<std::string> headers;
-    auto authorization_header = m_credentials->AuthorizationHeader();
-    if (!authorization_header) {
-      request->m_done = true;
-      request->m_cancelled = true;
-      request->m_error.code = -3;
-      request->m_error.string = "Google Cloud Storage Config error. Unable to generate Authorization Header.";
-      return request;
-    }
-    headers.push_back(*authorization_header);
+    std::string option_name;
+    std::string option_value;
     if (range.start != range.end)
     {
+      option_name = "range";
+      option_value = fmt::format("bytes={}-{}", range.start, range.end);
+
       headers.emplace_back();
       auto& header = headers.back();
-      header = fmt::format("range: bytes={}-{}", range.start, range.end);
+      header = fmt::format("{}: {}", option_name, option_value);
+    }
+    if (!m_credentialsManager->Authorize(url, headers, GET, m_bucket, m_pathPrefix, objectName, std::make_pair(option_name, option_value))) {
+        request->m_done = true;
+        request->m_cancelled = true;
+        request->m_error.code = -3;
+        request->m_error.string = "Google Cloud Storage Config error. Unable to generate Authorization Header.";
+        return request;
     }
     m_curlHandler.addDownloadRequest(request, url, headers, convertToISO8601, CurlDownloadHandler::GET);
     return request;
@@ -158,15 +312,6 @@ namespace OpenVDS
     std::shared_ptr<UploadRequestCurl> request = std::make_shared<UploadRequestCurl>(objectName, completedCallback);
     static const std::string delimiterStr = "foo_openvds_delimiter_baz";
     std::vector<std::string> headers;
-    auto authorization_header = m_credentials->AuthorizationHeader();
-    if (!authorization_header) {
-      request->m_done = true;
-      request->m_cancelled = true;
-      request->m_error.code = -3;
-      request->m_error.string = "Google Cloud Storage Config error. Unable to generate Authorization Header.";
-      return request;
-    }
-    headers.push_back(*authorization_header);
     headers.push_back(fmt::format("Content-Type: multipart/related; boundary={}", delimiterStr));
 
     Json::Value jsonHeader;
@@ -202,7 +347,15 @@ namespace OpenVDS
 
     if (!m_storageClass.empty())
     {
-        headers.push_back(fmt::format("x-goog-storage-class: {}", m_storageClass));
+      headers.push_back(fmt::format("x-goog-storage-class: {}", m_storageClass));
+    }
+
+    if (!m_credentialsManager->Authorize(url, headers, PUT, m_bucket, m_pathPrefix, objectName)) {
+        request->m_done = true;
+        request->m_cancelled = true;
+        request->m_error.code = -3;
+        request->m_error.string = "Google Cloud Storage Config error. Unable to generate Authorization Header.";
+        return request;
     }
 
     m_curlHandler.addUploadRequest(request, url, headers, true, std::move(upload_buffers), uploadSize);

@@ -26,6 +26,8 @@
 namespace OpenVDS
 {
 
+class CredentialManagerGoogle;
+
 class IOManagerGoogle : public IOManager
 {
 public:
@@ -38,9 +40,11 @@ private:
   CurlHandler m_curlHandler;
   std::string m_bucket;
   std::string m_pathPrefix;
-  std::shared_ptr<google::cloud::storage::v1::oauth2::Credentials> m_credentials;
   std::string m_storageClass;
+  std::string m_region;
+
   Json::StreamWriterBuilder m_jsonWriterBuilder;
+  std::unique_ptr<CredentialManagerGoogle> m_credentialsManager;
 };
 }
 

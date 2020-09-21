@@ -108,6 +108,31 @@ PyGlobal::initModule(py::module& m)
   GoogleCredentialsJson_.def(py::init<const std::string &           >(), py::arg("json").none(false), OPENVDS_DOCSTRING(GoogleCredentialsJson_GoogleCredentialsJson));
   GoogleCredentialsJson_.def(py::init<std::string &&                >(), py::arg("json").none(false), OPENVDS_DOCSTRING(GoogleCredentialsJson_GoogleCredentialsJson_2));
 
+  // GoogleCredentialsSignedUrl
+  py::class_<GoogleCredentialsSignedUrl, std::unique_ptr<GoogleCredentialsSignedUrl>> 
+    GoogleCredentialsSignedUrl_(m,"GoogleCredentialsSignedUrl", OPENVDS_DOCSTRING(GoogleCredentialsSignedUrl));
+
+  GoogleCredentialsSignedUrl_.def(py::init<const std::string &           >(), py::arg("region").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrl_GoogleCredentialsSignedUrl));
+  GoogleCredentialsSignedUrl_.def(py::init<std::string &&                >(), py::arg("region").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrl_GoogleCredentialsSignedUrl_2));
+
+  // GoogleCredentialsSignedUrlPath
+  py::class_<GoogleCredentialsSignedUrlPath, std::unique_ptr<GoogleCredentialsSignedUrlPath>> 
+    GoogleCredentialsSignedUrlPath_(m,"GoogleCredentialsSignedUrlPath", OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlPath));
+
+  GoogleCredentialsSignedUrlPath_.def(py::init<const std::string &, const std::string &>(), py::arg("region").none(false), py::arg("path").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlPath_GoogleCredentialsSignedUrlPath));
+  GoogleCredentialsSignedUrlPath_.def(py::init<std::string &&, const std::string &>(), py::arg("region").none(false), py::arg("path").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlPath_GoogleCredentialsSignedUrlPath_2));
+  GoogleCredentialsSignedUrlPath_.def(py::init<const std::string &, std::string &&>(), py::arg("region").none(false), py::arg("path").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlPath_GoogleCredentialsSignedUrlPath_3));
+  GoogleCredentialsSignedUrlPath_.def(py::init<std::string &&, std::string &&>(), py::arg("region").none(false), py::arg("path").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlPath_GoogleCredentialsSignedUrlPath_4));
+
+  // GoogleCredentialsSignedUrlJson
+  py::class_<GoogleCredentialsSignedUrlJson, std::unique_ptr<GoogleCredentialsSignedUrlJson>> 
+    GoogleCredentialsSignedUrlJson_(m,"GoogleCredentialsSignedUrlJson", OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlJson));
+
+  GoogleCredentialsSignedUrlJson_.def(py::init<const std::string &, const std::string &>(), py::arg("region").none(false), py::arg("json").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlJson_GoogleCredentialsSignedUrlJson));
+  GoogleCredentialsSignedUrlJson_.def(py::init<std::string &&, const std::string &>(), py::arg("region").none(false), py::arg("json").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlJson_GoogleCredentialsSignedUrlJson_2));
+  GoogleCredentialsSignedUrlJson_.def(py::init<const std::string &, std::string &&>(), py::arg("region").none(false), py::arg("json").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlJson_GoogleCredentialsSignedUrlJson_3));
+  GoogleCredentialsSignedUrlJson_.def(py::init<std::string &&, std::string &&>(), py::arg("region").none(false), py::arg("json").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlJson_GoogleCredentialsSignedUrlJson_4));
+
   // GoogleOpenOptions
   py::class_<GoogleOpenOptions, OpenOptions, std::unique_ptr<GoogleOpenOptions>> 
     GoogleOpenOptions_(m,"GoogleOpenOptions", OPENVDS_DOCSTRING(GoogleOpenOptions));
@@ -117,11 +142,15 @@ PyGlobal::initModule(py::module& m)
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsToken &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_3));
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsPath &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_4));
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsJson &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_5));
+  GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsSignedUrl &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_6));
+  GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsSignedUrlPath &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_7));
+  GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsSignedUrlJson &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_8));
   GoogleOpenOptions_.def_readwrite("credentialsType"             , &GoogleOpenOptions::credentialsType, OPENVDS_DOCSTRING(GoogleOpenOptions_credentialsType));
   GoogleOpenOptions_.def_readwrite("bucket"                      , &GoogleOpenOptions::bucket     , OPENVDS_DOCSTRING(GoogleOpenOptions_bucket));
   GoogleOpenOptions_.def_readwrite("pathPrefix"                  , &GoogleOpenOptions::pathPrefix , OPENVDS_DOCSTRING(GoogleOpenOptions_pathPrefix));
   GoogleOpenOptions_.def_readwrite("credentials"                 , &GoogleOpenOptions::credentials, OPENVDS_DOCSTRING(GoogleOpenOptions_credentials));
   GoogleOpenOptions_.def_readwrite("storageClass"                , &GoogleOpenOptions::storageClass, OPENVDS_DOCSTRING(GoogleOpenOptions_storageClass));
+  GoogleOpenOptions_.def_readwrite("region"                      , &GoogleOpenOptions::region     , OPENVDS_DOCSTRING(GoogleOpenOptions_region));
 
   py::enum_<GoogleOpenOptions::CredentialsType> 
     GoogleOpenOptions_CredentialsType_(GoogleOpenOptions_,"CredentialsType", OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType));
@@ -130,6 +159,9 @@ PyGlobal::initModule(py::module& m)
   GoogleOpenOptions_CredentialsType_.value("AccessToken"                 , GoogleOpenOptions::CredentialsType::AccessToken, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_AccessToken));
   GoogleOpenOptions_CredentialsType_.value("JsonPath"                    , GoogleOpenOptions::CredentialsType::JsonPath, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_JsonPath));
   GoogleOpenOptions_CredentialsType_.value("Json"                        , GoogleOpenOptions::CredentialsType::Json, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_Json));
+  GoogleOpenOptions_CredentialsType_.value("SignedUrl"                   , GoogleOpenOptions::CredentialsType::SignedUrl, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_SignedUrl));
+  GoogleOpenOptions_CredentialsType_.value("SignedUrlJsonPath"           , GoogleOpenOptions::CredentialsType::SignedUrlJsonPath, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_SignedUrlJsonPath));
+  GoogleOpenOptions_CredentialsType_.value("SignedUrlJson"               , GoogleOpenOptions::CredentialsType::SignedUrlJson, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_SignedUrlJson));
 
   // HttpOpenOptions
   py::class_<HttpOpenOptions, OpenOptions, std::unique_ptr<HttpOpenOptions>> 

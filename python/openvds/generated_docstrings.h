@@ -611,6 +611,75 @@ static const char *__doc_OpenVDS_GoogleCredentialsPath_GoogleCredentialsPath_2 =
 
 static const char *__doc_OpenVDS_GoogleCredentialsPath_path = R"doc()doc";
 
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrl =
+R"doc(Credentials for opening a VDS in Google Cloud Storage by using the
+default credentials Using signed URL mechanism)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlJson =
+R"doc(Credentials for opening a VDS in Google Cloud Storage by the string
+containing json with credentials Using signed URL mechanism)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlJson_GoogleCredentialsSignedUrlJson =
+R"doc(GoogleCredentialsSignedUrlJson constructor
+
+Parameters:
+-----------
+
+region :
+    The string containing the region required for signature generation
+
+json :
+    The string containing json with credentials)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlJson_GoogleCredentialsSignedUrlJson_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlJson_GoogleCredentialsSignedUrlJson_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlJson_GoogleCredentialsSignedUrlJson_4 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlJson_json = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlJson_region = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlPath =
+R"doc(Credentials for opening a VDS in Google Cloud Storage by path to the
+service account json file Using signed URL mechanism)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlPath_GoogleCredentialsSignedUrlPath =
+R"doc(GoogleCredentialsSignedUrlPath constructor
+
+Parameters:
+-----------
+
+region :
+    The string containing the region required for signature generation
+
+path :
+    The path to the service account json file)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlPath_GoogleCredentialsSignedUrlPath_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlPath_GoogleCredentialsSignedUrlPath_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlPath_GoogleCredentialsSignedUrlPath_4 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlPath_path = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrlPath_region = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrl_GoogleCredentialsSignedUrl =
+R"doc(GoogleCredentialsSignedUrl constructor
+
+Parameters:
+-----------
+
+region :
+    The string containing the region required for signature generation)doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrl_GoogleCredentialsSignedUrl_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleCredentialsSignedUrl_region = R"doc()doc";
+
 static const char *__doc_OpenVDS_GoogleCredentialsToken =
 R"doc(Credentials for opening a VDS in Google Cloud Storage by using the
 string containing an access token Using OAuth)doc";
@@ -640,6 +709,12 @@ static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_Json = R"doc(
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_JsonPath = R"doc()doc";
 
+static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_SignedUrl = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_SignedUrlJson = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_SignedUrlJsonPath = R"doc()doc";
+
 static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_2 =
@@ -663,6 +738,12 @@ static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_4 = R"doc()
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_5 = R"doc()doc";
 
+static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_6 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_7 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_8 = R"doc()doc";
+
 static const char *__doc_OpenVDS_GoogleOpenOptions_bucket = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_credentials = R"doc()doc";
@@ -670,6 +751,8 @@ static const char *__doc_OpenVDS_GoogleOpenOptions_credentials = R"doc()doc";
 static const char *__doc_OpenVDS_GoogleOpenOptions_credentialsType = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_pathPrefix = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_region = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_storageClass = R"doc()doc";
 

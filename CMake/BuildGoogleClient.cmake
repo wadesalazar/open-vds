@@ -63,8 +63,24 @@ function(addGoogleCloudToTarget target)
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/bucket_metadata.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/iam_bindings.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/lifecycle_rule.cc
-    #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
-    #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/client.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/client_options.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/hash_validator.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/object_streambuf.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/logging_client.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/policy_document_request.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/retry_client.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/signed_url_requests.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/object_stream.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/hash_validator_impl.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/iam_policy.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/empty_response.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/service_account.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/logging_resumable_upload_session.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/idempotency_policy.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/internal/backoff_policy.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/retry_object_read_source.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/retry_resumable_upload_session.cc
     #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
     #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
     #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
