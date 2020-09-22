@@ -376,6 +376,16 @@ bool DeserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDat
 
     void * source = dataBlockDescriptor + 1;
 
+    size_t sourceDataBlockSize = serializedData.size() - sizeof(*dataBlockDescriptor);
+    size_t requiredDataBlockSize = size_t(GetByteSize(*dataBlockDescriptor));
+
+    if (sourceDataBlockSize != requiredDataBlockSize)
+    {
+      error.string = "Required size of uncompressed chunk is not present. Possible data corruptions.";
+      error.code = -1;
+      return false;
+    }
+
     int32_t byteSize = GetAllocatedByteSize(dataBlock);
     destination.resize(byteSize);
     CopyLinearBufferIntoDataBlock(source, dataBlock, destination);
