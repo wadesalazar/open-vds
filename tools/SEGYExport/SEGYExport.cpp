@@ -44,13 +44,17 @@ main(int argc, char *argv[])
   std::string vdsFileName;
   std::string persistentID;
   std::string fileName;
+  bool help = false;
 
   options.add_option("", "", "url", "Url with vendor specific protocol.", cxxopts::value<std::string>(url), "<string>");
   options.add_option("", "", "connection", "Vendor specific connection string.", cxxopts::value<std::string>(connection), "<string>");
   options.add_option("", "", "vdsfile", "Input VDS file name.", cxxopts::value<std::string>(vdsFileName), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
+  options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
+
   options.add_option("", "", "output", "", cxxopts::value<std::string>(fileName), "");
+
   options.parse_positional("output");
 
   if(argc == 1)
@@ -67,6 +71,12 @@ main(int argc, char *argv[])
   {
     fmt::print(stderr, "{}", e.what());
     return EXIT_FAILURE;
+  }
+
+  if (help)
+  {
+    std::cout << options.help();
+    return EXIT_SUCCESS;
   }
 
   if(fileName.empty())

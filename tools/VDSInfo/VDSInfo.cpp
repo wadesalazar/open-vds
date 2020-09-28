@@ -207,6 +207,7 @@ int main(int argc, char **argv)
   bool metadataAutoDecodeEBCDIC = false;
   bool metadataAll = false;
   int  textDecodeWidth = std::numeric_limits<int>::max();
+  bool help = false;
 
 //connection options
   options.add_option("", "", "urlpos", "Url with vendor specific protocol.", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
@@ -229,6 +230,8 @@ int main(int argc, char **argv)
   options.add_option("", "", "url", "Url with vendor specific protocol. (Available as positional argument as well).", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
   options.add_option("", "", "vdsfile", "VDS file.", cxxopts::value<std::string>(vdsFileName), "<string>");
 
+  options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
+
   options.parse_positional("urlpos");
 
   if(argc == 1)
@@ -245,6 +248,12 @@ int main(int argc, char **argv)
   {
     fmt::print(stderr, "{}\n", e.what());
     return EXIT_FAILURE;
+  }
+
+  if(help)
+  {
+    std::cout << options.help();
+    return EXIT_SUCCESS;
   }
 
   if (urlarg.empty() && vdsFileName.empty())

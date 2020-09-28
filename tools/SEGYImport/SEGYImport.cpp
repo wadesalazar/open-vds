@@ -1082,10 +1082,11 @@ main(int argc, char* argv[])
   std::string persistentID;
   bool uniqueID = false;
   bool disablePersistentID = false;
+  bool help = false;
 
   std::vector<std::string> fileNames;
 
-  options.add_option("", "h", "header-format", "A JSON file defining the header format for the input SEG-Y file. The expected format is a dictonary of strings (field names) to pairs (byte position, field width) where field width can be \"TwoByte\" or \"FourByte\". Additionally, an \"Endianness\" key can be specified as \"BigEndian\" or \"LittleEndian\".", cxxopts::value<std::string>(headerFormatFileName), "<file>");
+  options.add_option("", "", "header-format", "A JSON file defining the header format for the input SEG-Y file. The expected format is a dictonary of strings (field names) to pairs (byte position, field width) where field width can be \"TwoByte\" or \"FourByte\". Additionally, an \"Endianness\" key can be specified as \"BigEndian\" or \"LittleEndian\".", cxxopts::value<std::string>(headerFormatFileName), "<file>");
   options.add_option("", "p", "primary-key", "The name of the trace header field to use as the primary key.", cxxopts::value<std::string>(primaryKey)->default_value("Inline"), "<field>");
   options.add_option("", "s", "secondary-key", "The name of the trace header field to use as the secondary key.", cxxopts::value<std::string>(secondaryKey)->default_value("Crossline"), "<field>");
   options.add_option("", "", "scale", "If a scale override (floating point) is given, it is used to scale the coordinates in the header instead of determining the scale factor from the coordinate scale trace header field.", cxxopts::value<double>(scale), "<value>");
@@ -1106,6 +1107,8 @@ main(int argc, char* argv[])
   options.add_option("", "", "uniqueID", "Generate a new globally unique ID when scanning the input SEG-Y file.", cxxopts::value<bool>(uniqueID), "");
   options.add_option("", "", "disable-persistentID", "Disable the persistentID usage, placing the VDS directly into the url location.", cxxopts::value<bool>(disablePersistentID), "");
 
+  options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
+
   options.add_option("", "", "input", "", cxxopts::value<std::vector<std::string>>(fileNames), "");
   options.parse_positional("input");
 
@@ -1123,6 +1126,12 @@ main(int argc, char* argv[])
   {
     std::cerr << e.what();
     return EXIT_FAILURE;
+  }
+
+  if (help)
+  {
+    std::cout << options.help();
+    return EXIT_SUCCESS;
   }
 
   if (fileNames.empty())
