@@ -6,6 +6,16 @@ function(BuildExternal name version depends source_dir install_libs_release runt
 
   GetRootInstallDir(INSTALL_INT ${name} ${version})
 
+  if (UNIX)
+    if (NOT install_libs_release)
+      list(APPEND install_libs_release ${runtime_libs_release})
+    endif()
+
+    if (NOT install_libs_debug)
+      list(APPEND install_libs_debug ${runtime_libs_debug})
+    endif()
+  endif()
+
   get_property(_isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
   if (${_isMultiConfig}) ##we don't need build byproducts for visual studio or xcode
     set(INSTALL_INT_CONFIG "${INSTALL_INT}/$<CONFIG>")
