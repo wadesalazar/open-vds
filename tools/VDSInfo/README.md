@@ -22,6 +22,7 @@ VDSInfo [OPTION...] <url>
 | --metadata-autodecode         | Autodetect EBCDIC and decode to ASCII for blobs.
 | --metadata-force-width \<arg> | Force output width.
 | --url \<string>               | Url for the VDS. This is preserved because of legacy purposes. Use the positional argument instead (ie. no -).
+|  -h, --help                   |Print this help information
 
 VDSInfo prints out the result of the query in json, and it will try and give
 the shortest json for the specific query by eliminating redundant json parent

@@ -12,7 +12,8 @@ SEGYExport [OPTION...] <output file>
 |--url \<string>               | Url for the VDS
 |--connection \<string>        | Connection string for the VDS
 |--persistentID \<ID>          | A globally unique ID for the VDS, usually an 8-digit hexadecimal number.
-|--output \<arg>               | The output SEG-Y file.
+|-h, --help                    | Print this help information
+|  output file \<arg>          | The output SEG-Y file.
 
 SEGYExport is used to export from a VDS to a SEG-Y file. A VDS that was
 imported from a SEG-Y file stores the SEGY-Y binary and text headers from the
