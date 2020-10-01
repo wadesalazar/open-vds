@@ -1080,7 +1080,8 @@ static inline void TransformRotateFloatLeft(float *buffer)
   buffer[1] = buffer[0];
 }
 
-static void TransformUpdateCoarse(float *write, float *read, int32_t length, float sign, bool isOdd)
+template<bool isInteger>
+static void TransformUpdateCoarse(float *write, float *read, int32_t length, float sign, bool isOdd, uint32_t integerInfo)
 {
   float temp[4];
 
@@ -1111,13 +1112,17 @@ static void TransformUpdateCoarse(float *write, float *read, int32_t length, flo
     // Read in new pixel
     temp[0] = *read++;
 
-    float value = (temp[1] + temp[2]) * 9.0f - (temp[0] + temp[3]);
+    if (isInteger)
+    {
+      float currentInt = *write < 0.0f ? floorf(*write) : ceilf(*write);
 
-//    if (fabsf(rValue) > rDebug_Threshold) rValue = 0.0f;
+      *write = currentInt + rintf(sign * (9.0f * (temp[1] + temp[2]) - (temp[0] + temp[3])));
+    }
+    else
+    {
+      *write += sign * (9.0f * (temp[1] + temp[2]) - (temp[0] + temp[3]));
+    }
 
-    value *= sign;
-
-    *write += value;
     write++;
 
     TransformRotateFloatLeft(temp);
@@ -1133,19 +1138,24 @@ static void TransformUpdateCoarse(float *write, float *read, int32_t length, flo
     // Read in new pixel
     temp[0] = *--read;
 
-    float value = (temp[1] + temp[2]) * 9.0f - (temp[0] + temp[3]);
+    if (isInteger)
+    {
+      float currentInt = *write < 0.0f ? floorf(*write) : ceilf(*write);
+      *write = currentInt + rintf(sign * (9.0f * (temp[1] + temp[2]) - (temp[0] + temp[3])));
+    }
+    else
+    {
+      *write += sign * (9.0f * (temp[1] + temp[2]) - (temp[0] + temp[3]));
+    }
 
-//    if (fabsf(rValue) > rDebug_Threshold) rValue = 0.0f;
-
-    value *= sign;
-    *write += value;
     write++;
 
     TransformRotateFloatLeft(temp);
   }
 }
 
-static void TransformPredictDetail(float *write, float *read, int32_t length, float sign, bool isOdd)
+template<bool isInteger>
+static void TransformPredictDetail(float *write, float *read, int32_t length, float sign, bool isOdd, uint32_t integerInfo)
 {
   float buffer[4];
 
@@ -1173,13 +1183,14 @@ static void TransformPredictDetail(float *write, float *read, int32_t length, fl
     // Read in new pixel
     buffer[0] = *read++;
 
-    float value = (buffer[1] + buffer[2]) * 9.0f - (buffer[0] + buffer[3]);
-
-//    if (fabsf(value) > rDebug_Threshold) value = 0.0f;
-
-    value *= -sign;
-
-    *write += value;
+    if (isInteger)
+    {
+      *write -= rintf(sign * (9.0f * (buffer[1] + buffer[2]) - (buffer[0] + buffer[3])));
+    }
+    else
+    {
+      *write -= sign * (9.0f * (buffer[1] + buffer[2]) - (buffer[0] + buffer[3]));
+    }
     write++;
 
     TransformRotateFloatLeft(buffer);
@@ -1192,34 +1203,45 @@ static void TransformPredictDetail(float *write, float *read, int32_t length, fl
     // Read in new pixel
     buffer[0] = *--read;
 
-    float value = (buffer[1] + buffer[2]) * 9.0f - (buffer[0] + buffer[3]);
-
-//    if (fabsf(value) > rDebug_Threshold) value = 0.0f;
-
-    value *= -sign;
-
-    *write += value;
+    if (isInteger)
+    {
+      *write -= rintf(sign * (9.0f * (buffer[1] + buffer[2]) - (buffer[0] + buffer[3])));
+    }
+    else
+    {
+      *write -= sign * (9.0f * (buffer[1] + buffer[2]) - (buffer[0] + buffer[3]));
+    }
     write++;
 
     TransformRotateFloatLeft(buffer);
   }
 }
 
-static void InverseTransformLine(float *readWrite, int32_t length)
+template<bool isInteger>
+static void InverseTransformLine_2(float *readWrite, int32_t length, uint32_t integerInfo)
 {
   int32_t lengthLow = (length + 1) >> 1;
   int32_t lengthHigh = length >> 1;
 
-  float val = (float)REAL_INVSQRT2;
+  float val = integerInfo & WAVELET_INTEGERINFO_ISLOSSLESSOPTIMIZED ? 1.0f : (float)REAL_INVSQRT2;
 
   for (int32_t i = 0; i < lengthLow; i++)
   {
     readWrite[i] *= val;
   }
 
-  TransformUpdateCoarse(readWrite, readWrite + lengthLow, lengthLow, -1.0 / 32.0f, length & 1);
-  TransformPredictDetail(readWrite + lengthLow, readWrite, lengthHigh , -1.0 / 16.0f, length & 1);
+  TransformUpdateCoarse<isInteger>(readWrite, readWrite + lengthLow, lengthLow, -1.0 / 32.0f, length & 1, integerInfo);
+  TransformPredictDetail<isInteger>(readWrite + lengthLow, readWrite, lengthHigh, -1.0 / 16.0f, length & 1, integerInfo);
 }
+
+static void InverseTransformLine(float *readWrite, int32_t length, uint32_t integerInfo)
+{
+  if (integerInfo & WAVELET_INTEGERINFO_ISINTEGER)
+    InverseTransformLine_2<true>(readWrite, length, integerInfo); 
+  else
+    InverseTransformLine_2<false>(readWrite, length, integerInfo); 
+}
+
 
 static void WriteLineFromLowHighBand(float *write, float *read, int32_t length, int32_t modulo)
 {
@@ -1270,7 +1292,7 @@ void Wavelet::InverseTransform(float *source)
 
           // Wavelet transform z
           GetLine(line, source + displacement, bandSizeZ, m_allocatedSizeXY);
-          InverseTransformLine(line, bandSizeZ);
+          InverseTransformLine(line, bandSizeZ, m_integerInfo);
           WriteLineFromLowHighBand(source + displacement, line, bandSizeZ, m_allocatedSizeXY);
         }
     }
@@ -1284,7 +1306,7 @@ void Wavelet::InverseTransform(float *source)
 
           // Wavelet transform y
           GetLine(line, source + displacement, bandSizeY, m_allocatedSizeX);
-          InverseTransformLine(line, bandSizeY);
+          InverseTransformLine(line, bandSizeY, m_integerInfo);
           WriteLineFromLowHighBand(source + displacement, line, bandSizeY, m_allocatedSizeX);
         }
     }
@@ -1298,7 +1320,7 @@ void Wavelet::InverseTransform(float *source)
 
           // Wavelet transform x
           GetLine(line, source + displacement, bandSizeX, 1);
-          InverseTransformLine(line, bandSizeX);
+          InverseTransformLine(line, bandSizeX, m_integerInfo);
           WriteLineFromLowHighBand(source + displacement, line, bandSizeX, 1);
         }
     }
