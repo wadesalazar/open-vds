@@ -101,7 +101,7 @@ add_library(openvds-javacpp
   cpp/src/JniPointer.cpp
   cpp/src/MemoryVdsGenerator.cpp
   cpp/src/MetadataReadAccess.cpp
-  cpp/src/OpenVDS.cpp
+  cpp/src/OpenVDSJava.cpp
   cpp/src/QuantizingValueConverter_FloatToByte.cpp
   cpp/src/VariousJavaTests.cpp
   cpp/src/VdsHandle.cpp
