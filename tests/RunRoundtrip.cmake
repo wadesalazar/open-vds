@@ -14,7 +14,7 @@ if (TEST_CONNECTION)
 endif()
 
 if (TEST_SEGY_HEADER_FILE)
-  set(HEADER "-h")
+  set(HEADER "--header-format")
 endif()
 
 
