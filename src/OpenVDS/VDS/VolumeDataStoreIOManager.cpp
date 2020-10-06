@@ -53,7 +53,7 @@ public:
   }
   void HandleData(std::vector<uint8_t> &&data) override
   {
-    *(this->data) = data;
+    *(this->data) = std::move(data);
   }
   void Completed(const Request &request, const Error &error) override
   {
@@ -128,7 +128,7 @@ public:
 
   void HandleData(std::vector<uint8_t>&& data) override
   {
-    m_data = data;
+    m_data = std::move(data);
   }
 
   void Completed(const Request &req, const Error & error) override
