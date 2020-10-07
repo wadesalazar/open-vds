@@ -495,15 +495,30 @@ bool VolumeDataStoreIOManager::ReadChunk(const VolumeDataChunk &chunk, std::vect
     return false;
   }
 
-  bool moveData = pendingRequest.m_canMove;
-  if (--pendingRequest.m_ref == 0)
+  if (!activeTransfer->IsDone())
+  {
+    lock.unlock();
+
+    activeTransfer->WaitForFinish();
+
+    lock.lock();
+    pendingRequestIterator = m_pendingDownloadRequests.find(chunk);
+    if (pendingRequestIterator == m_pendingDownloadRequests.end())
+    {
+      error.code = -1;
+      error.string = fmt::format("Request removed while processing: {}\n", chunk.index);
+      return false;
+    }
+  }
+
+  bool moveData = pendingRequestIterator->second.m_canMove;
+  if (--pendingRequestIterator->second.m_ref == 0)
   {
     m_pendingDownloadRequests.erase(pendingRequestIterator);
   }
 
   lock.unlock();
 
-  activeTransfer->WaitForFinish();
   if (transferHandler->m_error.code)
   {
     error = transferHandler->m_error;
