@@ -36,6 +36,11 @@ The recognised keys for ``s3`` connection string are
 
 ``azure`` will treat the connection string as the connection string you get with your access keys.
 
+``gs`` will accept the following keys
+
+  - Token
+The Token is the OAuth2 token.
+
 ``azureSAS`` will accept the following keys
 
   - Suffix
@@ -56,7 +61,7 @@ Azure::
 
 GS::
   url = "gs://my_bucket/somepath"
-  # there are no good paramteres to connection at current time.
+  connection = "Token=ya29.c.Ko8B3wcAmfbKdqtd9OeEA4pod000u-KFdpFOiXx3S3wQK2WV-DL7oO3dAdCVTGyldJClv-4JIvUtdgFdzeYzzeNv1tG8aGXn_jjZLZkMAThV_0gYGnO2HBUwaqYeNMPlBa9RX4yEPRe4RZiAHk3Btkb29yfLyEJBkx321ntr00lhmAJksqli7igD1xBPlpeK3F0"
 
 AzureSAS::
 

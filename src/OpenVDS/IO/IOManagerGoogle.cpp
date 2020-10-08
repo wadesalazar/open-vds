@@ -72,7 +72,7 @@ namespace OpenVDS
       const std::string& object_name,
       const Option& option)
   {
-      headers.push_back(token);
+      headers.push_back(fmt::format("Authorization: Bearer {}", token));
       return true;
   }
 

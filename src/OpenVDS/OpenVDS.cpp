@@ -231,11 +231,12 @@ static std::unique_ptr<OpenOptions> createGoogleOpenOptions(const StringWrapper&
 
   for (auto& connectionPair : connectionStringMap)
   {
-//    if (FOOBAR)
-//    {
-//
-//    }
-//    else
+    if (connectionPair.first == "token")
+    {
+      openOptions->credentialsType = GoogleOpenOptions::CredentialsType::AccessToken;
+      openOptions->credentials = connectionPair.second;
+    }
+    else
     {
       error.code = -1;
       error.string = fmt::format("Invalid key \"{}\" in GS connection string.", connectionPair.first);
