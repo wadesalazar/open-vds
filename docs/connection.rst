@@ -60,6 +60,7 @@ Azure::
   connection = "DefaultEndpointsProtocol=https;AccountName=developer;AccountKey=somekey;EndpointSuffix=core.windows.net"
 
 GS::
+
   url = "gs://my_bucket/somepath"
   connection = "Token=ya29.c.Ko8B3wcAmfbKdqtd9OeEA4pod000u-KFdpFOiXx3S3wQK2WV-DL7oO3dAdCVTGyldJClv-4JIvUtdgFdzeYzzeNv1tG8aGXn_jjZLZkMAThV_0gYGnO2HBUwaqYeNMPlBa9RX4yEPRe4RZiAHk3Btkb29yfLyEJBkx321ntr00lhmAJksqli7igD1xBPlpeK3F0"
 
