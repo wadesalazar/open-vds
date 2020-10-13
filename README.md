@@ -36,7 +36,7 @@ The OpenVDS implementation is made up of the following components:
 - VDSInfo tool (transfer from object storage)
 
 In order to implement these components there are a number of internal components:
-- Decompression (Zip, Run-lenght encoding, Bluware Inc. properitary Wavelet compression)
+- Decompression (Zip, Run-length encoding, Bluware Inc. proprietary Wavelet compression)
 - VolumeDataLayout (manages how the volume is divided into chunks)
 - IOManagers for connecting to the various cloud providers' object storage solutions
 - File (UTF-8 filenames, thread-safe read/write, possibility to create memory-mapped file views)
@@ -61,8 +61,8 @@ specify a specific python installation.
 
 Otherwise the cmake find_package
 python rules will be used. Since CMake version 3.13 Python_FIND_REGISTRY can be
-used to modify search order on windows. Ie. to disable searching the registry
-pass the cmake option: -DPython_FIND_REGISTRY=NEVER.
+used to modify search order on windows. For example, to disable searching the 
+registry pass the cmake option: -DPython_FIND_REGISTRY=NEVER.
 
 #### Linux
 Make a build directory in the OpenVDS folder and change current directory to the created folder.
@@ -85,8 +85,8 @@ from the different network storage integrations. Currently these packages are re
 Much like on Linux its possible to generate a project in a build folder and
 build it using native tools.  To generate a Visual Studio solution make a build
 directory in the OpenVDS folder and change current directory to the build
-folder. Either use `$ cmake ..` or launch cmake-gui and generate a visual
-studio solution.
+folder. Either use `$ cmake ..` or launch cmake-gui and generate a Visual
+Studio solution.
 
 OpenVDS also supports using the cmake integration in Visual Studio. Open Visual
 Studio and use the "Open a local folder" to open the OpenVDS folder.
