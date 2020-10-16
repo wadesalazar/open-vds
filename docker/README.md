@@ -21,3 +21,6 @@ Everything should be ready, so now its possible to add a configuration to your W
 ```
 Hack away!!!
 Its a good idea to clone your OpenVDS repository from your local Windows projects into the work dir for performance reasons.
+
+There is also a script copied to the root folder '/' called 'build_and_install_openvds.sh'. This script will clone, build and install openvds to '/open-vds-install'.
+

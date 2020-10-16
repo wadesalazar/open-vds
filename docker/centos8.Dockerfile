@@ -19,5 +19,5 @@ RUN tar xzvf cmake-3.17.2-Linux-x86_64.tar.gz -C /opt
 RUN ln -s /opt/cmake-3.17.2-Linux-x86_64/bin/* /usr/bin/
 
 RUN python3 -m pip install scikit-build ninja
-#
-## cmake -DCMAKE_BUILD_TYPE=Debug -GNinja ..
+
+COPY docker/build_scripts/generic_linux_build.sh /build_and_install_openvds.sh

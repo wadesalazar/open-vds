@@ -11,3 +11,5 @@ ENV PATH="$JAVA_HOME/bin:${PATH}"
 # Copy the python requirement list into the container and download the packages
 COPY python/requirements-dev-with-docs.txt /tmp/requirements-dev.txt
 RUN pip3 install -r tmp/requirements-dev.txt
+
+COPY docker/build_scripts/generic_linux_build.sh /build_and_install_openvds.sh
