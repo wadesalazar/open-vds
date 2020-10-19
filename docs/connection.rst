@@ -39,6 +39,9 @@ The recognised keys for ``s3`` connection string are
 ``gs`` will accept the following keys
 
   - Token
+  - CredentialsFile
+  - JsonCredentials
+  - SignedUrl (Possible values: True, Yes, On, False, No, Off. Default value: False, No, Off)
 The Token is the OAuth2 token.
 
 ``azureSAS`` will accept the following keys

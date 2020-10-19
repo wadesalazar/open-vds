@@ -196,7 +196,7 @@ namespace OpenVDS
       }
       m_credentialsManager.reset(new CredentialManagerGoogleOAuthToken(openOptions.credentials));
       break;
-    case GoogleOpenOptions::CredentialsType::JsonPath:
+    case GoogleOpenOptions::CredentialsType::Path:
       {
         auto credentials = google::cloud::storage::v1::oauth2::CreateServiceAccountCredentialsFromJsonFilePath(openOptions.credentials);
         if (!credentials) {
@@ -229,7 +229,7 @@ namespace OpenVDS
         m_credentialsManager.reset(new CredentialManagerGoogleSignedUrl(std::move(*credentials)));
       }
       break;
-    case GoogleOpenOptions::CredentialsType::SignedUrlJsonPath:
+    case GoogleOpenOptions::CredentialsType::SignedUrlPath:
       {
         auto credentials = google::cloud::storage::v1::oauth2::CreateServiceAccountCredentialsFromJsonFilePath(openOptions.credentials);
         if (!credentials) {

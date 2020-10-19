@@ -177,7 +177,7 @@ class GoogleCredentialsToken
 
 public:
     /// <summary>
-    /// GoogleCredentialsPath constructor
+    /// GoogleCredentialsToken constructor
     /// </summary>
     /// <param name="token">
     /// The string containing an access token
@@ -221,7 +221,7 @@ class GoogleCredentialsJson
 
 public:
     /// <summary>
-    /// GoogleCredentialsPath constructor
+    /// GoogleCredentialsJson constructor
     /// </summary>
     /// <param name="json">
     /// The string containing json with credentials
@@ -313,15 +313,16 @@ public:
 /// </summary>
 struct GoogleOpenOptions : OpenOptions
 {
-  enum class CredentialsType
+  using CredentialsIntType = unsigned int;
+  enum class CredentialsType : CredentialsIntType
   {
-    Default = 0,
-    AccessToken,
-    JsonPath,
-    Json,
-    SignedUrl,
-    SignedUrlJsonPath,
-    SignedUrlJson
+    Default       = 0x0000,
+    AccessToken   = 0x0001,
+    Path          = 0x0002,
+    Json          = 0x0003,
+    SignedUrl     = 0x0010,
+    SignedUrlPath = SignedUrl | Path,
+    SignedUrlJson = SignedUrl | Json
   };
 
   CredentialsType credentialsType = CredentialsType::Default;
@@ -359,7 +360,7 @@ struct GoogleOpenOptions : OpenOptions
   {}
   GoogleOpenOptions(std::string const& bucket, std::string const& pathPrefix, GoogleCredentialsPath const& credentials)
       : OpenOptions(GoogleStorage)
-      , credentialsType(CredentialsType::JsonPath)
+      , credentialsType(CredentialsType::Path)
       , bucket(bucket)
       , pathPrefix(pathPrefix)
       , credentials(credentials.path)
@@ -380,7 +381,7 @@ struct GoogleOpenOptions : OpenOptions
   {}
   GoogleOpenOptions(std::string const& bucket, std::string const& pathPrefix, GoogleCredentialsSignedUrlPath const& credentials)
       : OpenOptions(GoogleStorage)
-      , credentialsType(CredentialsType::SignedUrlJsonPath)
+      , credentialsType(CredentialsType::SignedUrlPath)
       , bucket(bucket)
       , pathPrefix(pathPrefix)
       , credentials(credentials.path)
@@ -394,6 +395,17 @@ struct GoogleOpenOptions : OpenOptions
       , credentials(credentials.json)
       , region(credentials.region)
   {}
+
+  bool SetSignedUrl()
+  {
+      if (CredentialsType::AccessToken == credentialsType)
+      {
+          return false;
+      }
+
+      credentialsType = static_cast<CredentialsType>(static_cast<CredentialsIntType>(credentialsType) | static_cast<CredentialsIntType>(CredentialsType::SignedUrl));
+      return true;
+  }
 };
 
 /// <summary>

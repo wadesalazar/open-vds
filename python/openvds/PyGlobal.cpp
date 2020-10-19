@@ -145,6 +145,7 @@ PyGlobal::initModule(py::module& m)
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsSignedUrl &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_6));
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsSignedUrlPath &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_7));
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsSignedUrlJson &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_8));
+  GoogleOpenOptions_.def("setSignedUrl"                , static_cast<bool(GoogleOpenOptions::*)()>(&GoogleOpenOptions::SetSignedUrl), OPENVDS_DOCSTRING(GoogleOpenOptions_SetSignedUrl));
   GoogleOpenOptions_.def_readwrite("credentialsType"             , &GoogleOpenOptions::credentialsType, OPENVDS_DOCSTRING(GoogleOpenOptions_credentialsType));
   GoogleOpenOptions_.def_readwrite("bucket"                      , &GoogleOpenOptions::bucket     , OPENVDS_DOCSTRING(GoogleOpenOptions_bucket));
   GoogleOpenOptions_.def_readwrite("pathPrefix"                  , &GoogleOpenOptions::pathPrefix , OPENVDS_DOCSTRING(GoogleOpenOptions_pathPrefix));
@@ -157,10 +158,10 @@ PyGlobal::initModule(py::module& m)
 
   GoogleOpenOptions_CredentialsType_.value("Default"                     , GoogleOpenOptions::CredentialsType::Default, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_Default));
   GoogleOpenOptions_CredentialsType_.value("AccessToken"                 , GoogleOpenOptions::CredentialsType::AccessToken, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_AccessToken));
-  GoogleOpenOptions_CredentialsType_.value("JsonPath"                    , GoogleOpenOptions::CredentialsType::JsonPath, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_JsonPath));
+  GoogleOpenOptions_CredentialsType_.value("Path"                        , GoogleOpenOptions::CredentialsType::Path, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_Path));
   GoogleOpenOptions_CredentialsType_.value("Json"                        , GoogleOpenOptions::CredentialsType::Json, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_Json));
   GoogleOpenOptions_CredentialsType_.value("SignedUrl"                   , GoogleOpenOptions::CredentialsType::SignedUrl, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_SignedUrl));
-  GoogleOpenOptions_CredentialsType_.value("SignedUrlJsonPath"           , GoogleOpenOptions::CredentialsType::SignedUrlJsonPath, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_SignedUrlJsonPath));
+  GoogleOpenOptions_CredentialsType_.value("SignedUrlPath"               , GoogleOpenOptions::CredentialsType::SignedUrlPath, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_SignedUrlPath));
   GoogleOpenOptions_CredentialsType_.value("SignedUrlJson"               , GoogleOpenOptions::CredentialsType::SignedUrlJson, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_SignedUrlJson));
 
   // HttpOpenOptions

@@ -582,7 +582,7 @@ R"doc(Credentials for opening a VDS in Google Cloud Storage by the string
 containing json with credentials Using OAuth)doc";
 
 static const char *__doc_OpenVDS_GoogleCredentialsJson_GoogleCredentialsJson =
-R"doc(GoogleCredentialsPath constructor
+R"doc(GoogleCredentialsJson constructor
 
 Parameters:
 -----------
@@ -685,7 +685,7 @@ R"doc(Credentials for opening a VDS in Google Cloud Storage by using the
 string containing an access token Using OAuth)doc";
 
 static const char *__doc_OpenVDS_GoogleCredentialsToken_GoogleCredentialsToken =
-R"doc(GoogleCredentialsPath constructor
+R"doc(GoogleCredentialsToken constructor
 
 Parameters:
 -----------
@@ -707,13 +707,13 @@ static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_Default = R"d
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_Json = R"doc()doc";
 
-static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_JsonPath = R"doc()doc";
+static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_Path = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_SignedUrl = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_SignedUrlJson = R"doc()doc";
 
-static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_SignedUrlJsonPath = R"doc()doc";
+static const char *__doc_OpenVDS_GoogleOpenOptions_CredentialsType_SignedUrlPath = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions = R"doc()doc";
 
@@ -743,6 +743,8 @@ static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_6 = R"doc()
 static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_7 = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_GoogleOpenOptions_8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_GoogleOpenOptions_SetSignedUrl = R"doc()doc";
 
 static const char *__doc_OpenVDS_GoogleOpenOptions_bucket = R"doc()doc";
 

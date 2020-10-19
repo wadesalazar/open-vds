@@ -23,6 +23,7 @@
 
 #include <memory>
 #include <map>
+#include <set>
 #include <limits>
 
 #include <OpenVDS/VolumeDataAccess.h>
@@ -180,7 +181,6 @@ static std::unique_ptr<OpenOptions> createAzureOpenOptions(const StringWrapper &
   return openOptions;
 }
 
-
 static std::unique_ptr<OpenOptions> createAzureSASOpenOptions(const StringWrapper &url, const StringWrapper &connectionString, Error& error)
 {
   std::unique_ptr<AzurePresignedOpenOptions> openOptions(new AzurePresignedOpenOptions());
@@ -205,6 +205,10 @@ static std::unique_ptr<OpenOptions> createAzureSASOpenOptions(const StringWrappe
   }
   return openOptions;
 }
+
+const std::set<std::string> TrueWords = { "true", "yes", "on" };
+const std::set<std::string> FalseWords = { "false", "no", "off" };
+
 static std::unique_ptr<OpenOptions> createGoogleOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
 {
   std::unique_ptr<GoogleOpenOptions> openOptions(new GoogleOpenOptions());
@@ -229,12 +233,39 @@ static std::unique_ptr<OpenOptions> createGoogleOpenOptions(const StringWrapper&
     openOptions->pathPrefix = std::string(urlKeyBegin, end);
   }
 
+  bool useSignedUrl = false;
+
   for (auto& connectionPair : connectionStringMap)
   {
     if (connectionPair.first == "token")
     {
       openOptions->credentialsType = GoogleOpenOptions::CredentialsType::AccessToken;
       openOptions->credentials = connectionPair.second;
+    }
+    else if (connectionPair.first == "credentialsfile")
+    {
+        openOptions->credentialsType = GoogleOpenOptions::CredentialsType::Path;
+        openOptions->credentials = connectionPair.second;
+    }
+    else if (connectionPair.first == "jsoncredentials")
+    {
+        openOptions->credentialsType = GoogleOpenOptions::CredentialsType::Json;
+        openOptions->credentials = connectionPair.second;
+    }
+    else if (connectionPair.first == "signedurl")
+    {
+        std::string value = connectionPair.second;
+        std::transform(value.begin(), value.end(), value.begin(), asciitolower);
+        if (TrueWords.find(value) != TrueWords.end())
+        {
+            useSignedUrl = true;
+        }
+        else if (FalseWords.find(value) == FalseWords.end())
+        {
+            error.code = -3;
+            error.string = fmt::format("Invalid value \"{}\" for SignedUrl in GS connection string.", connectionPair.second);
+            return openOptions;
+        }
     }
     else
     {
@@ -243,6 +274,16 @@ static std::unique_ptr<OpenOptions> createGoogleOpenOptions(const StringWrapper&
       return openOptions;
     }
   }
+  
+  if (useSignedUrl)
+  {
+      if (!openOptions->SetSignedUrl())
+      {
+          error.code = -2;
+          error.string = "SignedUrl option cannot be applied in GS connection string.";
+      }
+  }
+
   return openOptions;
 }
 
