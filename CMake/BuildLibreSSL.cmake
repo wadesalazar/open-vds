@@ -1,5 +1,5 @@
 function(BuildLibreSSL)
-  if (WIN32)
+  if (USE_LIBRESSL)
     get_property(_isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
     if (${_isMultiConfig})
       set(TOOLSET_VERSION ${MSVC_TOOLSET_VERSION_LOCAL})
