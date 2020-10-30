@@ -647,7 +647,7 @@ static void ReplaceZeroFromZeroCount(T *pic, int transformSizeY, int transformSi
 {
   for (int iZ=0; iZ<transformSizeZ;iZ++)
   {
-  #pragma omp parallel for
+  #pragma omp parallel for schedule(static)
     for (int iY=0; iY<transformSizeY;iY++)
     {
       T *read = pic + iY * allocatedSizeX + iZ * allocatedSizeX * allocatedSizeY;

@@ -188,7 +188,7 @@ static void Do(void * outputVoid, VolumeIndexer2D const &outputIndexer2D, FloatV
 
   QuantizingValueConverterWithNoValue<T, float, useNoValue> converter(outputIndexer2D.valueRangeMin, outputIndexer2D.valueRangeMax, 1.0f, 0.0f, noValue, noValue);
 
-  #pragma omp parallel for firstprivate(converter)
+  #pragma omp parallel for firstprivate(converter) schedule(static)
   for (int iDim1 = 0; iDim1 < numSamples[1]; iDim1++)
   for (int iDim0 = 0; iDim0 < numSamples[0]; iDim0++)
   {
@@ -234,9 +234,9 @@ static void Do(void* outputVoid, VolumeIndexer3D const &outputIndexer3D, FloatVe
 
   QuantizingValueConverterWithNoValue<T, float, useNoValue> converter(outputIndexer3D.valueRangeMin, outputIndexer3D.valueRangeMax, valueRangeScale, outputIndexer3D.valueRangeMin, noValue, noValue);
 
-  #pragma omp parallel for if(numSamples[2] > 1) firstprivate(converter)
+  #pragma omp parallel for if(numSamples[2] > 1) firstprivate(converter) schedule(static)
   for (int iDim2 = 0; iDim2 < numSamples[2]; iDim2++)
-  #pragma omp parallel for if(numSamples[2] == 1) firstprivate(converter)
+  #pragma omp parallel for if(numSamples[2] == 1) firstprivate(converter) schedule(static)
   for (int iDim1 = 0; iDim1 < numSamples[1]; iDim1++)
   for (int iDim0 = 0; iDim0 < numSamples[0]; iDim0++)
   {
@@ -282,9 +282,9 @@ static void Do(void* outputVoid, VolumeIndexer4D const &outputIndexer4D, FloatVe
 
   QuantizingValueConverterWithNoValue<T, float, useNoValue> converter(outputIndexer4D.valueRangeMin, outputIndexer4D.valueRangeMax, 1.0f, 0.0f, noValue, noValue);
 
-  #pragma omp parallel for if(numSamples[2] > 1) firstprivate(converter)
+  #pragma omp parallel for if(numSamples[2] > 1) firstprivate(converter) schedule(static)
   for (int iDim2 = 0; iDim2 < numSamples[2]; iDim2++)
-  #pragma omp parallel for if(numSamples[2] == 1) firstprivate(converter)
+  #pragma omp parallel for if(numSamples[2] == 1) firstprivate(converter) schedule(static)
   for (int iDim1 = 0; iDim1 < numSamples[1]; iDim1++)
   for (int iDim0 = 0; iDim0 < numSamples[0]; iDim0++)
   {

@@ -1166,7 +1166,7 @@ int32_t WaveletAdaptiveLL_DecompressLossless(uint8_t *in, float *pic, int32_t si
     totalSize += size;
   }
 
-#pragma omp parallel for num_threads(4)
+#pragma omp parallel for num_threads(4) schedule(static)
   for (int i = 0; i < 4; i++)
   {
     if (readSize[i] == ADAPTIVEWAVELET_LOSSLESS_CHANNEL_UNCOMPRESSED)
