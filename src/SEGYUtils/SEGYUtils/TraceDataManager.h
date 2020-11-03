@@ -41,24 +41,36 @@ public:
 
     for (auto segment = lower; segment != upper; ++segment)
     {
-      // axis factors for guessing trace numbers
-      const auto
-        secondaryKeySpanTotal = static_cast<double>(segment->m_binInfoStop.m_crosslineNumber - segment->m_binInfoStart.m_crosslineNumber);
-      const auto
-        secondaryStartSpan = requestSecondaryKeyStart - segment->m_binInfoStart.m_crosslineNumber,
-        secondaryStopSpan = requestSecondaryKeyEnd - segment->m_binInfoStart.m_crosslineNumber;
-      const double
-        traceStartFactor = secondaryStartSpan <= 0 ? 0.0 : secondaryStartSpan / secondaryKeySpanTotal,
-        traceStopFactor = secondaryStopSpan <= 0 ? 0.0 : secondaryStopSpan / secondaryKeySpanTotal;
+      // does this segment have traces within the request secondary key range?
+      if (requestSecondaryKeyEnd < segment->m_binInfoStart.m_crosslineNumber || requestSecondaryKeyStart > segment->m_binInfoStop.m_crosslineNumber)
+        continue;
 
-      // calculate approximate start and end traces
-      const auto
-        traceCount = segment->m_traceStop - segment->m_traceStart + 1;
-      const auto
-        startTrace = static_cast<int64_t>(segment->m_traceStart + traceCount * traceStartFactor),
-        stopTrace = static_cast<int64_t>(segment->m_traceStart + traceCount * traceStopFactor);
+      if (segment->m_traceStart == segment->m_traceStop)
+      {
+        // The segment is only one trace long, and that trace is in the request range, so add a request
+        addTraceRequests(requests, segment->m_traceStart, segment->m_traceStart);
+      }
+      else
+      {
+        // axis factors for guessing trace numbers
+        const auto
+          secondaryKeySpanTotal = static_cast<double>(segment->m_binInfoStop.m_crosslineNumber - segment->m_binInfoStart.m_crosslineNumber);
+        const auto
+          secondaryStartSpan = requestSecondaryKeyStart - segment->m_binInfoStart.m_crosslineNumber,
+          secondaryStopSpan = segment->m_binInfoStop.m_crosslineNumber - requestSecondaryKeyEnd;
+        const double
+          traceStartFactor = secondaryStartSpan <= 0 ? 0.0 : secondaryStartSpan / secondaryKeySpanTotal,
+          traceStopFactor = secondaryStopSpan <= 0 ? 1.0 : 1.0 - secondaryStopSpan / secondaryKeySpanTotal;
 
-      addTraceRequests(requests, startTrace, stopTrace);
+        // calculate approximate start and end traces
+        const auto
+          traceDistance = segment->m_traceStop - segment->m_traceStart;
+        const auto
+          startTrace = static_cast<int64_t>(segment->m_traceStart + traceDistance * traceStartFactor),
+          stopTrace = static_cast<int64_t>(segment->m_traceStart + traceDistance * traceStopFactor);
+
+        addTraceRequests(requests, startTrace, stopTrace);
+      }
     }
 
     m_dataViewManager.addDataRequests(requests);
@@ -147,6 +159,8 @@ private:
   {
     const auto
       traceCount = std::min(m_tracesPerPage, m_numTraces - pageTrace);
+
+    assert(traceCount > 0);
 
     DataRequestInfo
       dataRequestInfo;
