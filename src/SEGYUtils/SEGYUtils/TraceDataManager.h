@@ -41,8 +41,12 @@ public:
 
     for (auto segment = lower; segment != upper; ++segment)
     {
+      const bool
+        isSecondaryAscending = segment->m_binInfoStart.m_crosslineNumber <= segment->m_binInfoStop.m_crosslineNumber;
+
       // does this segment have traces within the request secondary key range?
-      if (requestSecondaryKeyEnd < segment->m_binInfoStart.m_crosslineNumber || requestSecondaryKeyStart > segment->m_binInfoStop.m_crosslineNumber)
+      if (requestSecondaryKeyEnd < (isSecondaryAscending ? segment->m_binInfoStart.m_crosslineNumber : segment->m_binInfoStop.m_crosslineNumber)
+          || requestSecondaryKeyStart > (isSecondaryAscending ? segment->m_binInfoStop.m_crosslineNumber : segment->m_binInfoStart.m_crosslineNumber))
         continue;
 
       if (segment->m_traceStart == segment->m_traceStop)
@@ -54,10 +58,10 @@ public:
       {
         // axis factors for guessing trace numbers
         const auto
-          secondaryKeySpanTotal = static_cast<double>(segment->m_binInfoStop.m_crosslineNumber - segment->m_binInfoStart.m_crosslineNumber);
+          secondaryKeySpanTotal = static_cast<double>(std::abs(segment->m_binInfoStop.m_crosslineNumber - segment->m_binInfoStart.m_crosslineNumber));
         const auto
-          secondaryStartSpan = requestSecondaryKeyStart - segment->m_binInfoStart.m_crosslineNumber,
-          secondaryStopSpan = segment->m_binInfoStop.m_crosslineNumber - requestSecondaryKeyEnd;
+          secondaryStartSpan = isSecondaryAscending ? requestSecondaryKeyStart - segment->m_binInfoStart.m_crosslineNumber : segment->m_binInfoStart.m_crosslineNumber - requestSecondaryKeyEnd,
+          secondaryStopSpan = isSecondaryAscending ? segment->m_binInfoStop.m_crosslineNumber - requestSecondaryKeyEnd : requestSecondaryKeyStart - segment->m_binInfoStop.m_crosslineNumber;
         const double
           traceStartFactor = secondaryStartSpan <= 0 ? 0.0 : secondaryStartSpan / secondaryKeySpanTotal,
           traceStopFactor = secondaryStopSpan <= 0 ? 1.0 : 1.0 - secondaryStopSpan / secondaryKeySpanTotal;
@@ -68,6 +72,9 @@ public:
         const auto
           startTrace = static_cast<int64_t>(segment->m_traceStart + traceDistance * traceStartFactor),
           stopTrace = static_cast<int64_t>(segment->m_traceStart + traceDistance * traceStopFactor);
+
+        assert(startTrace >= segment->m_traceStart && startTrace <= segment->m_traceStop);
+        assert(stopTrace >= segment->m_traceStart && stopTrace <= segment->m_traceStop);
 
         addTraceRequests(requests, startTrace, stopTrace);
       }
