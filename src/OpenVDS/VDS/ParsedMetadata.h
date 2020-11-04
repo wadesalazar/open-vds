@@ -34,36 +34,40 @@ namespace OpenVDS
     WAVELET_ADAPTIVE_LEVELS = 16
   };
 
-  class ParsedMetadata
+  struct ParsedMetadata
   {
-  public:
-    ParsedMetadata()
-      : m_chunkHash(0)
-      , m_chunkSize(0)
+    ParsedMetadata() :
+      m_chunkHash(0),
+      m_chunkSize(0)
     {}
 
-    uint64_t    m_chunkHash;
+    uint64_t
+      m_chunkHash;
   
-    int32_t     m_chunkSize;
+    int32_t
+      m_chunkSize;
 
     std::vector<uint8_t>
-                m_adaptiveLevels;
+      m_adaptiveLevels;
 
-    //bool valid() const
-    //{
-    //  return m_chunkHash != 0;
-    //}
+    std::vector<unsigned char>
+    CreateChunkMetadata() const
+    {
+      int
+        metadataLength = m_adaptiveLevels.empty() ? 8 : 24;
 
-    //bool operator!=(const ParsedMetadata& other)
-    //{
-    //  bool isequal = m_chunkHash == other.m_chunkHash;
-    //  if (m_chunkSize && isequal)
-    //  {
-    //    isequal &= m_chunkSize == other.m_chunkSize;
-    //    isequal &= m_adaptiveLevels == other.m_adaptiveLevels;
-    //  }
-    //  return !isequal;
-    //}
+      std::vector<unsigned char>
+        metadata(metadataLength);
+
+      memcpy(metadata.data(), &m_chunkHash, 8);
+
+      if (metadataLength == 24)
+      {
+        memcpy(metadata.data() + 8, m_adaptiveLevels.data(), 16);
+      }
+
+      return metadata;
+    }
   };
 
   inline ParsedMetadata ParseMetadata(unsigned char const* metadata, int metadataByteSize, Error &error)

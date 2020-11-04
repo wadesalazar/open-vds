@@ -436,8 +436,7 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
   if (m_pendingDownloadRequests.find(chunk) == m_pendingDownloadRequests.end())
   {
     std::string url = CreateUrlForChunk(layerName, chunk.index);
-    std::vector<uint8_t> metadata(metadataPageEntry, metadataPageEntry + metadataManager->GetMetadataStatus().m_chunkMetadataByteSize);
-    auto transferHandler = std::make_shared<ReadChunkTransfer>(compressionMethod, metadata, adaptiveLevel);
+    auto transferHandler = std::make_shared<ReadChunkTransfer>(compressionMethod, (metadataManager != nullptr) ? parsedMetadata.CreateChunkMetadata() : std::vector<uint8_t>(), adaptiveLevel);
     m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->ReadObject(url, transferHandler, ioRange), transferHandler);
   }
   else
@@ -650,8 +649,7 @@ void VolumeDataStoreIOManager::PageTransferCompleted(MetadataPage* metadataPage,
           IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
 
           std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.index);
-          std::vector<uint8_t> metadata_vec(metadata, metadata + metadataManager->GetMetadataStatus().m_chunkMetadataByteSize);
-          auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, metadata_vec, adaptiveLevel);
+          auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, parsedMetadata.CreateChunkMetadata(), adaptiveLevel);
           pendingRequest.m_activeTransfer = m_ioManager->ReadObject(url, transferHandler, ioRange);
           pendingRequest.m_transferHandle = transferHandler;
         }
