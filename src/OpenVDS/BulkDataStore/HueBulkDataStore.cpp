@@ -1076,11 +1076,14 @@ HueBulkDataStoreImpl::UpdateFileTable(DataStoreFileDescriptor const &fileDescrip
   int32_t
     fileNameLength = std::max(int32_t(fileDescriptor.m_fileName.length()), GetDataStoreHeader().m_fileNameLength);
 
+  // Round up to multiple of 8.
+  fileNameLength = (fileNameLength + 7) & ~7;
+
   // Create new file table if necessary
   if (fileDescriptor.m_fileIndex == -1 || fileNameLength != GetDataStoreHeader().m_fileNameLength)
   {
     int
-      newFileTableEntrySize = (int)sizeof(FileHeader) + std::max((int)fileDescriptor.m_fileName.length(), GetDataStoreHeader().m_fileNameLength);
+      newFileTableEntrySize = (int)sizeof(FileHeader) + fileNameLength;
 
     DataStoreBuffer
       *fileTable = CreateBuffer(newFileTableEntrySize * (fileTableEntryCount + 1), ExtentAllocator::FileTableExtent);
