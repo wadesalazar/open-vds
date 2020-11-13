@@ -147,6 +147,8 @@ if (NOT (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
 endif()
 
 include(CMake/SetWarnings.cmake)
+include(CMake/AddSystemHeadersToTarget.cmake)
+include(CMake/CopyDllForTarget.cmake)
 
 include(CMake/Fetch3rdPartyInBuild.cmake)
 Fetch3rdParty()
@@ -154,8 +156,6 @@ Fetch3rdParty()
 include(CMake/Build3rdParty.cmake)
 build3rdparty()
 
-include(CMake/CopyDllForTarget.cmake)
-include(CMake/AddSystemHeadersToTarget.cmake)
 
 #this is disabled in Java and Python since they match dl open with a string
 set(CMAKE_DEBUG_POSTFIX d)

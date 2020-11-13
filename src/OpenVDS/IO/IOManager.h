@@ -61,6 +61,12 @@ namespace OpenVDS
   class IOManager
   {
   public:
+    enum AccessPattern
+    {
+      ReadOnly,
+      ReadWrite
+    };
+
     IOManager(OpenOptions::ConnectionType connectionType);
     virtual ~IOManager();
     virtual std::shared_ptr<Request> ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler) = 0;
@@ -78,10 +84,10 @@ namespace OpenVDS
     OpenOptions::ConnectionType connectionType() const { return m_connectionType; }
 
     OPENVDS_EXPORT
-    static IOManager *CreateIOManager(const OpenOptions &options, Error &error);
+    static IOManager *CreateIOManager(const OpenOptions &options, IOManager::AccessPattern accessPattern, Error &error);
 
     OPENVDS_EXPORT
-    static IOManager *CreateIOManager(const StringWrapper& url, const StringWrapper& connectionString, Error& error);
+    static IOManager *CreateIOManager(const StringWrapper& url, const StringWrapper& connectionString, IOManager::AccessPattern accessPattern, Error& error);
 
   protected:
     OpenOptions::ConnectionType m_connectionType;

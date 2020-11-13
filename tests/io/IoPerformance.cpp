@@ -67,7 +67,7 @@ TEST(IOTests, performance)
 
   GTEST_SKIP() << "This test has to be enabled manually";
   OpenVDS::Error error;
-  OpenVDS::IOManager* ioManager = OpenVDS::IOManager::CreateIOManager(url, connectionString, error);
+  OpenVDS::IOManager* ioManager = OpenVDS::IOManager::CreateIOManager(url, connectionString, OpenVDS::IOManager::AccessPattern::ReadWrite, error);
 
   int mega = 1 << 20;
   int chunkSize = mega * 4;

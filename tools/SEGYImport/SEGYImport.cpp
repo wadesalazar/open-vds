@@ -82,7 +82,7 @@ static DataProvider CreateDataProviderFromFile(const std::string &filename, Open
 
 static DataProvider CreateDataProviderFromOpenOptions(const std::string &url, const std::string &connectionString, const std::string &objectId, OpenVDS::Error &error)
 {
-  std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(url, connectionString, error));
+  std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(url, connectionString, OpenVDS::IOManager::AccessPattern::ReadOnly, error));
   if (error.code)
     return DataProvider((OpenVDS::IOManager *)nullptr, "", error);
   return DataProvider(ioManager.release(), objectId, error);

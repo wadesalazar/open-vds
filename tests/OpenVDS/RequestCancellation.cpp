@@ -33,7 +33,7 @@ TEST(OpenVDS_integration, RequestCancellation)
 {
   OpenVDS::InMemoryOpenOptions options;
   OpenVDS::Error error;
-  std::unique_ptr<OpenVDS::IOManager> inMemory(OpenVDS::IOManagerInMemory::CreateIOManager(options, error));
+  std::unique_ptr<OpenVDS::IOManager> inMemory(OpenVDS::IOManagerInMemory::CreateIOManager(options, OpenVDS::IOManager::AccessPattern::ReadWrite, error));
   SlowIOManager* slowIOManager = new SlowIOManager(50, inMemory.get());
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, slowIOManager), OpenVDS::Close);
   fill3DVDSWithBitNoise(handle.get());

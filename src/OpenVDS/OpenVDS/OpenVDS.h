@@ -45,6 +45,7 @@ struct OpenOptions
     Azure,
     AzurePresigned,
     GoogleStorage,
+    DMS,
     Http,
     VDSFile,
     InMemory,
@@ -434,6 +435,25 @@ struct GoogleOpenOptions : OpenOptions
       credentialsType = static_cast<CredentialsType>(static_cast<CredentialsIntType>(credentialsType) | static_cast<CredentialsIntType>(CredentialsType::SignedUrl));
       return true;
   }
+};
+
+struct DMSOpenOptions : OpenOptions
+{
+  DMSOpenOptions() : OpenOptions(DMS) {}
+
+  DMSOpenOptions(std::string const& sdAuthorityUrl, std::string const& sdApiKey, std::string const &sdToken, std::string const &datasetPath, int logLevel)
+    : OpenOptions(DMS)
+    , sdAuthorityUrl(sdAuthorityUrl)
+    , sdApiKey(sdApiKey)
+    , sdToken(sdToken)
+    , logLevel(logLevel)
+  {}
+
+  std::string sdAuthorityUrl;
+  std::string sdApiKey;
+  std::string sdToken;
+  std::string datasetPath;
+  int logLevel;
 };
 
 /// <summary>

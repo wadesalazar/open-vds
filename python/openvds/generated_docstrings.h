@@ -389,6 +389,22 @@ static const char *__doc_OpenVDS_CreateVolumeDataAccessor_20 = R"doc()doc";
 
 static const char *__doc_OpenVDS_CreateVolumeDataAccessor_21 = R"doc()doc";
 
+static const char *__doc_OpenVDS_DMSOpenOptions = R"doc()doc";
+
+static const char *__doc_OpenVDS_DMSOpenOptions_DMSOpenOptions = R"doc()doc";
+
+static const char *__doc_OpenVDS_DMSOpenOptions_DMSOpenOptions_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_DMSOpenOptions_datasetPath = R"doc()doc";
+
+static const char *__doc_OpenVDS_DMSOpenOptions_logLevel = R"doc()doc";
+
+static const char *__doc_OpenVDS_DMSOpenOptions_sdApiKey = R"doc()doc";
+
+static const char *__doc_OpenVDS_DMSOpenOptions_sdAuthorityUrl = R"doc()doc";
+
+static const char *__doc_OpenVDS_DMSOpenOptions_sdToken = R"doc()doc";
+
 static const char *__doc_OpenVDS_DimensionsND = R"doc(2D or 3D dimension group\n)doc";
 
 static const char *__doc_OpenVDS_DimensionsND_Dimensions_01 = R"doc()doc";
@@ -1485,6 +1501,8 @@ static const char *__doc_OpenVDS_OpenOptions_ConnectionType_Azure = R"doc()doc";
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_AzurePresigned = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_ConnectionTypeCount = R"doc()doc";
+
+static const char *__doc_OpenVDS_OpenOptions_ConnectionType_DMS = R"doc()doc";
 
 static const char *__doc_OpenVDS_OpenOptions_ConnectionType_GoogleStorage = R"doc()doc";
 

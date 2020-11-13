@@ -37,6 +37,8 @@
 #include "IOManagerHttp.h"
 #endif
 
+#include "IOManagerDms.h"
+
 namespace OpenVDS
 {
 Request::Request(const std::string& objectName)
@@ -52,7 +54,7 @@ IOManager::IOManager(OpenOptions::ConnectionType connectionType)
 }
 IOManager::~IOManager()
 {}
-IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
+IOManager* IOManager::CreateIOManager(const OpenOptions& options, IOManager::AccessPattern accessPattern, Error &error)
 {
   switch(options.connectionType)
   {
@@ -76,6 +78,8 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
   case OpenOptions::Http:
     return new IOManagerHttp(static_cast<const HttpOpenOptions &>(options), error);
 #endif
+  case OpenOptions::DMS:
+    return new IOManagerDms(static_cast<const DMSOpenOptions&>(options), accessPattern, error);
   case OpenOptions::InMemory:
     return IOManagerInMemory::CreateIOManagerInMemory(static_cast<const InMemoryOpenOptions &>(options), error);
   default:
@@ -85,12 +89,12 @@ IOManager* IOManager::CreateIOManager(const OpenOptions& options, Error &error)
   }
 }
 
-IOManager *IOManager::CreateIOManager(const StringWrapper &url, const StringWrapper &connectionString, Error& error)
+IOManager *IOManager::CreateIOManager(const StringWrapper &url, const StringWrapper &connectionString, IOManager::AccessPattern accessPattern, Error& error)
 {
   std::unique_ptr<OpenOptions> openOptions(CreateOpenOptions(url, connectionString, error));
   if (error.code || !openOptions)
     return nullptr;
-  return CreateIOManager(*(openOptions.get()), error);
+  return CreateIOManager(*(openOptions.get()), accessPattern, error);
 }
 
 }

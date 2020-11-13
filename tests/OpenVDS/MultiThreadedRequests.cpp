@@ -40,7 +40,7 @@ TEST(Multithreading, requests)
 
   OpenVDS::InMemoryOpenOptions options;
   OpenVDS::Error error;
-  std::unique_ptr<OpenVDS::IOManager> inMemory(OpenVDS::IOManagerInMemory::CreateIOManager(options, error));
+  std::unique_ptr<OpenVDS::IOManager> inMemory(OpenVDS::IOManagerInMemory::CreateIOManager(options, OpenVDS::IOManager::AccessPattern::ReadWrite, error));
 
   {
     IOManagerFacadeLight *iomanager = new IOManagerFacadeLight(inMemory.get());

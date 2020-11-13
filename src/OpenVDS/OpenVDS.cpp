@@ -337,6 +337,39 @@ static std::unique_ptr<OpenOptions> createGoogleOpenOptions(const StringWrapper&
   return openOptions;
 }
 
+static std::unique_ptr<OpenOptions> createDMSOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
+{
+  std::unique_ptr<DMSOpenOptions> openOptions(new DMSOpenOptions());
+  openOptions->logLevel = 0;
+  auto connectionStringMap = ParseConnectionString(connectionString.data, connectionString.size, error);
+  if (error.code)
+  {
+    return nullptr;
+  }
+
+  if (url.size < 1)
+  {
+    error.code = -1;
+    error.string = "SD url is missing bucket";
+  }
+
+  openOptions->datasetPath = std::string(url.data, url.data + url.size);
+
+  for (auto& connectionPair : connectionStringMap)
+  {
+    if (connectionPair.first == "sdauthorityurl")
+      openOptions->sdAuthorityUrl = connectionPair.second;
+    if (connectionPair.first == "sdapikey")
+      openOptions->sdApiKey = connectionPair.second;
+    if (connectionPair.first == "sdtoken")
+      openOptions->sdToken = connectionPair.second;
+    if (connectionPair.first == "loglevel")
+      openOptions->logLevel = atoi(connectionPair.second.c_str());
+  }
+
+  return openOptions;
+}
+
 static std::unique_ptr<OpenOptions> createHttpOpenOptions(const StringWrapper& url, const StringWrapper& connectionString, Error& error)
 {
   std::unique_ptr<HttpOpenOptions> openOptions(new HttpOpenOptions(std::string(url.data, url.data + url.size)));
@@ -377,6 +410,10 @@ OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString
   else if (isProtocol(url, "gs://"))
   {
     openOptions = createGoogleOpenOptions(removeProtocol(url, "gs://"), connectionString, error);
+  }
+  else if (isProtocol(url, "sd://"))
+  {
+    openOptions = createDMSOpenOptions(url, connectionString, error);
   }
   else if (isProtocol(url, "http://") || isProtocol(url, "https://"))
   {
@@ -458,7 +495,7 @@ VDS *Open(const OpenOptions &options, Error &error)
 
   if(options.connectionType != OpenOptions::VDSFile)
   {
-    std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(options, error));
+    std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(options, IOManager::AccessPattern::ReadOnly, error));
     if (error.code)
       return nullptr;
 
@@ -672,7 +709,7 @@ VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& l
 
   if(options.connectionType != OpenOptions::VDSFile)
   {
-    std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(options, error));
+    std::unique_ptr<IOManager> ioManager(IOManager::CreateIOManager(options, IOManager::AccessPattern::ReadWrite, error));
     if (error.code)
       return nullptr;
 

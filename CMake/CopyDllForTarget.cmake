@@ -21,7 +21,7 @@ function(copyDllForTarget target)
         file(GLOB runtime_debug "${debug_location}/*.dll")
       else()
         add_custom_command(OUTPUT "${target}_copy_vds"
-          COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:openvds> $<TARGET_FILE:segyutils> $<TARGET_FILE_DIR:${target}>
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:openvds> $<TARGET_FILE:segyutils> $<TARGET_FILE:sdapi> $<TARGET_FILE_DIR:${target}>
           DEPENDS openvds)
         set_property(SOURCE "${target}_copy_vds"
                      PROPERTY SYMBOLIC ON

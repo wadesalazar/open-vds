@@ -130,7 +130,7 @@ set_source_files_properties(VDS/FSE/fse_decompress.cpp PROPERTIES COMPILE_FLAGS 
 add_library(openvds_objects OBJECT
   ${PRIVATE_HEADER_FILES}
   ${EXPORTED_HEADER_FILES}
-  ${SOURCE_FILES})
+  ${SOURCE_FILES} "IO/IOManagerDms.cpp")
 
 setWarningFlagsForTarget(openvds_objects)
 
@@ -230,6 +230,14 @@ else()
     target_link_libraries(openvds_objects PUBLIC OpenSSL::SSL OpenSSL::Crypto)
   endif()
   addGoogleCloudToTarget(openvds_objects)
+endif()
+
+if (DISABLE_DMS_IOMANAGER)
+  target_compile_definitions(openvds_objects PRIVATE OPENVDS_NO_DMS_IOMANAGER)
+  set_source_files_properties(IO/IOManagerDms.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
+else()
+  target_include_directories(openvds_objects PRIVATE ${dms_SOURCE_DIR}/src/src/core ${dms_SOURCE_DIR}/src/src/lib)
+  target_link_libraries(openvds_objects PRIVATE $<TARGET_LINKER_FILE:sdapi>)
 endif()
 
 if (WIN32)

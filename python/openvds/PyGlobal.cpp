@@ -43,6 +43,7 @@ PyGlobal::initModule(py::module& m)
   OpenOptions_ConnectionType_.value("Azure"                       , OpenOptions::ConnectionType::Azure      , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_Azure));
   OpenOptions_ConnectionType_.value("AzurePresigned"              , OpenOptions::ConnectionType::AzurePresigned, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_AzurePresigned));
   OpenOptions_ConnectionType_.value("GoogleStorage"               , OpenOptions::ConnectionType::GoogleStorage, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_GoogleStorage));
+  OpenOptions_ConnectionType_.value("DMS"                         , OpenOptions::ConnectionType::DMS        , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_DMS));
   OpenOptions_ConnectionType_.value("Http"                        , OpenOptions::ConnectionType::Http       , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_Http));
   OpenOptions_ConnectionType_.value("VDSFile"                     , OpenOptions::ConnectionType::VDSFile    , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_VDSFile));
   OpenOptions_ConnectionType_.value("InMemory"                    , OpenOptions::ConnectionType::InMemory   , OPENVDS_DOCSTRING(OpenOptions_ConnectionType_InMemory));
@@ -170,6 +171,18 @@ PyGlobal::initModule(py::module& m)
   GoogleOpenOptions_CredentialsType_.value("SignedUrlPath"               , GoogleOpenOptions::CredentialsType::SignedUrlPath, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_SignedUrlPath));
   GoogleOpenOptions_CredentialsType_.value("SignedUrlJson"               , GoogleOpenOptions::CredentialsType::SignedUrlJson, OPENVDS_DOCSTRING(GoogleOpenOptions_CredentialsType_SignedUrlJson));
 
+  // DMSOpenOptions
+  py::class_<DMSOpenOptions, OpenOptions, std::unique_ptr<DMSOpenOptions>> 
+    DMSOpenOptions_(m,"DMSOpenOptions", OPENVDS_DOCSTRING(DMSOpenOptions));
+
+  DMSOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(DMSOpenOptions_DMSOpenOptions));
+  DMSOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &, const std::string &, int>(), py::arg("sdAuthorityUrl").none(false), py::arg("sdApiKey").none(false), py::arg("sdToken").none(false), py::arg("datasetPath").none(false), py::arg("logLevel").none(false), OPENVDS_DOCSTRING(DMSOpenOptions_DMSOpenOptions_2));
+  DMSOpenOptions_.def_readwrite("sdAuthorityUrl"              , &DMSOpenOptions::sdAuthorityUrl, OPENVDS_DOCSTRING(DMSOpenOptions_sdAuthorityUrl));
+  DMSOpenOptions_.def_readwrite("sdApiKey"                    , &DMSOpenOptions::sdApiKey      , OPENVDS_DOCSTRING(DMSOpenOptions_sdApiKey));
+  DMSOpenOptions_.def_readwrite("sdToken"                     , &DMSOpenOptions::sdToken       , OPENVDS_DOCSTRING(DMSOpenOptions_sdToken));
+  DMSOpenOptions_.def_readwrite("datasetPath"                 , &DMSOpenOptions::datasetPath   , OPENVDS_DOCSTRING(DMSOpenOptions_datasetPath));
+  DMSOpenOptions_.def_readwrite("logLevel"                    , &DMSOpenOptions::logLevel      , OPENVDS_DOCSTRING(DMSOpenOptions_logLevel));
+
   // HttpOpenOptions
   py::class_<HttpOpenOptions, OpenOptions, std::unique_ptr<HttpOpenOptions>> 
     HttpOpenOptions_(m,"HttpOpenOptions", OPENVDS_DOCSTRING(HttpOpenOptions));
@@ -237,6 +250,7 @@ PyGlobal::initModule(py::module& m)
       case OpenOptions::ConnectionType::AzurePresigned : conn = std::string("AzurePresigned" ); break;
       case OpenOptions::ConnectionType::GoogleStorage  : conn = std::string("GoogleStorage"  ); break;
       case OpenOptions::ConnectionType::Http           : conn = std::string("Http"           ); break;
+      case OpenOptions::ConnectionType::DMS            : conn = std::string("Dms"            ); break;
       case OpenOptions::ConnectionType::VDSFile        : conn = std::string("VDSFile"        ); break;
       case OpenOptions::ConnectionType::InMemory       : conn = std::string("InMemory"       ); break;
       case OpenOptions::ConnectionType::Other          : conn = std::string("Other"          ); break;
