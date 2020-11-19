@@ -24,6 +24,7 @@
 #include "Rle.h"
 #include "DataBlock.h"
 #include "ParsedMetadata.h"
+#include "CompilerDefines.h"
 #include <OpenVDS/ValueConversion.h>
 #include <VDS/VDS.h>
 #include <VDS/GlobalStateImpl.h>
@@ -165,7 +166,7 @@ static bool CopyDataBlockIntoLinearBuffer(const DataBlock &dataBlock, const void
     return true;
   case VolumeDataChannelDescriptor::Format_1Bit:
     isConstant = (reinterpret_cast<const uint8_t*>(sourceBuffer)[0] == 0x00 || reinterpret_cast<const uint8_t*>(sourceBuffer)[0] == 0xff);
-    // Fall through
+    FALLTHROUGH;
   case VolumeDataChannelDescriptor::Format_U8:
     for(int32_t iX = 1; isConstant && iX < size[0]; iX++)
     {

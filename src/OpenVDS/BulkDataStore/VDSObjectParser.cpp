@@ -1,5 +1,6 @@
 #include "VDSObjectParser.h"
 #include "Base64.h"
+#include "CompilerDefines.h"
 #include <sstream>
 #include <locale.h>
 #include <stdint.h>
@@ -268,8 +269,8 @@ Json::Value TranslateVector(Json::Value const & root)
   int i = 0;
   switch(root.size())
   {
-  case 4: vectorJson.append(root[element[i++]]); // falls through
-  case 3: vectorJson.append(root[element[i++]]); // falls through
+  case 4: vectorJson.append(root[element[i++]]); FALLTHROUGH;
+  case 3: vectorJson.append(root[element[i++]]); FALLTHROUGH;
   case 2: vectorJson.append(root[element[i++]]);
           vectorJson.append(root[element[i++]]);
   }
@@ -393,7 +394,7 @@ bool ParserState::getNextToken(const char ** buffer)
         pbuffer += 2;
         break;
       }
-      // Falls through
+      FALLTHROUGH;
     case '+':
       pbuffer++;
 
@@ -401,7 +402,7 @@ bool ParserState::getNextToken(const char ** buffer)
       {
         break;
       }
-      // Falls through
+      FALLTHROUGH;
       // Number
     case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
       foundNumber = true;
