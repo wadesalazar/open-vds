@@ -2,9 +2,9 @@ FROM docker.io/centos:7
 
 RUN yum install -y centos-release-scl epel-release
 
-RUN yum install -y rh-python36-scldevel rh-python36-numpy rh-python36-python-pip devtoolset-8
+RUN yum install -y rh-python36-scldevel rh-python36-numpy rh-python36-python-pip devtoolset-7
 
-SHELL [ "/usr/bin/scl", "enable", "devtoolset-8", "rh-python36" ]
+SHELL [ "/usr/bin/scl", "enable", "devtoolset-7", "rh-python36" ]
 
 RUN curl -OL https://github.com/Kitware/CMake/releases/download/v3.17.2/cmake-3.17.2-Linux-x86_64.tar.gz
 RUN tar xzvf cmake-3.17.2-Linux-x86_64.tar.gz -C /opt
