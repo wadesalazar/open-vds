@@ -37,6 +37,17 @@ function(add_test_executable name)
   target_compile_definitions(${name} PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
   target_compile_definitions(${name} PRIVATE -DTEST_URL="${TEST_URL}")
   target_compile_definitions(${name} PRIVATE -DTEST_CONNECTION="${TEST_CONNECTION_ESCAPED}")
+
+  get_property(link_3rdparty_release GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_RELEASE)
+  get_property(link_3rdparty_debug   GLOBAL PROPERTY OPENVDS_LINK_LIBRARIES_DEBUG)
+
+  foreach(item ${link_3rdparty_debug})
+      target_link_libraries(${name} PRIVATE debug ${item})
+  endforeach()
+  foreach(item ${link_3rdparty_release})
+      target_link_libraries(${name} PRIVATE optimized ${item})
+  endforeach()
+
 endfunction()
 
 add_test_executable(io_tests

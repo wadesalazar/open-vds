@@ -35,10 +35,6 @@ target_include_directories(segyutils
         $<INSTALL_INTERFACE:include>
 )
 
-if (${MSVC_TOOLSET_VERSION_LOCAL})
-  set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION_LOCAL}")
-endif()
-
 install(TARGETS segyutils 
   EXPORT segyutils-export
   ARCHIVE
@@ -57,7 +53,7 @@ install(TARGETS segyutils
 install(
     EXPORT segyutils-export
     NAMESPACE segyutils::
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/segyutils/cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/segyutils
     FILE segyutils-config.cmake
 )
 

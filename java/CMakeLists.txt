@@ -123,9 +123,6 @@ target_include_directories(openvds-javacpp PUBLIC ${JAVA_INCLUDE_PATH} ${JAVA_IN
 target_link_libraries(openvds-javacpp PRIVATE openvds openvds-java-generated-headers)
 
 # Install jar and natives
-if (${MSVC_TOOLSET_VERSION_LOCAL})
-  set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION_LOCAL}")
-endif()
 install(TARGETS openvds-javacpp
   RUNTIME
     DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR}

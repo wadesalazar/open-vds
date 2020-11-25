@@ -19,7 +19,7 @@
 
 #include "cxxopts.hpp"
 
-#include <fmt/printf.h>
+#include <stdio.h>
 
 #include <OpenVDS/VolumeDataLayout.h>
 #include <OpenVDS/OpenVDS.h>
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
   }
   catch(cxxopts::OptionParseException &e)
   {
-    fmt::print(stderr, "{}\n", e.what());
+    fprintf(stderr, "%s\n", e.what());
     return EXIT_FAILURE;
   }
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
   }
   else if(url.empty())
   {
-    fmt::print(stderr, "Either specify noise generation or provide a url.\n");
+    fprintf(stderr, "Either specify noise generation or provide a url.\n");
     return EXIT_FAILURE;
   }
   else
@@ -122,23 +122,23 @@ int main(int argc, char **argv)
   
   if (file_name.empty())
   {
-    fmt::print(stderr, "No output filename specified");
+    fprintf(stderr, "No output filename specified");
     return EXIT_FAILURE;
   }
 
   int32_t axis_mapper[3];
   if (!parse_axis_mapping(axis, axis_mapper))
   {
-    fmt::print(stderr, "Invalid axis mapping format: {}\n", axis);
-    fmt::print(stderr, "Expected to comma seperated list ie. 1,2,0");
+    fprintf(stderr, "Invalid axis mapping format: %s\n", axis.c_str());
+    fprintf(stderr, "Expected to comma seperated list ie. 1,2,0");
     return EXIT_FAILURE;
   }
-  fmt::print(stdout, "Using axis mapping [{}, {}, {}]\n", axis_mapper[0], axis_mapper[1], axis_mapper[2]);
+  fprintf(stdout, "Using axis mapping [%d, %d, %d]\n", axis_mapper[0], axis_mapper[1], axis_mapper[2]);
 
 
   if (!handle)
   {
-    fmt::print(stderr, "Failed to open VDS: {}\n", error.string.c_str());
+    fprintf(stderr, "Failed to open VDS: %s\n", error.string.c_str());
     return error.code;
   }
 
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
   std::unique_ptr<FILE, decltype(&fclose)> file(fopen(file_name.c_str(), "wb"), &fclose);
   if (!file)
   {
-    fmt::print(stderr, "Failed to open file: {}\n", file_name);
+    fprintf(stderr, "Failed to open file: %s\n", file_name.c_str());
     return -4;
   }
 
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
   sampleCount[1] = layout->GetDimensionNumSamples(axis_mapper[1]);
   sampleCount[2] = layout->GetDimensionNumSamples(axis_mapper[2]);
 
-  fmt::print(stdout, "Found data set with sample count [{}, {}, {}]\n", sampleCount[0], sampleCount[1], sampleCount[2]);
+  fprintf(stdout, "Found data set with sample count [%d, %d, %d]\n", sampleCount[0], sampleCount[1], sampleCount[2]);
 
   float x_sample_shift = float(sampleCount[1]) / output_width;
   float y_sample_shift = float(sampleCount[2]) / output_height;
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
   bool finished = accessManager->WaitForCompletion(request);
   if (!finished)
   {
-    fmt::print(stderr, "Failed to download request. Failing\n");
+    fprintf(stderr, "Failed to download request. Failing\n");
     return -2;
   }
 
@@ -246,6 +246,6 @@ int main(int argc, char **argv)
     fwrite(bmppad,1,(-3 * output_width) & 3, file.get());
   }
   file.reset();
-  fmt::print(stdout, "File written to: {}\n", file_name);
+  fprintf(stdout, "File written to: %s\n", file_name.c_str());
   return 0;
 }

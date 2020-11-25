@@ -240,9 +240,6 @@ endif()
 
 target_link_libraries(openvds_objects PUBLIC Threads::Threads)
 
-target_link_libraries(openvds_objects PUBLIC $<$<NOT:$<CONFIG:Debug>>:${link_3rdparty_release}> $<$<CONFIG:Debug>:${link_3rdparty_debug}>)
-
-
 if (OpenMP_CXX_FOUND)
     target_link_libraries(openvds_objects PUBLIC OpenMP::OpenMP_CXX)
 endif()
@@ -276,7 +273,8 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 add_library(openvds $<TARGET_OBJECTS:openvds_objects>)
-target_link_libraries(openvds openvds_objects)
+add_library(openvds::openvds ALIAS openvds)
+target_link_libraries(openvds PUBLIC openvds_objects)
 set_target_properties(openvds
   PROPERTIES
   FRAMEWORK ON
@@ -284,6 +282,15 @@ set_target_properties(openvds
   PUBLIC_HEADER "${EXPORTED_HEADER_FILES}"
   #OUTPUT_NAME ${PROJECT_NAME}
 )
+foreach(item ${link_3rdparty_debug})
+    target_link_libraries(openvds PRIVATE debug ${item})
+endforeach()
+foreach(item ${link_3rdparty_release})
+    target_link_libraries(openvds PRIVATE optimized ${item})
+endforeach()
+
+
+
 if (ENABLE_RUNPATH_ORIGIN)
 set_target_properties(openvds
   PROPERTIES
@@ -296,10 +303,6 @@ target_include_directories(openvds
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
 )
-
-if (${MSVC_TOOLSET_VERSION_LOCAL})
-  set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION_LOCAL}")
-endif()
 
 install(TARGETS openvds openvds_objects
   EXPORT openvds-export
@@ -319,7 +322,7 @@ install(TARGETS openvds openvds_objects
 install(
     EXPORT openvds-export
     NAMESPACE openvds::
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openvds/cmake
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/openvds
     FILE openvds-config.cmake
 )
 
@@ -337,7 +340,7 @@ export(
         openvds-config.cmake
 )
 
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
+set(CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
 include (InstallRequiredSystemLibraries)
 
 set(OPENVDS_LIB_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "")

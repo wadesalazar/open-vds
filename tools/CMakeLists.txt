@@ -5,10 +5,6 @@ function(setCompilerFlagsForTools target)
 
   addSystemHeadersToTarget(${target} "${jsoncpp_SOURCE_DIR}/include")
 
-  if (${MSVC_TOOLSET_VERSION_LOCAL})
-    set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION_LOCAL}")
-  endif()
-
   install(TARGETS ${target}
     RUNTIME
     DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR}

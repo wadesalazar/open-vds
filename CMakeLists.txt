@@ -122,6 +122,12 @@ if(WIN32)
   endif()
 endif()
 
+if (${MSVC_TOOLSET_VERSION_LOCAL})
+  set(LIB_TOOLSET_DIR "/msvc_${MSVC_TOOLSET_VERSION_LOCAL}")
+endif()
+
+set(LIB_TOOLSET_DIR "${LIB_TOOLSET_DIR}$<$<NOT:$<CONFIG:Release>>:/$<CONFIG>>")
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 find_package(Threads)
 if (ENABLE_OPENMP)
@@ -151,6 +157,7 @@ build3rdparty()
 include(CMake/CopyDllForTarget.cmake)
 include(CMake/AddSystemHeadersToTarget.cmake)
 
+set(CMAKE_DEBUG_POSTFIX d)
 add_subdirectory(src)
 add_subdirectory(tools)
 
@@ -174,6 +181,12 @@ endif()
 if (BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
+
+file(RELATIVE_PATH INSTALLED_LIB_RELATIVE_TO_EXAMPLES "${PROJECT_SOURCE_DIR}/${CMAKE_INSTALL_DATAROOTDIR}/openvds/examples" "${PROJECT_SOURCE_DIR}/${CMAKE_INSTALL_DATAROOTDIR}")
+configure_file(CMake/InstalledPaths.cmake.in ${CMAKE_BINARY_DIR}/CMake/InstalledPaths.cmake)
+install(FILES CMake/CopyDllForTarget.cmake CMake/SetWarnings.cmake ${CMAKE_BINARY_DIR}/CMake/InstalledPaths.cmake
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openvds/examples/modules)
+install(DIRECTORY examples DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openvds)
 
 if (NOT DEFINED CPACK_GENERATOR)
   if (UNIX)
