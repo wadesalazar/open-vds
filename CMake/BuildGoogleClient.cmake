@@ -54,7 +54,6 @@ function(addGoogleCloudToTarget target)
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/notification_requests.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/notification_metadata.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/hashing_options.cc
-    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/bucket_requests.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/resumable_upload_session.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/service_account_requests.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/sign_blob_requests.cc
