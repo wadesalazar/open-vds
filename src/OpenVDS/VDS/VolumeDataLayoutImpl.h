@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <mutex>
+#include <memory>
 
 namespace OpenVDS
 {
@@ -34,8 +35,13 @@ class VolumeDataLayoutDescriptor;
 class VolumeDataLayoutImpl : public VolumeDataLayout
 {
 private:
+  static void deleteLayer(VolumeDataLayer *layer)
+  {
+    delete layer;
+  }
+
   VDS     &m_vds;
-  std::vector<VolumeDataLayer *> m_volumeDataLayers;
+  std::vector<std::unique_ptr<VolumeDataLayer, decltype(&deleteLayer)>> m_volumeDataLayers;
   std::vector<VolumeDataChannelDescriptor> m_volumeDataChannelDescriptor;
   bool           m_isReadOnly;
   VolumeDataHash m_contentsHash; 

@@ -89,7 +89,7 @@ private:
   }
 
   uint64_t GetFormatHash(VolumeDataChannelDescriptor::Format actualFormat, bool isReplaceNoValue, float replacementNoValue) const;
-
+  friend class VolumeDataLayoutImpl;
 public:
   VolumeDataLayer(VolumeDataPartition const& volumeDataPartition, VolumeDataLayoutImpl* volumeDataLayout, int32_t channel, VolumeDataLayer* primaryChannelLayer, VolumeDataLayer* lowerLOD, LayerType layerType, const VolumeDataChannelMapping* volumeDataChannelMapping);
 

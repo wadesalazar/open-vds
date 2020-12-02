@@ -101,7 +101,7 @@ VolumeDataLayoutImpl::~VolumeDataLayoutImpl()
 
 VolumeDataLayer::VolumeDataLayerID VolumeDataLayoutImpl::AddDataLayer(VolumeDataLayer *layer)
 {
-  m_volumeDataLayers.push_back(layer);
+  m_volumeDataLayers.emplace_back(layer, &deleteLayer);
   return VolumeDataLayer::VolumeDataLayerID(m_volumeDataLayers.size() - 1);
 }
 
@@ -152,7 +152,7 @@ VolumeDataLayer *VolumeDataLayoutImpl::GetVolumeDataLayerFromID(VolumeDataLayer:
   }
   else
   {
-    return m_volumeDataLayers[volumeDataLayerID];
+    return m_volumeDataLayers[volumeDataLayerID].get();
   }
 }
   
