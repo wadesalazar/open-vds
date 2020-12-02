@@ -75,8 +75,10 @@ struct AWSOpenOptions : OpenOptions
   std::string expiration;
   std::string logFilenamePrefix;
   std::string loglevel;
+  int connectionTimeoutMs;
+  int requestTimeoutMs;
 
-  AWSOpenOptions() : OpenOptions(AWS) {}
+  AWSOpenOptions() : OpenOptions(AWS), connectionTimeoutMs(3000), requestTimeoutMs(6000) {}
   /// <summary>
   /// AWSOpenOptions constructor
   /// </summary>
@@ -92,7 +94,13 @@ struct AWSOpenOptions : OpenOptions
   /// <param name="endpointOverride">
   /// This parameter allows to override the endpoint url
   /// </param>
-  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region = std::string(), std::string const & endpointOverride = std::string()) : OpenOptions(AWS), bucket(bucket), key(key), region(region), endpointOverride(endpointOverride) {}
+  /// <param name="connectionTimeoutMs">
+  /// This parameter allows to override the time a connection can spend on connecting to AWS
+  /// </param>
+  /// <param name="requestTimeoutMs">
+  /// This paramter allows to override the time a request can take
+  /// </param>
+  AWSOpenOptions(std::string const & bucket, std::string const & key, std::string const & region = std::string(), std::string const & endpointOverride = std::string(), int connectionTimeoutMs = 3000, int requestTimeoutMs = 6000) : OpenOptions(AWS), bucket(bucket), key(key), region(region), endpointOverride(endpointOverride), connectionTimeoutMs(connectionTimeoutMs), requestTimeoutMs(requestTimeoutMs) {}
 };
 
 /// <summary>

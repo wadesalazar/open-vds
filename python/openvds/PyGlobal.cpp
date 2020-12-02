@@ -54,6 +54,7 @@ PyGlobal::initModule(py::module& m)
     AWSOpenOptions_(m,"AWSOpenOptions", OPENVDS_DOCSTRING(AWSOpenOptions));
 
   AWSOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions));
+  AWSOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &, const std::string &, int, int>(), py::arg("bucket").none(false), py::arg("key").none(false), py::arg("region").none(false), py::arg("endpointOverride").none(false), py::arg("connectionTimeoutMs").none(false), py::arg("requestTimeoutMs").none(false), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions_2));
   AWSOpenOptions_.def_readwrite("bucket"                      , &AWSOpenOptions::bucket        , OPENVDS_DOCSTRING(AWSOpenOptions_bucket));
   AWSOpenOptions_.def_readwrite("key"                         , &AWSOpenOptions::key           , OPENVDS_DOCSTRING(AWSOpenOptions_key));
   AWSOpenOptions_.def_readwrite("region"                      , &AWSOpenOptions::region        , OPENVDS_DOCSTRING(AWSOpenOptions_region));
@@ -64,6 +65,8 @@ PyGlobal::initModule(py::module& m)
   AWSOpenOptions_.def_readwrite("expiration"                  , &AWSOpenOptions::expiration    , OPENVDS_DOCSTRING(AWSOpenOptions_expiration));
   AWSOpenOptions_.def_readwrite("logFilenamePrefix"           , &AWSOpenOptions::logFilenamePrefix, OPENVDS_DOCSTRING(AWSOpenOptions_logFilenamePrefix));
   AWSOpenOptions_.def_readwrite("loglevel"                    , &AWSOpenOptions::loglevel      , OPENVDS_DOCSTRING(AWSOpenOptions_loglevel));
+  AWSOpenOptions_.def_readwrite("connectionTimeoutMs"         , &AWSOpenOptions::connectionTimeoutMs, OPENVDS_DOCSTRING(AWSOpenOptions_connectionTimeoutMs));
+  AWSOpenOptions_.def_readwrite("requestTimeoutMs"            , &AWSOpenOptions::requestTimeoutMs, OPENVDS_DOCSTRING(AWSOpenOptions_requestTimeoutMs));
 
   // AzureOpenOptions
   py::class_<AzureOpenOptions, OpenOptions, std::unique_ptr<AzureOpenOptions>> 

@@ -43,11 +43,20 @@ region :
     The region of the bucket of the VDS
 
 endpointOverride :
-    This parameter allows to override the endpoint url)doc";
+    This parameter allows to override the endpoint url
+
+connectionTimeoutMs :
+    This parameter allows to override the time a connection can spend
+    on connecting to AWS
+
+requestTimeoutMs :
+    This paramter allows to override the time a request can take)doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_accessKeyId = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_bucket = R"doc()doc";
+
+static const char *__doc_OpenVDS_AWSOpenOptions_connectionTimeoutMs = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_endpointOverride = R"doc()doc";
 
@@ -60,6 +69,8 @@ static const char *__doc_OpenVDS_AWSOpenOptions_logFilenamePrefix = R"doc()doc";
 static const char *__doc_OpenVDS_AWSOpenOptions_loglevel = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_region = R"doc()doc";
+
+static const char *__doc_OpenVDS_AWSOpenOptions_requestTimeoutMs = R"doc()doc";
 
 static const char *__doc_OpenVDS_AWSOpenOptions_secretKey = R"doc()doc";
 

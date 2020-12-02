@@ -476,8 +476,8 @@ namespace OpenVDS
     clientConfig.scheme = Aws::Http::Scheme::HTTPS;
     if (m_region.size())
       clientConfig.region = convertStdString(m_region);
-    clientConfig.connectTimeoutMs = 3000;
-    clientConfig.requestTimeoutMs = 6000;
+    clientConfig.connectTimeoutMs = openOptions.connectionTimeoutMs;
+    clientConfig.requestTimeoutMs = openOptions.requestTimeoutMs;
     bool useVirtualAddressing = true;
     if (openOptions.endpointOverride.size())
     {

@@ -154,6 +154,26 @@ static std::unique_ptr<OpenOptions> createS3OpenOptions(const StringWrapper &url
     {
       openOptions->loglevel = connectionPair.second;
     }
+    else if (connectionPair.first == "connectiontimeoutms")
+    {
+      openOptions->connectionTimeoutMs = strtol(&connectionPair.second[0], nullptr, 10);
+      if (openOptions->connectionTimeoutMs == 0)
+      {
+        error.string = "Invalid connectionTimeoutMs connection string parameter";
+        error.code = -1;
+        return nullptr;
+      }
+    }
+    else if (connectionPair.first == "requesttimeoutms")
+    {
+      openOptions->requestTimeoutMs = strtol(&connectionPair.second[0], nullptr, 10);
+      if (openOptions->requestTimeoutMs == 0)
+      {
+        error.string = "Invalid requestTimeoutMs connection string parameter";
+        error.code = -1;
+        return nullptr;
+      }
+    }
     else
     {
       error.code = -1;
