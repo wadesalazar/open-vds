@@ -48,6 +48,14 @@ VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerIm
   , m_lastUsed(std::chrono::steady_clock::now())
 {
 }
+VolumeDataPageAccessorImpl::~VolumeDataPageAccessorImpl()
+{
+  for (auto& page : m_pages)
+  {
+    delete page;
+  }
+}
+
   
 VolumeDataLayout const* VolumeDataPageAccessorImpl::GetLayout() const
 {
@@ -377,6 +385,7 @@ void VolumeDataPageAccessorImpl::CancelPreparedReadPage(VolumeDataPage* page)
   }
   pageImpl->SetRequestPrepared(false);
   pageImpl->LeaveSettingData();
+  delete pageImpl;
   m_pageReadCondition.notify_all();
 }
 

@@ -62,6 +62,7 @@ private:
 
 public:
   VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl *acccessManager, VolumeDataLayer* layer, int maxPages, bool IsReadWrite);
+  ~VolumeDataPageAccessorImpl();
 
   VolumeDataLayout const* GetLayout() const override;
   VolumeDataLayer const * GetLayer() const { return m_layer; }
