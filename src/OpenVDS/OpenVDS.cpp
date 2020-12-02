@@ -44,6 +44,10 @@
 namespace OpenVDS
 {
 
+OpenOptions::~OpenOptions()
+{
+
+}
 
 template<int SIZE>
 static bool isProtocol(const StringWrapper &str, const char(&literal)[SIZE])

@@ -56,6 +56,8 @@ struct OpenOptions
 
 protected:
   OpenOptions(ConnectionType connectionType) : connectionType(connectionType) {}
+public:
+  OPENVDS_EXPORT virtual ~OpenOptions();
 };
 
 /// <summary>
