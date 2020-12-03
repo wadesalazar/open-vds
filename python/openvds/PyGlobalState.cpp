@@ -24,7 +24,7 @@ PyGlobalState::initModule(py::module& m)
 {
 //AUTOGEN-BEGIN
   // GlobalState
-  py::class_<GlobalState, std::unique_ptr<GlobalState>> 
+  py::class_<GlobalState, std::unique_ptr<GlobalState, py::nodelete>> 
     GlobalState_(m,"GlobalState", OPENVDS_DOCSTRING(GlobalState));
 
   GlobalState_.def("getBytesDownloaded"          , static_cast<uint64_t(GlobalState::*)(OpenOptions::ConnectionType)>(&GlobalState::GetBytesDownloaded), py::arg("connectionType").none(false), OPENVDS_DOCSTRING(GlobalState_GetBytesDownloaded));

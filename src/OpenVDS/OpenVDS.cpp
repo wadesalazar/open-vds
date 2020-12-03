@@ -677,8 +677,8 @@ void Close(VDS *vds)
 
 GlobalState *GetGlobalState()
 {
-  static GlobalState *globalState = new GlobalStateImpl();
-  return globalState;
+  static GlobalStateImpl globalState;
+  return &globalState;
 }
 
 }

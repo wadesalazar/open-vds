@@ -86,8 +86,6 @@ struct VDS
                     accessManager;
   std::unique_ptr<VolumeDataStore>
                     volumeDataStore;
-
-  GlobalStateImpl * globalState;
 };
 
 void CreateVolumeDataLayout(VDS &handle);

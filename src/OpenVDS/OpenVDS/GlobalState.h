@@ -28,6 +28,8 @@ namespace OpenVDS
 /// </summary>
 class GlobalState
 {
+protected:
+  ~GlobalState(){}
 public:
   /// <summary>
   /// Get the global amount of downloaded bytes from a cloud vendor.
