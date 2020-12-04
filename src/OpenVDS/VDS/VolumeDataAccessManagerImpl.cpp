@@ -84,6 +84,11 @@ VolumeDataAccessManagerImpl::~VolumeDataAccessManagerImpl()
   {
     fprintf(stderr, "VolumeDataAccessManager destructor: there where upload errors\n");
   }
+  while (auto volumeDataPageAccessor = m_volumeDataPageAccessorList.GetFirstItem())
+  {
+    m_volumeDataPageAccessorList.Remove(volumeDataPageAccessor);
+    delete volumeDataPageAccessor;
+  }
 }
 
 VolumeDataLayoutImpl const* VolumeDataAccessManagerImpl::GetVolumeDataLayout() const
