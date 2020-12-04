@@ -73,7 +73,7 @@ static VolumeDataLayer *GetVolumeDataLayer(VolumeDataLayoutImpl const *layout, D
 
 VolumeDataAccessManagerImpl::VolumeDataAccessManagerImpl(VDS &vds)
   : m_vds(vds)
-  , m_requestProcessor(*this)
+  , m_requestProcessor(new VolumeDataRequestProcessor(*this))
   , m_currentErrorIndex(0)
 {
 }
@@ -84,6 +84,7 @@ VolumeDataAccessManagerImpl::~VolumeDataAccessManagerImpl()
   {
     fprintf(stderr, "VolumeDataAccessManager destructor: there where upload errors\n");
   }
+  m_requestProcessor.reset();
   while (auto volumeDataPageAccessor = m_volumeDataPageAccessorList.GetFirstItem())
   {
     m_volumeDataPageAccessorList.Remove(volumeDataPageAccessor);
@@ -156,23 +157,23 @@ void  VolumeDataAccessManagerImpl::DestroyVolumeDataPageAccessor(VolumeDataPageA
 
 bool VolumeDataAccessManagerImpl::IsCompleted(int64_t requestID)
 {
-  return m_requestProcessor.IsCompleted(requestID);
+  return m_requestProcessor->IsCompleted(requestID);
 }
 bool VolumeDataAccessManagerImpl::IsCanceled(int64_t requestID)
 {
-  return m_requestProcessor.IsCanceled(requestID);
+  return m_requestProcessor->IsCanceled(requestID);
 }
 bool VolumeDataAccessManagerImpl::WaitForCompletion(int64_t requestID, int millisecondsBeforeTimeout)
 {
-  return m_requestProcessor.WaitForCompletion(requestID, millisecondsBeforeTimeout);
+  return m_requestProcessor->WaitForCompletion(requestID, millisecondsBeforeTimeout);
 }
 void VolumeDataAccessManagerImpl::Cancel(int64_t requestID)
 {
-  m_requestProcessor.Cancel(requestID);
+  m_requestProcessor->Cancel(requestID);
 }
 float VolumeDataAccessManagerImpl::GetCompletionFactor(int64_t requestID)
 {
-  return m_requestProcessor.GetCompletionFactor(requestID);
+  return m_requestProcessor->GetCompletionFactor(requestID);
 }
 
 void VolumeDataAccessManagerImpl::FlushUploadQueue()

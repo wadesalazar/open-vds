@@ -88,10 +88,6 @@ VolumeDataRequestProcessor::~VolumeDataRequestProcessor()
 {
   m_pageAccessorNotifier.setExit();
   m_cleanupThread.join();
-  for (auto &pair : m_pageAccessors)
-  {
-    m_manager.DestroyVolumeDataPageAccessor(pair.second);
-  }
 }
 
 static int64_t GenJobId()

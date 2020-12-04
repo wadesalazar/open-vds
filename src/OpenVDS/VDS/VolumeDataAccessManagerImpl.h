@@ -124,10 +124,10 @@ public:
     m_currentDownloadError = error;
   }
 
-  int CountActivePages() { return m_requestProcessor.CountActivePages(); }
+  int CountActivePages() { return m_requestProcessor->CountActivePages(); }
 private:
   VDS &m_vds;
-  VolumeDataRequestProcessor m_requestProcessor;
+  std::unique_ptr<VolumeDataRequestProcessor> m_requestProcessor;
   IntrusiveList<VolumeDataPageAccessorImpl, &VolumeDataPageAccessorImpl::m_volumeDataPageAccessorListNode> m_volumeDataPageAccessorList;
   std::mutex m_mutex;
   std::vector<std::unique_ptr<UploadError>> m_uploadErrors;
