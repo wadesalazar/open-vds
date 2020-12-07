@@ -48,7 +48,6 @@ function(addGoogleCloudToTarget target)
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/object_access_control.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/object_metadata.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/internal/format_time_point.cc
-    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/access_control_common.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/internal/parse_rfc3339.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/hmac_key_metadata.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/notification_requests.cc
@@ -80,8 +79,18 @@ function(addGoogleCloudToTarget target)
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/internal/backoff_policy.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/retry_object_read_source.cc
     ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/retry_resumable_upload_session.cc
-    #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
-    #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/const_buffer.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/patch_builder.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/object_metadata_parser.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/bucket_access_control_parser.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/bucket_metadata_parser.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/hmac_key_metadata_parser.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/notification_metadata_parser.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/object_access_control_parser.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/service_account_parser.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/access_control_common_parser.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/storage/internal/lifecycle_rule_parser.cc
+    ${google-cloud-cpp_SOURCE_DIR}/google/cloud/internal/api_client_header.cc
     #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
     #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
     #${google-cloud-cpp_SOURCE_DIR}/google/cloud/
