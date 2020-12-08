@@ -46,6 +46,11 @@ Licensed under [**Apache 2.0**](https://gitlab.opengroup.org/osdu/open-vds/blob/
 Latest build of the [**OpenVDS-Documentation**](http://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds)
 
 ### Building
+
+NOTE: CMake will download 3rdparty dependencies the first time CMake is run on
+the OpenVDS repository. This will take some time, so be patient. This will not
+occur on subsequent builds.
+
 By default OpenVDS builds the Python 3 bindings. To install the required
 dependencies go into ${OpenVDSFolder}/python folder and run:
 `$ python -m pip install -r requirements-dev.txt`
