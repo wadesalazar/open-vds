@@ -109,6 +109,8 @@ struct AWSOpenOptions : OpenOptions
 struct AzureOpenOptions : OpenOptions
 {
   std::string connectionString;
+  std::string accountName;
+  std::string bearerToken;
   std::string container;
   std::string blob;
 
@@ -150,6 +152,22 @@ struct AzureOpenOptions : OpenOptions
   /// The max execution time setting for the Azure Blob Storage library
   /// </param>
   AzureOpenOptions(std::string const& connectionString, std::string const& container, std::string const& blob, int& parallelism_factor, int& max_execution_time) : OpenOptions(Azure), connectionString(connectionString), container(container), blob(blob), parallelism_factor(parallelism_factor), max_execution_time(max_execution_time) {}
+ 
+
+  /// <summary>
+  /// AzureOpenOptions factory function for bearer token based authentication 
+  /// </summary>
+  /// <param name="bearerToken">
+  /// The bearer token
+  /// </param>
+  /// <param name="container">
+  /// The container of the VDS
+  /// </param>
+  /// <param name="blob">
+  /// The blob prefix of the VDS
+  /// </param>
+  /// <returns> A valid AzureOpenOptions </returns>
+  static AzureOpenOptions AzureOpenOptionsBearer(std::string const &accountName, std::string const &bearerToken, std::string const &container, std::string const &blob) { AzureOpenOptions ret; ret.accountName = accountName; ret.bearerToken = bearerToken; ret.container = container; ret.blob = blob; return ret; }
 };
 
 /// <summary>

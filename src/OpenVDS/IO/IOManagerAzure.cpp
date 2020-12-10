@@ -348,14 +348,13 @@ void UploadRequestAzure::Cancel()
 
 IOManagerAzure::IOManagerAzure(const AzureOpenOptions& openOptions, Error& error)
   : IOManager(OpenOptions::Azure)
-  , m_connStr(openOptions.connectionString)
   , m_containerStr(openOptions.container)
   , m_prefix(openOptions.blob)
 {
-  if (m_connStr.empty())
+  if (openOptions.connectionString.empty() && openOptions.bearerToken.empty())
   {
     error.code = -1;
-    error.string = "Azure Config error. Must provide a connection string";
+    error.string = "Azure Config error. Must provide a connection string or a bearer token";
     return;
   }
   if (m_containerStr.empty())
@@ -364,10 +363,34 @@ IOManagerAzure::IOManagerAzure(const AzureOpenOptions& openOptions, Error& error
     error.string = "Azure Config error. Empty container or blob name";
     return;
   }
-  m_storage_account = azure::storage::cloud_storage_account::parse(convertToUtilString(m_connStr));
-  m_blobClient = m_storage_account.create_cloud_blob_client();
-  m_container = m_blobClient.get_container_reference(convertToUtilString(m_containerStr));
-  m_container.create_if_not_exists();
+
+  if (openOptions.connectionString.size())
+  {
+    m_storage_account = azure::storage::cloud_storage_account::parse(convertToUtilString(openOptions.connectionString));
+  } else
+  {
+    assert(openOptions.bearerToken.size());
+    if (openOptions.accountName.empty())
+    {
+      error.code = -1;
+      error.string = "Azure Config error. Account Name is mandatory when specifying bearer token";
+    }
+    azure::storage::storage_credentials::bearer_token_credential bearerToken(convertToUtilString(openOptions.bearerToken));
+    auto storage_credentials = azure::storage::storage_credentials(convertToUtilString(openOptions.accountName), bearerToken);
+    m_storage_account = azure::storage::cloud_storage_account(storage_credentials, true);
+  }
+  
+  try
+  {
+    m_blobClient = m_storage_account.create_cloud_blob_client();
+    m_container = m_blobClient.get_container_reference(convertToUtilString(m_containerStr));
+    m_container.create_if_not_exists();
+  } catch (azure::storage::storage_exception &ex)
+  {
+    error.code = -1;
+    error.string = ex.what();
+    return;
+  }
 
   //m_options.set_server_timeout(std::chrono::seconds(60000));
 

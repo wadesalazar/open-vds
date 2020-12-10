@@ -201,7 +201,33 @@ static std::unique_ptr<OpenOptions> createAzureOpenOptions(const StringWrapper &
   {
     openOptions->blob = std::string(urlBlobBegin, end);
   }
-  openOptions->connectionString = std::string(connectionString.data, connectionString.data + connectionString.size);
+  
+  auto connectionStringMap = ParseConnectionString(connectionString.data, connectionString.size, error);
+  auto bearer_it = connectionStringMap.find("bearertoken");
+  if (bearer_it != connectionStringMap.end())
+  {
+    for (auto& connectionPair : connectionStringMap)
+    {
+      if (connectionPair.first == "accountname")
+        openOptions->accountName = connectionPair.second;
+      else if (connectionPair.first == "bearertoken")
+      {
+        openOptions->bearerToken = connectionPair.second;
+      }
+      else
+      {
+        error.code = -1;
+        error.string = fmt::format("Invalid key \"{}\" in Azure connection string.", connectionPair.first);
+        return nullptr;
+      }
+    }
+    openOptions->bearerToken = bearer_it->second;
+    openOptions->accountName = connectionStringMap["accountname"];
+  }
+  else
+  {
+    openOptions->connectionString = std::string(connectionString.data, connectionString.data + connectionString.size);
+  }
   return openOptions;
 }
 

@@ -36,7 +36,15 @@ The recognised keys for ``s3`` connection string are
   - ConnectionTimoutMs
   - RequestTimeoutMs
 
-``azure`` will treat the connection string as the connection string you get with your access keys.
+``azure`` has two modes. The connection string mode or the bearer token mode.
+If the connection string contains a key with name BearerToken it will parse the
+string and extract following parameters:
+  - AccountName
+  - BearerToken
+Both parameters are mandatory.
+
+In the connection string mode the connection string is parsed according to the rules described here:
+https://docs.microsoft.com/en-us/azure/storage/common/storage-configure-connection-string
 
 ``gs`` will accept the following keys
 
