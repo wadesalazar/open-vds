@@ -67,6 +67,8 @@ add_jar(openvds-java
         GENERATE_NATIVE_HEADERS openvds-java-generated-headers DESTINATION ${GENERATED_JNI_HEADERS_DIR}
         ENTRY_POINT OpenVdsDemo)
 
+add_dependencies(openvds-java openvds)
+
 get_property(BUILT_JAR_FILE TARGET openvds-java PROPERTY JAR_FILE)
 
 if (BUILD_DOCS)
