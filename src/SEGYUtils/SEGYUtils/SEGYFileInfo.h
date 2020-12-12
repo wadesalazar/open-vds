@@ -85,24 +85,34 @@ struct SEGYFileInfo
 
   double        m_sampleIntervalMilliseconds;
 
-  int64_t       m_traceCount;
+  // per-file trace counts
+  std::vector<int64_t>
+                m_traceCounts;
 
-  std::vector<SEGYSegmentInfo>
-                m_segmentInfo;
+  // a vector of per-file vectors
+  std::vector<std::vector<SEGYSegmentInfo>>
+                m_segmentInfoLists;
 
   SEGY::HeaderField
                 m_primaryKey,
                 m_secondaryKey;
 
+  SEGY::SEGYType
+                m_segyType;
+
   OPENVDS_EXPORT static uint64_t StaticGetUniqueID();
 
-  SEGYFileInfo() : m_persistentID(), m_headerEndianness(), m_dataSampleFormatCode(), m_sampleCount(), m_startTimeMilliseconds(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
-  SEGYFileInfo(uint64_t persistentID, SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_persistentID(persistentID), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_startTimeMilliseconds(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
-  SEGYFileInfo(SEGY::Endianness headerEndianness) : m_persistentID(StaticGetUniqueID()), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_startTimeMilliseconds(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
+  SEGYFileInfo() : m_persistentID(), m_headerEndianness(), m_dataSampleFormatCode(), m_sampleCount(), m_startTimeMilliseconds(), m_sampleIntervalMilliseconds(), m_primaryKey(), m_secondaryKey(), m_segyType(SEGY::SEGYType::Poststack) {}
+  SEGYFileInfo(uint64_t persistentID, SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_persistentID(persistentID), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_startTimeMilliseconds(), m_sampleIntervalMilliseconds(), m_primaryKey(), m_secondaryKey(), m_segyType(SEGY::SEGYType::Poststack) {}
+  SEGYFileInfo(SEGY::Endianness headerEndianness) : m_persistentID(StaticGetUniqueID()), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_startTimeMilliseconds(), m_sampleIntervalMilliseconds(), m_primaryKey(), m_secondaryKey(), m_segyType(SEGY::SEGYType::Poststack) {}
 
   OPENVDS_EXPORT int  TraceByteSize() const;
 
-  OPENVDS_EXPORT bool Scan(DataProvider &dataprovider, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGY::HeaderField const &startTimeHeaderField = SEGY::TraceHeader::StartTimeHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::StandardHeaderFields());
+  OPENVDS_EXPORT bool Scan(const std::vector<DataProvider>& dataProviders, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGY::HeaderField const &startTimeHeaderField = SEGY::TraceHeader::StartTimeHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::StandardHeaderFields());
+
+  OPENVDS_EXPORT SEGYBinInfo readBinInfoFromHeader(const char* header, SEGYBinInfoHeaderFields const& headerFields, SEGY::Endianness endianness, int segmentTraceIndex) const;
+
+  OPENVDS_EXPORT bool IsUnbinned() const;
 };
 
 #endif  // SEGY_FILE_INFO_H

@@ -155,7 +155,7 @@ SerializeSEGYHeaderField(SEGY::HeaderField const& headerField)
 }
 
 Json::Value
-SerializeSEGYFileInfo(SEGYFileInfo const& fileInfo)
+SerializeSEGYFileInfo(SEGYFileInfo const& fileInfo, const int fileIndex)
 {
   Json::Value
     jsonFileInfo;
@@ -166,14 +166,14 @@ SerializeSEGYFileInfo(SEGYFileInfo const& fileInfo)
   jsonFileInfo["sampleCount"] = fileInfo.m_sampleCount;
   jsonFileInfo["startTime"] = fileInfo.m_startTimeMilliseconds;
   jsonFileInfo["sampleInterval"] = fileInfo.m_sampleIntervalMilliseconds;
-  jsonFileInfo["traceCount"] = fileInfo.m_traceCount;
+  jsonFileInfo["traceCount"] = fileInfo.m_traceCounts[fileIndex];
   jsonFileInfo["primaryKey"] = SerializeSEGYHeaderField(fileInfo.m_primaryKey);
   jsonFileInfo["secondaryKey"] = SerializeSEGYHeaderField(fileInfo.m_secondaryKey);
 
   Json::Value
     jsonSegmentInfoArray(Json::ValueType::arrayValue);
 
-  for (auto const& segmentInfo : fileInfo.m_segmentInfo)
+  for (auto const& segmentInfo : fileInfo.m_segmentInfoLists[fileIndex])
   {
     jsonSegmentInfoArray.append(SerializeSEGYSegmentInfo(segmentInfo));
   }
@@ -833,13 +833,18 @@ parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
     fileInfo.m_sampleCount = jsonFileInfo["sampleCount"].asInt();
     fileInfo.m_startTimeMilliseconds = jsonFileInfo["startTime"].asDouble();
     fileInfo.m_sampleIntervalMilliseconds = jsonFileInfo["sampleInterval"].asDouble();
-    fileInfo.m_traceCount = jsonFileInfo["traceCount"].asInt64();
+    fileInfo.m_traceCounts.clear();
+    fileInfo.m_traceCounts.push_back(jsonFileInfo["traceCount"].asInt64());
     fileInfo.m_primaryKey = HeaderFieldFromJson(jsonFileInfo["primaryKey"]);
     fileInfo.m_secondaryKey = HeaderFieldFromJson(jsonFileInfo["secondaryKey"]);
 
+    fileInfo.m_segmentInfoLists.clear();
+    fileInfo.m_segmentInfoLists.emplace_back();
+    auto&
+      segmentInfo = fileInfo.m_segmentInfoLists.back();
     for (Json::Value jsonSegmentInfo : jsonFileInfo["segmentInfo"])
     {
-      fileInfo.m_segmentInfo.push_back(segmentInfoFromJson(jsonSegmentInfo));
+      segmentInfo.push_back(segmentInfoFromJson(jsonSegmentInfo));
     }
   }
   catch (Json::Exception &e)

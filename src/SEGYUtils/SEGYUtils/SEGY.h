@@ -189,6 +189,8 @@ static const HeaderField EnsembleXCoordinateHeaderField(181, FieldWidth::FourByt
 static const HeaderField EnsembleYCoordinateHeaderField(185, FieldWidth::FourByte);
 static const HeaderField InlineNumberHeaderField(189, FieldWidth::FourByte);
 static const HeaderField CrosslineNumberHeaderField(193, FieldWidth::FourByte);
+static const HeaderField ReceiverHeaderField(13, FieldWidth::FourByte);
+static const HeaderField OffsetHeaderField(37, FieldWidth::FourByte);
 
 } // end namespace TraceHeader
 
@@ -302,5 +304,20 @@ enum class SampleUnits
   Feet = 1,
   Meters = 2
 };
+
+enum class SEGYType
+{
+  Poststack = 0,
+  Prestack = 1,
+  Prestack2D = 2,
+  Poststack2D = 3,
+  UnbinnedCDP = 4,
+  UnbinnedShot = 5,
+  UnbinnedReceiver = 6,
+  MinValue = Poststack,
+  MaxValue = UnbinnedReceiver
+};
+
+OPENVDS_EXPORT bool IsSEGYTypeUnbinned(SEGYType segyType);
 
 } // end namespace SEGY

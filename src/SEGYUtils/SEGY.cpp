@@ -301,4 +301,10 @@ int FormatSize(BinaryHeader::DataSampleFormatCode dataSampleFormatCode)
   return 0;
 }
 
+bool
+IsSEGYTypeUnbinned(SEGYType segyType)
+{
+  return segyType == SEGYType::UnbinnedCDP || segyType == SEGYType::UnbinnedReceiver || segyType == SEGYType::UnbinnedShot;
+}
+
 } // end namespace SEGY
