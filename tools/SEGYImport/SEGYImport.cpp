@@ -857,7 +857,7 @@ parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
 }
 
 std::vector<OpenVDS::VolumeDataAxisDescriptor>
-createAxisDescriptors(SEGYFileInfo const& fileInfo, SEGY::SampleUnits sampleUnits, int inlineStep, int crosslineStep)
+createAxisDescriptors(SEGYFileInfo const& fileInfo, SEGY::SampleUnits sampleUnits, int fold, int inlineStep, int crosslineStep)
 {
   std::vector<OpenVDS::VolumeDataAxisDescriptor>
     axisDescriptors;
@@ -873,55 +873,126 @@ createAxisDescriptors(SEGYFileInfo const& fileInfo, SEGY::SampleUnits sampleUnit
     assert(0 && "Unknown sample unit");
   }
 
-  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, sampleUnit, (float)fileInfo.m_startTimeMilliseconds, (float)fileInfo.m_startTimeMilliseconds + (fileInfo.m_sampleCount - 1) * (float)fileInfo.m_sampleIntervalMilliseconds));
+  axisDescriptors.emplace_back(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, sampleUnit, (float)fileInfo.m_startTimeMilliseconds, (float)fileInfo.m_startTimeMilliseconds + (fileInfo.m_sampleCount - 1) * (float)fileInfo.m_sampleIntervalMilliseconds);
 
-  int minInline    = fileInfo.m_segmentInfo[0].m_binInfoStart.m_inlineNumber,
-      minCrossline = fileInfo.m_segmentInfo[0].m_binInfoStart.m_crosslineNumber,
-      maxInline    = minInline,
+  if (fileInfo.IsUnbinned())
+  {
+    int
+      maxTraceNumber = 0;
+    size_t
+      totalSegmentsCount = 0;
+
+    for (const auto& segmentInfoList : fileInfo.m_segmentInfoLists)
+    {
+      totalSegmentsCount += segmentInfoList.size();
+
+      for (const auto& segmentInfo : segmentInfoList)
+      {
+        maxTraceNumber = std::max(maxTraceNumber, segmentInfo.m_binInfoStop.m_crosslineNumber);
+      }
+    }
+
+    axisDescriptors.emplace_back(maxTraceNumber, VDS_DIMENSION_TRACE_NAME(VDS_DIMENSION_TRACE_SORT_OFFSET), KNOWNMETADATA_UNIT_UNITLESS, 1.0f, (float)maxTraceNumber);
+
+    const char
+      * axisName;
+    // figure out the unbinned primary axis name
+    //switch (fileInfo.m_segyType)
+    //{
+    //case SEGY::SEGYType::UnbinnedReceiver:
+    //  axisName = VDS_DIMENSION_RECEIVER_NAME;
+    //  break;
+
+    //case SEGY::SEGYType::UnbinnedShot:
+    //  axisName = VDS_DIMENSION_SHOT_NAME;
+    //  break;
+
+    //case SEGY::SEGYType::UnbinnedCDP:
+    //default:
+    //  axisName = VDS_DIMENSION_CDP_NAME;
+    //  break;
+    //}
+
+    // Headwave uses Gather for all types?
+    axisName = VDS_DIMENSION_GATHER_NAME;
+
+    axisDescriptors.emplace_back(static_cast<int>(totalSegmentsCount), axisName, KNOWNMETADATA_UNIT_UNITLESS, 1.0f, static_cast<float>(totalSegmentsCount));
+  }
+  else
+  {
+    if (fold > 1)
+    {
+      axisDescriptors.emplace_back(fold, VDS_DIMENSION_TRACE_NAME(VDS_DIMENSION_TRACE_SORT_OFFSET), KNOWNMETADATA_UNIT_UNITLESS, 1.0f, static_cast<float>(fold));
+    }
+
+    int minInline = fileInfo.m_segmentInfoLists[0][0].m_binInfoStart.m_inlineNumber,
+      minCrossline = fileInfo.m_segmentInfoLists[0][0].m_binInfoStart.m_crosslineNumber,
+      maxInline = minInline,
       maxCrossline = minCrossline;
 
-  for (int segment = 0; segment < (int)fileInfo.m_segmentInfo.size(); segment++)
-  {
-    auto const &segmentInfo = fileInfo.m_segmentInfo[segment];
+    for (const auto& segmentInfoList : fileInfo.m_segmentInfoLists)
+    {
+      for (const auto& segmentInfo : segmentInfoList)
+      {
+        minInline = std::min(minInline, segmentInfo.m_binInfoStart.m_inlineNumber);
+        minInline = std::min(minInline, segmentInfo.m_binInfoStop.m_inlineNumber);
+        maxInline = std::max(maxInline, segmentInfo.m_binInfoStart.m_inlineNumber);
+        maxInline = std::max(maxInline, segmentInfo.m_binInfoStop.m_inlineNumber);
 
-    minInline = std::min(minInline, segmentInfo.m_binInfoStart.m_inlineNumber);
-    minInline = std::min(minInline, segmentInfo.m_binInfoStop.m_inlineNumber);
-    maxInline = std::max(maxInline, segmentInfo.m_binInfoStart.m_inlineNumber);
-    maxInline = std::max(maxInline, segmentInfo.m_binInfoStop.m_inlineNumber);
+        minCrossline = std::min(minCrossline, segmentInfo.m_binInfoStart.m_crosslineNumber);
+        minCrossline = std::min(minCrossline, segmentInfo.m_binInfoStop.m_crosslineNumber);
+        maxCrossline = std::max(maxCrossline, segmentInfo.m_binInfoStart.m_crosslineNumber);
+        maxCrossline = std::max(maxCrossline, segmentInfo.m_binInfoStop.m_crosslineNumber);
+      }
+    }
 
-    minCrossline = std::min(minCrossline, segmentInfo.m_binInfoStart.m_crosslineNumber);
-    minCrossline = std::min(minCrossline, segmentInfo.m_binInfoStop.m_crosslineNumber);
-    maxCrossline = std::max(maxCrossline, segmentInfo.m_binInfoStart.m_crosslineNumber);
-    maxCrossline = std::max(maxCrossline, segmentInfo.m_binInfoStop.m_crosslineNumber);
-  }
+    // Ensure the max inline/crossline is a multiple of the step size from the min
+    maxCrossline += (maxCrossline - minCrossline) % crosslineStep;
+    maxInline += (maxInline - minInline) % inlineStep;
 
-  // Ensure the max inline/crossline is a multiple of the step size from the min
-  maxCrossline += (maxCrossline - minCrossline) % crosslineStep;
-  maxInline    += (maxInline    - minInline)    % inlineStep;
-
-  int inlineCount    = 1 + (maxInline    - minInline   ) / inlineStep,
+    const int
+      inlineCount = 1 + (maxInline - minInline) / inlineStep,
       crosslineCount = 1 + (maxCrossline - minCrossline) / crosslineStep;
 
-  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(crosslineCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE, "", (float)minCrossline, (float)maxCrossline));
-  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(inlineCount,    KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE,    "", (float)minInline,    (float)maxInline));
+    axisDescriptors.emplace_back(crosslineCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_CROSSLINE, KNOWNMETADATA_UNIT_UNITLESS, (float)minCrossline, (float)maxCrossline);
+    axisDescriptors.emplace_back(inlineCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_INLINE, KNOWNMETADATA_UNIT_UNITLESS, (float)minInline, (float)maxInline);
+  }
 
   return axisDescriptors;
 }
 
+struct OffsetChannelInfo
+{
+  int   offsetStart;
+  int   offsetEnd;
+  int   offsetStep;
+  bool  hasOffset;
+
+  OffsetChannelInfo(bool has, int start, int end, int step) : hasOffset(has), offsetStart(start), offsetEnd(end), offsetStep(step) {}
+};
+
 std::vector<OpenVDS::VolumeDataChannelDescriptor>
-createChannelDescriptors(SEGYFileInfo const& fileInfo, OpenVDS::FloatRange const& valueRange)
+createChannelDescriptors(SEGYFileInfo const& fileInfo, OpenVDS::FloatRange const& valueRange, const OffsetChannelInfo& offsetInfo)
 {
   std::vector<OpenVDS::VolumeDataChannelDescriptor>
     channelDescriptors;
 
   // Primary channel
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", valueRange.Min, valueRange.Max));
+  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", valueRange.Min, valueRange.Max);
 
   // Trace defined flag
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Trace", "", 0, 1, OpenVDS::VolumeDataMapping::PerTrace, OpenVDS::VolumeDataChannelDescriptor::DiscreteData));
+  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Trace", "", 0, 1, OpenVDS::VolumeDataMapping::PerTrace, OpenVDS::VolumeDataChannelDescriptor::DiscreteData);
 
   // SEG-Y trace headers
-  channelDescriptors.push_back(OpenVDS::VolumeDataChannelDescriptor(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "SEGYTraceHeader", "", 0, 255, OpenVDS::VolumeDataMapping::PerTrace, SEGY::TraceHeaderSize, OpenVDS::VolumeDataChannelDescriptor::DiscreteData, 1.0f, 0.0f));
+  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "SEGYTraceHeader", "", 0, 255, OpenVDS::VolumeDataMapping::PerTrace, SEGY::TraceHeaderSize, OpenVDS::VolumeDataChannelDescriptor::DiscreteData, 1.0f, 0.0f);
+
+  if (offsetInfo.hasOffset)
+  {
+    // offset channel
+    channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Offset", KNOWNMETADATA_UNIT_UNITLESS, static_cast<float>(offsetInfo.offsetStart), static_cast<float>(offsetInfo.offsetEnd),OpenVDS::VolumeDataMapping::PerTrace, OpenVDS::VolumeDataChannelDescriptor::NoLossyCompression);
+
+    // TODO channels for other gather types - "Angle", "Vrms", "Frequency"
+  }
 
   return channelDescriptors;
 }
