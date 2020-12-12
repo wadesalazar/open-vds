@@ -255,6 +255,10 @@
 /// String representing the US survey feet per second unit
 #define KNOWNMETADATA_UNIT_US_SURVEY_FEET_PER_SECOND "ussft/s"
 
+/// \def KNOWNMETADATA_UNIT_UNITLESS
+/// String representing the unitless unit
+#define KNOWNMETADATA_UNIT_UNITLESS                  "unitless"
+
 // Trace coordinate metadata ////////////////////////////////////////////////
 /*! \def KNOWNMETADATA_TRACECOORDINATES
    The SeismicLine GetVDSTraceCoordinates() method will populate the PositionProperty, VerticalOffsetProperty, EnergySourcePointNumberProperty and EnsembleNumberProperty from VDSMetadataBLOBs found in the "TraceCoordinates" category.
