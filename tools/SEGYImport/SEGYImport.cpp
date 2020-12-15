@@ -392,49 +392,108 @@ segmentInfoFromJson(Json::Value const& jsonSegmentInfo)
   return SEGYSegmentInfo(primaryKey, traceStart, traceStop, binInfoStart, binInfoStop);
 }
 
-SEGYSegmentInfo const&
-findRepresentativeSegment(SEGYFileInfo const& fileInfo, int& primaryStep)
+std::vector<int>
+getOrderedSegmentListIndices(SEGYFileInfo const& fileInfo, size_t& globalTotalSegments)
 {
+  // Generate a list of indices that will traverse m_segyFileInfo.m_segmentInfoLists in primary key order, which
+  // may be different from the order that the files were given.
+
+  std::vector<int>
+    orderedListIndices;
+  int
+    longestList = 0;
+  globalTotalSegments = 0;
+  for (int i = 0; i < fileInfo.m_segmentInfoLists.size(); ++i)
+  {
+    orderedListIndices.push_back(i);
+    globalTotalSegments += fileInfo.m_segmentInfoLists[i].size();
+    if (fileInfo.m_segmentInfoLists[i].size() > fileInfo.m_segmentInfoLists[longestList].size())
+    {
+      longestList = i;
+    }
+  }
+  const bool
+    isAscending = fileInfo.m_segmentInfoLists[longestList].front().m_binInfoStart.m_inlineNumber <= fileInfo.m_segmentInfoLists[longestList].back().m_binInfoStart.m_inlineNumber;
+  auto
+    comparator = [&](int i1, int i2)
+  {
+    const auto
+      & v1 = fileInfo.m_segmentInfoLists[i1],
+      & v2 = fileInfo.m_segmentInfoLists[i2];
+    return isAscending ? v1.front().m_binInfoStart.m_inlineNumber < v2.front().m_binInfoStart.m_inlineNumber : v2.front().m_binInfoStart.m_inlineNumber < v1.front().m_binInfoStart.m_inlineNumber;
+  };
+  std::sort(orderedListIndices.begin(), orderedListIndices.end(), comparator);
+
+  return orderedListIndices;
+}
+
+SEGYSegmentInfo const&
+findRepresentativeSegment(SEGYFileInfo const& fileInfo, int& primaryStep, int& bestListIndex)
+{
+  // Since we give more weight to segments near the center of the data we need a sorted index of segment lists so that we can
+  // traverse the lists in data order, instead of the arbitrary order given by the filename ordering.
+  size_t
+    globalTotalSegments = 0;
+  auto
+    orderedListIndices = getOrderedSegmentListIndices(fileInfo, globalTotalSegments);
+
   primaryStep = 0;
+  bestListIndex = 0;
 
   float bestScore = 0.0f;
   int bestIndex = 0;
 
   int segmentPrimaryStep = 0;
 
-  for (int i = 0; i < int(fileInfo.m_segmentInfo.size()); i++)
+  size_t
+    globalOffset = 0;
+
+  for (const auto listIndex : orderedListIndices)
   {
-    int64_t
-      numTraces = (fileInfo.m_segmentInfo[i].m_traceStop - fileInfo.m_segmentInfo[i].m_traceStart + 1);
+    const auto&
+      segmentInfoList = fileInfo.m_segmentInfoLists[listIndex];
 
-    float
-      multiplier = 1.5f - std::abs(i - (float)fileInfo.m_segmentInfo.size() / 2) / (float)fileInfo.m_segmentInfo.size(); // give 50% more importance to a segment in the middle of the dataset
-
-    float
-      score = float(numTraces) * multiplier;
-
-    if (score > bestScore)
+    for (int i = 0; i < segmentInfoList.size(); i++)
     {
-      bestScore = score;
-      bestIndex = i;
+      int64_t
+        numTraces = (segmentInfoList[i].m_traceStop - segmentInfoList[i].m_traceStart + 1);
+
+      // index of this segment within the entirety of segments from all input files
+      const auto
+        globalIndex = globalOffset + i;
+
+      float
+        multiplier = 1.5f - abs(globalIndex - (float)globalTotalSegments / 2) / (float)globalTotalSegments; // give 50% more importance to a segment in the middle of the dataset
+
+      float
+        score = float(numTraces) * multiplier;
+
+      if (score > bestScore)
+      {
+        bestScore = score;
+        bestListIndex = listIndex;
+        bestIndex = i;
+      }
+
+      // Updating the primary step with the step for the previous segment intentionally ignores the step of the last segment since it can be anomalous
+      if (segmentPrimaryStep && (!primaryStep || std::abs(segmentPrimaryStep) < std::abs(primaryStep)))
+      {
+        primaryStep = segmentPrimaryStep;
+      }
+
+      if (i > 0)
+      {
+        segmentPrimaryStep = segmentInfoList[i].m_primaryKey - segmentInfoList[i - 1].m_primaryKey;
+      }
     }
 
-    // Updating the primary step with the step for the previous segment intentionally ignores the step of the last segment since it can be anomalous
-    if(segmentPrimaryStep && (!primaryStep || std::abs(segmentPrimaryStep) < std::abs(primaryStep)))
-    {
-      primaryStep = segmentPrimaryStep;
-    }
-
-    if(i > 0)
-    {
-      segmentPrimaryStep = fileInfo.m_segmentInfo[i].m_primaryKey - fileInfo.m_segmentInfo[i - 1].m_primaryKey;
-    }
+    globalOffset += segmentInfoList.size();
   }
 
   // If the primary step couldn't be determined, set it to the last step or 1
   primaryStep = primaryStep ? primaryStep : std::max(segmentPrimaryStep, 1);
 
-  return fileInfo.m_segmentInfo[bestIndex];
+  return fileInfo.m_segmentInfoLists[bestListIndex][bestIndex];
 }
 
 void
@@ -478,7 +537,7 @@ copySamples(const void* data, SEGY::BinaryHeader::DataSampleFormatCode dataSampl
 }
 
 bool
-analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, int& fold, int& secondaryStep, OpenVDS::Error& error)
+analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, int& fold, int& secondaryStep, const SEGY::SEGYType segyType, int& offsetStart, int& offsetEnd, int& offsetStep, OpenVDS::Error& error)
 {
   assert(segmentInfo.m_traceStop >= segmentInfo.m_traceStart && "A valid segment info should always have a stop trace greater or equal to the start trace");
 
@@ -487,6 +546,9 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
   valueRange = OpenVDS::FloatRange(0.0f, 1.0f);
   secondaryStep = 0;
   fold = 1;
+  offsetStart = 0;
+  offsetEnd = 0;
+  offsetStep = 0;
 
   const int traceByteSize = fileInfo.TraceByteSize();
 
@@ -509,6 +571,11 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
   // Determine fold and secondary step
   int gatherSecondaryKey = 0, gatherFold = 0, gatherSecondaryStep = 0;
 
+  bool
+    hasPreviousGatherOffset = false;
+  int
+    previousGatherOffset = 0;
+
   for (int64_t trace = segmentInfo.m_traceStart; trace <= segmentInfo.m_traceStop; trace++)
   {
     if(trace - traceBufferStart >= traceBufferSize)
@@ -530,7 +597,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
     const void *data   = buffer.get() + traceByteSize * (trace - traceBufferStart) + SEGY::TraceHeaderSize;
 
     int tracePrimaryKey = SEGY::ReadFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness);
-    int traceSecondaryKey = SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
+    int traceSecondaryKey = fileInfo.IsUnbinned() ? static_cast<int>(trace - segmentInfo.m_traceStart + 1) : SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
 
     if(tracePrimaryKey != segmentInfo.m_primaryKey)
     {
@@ -557,6 +624,29 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
       }
       gatherSecondaryKey = traceSecondaryKey;
       gatherFold = 1;
+    }
+
+    if (SEGY::IsSEGYTypeWithGatherOffset(segyType))
+    {
+      auto
+        thisOffset = SEGY::ReadFieldFromHeader(header, g_traceHeaderFields["Offset"], fileInfo.m_headerEndianness);
+      if (hasPreviousGatherOffset)
+      {
+        offsetStart = std::min(offsetStart, thisOffset);
+        offsetEnd = std::max(offsetEnd, thisOffset);
+        if (thisOffset != previousGatherOffset)
+        {
+          offsetStep = std::min(offsetStep, std::abs(thisOffset - previousGatherOffset));
+        }
+      }
+      else
+      {
+        offsetStart = thisOffset;
+        offsetEnd = thisOffset;
+        offsetStep = INT32_MAX;
+        hasPreviousGatherOffset = true;
+      }
+      previousGatherOffset = thisOffset;
     }
 
     // Update value range
@@ -591,6 +681,16 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
         }
       }
     }
+  }
+
+  // check that offset start/end/step is consistent
+  if (offsetStart + (fold - 1) * offsetStep != offsetEnd)
+  {
+    const auto
+      msgFormat = "The detected gather offset start/end/step of '{0}/{1}/{2}' is not consistent with the detected fold of '{3}'. This usually indicates using the wrong header format for the input dataset.\n.";
+    fmt::print(stderr, msgFormat, offsetStart, offsetEnd, offsetStep, fold);
+    return false;
+
   }
 
   // If the secondary step couldn't be determined, set it to the last step or 1
@@ -641,29 +741,40 @@ createSEGYMetadata(DataProvider &dataProvider, SEGYFileInfo const &fileInfo, Ope
 void
 createSurveyCoordinateSystemMetadata(SEGYFileInfo const& fileInfo, SEGY::BinaryHeader::MeasurementSystem measurementSystem, std::string const &crsWkt, OpenVDS::MetadataContainer& metadataContainer)
 {
-  if (fileInfo.m_segmentInfo.empty()) return;
+  if (fileInfo.m_segmentInfoLists.empty()) return;
 
   double inlineSpacing[2] = { 0, 0 };
   double crosslineSpacing[2] = { 0, 0 };
 
+  size_t
+    globalTotalSegments;
+  auto
+    orderedListIndices = getOrderedSegmentListIndices(fileInfo, globalTotalSegments);
+
   // Determine crossline spacing
   int countedCrosslineSpacings = 0;
 
-  for (auto const& segmentInfo : fileInfo.m_segmentInfo)
+  for (size_t listIndex : orderedListIndices)
   {
-    int crosslineCount = segmentInfo.m_binInfoStop.m_crosslineNumber - segmentInfo.m_binInfoStart.m_crosslineNumber;
+    const auto
+      & segmentInfoList = fileInfo.m_segmentInfoLists[listIndex];
 
-    if (crosslineCount == 0 || segmentInfo.m_binInfoStart.m_inlineNumber != segmentInfo.m_binInfoStop.m_inlineNumber) continue;
+    for (auto const& segmentInfo : segmentInfoList)
+    {
+      int crosslineCount = segmentInfo.m_binInfoStop.m_crosslineNumber - segmentInfo.m_binInfoStart.m_crosslineNumber;
 
-    double segmentCrosslineSpacing[3];
+      if (crosslineCount == 0 || segmentInfo.m_binInfoStart.m_inlineNumber != segmentInfo.m_binInfoStop.m_inlineNumber) continue;
 
-    segmentCrosslineSpacing[0] = (segmentInfo.m_binInfoStop.m_ensembleXCoordinate - segmentInfo.m_binInfoStart.m_ensembleXCoordinate) / crosslineCount;
-    segmentCrosslineSpacing[1] = (segmentInfo.m_binInfoStop.m_ensembleYCoordinate - segmentInfo.m_binInfoStart.m_ensembleYCoordinate) / crosslineCount;
+      double segmentCrosslineSpacing[3];
 
-    crosslineSpacing[0] += segmentCrosslineSpacing[0];
-    crosslineSpacing[1] += segmentCrosslineSpacing[1];
+      segmentCrosslineSpacing[0] = (segmentInfo.m_binInfoStop.m_ensembleXCoordinate - segmentInfo.m_binInfoStart.m_ensembleXCoordinate) / crosslineCount;
+      segmentCrosslineSpacing[1] = (segmentInfo.m_binInfoStop.m_ensembleYCoordinate - segmentInfo.m_binInfoStart.m_ensembleYCoordinate) / crosslineCount;
 
-    countedCrosslineSpacings++;
+      crosslineSpacing[0] += segmentCrosslineSpacing[0];
+      crosslineSpacing[1] += segmentCrosslineSpacing[1];
+
+      countedCrosslineSpacings++;
+    }
   }
 
   if (countedCrosslineSpacings > 0)
@@ -678,8 +789,8 @@ createSurveyCoordinateSystemMetadata(SEGYFileInfo const& fileInfo, SEGY::BinaryH
   }
 
   // Determine inline spacing
-  SEGYSegmentInfo const& firstSegmentInfo = fileInfo.m_segmentInfo.front();
-  SEGYSegmentInfo const& lastSegmentInfo = fileInfo.m_segmentInfo.back();
+  SEGYSegmentInfo const& firstSegmentInfo = fileInfo.m_segmentInfoLists[orderedListIndices.front()].front();
+  SEGYSegmentInfo const& lastSegmentInfo = fileInfo.m_segmentInfoLists[orderedListIndices.back()].back();
 
   if (firstSegmentInfo.m_binInfoStart.m_inlineNumber != lastSegmentInfo.m_binInfoStart.m_inlineNumber)
   {
@@ -732,7 +843,7 @@ createSurveyCoordinateSystemMetadata(SEGYFileInfo const& fileInfo, SEGY::BinaryH
 
 /////////////////////////////////////////////////////////////////////////////
 bool
-createImportInformationMetadata(DataProvider &dataProvider, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error &error)
+createImportInformationMetadata(const std::vector<DataProvider> &dataProviders, OpenVDS::MetadataContainer& metadataContainer, OpenVDS::Error &error)
 {
   auto now = std::chrono::system_clock::now();
   std::time_t tt = std::chrono::system_clock::to_time_t(now);
@@ -742,29 +853,52 @@ createImportInformationMetadata(DataProvider &dataProvider, OpenVDS::MetadataCon
 
   std::string importTimeStamp = fmt::format("{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}.{:03d}Z", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, millis);
 
-  std::string inputFileName = dataProvider.FileOrObjectName();
-
-  // Strip the path from the file/object name
+  // Join all the input names into a single comma delimited string
   const char pathSeparators[] = { '/', '\\', ':' };
-  for(auto pathSeparator : pathSeparators)
+  std::stringstream
+    allNames;
+  size_t
+    nameCount = 0;
+  for (auto iter = dataProviders.begin(); iter != dataProviders.end(); ++iter, ++nameCount)
   {
-    size_t pos = inputFileName.rfind(pathSeparator);
-    if(pos != std::string::npos) inputFileName = inputFileName.substr(pos + 1);
+    // Strip the path from the file/object name
+    std::string
+      currentName = iter->FileOrObjectName();
+    for (auto pathSeparator : pathSeparators)
+    {
+      size_t pos = currentName.rfind(pathSeparator);
+      if (pos != std::string::npos) currentName = currentName.substr(pos + 1);
+    }
+
+    allNames << currentName;
+    if (nameCount < dataProviders.size() - 1)
+    {
+      allNames << ",";
+    }
   }
+
+  std::string inputFileName = allNames.str();
 
   // In lack of a better displayName we use the file name
   std::string displayName = inputFileName;
 
-  std::string inputTimeStamp = dataProvider.LastWriteTime(error);
+  // Use the timestamp from the first input
+  std::string inputTimeStamp = dataProviders[0].LastWriteTime(error);
   if (error.code != 0)
   {
     return false;
   }
 
-  int64_t inputFileSize = dataProvider.Size(error);
-  if (error.code != 0)
+  // Sum the sizes of all the inputs
+  int64_t
+    totalSize = 0;
+  for (const auto& provider : dataProviders)
   {
-    return false;
+    totalSize += provider.Size(error);
+    if (error.code != 0)
+    {
+      return false;
+    }
   }
 
   // Set import information

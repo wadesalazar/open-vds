@@ -307,4 +307,11 @@ IsSEGYTypeUnbinned(SEGYType segyType)
   return segyType == SEGYType::UnbinnedCDP || segyType == SEGYType::UnbinnedReceiver || segyType == SEGYType::UnbinnedShot;
 }
 
+bool
+IsSEGYTypeWithGatherOffset(const SEGYType segyType)
+{
+  // TODO what other SEGY types have offsets?
+  return segyType == SEGY::SEGYType::Prestack;
+}
+
 } // end namespace SEGY

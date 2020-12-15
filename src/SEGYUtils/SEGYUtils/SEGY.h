@@ -320,4 +320,6 @@ enum class SEGYType
 
 OPENVDS_EXPORT bool IsSEGYTypeUnbinned(SEGYType segyType);
 
+OPENVDS_EXPORT bool IsSEGYTypeWithGatherOffset(SEGYType segyType);
+
 } // end namespace SEGY
