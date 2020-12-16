@@ -1116,10 +1116,10 @@ createChannelDescriptors(SEGYFileInfo const& fileInfo, OpenVDS::FloatRange const
   channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, AMPLITUDE_ATTRIBUTE_NAME, "", valueRange.Min, valueRange.Max);
 
   // Trace defined flag
-  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Trace", "", 0, 1, OpenVDS::VolumeDataMapping::PerTrace, OpenVDS::VolumeDataChannelDescriptor::DiscreteData);
+  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Trace", "", 0.0f, 1.0f, OpenVDS::VolumeDataMapping::PerTrace, OpenVDS::VolumeDataChannelDescriptor::DiscreteData);
 
   // SEG-Y trace headers
-  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "SEGYTraceHeader", "", 0, 255, OpenVDS::VolumeDataMapping::PerTrace, SEGY::TraceHeaderSize, OpenVDS::VolumeDataChannelDescriptor::DiscreteData, 1.0f, 0.0f);
+  channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_U8, OpenVDS::VolumeDataChannelDescriptor::Components_1, "SEGYTraceHeader", "", 0.0f, 255.0f, OpenVDS::VolumeDataMapping::PerTrace, SEGY::TraceHeaderSize, OpenVDS::VolumeDataChannelDescriptor::DiscreteData, 1.0f, 0.0f);
 
   if (offsetInfo.hasOffset)
   {
@@ -1307,7 +1307,7 @@ main(int argc, char* argv[])
   std::string persistentID;
   bool uniqueID = false;
   bool disablePersistentID = false;
-  SEGY::SEGYType segyType = SEGY::SEGYType::Poststack;
+  int segyTypeInt = static_cast<int>(SEGY::SEGYType::Poststack);
   bool help = false;
 
   std::vector<std::string> fileNames;
@@ -1333,7 +1333,7 @@ main(int argc, char* argv[])
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
   options.add_option("", "", "uniqueID", "Generate a new globally unique ID when scanning the input SEG-Y file.", cxxopts::value<bool>(uniqueID), "");
   options.add_option("", "", "disable-persistentID", "Disable the persistentID usage, placing the VDS directly into the url location.", cxxopts::value<bool>(disablePersistentID), "");
-  options.add_option("", "t", "segy-type", "Type of SEG-Y file being imported. 0=Poststack, 1=Prestack, 4=UnbinnedCDP, 5=UnbinnedShot, 6=UnbinnedReceiver.", cxxopts::value<SEGY::SEGYType>(segyType), "");
+  options.add_option("", "t", "segy-type", "Type of SEG-Y file being imported. 0=Poststack, 1=Prestack, 4=UnbinnedCDP, 5=UnbinnedShot, 6=UnbinnedReceiver.", cxxopts::value<int>(segyTypeInt), "");
 
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
 
@@ -1388,6 +1388,8 @@ main(int argc, char* argv[])
   }
 
   SEGY::Endianness headerEndianness = (littleEndian ? SEGY::Endianness::LittleEndian : SEGY::Endianness::BigEndian);
+
+  SEGY::SEGYType segyType = static_cast<SEGY::SEGYType>(segyTypeInt);
 
   if (!headerFormatFileName.empty())
   {
@@ -1765,7 +1767,7 @@ main(int argc, char* argv[])
   const int64_t dvmMemoryLimit = 3LL * brickSize * axisDescriptors[1].GetNumSamples() * fileInfo.TraceByteSize() / 2LL;
 
   // create DataViewManagers and TraceDataManagers for each input file
-  std::vector<DataViewManager>
+  std::vector<std::shared_ptr<DataViewManager>>
     dataViewManagers;
   std::vector<TraceDataManager>
     traceDataManagers;
@@ -1774,7 +1776,7 @@ main(int argc, char* argv[])
 
   for (int fileIndex = 0; fileIndex < fileInfo.m_segmentInfoLists.size(); ++fileIndex)
   {
-    dataViewManagers.emplace_back(dataProviders[fileIndex], perFileMemoryLimit);
+    dataViewManagers.emplace_back(std::make_shared<DataViewManager>(dataProviders[fileIndex], perFileMemoryLimit));
     traceDataManagers.emplace_back(dataViewManagers.back(), 128, traceByteSize, fileInfo.m_traceCounts[fileIndex]);
   }
 
@@ -1851,12 +1853,37 @@ main(int argc, char* argv[])
 
     auto &chunkInfo = chunkInfos[chunk];
 
-    // TODO multi-file retire
     // if we've crossed to a new inline then trim the trace page cache
-    if (chunk > 0 && chunkInfo.lowerSegmentIndex > chunkInfos[chunk - 1].lowerSegmentIndex)
+    if (chunk > 0)
     {
-      // we've progressed to a new set of inlines; remove earlier pages from the cache
-      traceDataManager.retirePagesBefore(fileInfo.m_segmentInfo[chunkInfo.lowerSegmentIndex].m_traceStart);
+      const auto& previousChunkInfo = chunkInfos[chunk - 1];
+
+      for (int chunkFileIndex = 0; chunkFileIndex < dataProviders.size(); ++chunkFileIndex)
+      {
+        auto prevIndexIter = previousChunkInfo.lowerUpperSegmentIndices.find(chunkFileIndex);
+        if (prevIndexIter != previousChunkInfo.lowerUpperSegmentIndices.end())
+        {
+          auto currentIndexIter = chunkInfo.lowerUpperSegmentIndices.find(chunkFileIndex);
+          if (currentIndexIter != chunkInfo.lowerUpperSegmentIndices.end())
+          {
+            // This file is active in both the current and previous chunks. Check to see if we've progressed to a new set of inlines.
+            auto previousLowerSegmentIndex = std::get<0>(prevIndexIter->second);
+            auto currentLowerSegmentIndex = std::get<0>(currentIndexIter->second);
+            if (currentLowerSegmentIndex > previousLowerSegmentIndex)
+            {
+              // we've progressed to a new set of inlines; remove earlier pages from the cache
+              traceDataManagers[chunkFileIndex].retirePagesBefore(fileInfo.m_segmentInfoLists[chunkFileIndex][currentLowerSegmentIndex].m_traceStart);
+            }
+          }
+          else
+          {
+            // This file was active in the previous chunk but not in the current chunk, which implies that we don't
+            // need any more data from this file.
+            traceDataManagers[chunkFileIndex].retireAllPages();
+          }
+        }
+        // else This file isn't used in either the previous or current chunks. We don't need to do anything.
+      }
     }
 
     OpenVDS::VolumeDataPage* amplitudePage = amplitudeAccessor->CreatePage(chunk);

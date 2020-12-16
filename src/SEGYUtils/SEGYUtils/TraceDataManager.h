@@ -25,7 +25,7 @@
 class TraceDataManager
 {
 public:
-  TraceDataManager(DataViewManager & dvm, int64_t tracesPerPage, int64_t traceByteSize, int64_t numTraces) :
+  TraceDataManager(std::shared_ptr<DataViewManager> dvm, int64_t tracesPerPage, int64_t traceByteSize, int64_t numTraces) :
     m_dataViewManager(dvm),
     m_tracesPerPage(tracesPerPage),
     m_traceByteSize(traceByteSize),
@@ -80,7 +80,7 @@ public:
       }
     }
 
-    m_dataViewManager.addDataRequests(requests);
+    m_dataViewManager->addDataRequests(requests);
   }
 
   const char *
@@ -106,7 +106,7 @@ public:
       auto
         pageRequestInfo = createPageRequestInfo(pageTrace);
 
-      pageView = m_dataViewManager.acquireDataView(pageRequestInfo, true, error);
+      pageView = m_dataViewManager->acquireDataView(pageRequestInfo, true, error);
 
       if (error.code)
       {
@@ -133,12 +133,17 @@ public:
       pageTrace = GetPageStartForTrace(traceNumber);
     auto
       pageRequestInfo = createPageRequestInfo(pageTrace);
-    m_dataViewManager.retireDataViewsBefore(pageRequestInfo);
+    m_dataViewManager->retireDataViewsBefore(pageRequestInfo);
+  }
+
+  void retireAllPages() const
+  {
+    m_dataViewManager->retireAllDataViews();
   }
 
 private:
-  DataViewManager
-    & m_dataViewManager;
+  std::shared_ptr<DataViewManager>
+    m_dataViewManager;
   const int64_t
     m_tracesPerPage,
     m_traceByteSize,

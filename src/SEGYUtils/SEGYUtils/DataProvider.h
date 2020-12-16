@@ -346,6 +346,16 @@ public:
     prefetchUntilMemoryLimit();
   }
 
+  void retireAllDataViews()
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+
+    m_dataViewMap.clear();
+    m_usage = 0;
+
+    prefetchUntilMemoryLimit();
+  }
+
 private:
   typedef std::map<DataRequestInfo, std::shared_ptr<DataView>> DataViewMap;
 
