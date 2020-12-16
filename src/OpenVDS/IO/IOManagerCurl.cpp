@@ -23,6 +23,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <assert.h>
 
 namespace OpenVDS
 {
