@@ -35,6 +35,13 @@ SEGYFileInfo::IsUnbinned() const
   return IsSEGYTypeUnbinned(m_segyType);
 }
 
+bool
+SEGYFileInfo::HasGatherOffset() const
+{
+  // TODO what other SEGY types have offsets?
+  return m_segyType == SEGY::SEGYType::Prestack;
+}
+
 SEGYBinInfo
 SEGYFileInfo::readBinInfoFromHeader(const char *header, SEGYBinInfoHeaderFields const &headerFields, Endianness endianness, int segmentTraceIndex) const
 {

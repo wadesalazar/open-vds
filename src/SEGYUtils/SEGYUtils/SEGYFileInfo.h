@@ -113,6 +113,8 @@ struct SEGYFileInfo
   OPENVDS_EXPORT SEGYBinInfo readBinInfoFromHeader(const char* header, SEGYBinInfoHeaderFields const& headerFields, SEGY::Endianness endianness, int segmentTraceIndex) const;
 
   OPENVDS_EXPORT bool IsUnbinned() const;
+
+  OPENVDS_EXPORT bool HasGatherOffset() const;
 };
 
 #endif  // SEGY_FILE_INFO_H
