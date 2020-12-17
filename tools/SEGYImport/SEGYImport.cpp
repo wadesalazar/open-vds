@@ -205,7 +205,9 @@ g_traceHeaderFields =
  { "EnsembleXCoordinate"     , SEGY::TraceHeader::EnsembleXCoordinateHeaderField },
  { "EnsembleYCoordinate"     , SEGY::TraceHeader::EnsembleYCoordinateHeaderField },
  { "InlineNumber"         , SEGY::TraceHeader::InlineNumberHeaderField },
- { "CrosslineNumber"       , SEGY::TraceHeader::CrosslineNumberHeaderField }
+ { "CrosslineNumber"       , SEGY::TraceHeader::CrosslineNumberHeaderField },
+ { "Receiver"              , SEGY::TraceHeader::ReceiverHeaderField },
+ { "Offset"                , SEGY::TraceHeader::OffsetHeaderField }
 };
 
 std::map<std::string, std::string>
@@ -1740,6 +1742,7 @@ main(int argc, char* argv[])
   auto amplitudeAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
   auto traceFlagAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
   auto segyTraceHeaderAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto offsetAccessor = fileInfo.Is4D() ? accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 3, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create) : nullptr;
 
   int64_t traceByteSize = fileInfo.TraceByteSize();
 
@@ -1798,16 +1801,7 @@ main(int argc, char* argv[])
     chunkInfo.primaryKeyStart = (int)floorf(layout->GetAxisDescriptor(2).SampleIndexToCoordinate(chunkInfo.min[2]) + 0.5f);
     chunkInfo.primaryKeyStop = (int)floorf(layout->GetAxisDescriptor(2).SampleIndexToCoordinate(chunkInfo.max[2] - 1) + 0.5f);
 
-    // TODO loop through files here - get lower/upper for a file, then add data requests to that file's traceDataManager, repeat
-    // TODO chunkInfo needs vectors for lower/upperSegmentIndex
-    // TODO what goes into segment indexes if a file doesn't have any segments in this chunk?
-    
-    //auto lower = std::lower_bound(fileInfo.m_segmentInfo.begin(), fileInfo.m_segmentInfo.end(), chunkInfo.primaryKeyStart, [](SEGYSegmentInfo const& segmentInfo, int primaryKey)->bool { return segmentInfo.m_primaryKey < primaryKey; });
-    //chunkInfo.lowerSegmentIndex = std::distance(fileInfo.m_segmentInfo.begin(), lower);
-    //auto upper = std::upper_bound(fileInfo.m_segmentInfo.begin(), fileInfo.m_segmentInfo.end(), chunkInfo.primaryKeyStop, [](int primaryKey, SEGYSegmentInfo const& segmentInfo)->bool { return primaryKey < segmentInfo.m_primaryKey; });
-    //chunkInfo.upperSegmentIndex = std::distance(fileInfo.m_segmentInfo.begin(), upper);
-
-    //traceDataManager.addDataRequests(chunkInfo.secondaryKeyStart, chunkInfo.secondaryKeyStop, lower, upper);
+    // For each input file, find the lower/upper segments and then add data requests to that file's traceDataManager
 
     for (int fileIndex = 0; fileIndex < fileInfo.m_segmentInfoLists.size(); ++fileIndex)
     {
@@ -1816,14 +1810,38 @@ main(int argc, char* argv[])
       // does this file have any segments in the primary key range?
       if (segmentInfoList.front().m_primaryKey <= chunkInfo.primaryKeyStop && segmentInfoList.back().m_primaryKey >= chunkInfo.primaryKeyStart)
       {
-        auto lower = std::lower_bound(segmentInfoList.begin(), segmentInfoList.end(), chunkInfo.primaryKeyStart, [](SEGYSegmentInfo const& segmentInfo, int primaryKey)->bool { return segmentInfo.m_primaryKey < primaryKey; });
-        auto upper = std::upper_bound(segmentInfoList.begin(), segmentInfoList.end(), chunkInfo.primaryKeyStop, [](int primaryKey, SEGYSegmentInfo const& segmentInfo)->bool { return primaryKey < segmentInfo.m_primaryKey; });
+        std::vector<SEGYSegmentInfo>::iterator
+          lower,
+          upper;
+
+        if (fileInfo.IsUnbinned())
+        {
+          // For unbinned data we set lower and upper based on the 1-based indices instead of searching on the segment primary keys.
+          // When we implement raw gathers mode we'll need to modify this.
+          lower = segmentInfoList.begin();
+          std::advance(lower, chunkInfo.primaryKeyStart - 1);
+          upper = segmentInfoList.begin();
+          // no "- 1" because we want upper to be the stop iterator
+          std::advance(upper, chunkInfo.primaryKeyStop);
+        }
+        else
+        {
+          lower = std::lower_bound(segmentInfoList.begin(), segmentInfoList.end(), chunkInfo.primaryKeyStart, [](SEGYSegmentInfo const& segmentInfo, int primaryKey)->bool { return segmentInfo.m_primaryKey < primaryKey; });
+          upper = std::upper_bound(segmentInfoList.begin(), segmentInfoList.end(), chunkInfo.primaryKeyStop, [](int primaryKey, SEGYSegmentInfo const& segmentInfo)->bool { return primaryKey < segmentInfo.m_primaryKey; });
+        }
 
         const size_t lowerSegmentIndex = std::distance(segmentInfoList.begin(), lower);
         const size_t upperSegmentIndex = std::distance(segmentInfoList.begin(), upper);
         chunkInfo.lowerUpperSegmentIndices[fileIndex] = std::make_pair(lowerSegmentIndex, upperSegmentIndex);
 
-        traceDataManagers[fileIndex].addDataRequests(chunkInfo.secondaryKeyStart, chunkInfo.secondaryKeyStop, lower, upper);
+        if (fileInfo.Is4D())
+        {
+          traceDataManagers[fileIndex].addDataRequests4D(chunkInfo.secondaryKeyStart, chunkInfo.secondaryKeyStop, lower, upper);
+        }
+        else
+        {
+          traceDataManagers[fileIndex].addDataRequests(chunkInfo.secondaryKeyStart, chunkInfo.secondaryKeyStop, lower, upper);
+        }
       }
     }
   }
@@ -1889,25 +1907,33 @@ main(int argc, char* argv[])
     OpenVDS::VolumeDataPage* amplitudePage = amplitudeAccessor->CreatePage(chunk);
     OpenVDS::VolumeDataPage* traceFlagPage = nullptr;
     OpenVDS::VolumeDataPage* segyTraceHeaderPage = nullptr;
+    OpenVDS::VolumeDataPage* offsetPage = nullptr;
 
     if (chunkInfo.min[0] == 0)
     {
       traceFlagPage = traceFlagAccessor->CreatePage(traceFlagAccessor->GetChunkIndex(chunkInfo.min));
       segyTraceHeaderPage = segyTraceHeaderAccessor->CreatePage(segyTraceHeaderAccessor->GetChunkIndex(chunkInfo.min));
+      if (offsetAccessor != nullptr)
+      {
+        offsetPage = offsetAccessor->CreatePage(offsetAccessor->GetChunkIndex(chunkInfo.min));
+      }
     }
 
     int amplitudePitch[OpenVDS::Dimensionality_Max];
     int traceFlagPitch[OpenVDS::Dimensionality_Max];
     int segyTraceHeaderPitch[OpenVDS::Dimensionality_Max];
+    int offsetPitch[OpenVDS::Dimensionality_Max];
 
     void* amplitudeBuffer = amplitudePage->GetWritableBuffer(amplitudePitch);
     void* traceFlagBuffer = traceFlagPage ? traceFlagPage->GetWritableBuffer(traceFlagPitch) : nullptr;
     void* segyTraceHeaderBuffer = segyTraceHeaderPage ? segyTraceHeaderPage->GetWritableBuffer(segyTraceHeaderPitch) : nullptr;
+    void* offsetBuffer = offsetPage ? offsetPage->GetWritableBuffer(offsetPitch) : nullptr;
 
     assert(amplitudePitch[0] == 1);
     assert(!traceFlagBuffer || traceFlagPitch[1] == 1);
     assert(!segyTraceHeaderBuffer || segyTraceHeaderPitch[1] == SEGY::TraceHeaderSize);
-
+    // TODO what should the pitch be for offset?
+    
     // TODO loop from here to about line 1927 - get lower/upper for a file, process segments from that file, go on to next file
 
     for (int fileIndex = 0; fileIndex < fileInfo.m_segmentInfoLists.size(); ++fileIndex)
@@ -1932,14 +1958,28 @@ main(int argc, char* argv[])
 
       for (auto segment = lower; segment != upper; ++segment)
       {
-        int64_t firstTrace = findFirstTrace(traceDataManager, *segment, chunkInfo.secondaryKeyStart, fileInfo, error);
-        if (error.code)
+        int64_t firstTrace;
+        if (fileInfo.IsUnbinned())
         {
-          fmt::print(stderr, "Failed when reading data: {} - {}", error.code, error.string);
-          break;
+          // For unbinned gathers the secondary key is the 1-based index of the trace, so to get the
+          // first trace we convert the index to 0-based and add that to the segment's start trace.
+          firstTrace = segment->m_traceStart + (chunkInfo.secondaryKeyStart - 1);
+        }
+        else
+        {
+          firstTrace = findFirstTrace(traceDataManager, *segment, chunkInfo.secondaryKeyStart, fileInfo, error);
+          if (error.code)
+          {
+            fmt::print(stderr, "Failed when reading data: {} - {}", error.code, error.string);
+            break;
+          }
         }
 
-        for (int64_t trace = firstTrace; trace <= segment->m_traceStop; trace++)
+        int
+          tertiaryIndex = 0,
+          currentSecondaryKey = chunkInfo.secondaryKeyStart;
+
+        for (int64_t trace = firstTrace; trace <= segment->m_traceStop; trace++, tertiaryIndex++)
         {
           const char* header = traceDataManager.getTraceData(trace, error);
           if (error.code)
@@ -1959,13 +1999,32 @@ main(int argc, char* argv[])
             break;
           }
 
-          int primaryIndex = layout->GetAxisDescriptor(2).CoordinateToSampleIndex((float)segment->m_primaryKey);
-          int secondaryIndex = layout->GetAxisDescriptor(1).CoordinateToSampleIndex((float)secondaryTest);
+          if (secondaryTest != currentSecondaryKey)
+          {
+            // we've progressed to a new secondary key, so reset the tertiary (gather) index
+            currentSecondaryKey = secondaryTest;
+            tertiaryIndex = 0;
+          }
 
-          assert(primaryIndex >= chunkInfo.min[2] && primaryIndex < chunkInfo.max[2]);
-          assert(secondaryIndex >= chunkInfo.min[1] && secondaryIndex < chunkInfo.max[1]);
+          int
+            primaryIndex,
+            secondaryIndex;
+          if (fileInfo.IsUnbinned())
+          {
+            primaryIndex = static_cast<int>(segment - segmentInfo.begin());
+            secondaryIndex = secondaryTest - 1;
+          }
+          else
+          {
+            primaryIndex = layout->GetAxisDescriptor(PrimaryKeyDimension(fileInfo)).CoordinateToSampleIndex((float)segment->m_primaryKey);
+            secondaryIndex = layout->GetAxisDescriptor(SecondaryKeyDimension(fileInfo)).CoordinateToSampleIndex((float)secondaryTest);
+          }
+
+          assert(primaryIndex >= chunkInfo.min[PrimaryKeyDimension(fileInfo)] && primaryIndex < chunkInfo.max[PrimaryKeyDimension(fileInfo)]);
+          assert(secondaryIndex >= chunkInfo.min[SecondaryKeyDimension(fileInfo)] && secondaryIndex < chunkInfo.max[SecondaryKeyDimension(fileInfo)]);
 
           {
+            // TODO 4D
             int targetOffset = (primaryIndex - chunkInfo.min[2]) * amplitudePitch[2] + (secondaryIndex - chunkInfo.min[1]) * amplitudePitch[1];
 
             copySamples(data, fileInfo.m_dataSampleFormatCode, fileInfo.m_headerEndianness, &reinterpret_cast<float*>(amplitudeBuffer)[targetOffset], chunkInfo.sampleStart, chunkInfo.sampleCount);
@@ -1984,6 +2043,11 @@ main(int argc, char* argv[])
 
             memcpy(&reinterpret_cast<uint8_t*>(segyTraceHeaderBuffer)[targetOffset], header, SEGY::TraceHeaderSize);
           }
+
+          if (offsetBuffer)
+          {
+            // TODO
+          }
         }
       }
     }
@@ -1991,13 +2055,17 @@ main(int argc, char* argv[])
     amplitudePage->Release();
     if (traceFlagPage) traceFlagPage->Release();
     if (segyTraceHeaderPage) segyTraceHeaderPage->Release();
+    if (offsetPage) offsetPage->Release();
   }
 
   amplitudeAccessor->Commit();
   traceFlagAccessor->Commit();
   segyTraceHeaderAccessor->Commit();
+  if (offsetAccessor) offsetAccessor->Commit();
 
   dataView.reset();
+  traceDataManagers.clear();
+  dataViewManagers.clear();
 
   if (error.code != 0)
   {
