@@ -30,6 +30,12 @@ using namespace OpenVDS;
 using namespace SEGY;
 
 bool
+SEGYFileInfo::Is4D() const
+{
+  return m_segyType == SEGY::SEGYType::Prestack;
+}
+
+bool
 SEGYFileInfo::IsUnbinned() const
 {
   return IsSEGYTypeUnbinned(m_segyType);
