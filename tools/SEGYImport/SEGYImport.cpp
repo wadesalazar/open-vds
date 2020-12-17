@@ -1276,6 +1276,26 @@ static std::vector<DataProvider> CreateDataProviders(const std::vector<std::stri
 }
 
 int
+SecondaryKeyDimension(const SEGYFileInfo& fileInfo)
+{
+  if (fileInfo.Is4D())
+  {
+    return 2;
+  }
+  return 1;
+}
+
+int
+PrimaryKeyDimension(const SEGYFileInfo& fileInfo)
+{
+  if (fileInfo.Is4D())
+  {
+    return 3;
+  }
+  return 2;
+}
+
+int
 main(int argc, char* argv[])
 {
 #if defined(WIN32)
@@ -1834,14 +1854,7 @@ main(int argc, char* argv[])
         const size_t upperSegmentIndex = std::distance(segmentInfoList.begin(), upper);
         chunkInfo.lowerUpperSegmentIndices[fileIndex] = std::make_pair(lowerSegmentIndex, upperSegmentIndex);
 
-        if (fileInfo.Is4D())
-        {
-          traceDataManagers[fileIndex].addDataRequests4D(chunkInfo.secondaryKeyStart, chunkInfo.secondaryKeyStop, lower, upper);
-        }
-        else
-        {
-          traceDataManagers[fileIndex].addDataRequests(chunkInfo.secondaryKeyStart, chunkInfo.secondaryKeyStop, lower, upper);
-        }
+        traceDataManagers[fileIndex].addDataRequests(chunkInfo.secondaryKeyStart, chunkInfo.secondaryKeyStop, lower, upper);
       }
     }
   }
