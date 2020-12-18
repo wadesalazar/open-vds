@@ -1330,6 +1330,7 @@ main(int argc, char* argv[])
   bool uniqueID = false;
   bool disablePersistentID = false;
   int segyTypeInt = static_cast<int>(SEGY::SEGYType::Poststack);
+  bool traceOrderByOffset = true;
   bool help = false;
 
   std::vector<std::string> fileNames;
@@ -1356,6 +1357,7 @@ main(int argc, char* argv[])
   options.add_option("", "", "uniqueID", "Generate a new globally unique ID when scanning the input SEG-Y file.", cxxopts::value<bool>(uniqueID), "");
   options.add_option("", "", "disable-persistentID", "Disable the persistentID usage, placing the VDS directly into the url location.", cxxopts::value<bool>(disablePersistentID), "");
   options.add_option("", "t", "segy-type", "Type of SEG-Y file being imported. 0=Poststack, 1=Prestack, 4=UnbinnedCDP, 5=UnbinnedShot, 6=UnbinnedReceiver.", cxxopts::value<int>(segyTypeInt), "");
+  // TODO add option for turning off traceOrderByOffset
 
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
 
@@ -1413,6 +1415,20 @@ main(int argc, char* argv[])
 
   SEGY::SEGYType segyType = static_cast<SEGY::SEGYType>(segyTypeInt);
 
+  // For unbinned gathers set the primary key. (What happens if the user specifies the primary key?)
+  if (segyType == SEGY::SEGYType::UnbinnedCDP)
+  {
+    primaryKey = "EnsembleNumber";
+  }
+  else if (segyType == SEGY::SEGYType::UnbinnedReceiver)
+  {
+    primaryKey = "Receiver";
+  }
+  else if (segyType == SEGY::SEGYType::UnbinnedShot)
+  {
+    primaryKey = "EnergySourcePointNumber";
+  }
+
   if (!headerFormatFileName.empty())
   {
     OpenVDS::File
@@ -1465,7 +1481,7 @@ main(int argc, char* argv[])
     startTimeHeaderField = g_traceHeaderFields["StartTime"];
 
   SEGYBinInfoHeaderFields
-    binInfoHeaderFields(g_traceHeaderFields["InlineNumber"], g_traceHeaderFields["CrosslineNumber"], g_traceHeaderFields["CoordinateScale"], g_traceHeaderFields["EnsembleXCoordinate"], g_traceHeaderFields["EnsembleYCoordinate"], scale);
+    binInfoHeaderFields(g_traceHeaderFields[primaryKey], g_traceHeaderFields[secondaryKey], g_traceHeaderFields["CoordinateScale"], g_traceHeaderFields["EnsembleXCoordinate"], g_traceHeaderFields["EnsembleYCoordinate"], scale);
 
   OpenVDS::Error
     error;
@@ -1618,10 +1634,24 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  if(fold > 1)
+  const char
+    * foldMessageFmt = "Detected a fold of '{0}', either this is {1} data or this usually indicates using the wrong header format for the input dataset. If this is {1} data the SEGYType plugin parameter should be set correspondingly.";
+
+  if (segyType == SEGY::SEGYType::Prestack || segyType == SEGY::SEGYType::Prestack2D)
   {
-    fmt::print(stderr, "Error: Detected a fold of {}, either this is (as of now unsupported) prestack data or this usually indicates using the wrong header format for the input dataset.\n", fold);
-    return EXIT_FAILURE;
+    if (fold <= 1)
+    {
+      fmt::print(stderr, foldMessageFmt, fold, "Poststack");
+      return EXIT_FAILURE;
+    }
+  }
+  else
+  {
+    if(fold > 1)
+    {
+      fmt::print(stderr, foldMessageFmt, fold, "Prestack");
+      return EXIT_FAILURE;
+    }
   }
 
   // Create layout descriptor
@@ -1723,7 +1753,11 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  createSurveyCoordinateSystemMetadata(fileInfo, measurementSystem, crsWkt, metadataContainer);
+  if (primaryKey == "InlineNumber")
+  {
+    // only create the lattice metadata if the primary key is Inline, else we may not have Inline/Crossline bin data
+    createSurveyCoordinateSystemMetadata(fileInfo, measurementSystem, crsWkt, metadataContainer);
+  }
 
   OpenVDS::Error createError;
 
@@ -2036,9 +2070,36 @@ main(int argc, char* argv[])
           assert(primaryIndex >= chunkInfo.min[PrimaryKeyDimension(fileInfo)] && primaryIndex < chunkInfo.max[PrimaryKeyDimension(fileInfo)]);
           assert(secondaryIndex >= chunkInfo.min[SecondaryKeyDimension(fileInfo)] && secondaryIndex < chunkInfo.max[SecondaryKeyDimension(fileInfo)]);
 
+          if (fileInfo.HasGatherOffset() && traceOrderByOffset)
           {
-            // TODO 4D
-            int targetOffset = (primaryIndex - chunkInfo.min[2]) * amplitudePitch[2] + (secondaryIndex - chunkInfo.min[1]) * amplitudePitch[1];
+            // recalculate tertiaryIndex from header offset value
+            const auto
+              thisOffset = SEGY::ReadFieldFromHeader(header, g_traceHeaderFields["Offset"], fileInfo.m_headerEndianness);
+            tertiaryIndex = (thisOffset - offsetStart) / offsetStep;
+
+            // sanity check the new index
+            if (tertiaryIndex < 0 || tertiaryIndex >= fold)
+            {
+              continue;
+            }
+          }
+
+          if (fileInfo.Is4D() && (tertiaryIndex < chunkInfo.min[1] || tertiaryIndex >= chunkInfo.max[1]))
+          {
+            // the current gather trace number is not within the request bounds
+            continue;
+          }
+
+          {
+            int targetOffset;
+            if (fileInfo.Is4D())
+            {
+              targetOffset = (primaryIndex - chunkInfo.min[3]) * amplitudePitch[3] + (secondaryIndex - chunkInfo.min[2]) * amplitudePitch[2] + (tertiaryIndex - chunkInfo.min[1]) * amplitudePitch[1];
+            }
+            else
+            {
+              targetOffset = (primaryIndex - chunkInfo.min[2]) * amplitudePitch[2] + (secondaryIndex - chunkInfo.min[1]) * amplitudePitch[1];
+            }
 
             copySamples(data, fileInfo.m_dataSampleFormatCode, fileInfo.m_headerEndianness, &reinterpret_cast<float*>(amplitudeBuffer)[targetOffset], chunkInfo.sampleStart, chunkInfo.sampleCount);
           }
@@ -2059,7 +2120,11 @@ main(int argc, char* argv[])
 
           if (offsetBuffer)
           {
-            // TODO
+            int targetOffset = (primaryIndex - chunkInfo.min[2]) * offsetPitch[2] + (secondaryIndex - chunkInfo.min[1]) * offsetPitch[1];
+
+            const int
+              traceOffset = SEGY::ReadFieldFromHeader(header, g_traceHeaderFields["Offset"], fileInfo.m_headerEndianness);
+            reinterpret_cast<float*>(offsetBuffer)[targetOffset] = static_cast<float>(traceOffset);
           }
         }
       }
