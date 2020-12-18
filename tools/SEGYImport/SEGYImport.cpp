@@ -1496,6 +1496,7 @@ main(int argc, char* argv[])
 
   SEGYFileInfo
     fileInfo(headerEndianness);
+  fileInfo.m_segyType = segyType;
 
   // Scan the file if '--scan' was passed or we're uploading but no fileInfo file was specified
   if(scan || fileInfoFileName.empty())
@@ -1849,11 +1850,11 @@ main(int argc, char* argv[])
     chunkInfo.sampleStart = chunkInfo.min[0];
     chunkInfo.sampleCount = chunkInfo.max[0] - chunkInfo.min[0];
 
-    chunkInfo.secondaryKeyStart = (int)floorf(layout->GetAxisDescriptor(1).SampleIndexToCoordinate(chunkInfo.min[1]) + 0.5f);
-    chunkInfo.secondaryKeyStop = (int)floorf(layout->GetAxisDescriptor(1).SampleIndexToCoordinate(chunkInfo.max[1] - 1) + 0.5f);
+    chunkInfo.secondaryKeyStart = (int)floorf(layout->GetAxisDescriptor(SecondaryKeyDimension(fileInfo)).SampleIndexToCoordinate(chunkInfo.min[SecondaryKeyDimension(fileInfo)]) + 0.5f);
+    chunkInfo.secondaryKeyStop = (int)floorf(layout->GetAxisDescriptor(SecondaryKeyDimension(fileInfo)).SampleIndexToCoordinate(chunkInfo.max[SecondaryKeyDimension(fileInfo)] - 1) + 0.5f);
 
-    chunkInfo.primaryKeyStart = (int)floorf(layout->GetAxisDescriptor(2).SampleIndexToCoordinate(chunkInfo.min[2]) + 0.5f);
-    chunkInfo.primaryKeyStop = (int)floorf(layout->GetAxisDescriptor(2).SampleIndexToCoordinate(chunkInfo.max[2] - 1) + 0.5f);
+    chunkInfo.primaryKeyStart = (int)floorf(layout->GetAxisDescriptor(PrimaryKeyDimension(fileInfo)).SampleIndexToCoordinate(chunkInfo.min[PrimaryKeyDimension(fileInfo)]) + 0.5f);
+    chunkInfo.primaryKeyStop = (int)floorf(layout->GetAxisDescriptor(PrimaryKeyDimension(fileInfo)).SampleIndexToCoordinate(chunkInfo.max[PrimaryKeyDimension(fileInfo)] - 1) + 0.5f);
 
     // For each input file, find the lower/upper segments and then add data requests to that file's traceDataManager
 
