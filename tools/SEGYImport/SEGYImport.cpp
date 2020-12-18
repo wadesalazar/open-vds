@@ -2107,21 +2107,38 @@ main(int argc, char* argv[])
 
           if (traceFlagBuffer)
           {
-            int targetOffset = (primaryIndex - chunkInfo.min[2]) * traceFlagPitch[2] + (secondaryIndex - chunkInfo.min[1]) * traceFlagPitch[1];
+            int targetOffset;
+            if (fileInfo.Is4D())
+            {
+              targetOffset = (primaryIndex - chunkInfo.min[3]) * traceFlagPitch[3] + (secondaryIndex - chunkInfo.min[2]) * traceFlagPitch[2] + (tertiaryIndex - chunkInfo.min[1]) * traceFlagPitch[1];
+            }
+            else
+            {
+              targetOffset = (primaryIndex - chunkInfo.min[2]) * traceFlagPitch[2] + (secondaryIndex - chunkInfo.min[1]) * traceFlagPitch[1];
+            }
 
             reinterpret_cast<uint8_t*>(traceFlagBuffer)[targetOffset] = true;
           }
 
           if (segyTraceHeaderBuffer)
           {
-            int targetOffset = (primaryIndex - chunkInfo.min[2]) * segyTraceHeaderPitch[2] + (secondaryIndex - chunkInfo.min[1]) * segyTraceHeaderPitch[1];
+            int targetOffset;
+            if (fileInfo.Is4D())
+            {
+              targetOffset = (primaryIndex - chunkInfo.min[3]) * segyTraceHeaderPitch[3] + (secondaryIndex - chunkInfo.min[2]) * segyTraceHeaderPitch[2] + (tertiaryIndex - chunkInfo.min[1]) * segyTraceHeaderPitch[1];
+            }
+            else
+            {
+              targetOffset = (primaryIndex - chunkInfo.min[2]) * segyTraceHeaderPitch[2] + (secondaryIndex - chunkInfo.min[1]) * segyTraceHeaderPitch[1];
+            }
 
             memcpy(&reinterpret_cast<uint8_t*>(segyTraceHeaderBuffer)[targetOffset], header, SEGY::TraceHeaderSize);
           }
 
           if (offsetBuffer)
           {
-            int targetOffset = (primaryIndex - chunkInfo.min[2]) * offsetPitch[2] + (secondaryIndex - chunkInfo.min[1]) * offsetPitch[1];
+            // offset is only applicable to 4D?
+            int targetOffset = (primaryIndex - chunkInfo.min[3]) * offsetPitch[3] + (secondaryIndex - chunkInfo.min[2]) * offsetPitch[2] + (tertiaryIndex - chunkInfo.min[1]) * offsetPitch[1];
 
             const int
               traceOffset = SEGY::ReadFieldFromHeader(header, g_traceHeaderFields["Offset"], fileInfo.m_headerEndianness);
