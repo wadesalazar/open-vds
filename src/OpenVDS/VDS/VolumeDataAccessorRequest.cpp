@@ -589,7 +589,7 @@ static int64_t StaticRequestVolumeSubset(VolumeDataRequestProcessor &request_pro
   return request_processor.AddJob(chunksInRegion, [boxRequested, buffer, format, conversionParameters](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) {return RequestSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, format, conversionParameters, buffer, error);}, format == VolumeDataChannelDescriptor::Format_1Bit);
 }
 
-static VolumeDataLayer *GetLayer(VolumeDataLayout const *layout, DimensionsND dimensionsND, int lod, int channel)
+static VolumeDataLayer *GetLayer(VolumeDataLayout const *layout, DimensionsND dimensionsND, int lod, int channel, Error &error)
 {
   if(!layout)
   {
@@ -598,8 +598,10 @@ static VolumeDataLayer *GetLayer(VolumeDataLayout const *layout, DimensionsND di
 
   VolumeDataLayoutImpl const *volumeDataLayout = static_cast<VolumeDataLayoutImpl const *>(layout);
 
-  if(channel > volumeDataLayout->GetChannelCount())
+  if (channel >= volumeDataLayout->GetChannelCount())
   {
+    error.code = -1;
+    error.string = fmt::format("Requesting channel outside VDS channel range. Requested {}, max channel {}", channel, volumeDataLayout->GetChannelCount() - 1);
     return nullptr;
   }
 
@@ -610,7 +612,14 @@ static VolumeDataLayer *GetLayer(VolumeDataLayout const *layout, DimensionsND di
     volumeDataLayer = volumeDataLayer->GetParentLayer();
   }
 
-  return (volumeDataLayer && volumeDataLayer->GetLayerType() != VolumeDataLayer::Virtual) ? volumeDataLayer : NULL;
+  if (!volumeDataLayer || volumeDataLayer->GetLayerType() == VolumeDataLayer::Virtual)
+  {
+    error.code = -1;
+    error.string = fmt::format("Requesting not available lod layer {}", lod);
+    return nullptr;
+  }
+
+  return volumeDataLayer;
 }
 
 struct ProjectVars
@@ -1672,16 +1681,31 @@ int64_t VolumeDataAccessManagerImpl::GetVolumeSubsetBufferSize(VolumeDataLayout 
 
 int64_t VolumeDataAccessManagerImpl::RequestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format)
 {
-  return StaticRequestVolumeSubset(*m_requestProcessor.get(), buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, lod, format, false, 0.0f);
+  Error error;
+  auto layer = GetLayer(volumeDataLayout, dimensionsND, lod, channel, error);
+  if (!layer)
+    throw std::runtime_error(error.string);
+
+  return StaticRequestVolumeSubset(*m_requestProcessor.get(), buffer, layer, minVoxelCoordinates, maxVoxelCoordinates, lod, format, false, 0.0f);
 }
 
 int64_t VolumeDataAccessManagerImpl::RequestVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, float replacementNoValue)
 {
-  return StaticRequestVolumeSubset(*m_requestProcessor.get(), buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, lod, format, true, replacementNoValue);
+  Error error;
+  auto layer = GetLayer(volumeDataLayout, dimensionsND, lod, channel, error);
+  if (!layer)
+    throw std::runtime_error(error.string);
+
+  return StaticRequestVolumeSubset(*m_requestProcessor.get(), buffer, layer, minVoxelCoordinates, maxVoxelCoordinates, lod, format, true, replacementNoValue);
 }
 int64_t VolumeDataAccessManagerImpl::RequestProjectedVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const& voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod)
 {
-  return StaticRequestProjectedVolumeSubset(*m_requestProcessor.get(), buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, DimensionGroupUtil::GetDimensionGroupFromDimensionsND(projectedDimensions), lod, format, interpolationMethod, false, 0.0f);
+  Error error;
+  auto layer = GetLayer(volumeDataLayout, dimensionsND, lod, channel, error);
+  if (!layer)
+    throw std::runtime_error(error.string);
+
+  return StaticRequestProjectedVolumeSubset(*m_requestProcessor.get(), buffer, layer, minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, DimensionGroupUtil::GetDimensionGroupFromDimensionsND(projectedDimensions), lod, format, interpolationMethod, false, 0.0f);
 }
 
 int64_t VolumeDataAccessManagerImpl::GetProjectedVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, int lod, int channel)
@@ -1723,7 +1747,12 @@ int64_t VolumeDataAccessManagerImpl::GetProjectedVolumeSubsetBufferSize(VolumeDa
 
 int64_t VolumeDataAccessManagerImpl::RequestProjectedVolumeSubset(void* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const int(&minVoxelCoordinates)[Dimensionality_Max], const int(&maxVoxelCoordinates)[Dimensionality_Max], FloatVector4 const& voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod, float replacementNoValue)
 {
-  return StaticRequestProjectedVolumeSubset(*m_requestProcessor.get(), buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, DimensionGroupUtil::GetDimensionGroupFromDimensionsND(projectedDimensions), lod, format, interpolationMethod, true, replacementNoValue);
+  Error error;
+  auto layer = GetLayer(volumeDataLayout, dimensionsND, lod, channel, error);
+  if (!layer)
+    throw std::runtime_error(error.string);
+
+  return StaticRequestProjectedVolumeSubset(*m_requestProcessor.get(), buffer, layer, minVoxelCoordinates, maxVoxelCoordinates, voxelPlane, DimensionGroupUtil::GetDimensionGroupFromDimensionsND(projectedDimensions), lod, format, interpolationMethod, true, replacementNoValue);
 }
 
 int64_t VolumeDataAccessManagerImpl::GetVolumeSamplesBufferSize(VolumeDataLayout const *volumeDataLayout, int sampleCount, int channel)
@@ -1737,11 +1766,22 @@ int64_t VolumeDataAccessManagerImpl::GetVolumeSamplesBufferSize(VolumeDataLayout
 
 int64_t VolumeDataAccessManagerImpl::RequestVolumeSamples(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*samplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod)
 {
-  return StaticRequestVolumeSamples(*m_requestProcessor.get(), buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), samplePositions, sampleCount, interpolationMethod, false, 0.0f);
+  Error error;
+  auto layer = GetLayer(volumeDataLayout, dimensionsND, lod, channel, error);
+  if (!layer)
+    throw std::runtime_error(error.string);
+
+  return StaticRequestVolumeSamples(*m_requestProcessor.get(), buffer, layer, samplePositions, sampleCount, interpolationMethod, false, 0.0f);
 }
+
 int64_t VolumeDataAccessManagerImpl::RequestVolumeSamples(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*samplePositions)[Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod, float replacementNoValue)
 {
-  return StaticRequestVolumeSamples(*m_requestProcessor.get(), buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), samplePositions, sampleCount, interpolationMethod, true, replacementNoValue);
+  Error error;
+  auto layer = GetLayer(volumeDataLayout, dimensionsND, lod, channel, error);
+  if (!layer)
+    throw std::runtime_error(error.string);
+
+  return StaticRequestVolumeSamples(*m_requestProcessor.get(), buffer, layer, samplePositions, sampleCount, interpolationMethod, true, replacementNoValue);
 }
 
 int64_t VolumeDataAccessManagerImpl::GetVolumeTracesBufferSize(VolumeDataLayout const *volumeDataLayout, int traceCount, int traceDimension, int lod, int channel)
@@ -1757,15 +1797,29 @@ int64_t VolumeDataAccessManagerImpl::GetVolumeTracesBufferSize(VolumeDataLayout 
 
 int64_t VolumeDataAccessManagerImpl::RequestVolumeTraces(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int traceDimension)
 {
-  return StaticRequestVolumeTraces(*m_requestProcessor.get(), buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), tracePositions, traceCount, lod, interpolationMethod, traceDimension, false, 0.0f);
+  Error error;
+  auto layer = GetLayer(volumeDataLayout, dimensionsND, lod, channel, error);
+  if (!layer)
+    throw std::runtime_error(error.string);
+
+  return StaticRequestVolumeTraces(*m_requestProcessor.get(), buffer, layer, tracePositions, traceCount, lod, interpolationMethod, traceDimension, false, 0.0f);
 }
 int64_t VolumeDataAccessManagerImpl::RequestVolumeTraces(float* buffer, VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, const float(*tracePositions)[Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int traceDimension, float replacementNoValue)
 {
-  return StaticRequestVolumeTraces(*m_requestProcessor.get(), buffer, GetLayer(volumeDataLayout, dimensionsND, lod, channel), tracePositions, traceCount, lod, interpolationMethod, traceDimension, true, replacementNoValue);
+  Error error;
+  auto layer = GetLayer(volumeDataLayout, dimensionsND, lod, channel, error);
+  if (!layer)
+    throw std::runtime_error(error.string);
+
+  return StaticRequestVolumeTraces(*m_requestProcessor.get(), buffer, layer, tracePositions, traceCount, lod, interpolationMethod, traceDimension, true, replacementNoValue);
 }
 int64_t VolumeDataAccessManagerImpl::PrefetchVolumeChunk(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int64_t chunk)
 {
-  auto layer = GetLayer(volumeDataLayout, dimensionsND, lod, channel);
+  Error error;
+  auto layer = GetLayer(volumeDataLayout, dimensionsND, lod, channel, error);
+  if (!layer)
+    throw std::runtime_error(error.string);
+
   std::vector<VolumeDataChunk> chunks;
   chunks.push_back(layer->GetChunkFromIndex(chunk));
   return m_requestProcessor->AddJob(chunks, [](VolumeDataPageImpl *page, VolumeDataChunk dataChunk, Error &error) {return true;});

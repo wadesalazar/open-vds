@@ -25,6 +25,7 @@
 #include <array>
 
 #include <gtest/gtest.h>
+#include "../utils/GenerateVDS.h"
 
 GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
 {
@@ -158,4 +159,57 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSubset)
   bool returned = accessManager->WaitForCompletion(iRequestID);
   ASSERT_TRUE(returned);
 
+}
+
+GTEST_TEST(VolumeSubset, BadLOD)
+{
+  OpenVDS::Error error;
+  std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(60, 60, 60), &OpenVDS::Close);
+
+  fill3DVDSWithNoise(handle.get());
+
+  ASSERT_TRUE(handle);
+
+  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
+  ASSERT_TRUE(layout);
+
+  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  ASSERT_TRUE(accessManager);
+
+  int loopDimension = 4;
+  int groupSize = 100;
+
+  int traceDimension = (loopDimension == 0) ? 1 : 0;
+  int traceDimensionSize = layout->GetDimensionNumSamples(traceDimension);
+
+  int groupDimension = (loopDimension == traceDimension + 1) ? traceDimension + 2 : traceDimension + 1;
+  int groupDimensionSize = layout->GetDimensionNumSamples(groupDimension);
+
+  if(groupSize == 0)
+  {
+    groupSize = groupDimensionSize;
+  }
+
+  std::array<int, OpenVDS::Dimensionality_Max> voxelMin = { 0, 0, 0, 0, 0, 0};
+  std::array<int, OpenVDS::Dimensionality_Max> voxelMax = { 1, 1, 1, 1, 1, 1};
+
+  voxelMin[traceDimension] = 0;
+  voxelMax[traceDimension] = traceDimensionSize;
+  voxelMin[loopDimension] = 2;
+  voxelMax[loopDimension] = 2 + 1;
+
+  std::vector<float> buffer((voxelMax[groupDimension] - voxelMin[groupDimension]) * traceDimensionSize);
+
+  try
+  {
+    int64_t iRequestID = accessManager->RequestVolumeSubset(buffer.data(), layout, OpenVDS::Dimensions_012, 1, 0, PODArrayReference(voxelMin), PODArrayReference(voxelMax), OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+    ASSERT_GT(iRequestID, 0);
+    bool returned = accessManager->WaitForCompletion(iRequestID);
+    ASSERT_TRUE(returned);
+  }
+  catch (std::runtime_error&)
+  {
+    return;
+  }
+  ASSERT_TRUE(false);
 }
