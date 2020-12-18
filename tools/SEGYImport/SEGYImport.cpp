@@ -1980,10 +1980,8 @@ main(int argc, char* argv[])
     assert(amplitudePitch[0] == 1);
     assert(!traceFlagBuffer || traceFlagPitch[1] == 1);
     assert(!segyTraceHeaderBuffer || segyTraceHeaderPitch[1] == SEGY::TraceHeaderSize);
-    // TODO what should the pitch be for offset?
+    assert(!offsetBuffer || offsetPitch[1] == 1);
     
-    // TODO loop from here to about line 1927 - get lower/upper for a file, process segments from that file, go on to next file
-
     for (int fileIndex = 0; fileIndex < fileInfo.m_segmentInfoLists.size(); ++fileIndex)
     {
       auto result = chunkInfo.lowerUpperSegmentIndices.find(fileIndex);
