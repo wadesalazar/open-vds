@@ -40,24 +40,28 @@ TEST(SEGYScanTest, scan)
   file->Open(fileName, false, false, false, error);
   EXPECT_EQ(error.code, 0);
 
-  DataProvider dataProvider(file.release());
+  std::vector<DataProvider>
+    dataProviders;
+  dataProviders.emplace_back(file.release());
   SEGYFileInfo
     fileInfo;
 
-  bool success = fileInfo.Scan(dataProvider, HeaderField(189, FieldWidth::FourByte));
+  bool success = fileInfo.Scan(dataProviders, HeaderField(189, FieldWidth::FourByte));
   EXPECT_TRUE(success);
 
-
-  EXPECT_TRUE(fileInfo.m_segmentInfo.front().m_traceStart == 0);
+  EXPECT_EQ(1, fileInfo.m_segmentInfoLists.size());
+  EXPECT_TRUE(fileInfo.m_segmentInfoLists.front().front().m_traceStart == 0);
 
   // check that the segments cover all traces of the file (with no overlap)
-  for(int i = 1; i < int(fileInfo.m_segmentInfo.size()); i++)
+  const auto&
+    segmentInfo = fileInfo.m_segmentInfoLists.front();
+  for(int i = 1; i < int(segmentInfo.size()); i++)
   {
-    if(fileInfo.m_segmentInfo[i].m_traceStart != fileInfo.m_segmentInfo[i - 1].m_traceStop + 1)
+    if(segmentInfo[i].m_traceStart != segmentInfo[i - 1].m_traceStop + 1)
     {
-      FAIL() << "Segment " << i << " starting at trace " << fileInfo.m_segmentInfo[i].m_traceStart << " does not directly follow segment " << (i - 1) << " ending at trace " << fileInfo.m_segmentInfo[i - 1].m_traceStop;
+      FAIL() << "Segment " << i << " starting at trace " << segmentInfo[i].m_traceStart << " does not directly follow segment " << (i - 1) << " ending at trace " << segmentInfo[i - 1].m_traceStop;
     }
   }
 
-  EXPECT_TRUE(fileInfo.m_segmentInfo.back().m_traceStop == fileInfo.m_traceCount - 1);
+  EXPECT_TRUE(fileInfo.m_segmentInfoLists.front().back().m_traceStop == fileInfo.m_traceCounts[0] - 1);
 }
