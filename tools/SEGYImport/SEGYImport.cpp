@@ -1862,8 +1862,19 @@ main(int argc, char* argv[])
     {
       auto&
         segmentInfoList = fileInfo.m_segmentInfoLists[fileIndex];
+
       // does this file have any segments in the primary key range?
-      if (segmentInfoList.front().m_primaryKey <= chunkInfo.primaryKeyStop && segmentInfoList.back().m_primaryKey >= chunkInfo.primaryKeyStart)
+      bool hasSegments;
+      if (fileInfo.IsUnbinned())
+      {
+        // Unbinned primary keys are 1-based segment indices
+        hasSegments = 1 <= chunkInfo.primaryKeyStop && segmentInfoList.size() >= chunkInfo.primaryKeyStart;
+      }
+      else
+      {
+        hasSegments = segmentInfoList.front().m_primaryKey <= chunkInfo.primaryKeyStop && segmentInfoList.back().m_primaryKey >= chunkInfo.primaryKeyStart;
+      }
+      if (hasSegments)
       {
         std::vector<SEGYSegmentInfo>::iterator
           lower,
@@ -2037,7 +2048,7 @@ main(int argc, char* argv[])
           const void* data = header + SEGY::TraceHeaderSize;
 
           int primaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_primaryKey, fileInfo.m_headerEndianness),
-            secondaryTest = SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
+            secondaryTest = fileInfo.IsUnbinned() ? static_cast<int>(trace - segment->m_traceStart + 1) : SEGY::ReadFieldFromHeader(header, fileInfo.m_secondaryKey, fileInfo.m_headerEndianness);
 
           // Check if the trace is outside the secondary range and go to the next segment if it is
           if (primaryTest == segment->m_primaryKey && secondaryTest > chunkInfo.secondaryKeyStop)
