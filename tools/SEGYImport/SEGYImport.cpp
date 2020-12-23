@@ -1625,9 +1625,11 @@ main(int argc, char* argv[])
   int fold = 1, primaryStep = 1, secondaryStep = 1;
   int offsetStart, offsetEnd, offsetStep;
 
+  const float valueRangePercentile = 99.5f; // 99.5f is the same default as Petrel uses.
+
   int fileIndex;
   auto representativeSegment = findRepresentativeSegment(fileInfo, primaryStep, fileIndex);
-  analyzeSegment(dataProviders[fileIndex], fileInfo, representativeSegment, 99.9f, valueRange, fold, secondaryStep, segyType, offsetStart, offsetEnd, offsetStep, error);
+  analyzeSegment(dataProviders[fileIndex], fileInfo, representativeSegment, valueRangePercentile, valueRange, fold, secondaryStep, segyType, offsetStart, offsetEnd, offsetStep, error);
 
   if (error.code != 0)
   {
