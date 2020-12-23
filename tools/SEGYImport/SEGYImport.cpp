@@ -1387,13 +1387,15 @@ main(int argc, char* argv[])
     return EXIT_SUCCESS;
   }
 
+  const SEGY::SEGYType segyType = static_cast<SEGY::SEGYType>(segyTypeInt);
+
   if (fileNames.empty())
   {
     std::cerr << std::string("No input SEG-Y file specified");
     return EXIT_FAILURE;
   }
 
-  if (fileNames.size() > 1)
+  if (fileNames.size() > 1 && segyType != SEGY::SEGYType::Prestack)
   {
     std::cerr << std::string("Only one input SEG-Y file may be specified");
     return EXIT_FAILURE;
@@ -1412,8 +1414,6 @@ main(int argc, char* argv[])
   }
 
   SEGY::Endianness headerEndianness = (littleEndian ? SEGY::Endianness::LittleEndian : SEGY::Endianness::BigEndian);
-
-  SEGY::SEGYType segyType = static_cast<SEGY::SEGYType>(segyTypeInt);
 
   // For unbinned gathers set the primary key. (What happens if the user specifies the primary key?)
   if (segyType == SEGY::SEGYType::UnbinnedCDP)
