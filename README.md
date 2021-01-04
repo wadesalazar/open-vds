@@ -46,6 +46,7 @@ Licensed under [**Apache 2.0**](https://gitlab.opengroup.org/osdu/open-vds/blob/
 Latest build of the [**OpenVDS-Documentation**](http://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds)
 
 ### Building
+If OpenVDS is built with the AWS integration then git needs to be in the PATH.
 
 NOTE: CMake will download 3rdparty dependencies the first time CMake is run on
 the OpenVDS repository. This will take some time, so be patient. This will not
@@ -69,6 +70,9 @@ python rules will be used. Since CMake version 3.13 Python_FIND_REGISTRY can be
 used to modify search order on windows. For example, to disable searching the 
 registry pass the cmake option: -DPython_FIND_REGISTRY=NEVER.
 
+NOTE: On Windows scikit-build will use Visual Studio 2017 if python version is >= 3.6. We have made a
+mergerequest for scikit-build to support [**Visual Studio 2019**](https://github.com/scikit-build/scikit-build/pull/527).
+
 #### Linux
 Make a build directory in the OpenVDS folder and change current directory to the created folder.
 Do:
@@ -87,6 +91,10 @@ from the different network storage integrations. Currently these packages are re
 - uuid
 
 #### Windows Visual Studio
+When building on Windows the Desktop C++ component for Visual Studio must be
+installed. Install Visual Studio CMake integration if OpenVDS should be
+compiled with the "Open a local folder" option.
+
 Much like on Linux its possible to generate a project in a build folder and
 build it using native tools.  To generate a Visual Studio solution make a build
 directory in the OpenVDS folder and change current directory to the build
