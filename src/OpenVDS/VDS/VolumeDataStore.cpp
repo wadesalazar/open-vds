@@ -462,7 +462,7 @@ bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volume
   int32_t size[4];
   volumeDataChunk.layer->GetChunkVoxelSize(volumeDataChunk.index, size);
   int32_t dimensionality = volumeDataChunk.layer->GetChunkDimensionality();
-  if (!InitializeDataBlock(format, components, enum DataBlock::Dimensionality(dimensionality), size, dataBlock, error))
+  if (!InitializeDataBlock(format, components, (enum DataBlock::Dimensionality)(dimensionality), size, dataBlock, error))
     return false;
 
  

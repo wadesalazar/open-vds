@@ -26,7 +26,7 @@ bool InitializeDataBlock(const DataBlockDescriptor &descriptor, DataBlock &dataB
   size[0] = descriptor.SizeX;
   size[1] = descriptor.SizeY;
   size[2] = descriptor.SizeZ;
-  return InitializeDataBlock(descriptor.Format, descriptor.Components, enum DataBlock::Dimensionality(descriptor.Dimensionality), size, dataBlock, error);
+  return InitializeDataBlock(descriptor.Format, descriptor.Components, (enum DataBlock::Dimensionality)(descriptor.Dimensionality), size, dataBlock, error);
 }
 
 bool InitializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, enum DataBlock::Dimensionality dimensionality, int32_t (&size)[DataBlock::Dimensionality_Max], DataBlock &dataBlock, Error &error)

@@ -103,7 +103,7 @@ bool Wavelet_Decompress(const void *compressedData, int nCompressedAdaptiveDataS
     return false;
   }
 
-  if (!InitializeDataBlock(VolumeDataChannelDescriptor::Format_R32, VolumeDataChannelDescriptor::Components_1, enum DataBlock::Dimensionality(dimensions), createSize, dataBlock, error))
+  if (!InitializeDataBlock(VolumeDataChannelDescriptor::Format_R32, VolumeDataChannelDescriptor::Components_1, (enum DataBlock::Dimensionality)(dimensions), createSize, dataBlock, error))
     return false;
   target.resize(GetAllocatedByteSize(dataBlock));
   
@@ -140,7 +140,7 @@ bool Wavelet_Decompress(const void *compressedData, int nCompressedAdaptiveDataS
   if (dataBlock.Format != dataBlockFormat)
   {
     DataBlock finalDataBlock;
-    if (!InitializeDataBlock(dataBlockFormat, VolumeDataChannelDescriptor::Components_1, enum DataBlock::Dimensionality(dimensions), createSize, finalDataBlock, error))
+    if (!InitializeDataBlock(dataBlockFormat, VolumeDataChannelDescriptor::Components_1, (enum DataBlock::Dimensionality)(dimensions), createSize, finalDataBlock, error))
       return false;
     std::vector<uint8_t> finalDataTarget;
     finalDataTarget.resize(GetAllocatedByteSize(finalDataBlock));
