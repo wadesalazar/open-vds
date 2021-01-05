@@ -70,8 +70,9 @@ python rules will be used. Since CMake version 3.13 Python_FIND_REGISTRY can be
 used to modify search order on windows. For example, to disable searching the 
 registry pass the cmake option: -DPython_FIND_REGISTRY=NEVER.
 
-NOTE: On Windows scikit-build will use Visual Studio 2017 if python version is >= 3.6. We have made a
-mergerequest for scikit-build to support [**Visual Studio 2019**](https://github.com/scikit-build/scikit-build/pull/527).
+NOTE: On Windows scikit-build will use Visual Studio 2017 if python version is
+>= 3.6.  There is a mergerequest for scikit-build to support
+[**Visual Studio 2019**](https://github.com/scikit-build/scikit-build/pull/526).
 
 #### Linux
 Make a build directory in the OpenVDS folder and change current directory to the created folder.
