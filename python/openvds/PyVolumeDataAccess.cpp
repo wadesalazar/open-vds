@@ -387,6 +387,8 @@ PyVolumeDataAccess::initModule(py::module& m)
       return std::make_tuple(errorCode, std::string(pErrorString));
     }, OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentDownloadError));
 
+  VolumeDataAccessManager_.attr("Dimensionality_Max") = py::int_(VolumeDataAccessManager::Dimensionality_Max);
+
   // Register region types
   RegisterVolumeDataRegions<native::IntVector2>      (m, "VolumeDataRegionsIntVector2");
   RegisterVolumeDataRegions<native::IntVector3>      (m, "VolumeDataRegionsIntVector3");

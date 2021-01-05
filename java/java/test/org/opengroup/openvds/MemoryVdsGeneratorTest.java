@@ -31,7 +31,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.IntStream;
 
-import static org.opengroup.openvds.Dimensionality.DIMENSIONALITY_MAX;
 import static org.opengroup.openvds.VolumeDataChannelDescriptor.Format.*;
 import static org.opengroup.openvds.VolumeDataLayoutDescriptor.BrickSize.BRICK_SIZE_32;
 import static org.opengroup.openvds.VolumeDataLayoutDescriptor.LODLevels.LOD_LEVELS_NONE;
@@ -69,8 +68,8 @@ public class MemoryVdsGeneratorTest {
         final VolumeDataAccessManager accessManager = generator.getAccessManager();
         assertTrue(!accessManager.isNull());
 
-        final FloatBuffer tracePositions = B.createFloatBuffer(nYSamples * DIMENSIONALITY_MAX.getNbDimension());
-        final FloatBuffer samplePositions = B.createFloatBuffer(nZSamples * nYSamples * DIMENSIONALITY_MAX.getNbDimension());
+        final FloatBuffer tracePositions = B.createFloatBuffer(nYSamples * VolumeDataAccessManager.Dimensionality_Max);
+        final FloatBuffer samplePositions = B.createFloatBuffer(nZSamples * nYSamples * VolumeDataAccessManager.Dimensionality_Max);
         for (int j = 0; j < nYSamples; j++) {
             tracePositions.put(0.5f);
             tracePositions.put(j + 0.5f);
@@ -131,7 +130,7 @@ public class MemoryVdsGeneratorTest {
         final long volumeTracesBufferSize = accessManager.getVolumeTracesBufferSize(layout, nYSamples, 0, 0, 0);
         assertEquals(nZSamples * nYSamples * Float.BYTES, volumeTracesBufferSize);
 
-        final FloatBuffer tracePositions = B.createFloatBuffer(nYSamples * DIMENSIONALITY_MAX.getNbDimension());
+        final FloatBuffer tracePositions = B.createFloatBuffer(nYSamples * VolumeDataAccessManager.Dimensionality_Max);
         for (int j = 0; j < nYSamples; j++) {
             tracePositions.put(0.5f);
             tracePositions.put(j + 0.5f);
@@ -252,7 +251,7 @@ public class MemoryVdsGeneratorTest {
         final VolumeDataAccessManager accessManager = generator.getAccessManager();
         assertTrue(!accessManager.isNull());
 
-        final FloatBuffer samplePositions = B.createFloatBuffer(nZSamples * nYSamples * DIMENSIONALITY_MAX.getNbDimension());
+        final FloatBuffer samplePositions = B.createFloatBuffer(nZSamples * nYSamples * VolumeDataAccessManager.Dimensionality_Max);
         for (int j = 0; j < nYSamples; j++) {
             for (int k = 0; k < nZSamples; k++) {
                 samplePositions.put(k + 0.5f);
@@ -687,7 +686,7 @@ public class MemoryVdsGeneratorTest {
         assertTrue(!accessManager.isNull());
 
         final int NB_SAMPLE_REQUESTED = 1000;
-        final FloatBuffer samplePositions = BufferUtils.createFloatBuffer(NB_SAMPLE_REQUESTED * DIMENSIONALITY_MAX.getNbDimension());
+        final FloatBuffer samplePositions = BufferUtils.createFloatBuffer(NB_SAMPLE_REQUESTED * VolumeDataAccessManager.Dimensionality_Max);
         Random r = new Random(0);
         for (int i = 0; i < NB_SAMPLE_REQUESTED; i++) {
             samplePositions.put(r.nextFloat() * nZSamples + 0.5f);
@@ -741,7 +740,7 @@ public class MemoryVdsGeneratorTest {
             }
         }
 
-        assertEquals(Dimensionality.DIMENSIONALITY_3, layout.getDimensionality());
+        assertEquals(3, layout.getDimensionality());
 
         int dimensionIndex = 0;
         assertEquals(60, layout.getDimensionNumSamples(dimensionIndex));

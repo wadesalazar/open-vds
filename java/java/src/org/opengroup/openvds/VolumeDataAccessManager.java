@@ -114,6 +114,11 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
     }
 
     /**
+     * the maximum number of dimensions a VDS can have
+     */
+    public static final int Dimensionality_Max = VolumeDataLayout.Dimensionality_Max;
+
+    /**
      * Get the VolumeDataLayout object for a VDS.
      *
      * @return the VolumeDataLayout object associated with the VDS or null if
@@ -455,7 +460,7 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * @param lod the LOD level the requested data is read from.
      * @param channel the channel index the requested data is read from.
      * @param samplePositions array containing groups of
-     * Dimensionality.Dimensionality_Max elements indicating the positions to
+     * Dimensionality_Max elements indicating the positions to
      * sample. May be deleted once requestVolumeSamples return, as OpenVDS makes
      * a deep copy of the data.
      * @param sampleCount number of samples to request.
@@ -481,7 +486,7 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * @param lod the LOD level the requested data is read from.
      * @param channel the channel index the requested data is read from.
      * @param samplePositions array containing groups of
-     * Dimensionality.Dimensionality_Max elements indicating the positions to
+     * Dimensionality_Max elements indicating the positions to
      * sample. May be deleted once requestVolumeSamples return, as OpenVDS makes
      * a deep copy of the data.
      * @param sampleCount number of samples to request.
@@ -531,7 +536,7 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * @param lod the LOD level the requested data is read from.
      * @param channel the channel index the requested data is read from.
      * @param tracePositions array containing groups of
-     * Dimensionality.Dimensionality_Max elements indicating the trace
+     * Dimensionality_Max elements indicating the trace
      * positions.
      * @param traceCount number of traces to request.
      * @param interpolationMethod interpolation method to use when sampling the
@@ -570,7 +575,7 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
      * @param lod the LOD level the requested data is read from.
      * @param channel the channel index the requested data is read from.
      * @param tracePositions array containing groups of
-     * Dimensionality.Dimensionality_Max elements indicating the trace
+     * Dimensionality_Max elements indicating the trace
      * positions.
      * @param traceCount number of traces to request.
      * @param interpolationMethod interpolation method to use when sampling the

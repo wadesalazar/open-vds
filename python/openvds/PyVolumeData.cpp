@@ -99,17 +99,6 @@ PyVolumeData::initModule(py::module& m)
   CompressionInfo_.def("getAdaptiveLevel"            , static_cast<int(CompressionInfo::*)() const>(&CompressionInfo::GetAdaptiveLevel), OPENVDS_DOCSTRING(CompressionInfo_GetAdaptiveLevel));
   CompressionInfo_.def_property_readonly("adaptiveLevel", &CompressionInfo::GetAdaptiveLevel, OPENVDS_DOCSTRING(CompressionInfo_GetAdaptiveLevel));
 
-  py::enum_<Dimensionality> 
-    Dimensionality_(m,"Dimensionality", OPENVDS_DOCSTRING(Dimensionality));
-
-  Dimensionality_.value("Dimensionality_1"            , Dimensionality::Dimensionality_1        , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_1));
-  Dimensionality_.value("Dimensionality_2"            , Dimensionality::Dimensionality_2        , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_2));
-  Dimensionality_.value("Dimensionality_3"            , Dimensionality::Dimensionality_3        , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_3));
-  Dimensionality_.value("Dimensionality_4"            , Dimensionality::Dimensionality_4        , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_4));
-  Dimensionality_.value("Dimensionality_5"            , Dimensionality::Dimensionality_5        , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_5));
-  Dimensionality_.value("Dimensionality_6"            , Dimensionality::Dimensionality_6        , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_6));
-  Dimensionality_.value("Dimensionality_Max"          , Dimensionality::Dimensionality_Max      , OPENVDS_DOCSTRING(Dimensionality_Dimensionality_Max));
-
   m.def("getLODSize"                  , static_cast<int(*)(int, int, int, bool)>(&GetLODSize), py::arg("voxelMin").none(false), py::arg("voxelMax").none(false), py::arg("lod").none(false), py::arg("includePartialUpperVoxel").none(false), OPENVDS_DOCSTRING(GetLODSize));
 //AUTOGEN-END
 }

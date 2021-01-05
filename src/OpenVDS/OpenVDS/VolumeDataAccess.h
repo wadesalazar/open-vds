@@ -19,6 +19,7 @@
 #define VOLUMEDATAACCESS_H
 
 #include <OpenVDS/VolumeData.h>
+#include <OpenVDS/VolumeDataLayout.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/Vector.h>
 
@@ -68,6 +69,8 @@ protected:
                 VolumeDataAccessManager() {}
   virtual      ~VolumeDataAccessManager() {}
 public:
+  static constexpr int Dimensionality_Max = VolumeDataLayout::Dimensionality_Max;  ///< the maximum number of dimensions a VDS can have
+
   enum AccessMode
   {
     AccessMode_ReadOnly,

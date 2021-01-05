@@ -59,7 +59,7 @@ public class CreateVDSTest {
 
             VolumeDataLayout layout = openvds2.getLayout();
 
-            assertEquals(layout.getDimensionality(), Dimensionality.DIMENSIONALITY_3);
+            assertEquals(layout.getDimensionality(), 3);
             assertEquals(layout.getChannelCount(), 1);
             assertEquals(layout.getChannelFormat(0), VolumeDataChannelDescriptor.Format.FORMAT_U8);
             assertEquals(layout.getDimensionName(1), openvds1.getLayout().getDimensionName(1));

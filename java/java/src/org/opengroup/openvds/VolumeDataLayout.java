@@ -88,6 +88,11 @@ public class VolumeDataLayout extends MetadataReadAccess {
     }
 
     /**
+     * the maximum number of dimensions a VDS can have
+     */
+    public static final int Dimensionality_Max = 6;
+
+    /**
      * @return the descriptor for the layout
      */
     public VolumeDataLayoutDescriptor getLayoutDescriptor() {
@@ -103,11 +108,9 @@ public class VolumeDataLayout extends MetadataReadAccess {
 
     /**
      * @return the number of dimensions in this VDS
-     * @see Dimensionality
      */
-    public Dimensionality getDimensionality() {
-        final int nbDimension = cpGetDimensionality(_handle);
-        return Dimensionality.fromNbDimension(nbDimension);
+    public int getDimensionality() {
+        return cpGetDimensionality(_handle);
     }
 
     /**
@@ -266,7 +269,7 @@ public class VolumeDataLayout extends MetadataReadAccess {
     }
 
     /**
-     * @param dimension dimension, @see org.opengroup.openvds.Dimensionality
+     * @param dimension dimension
      * @return the axis descriptor for the given dimension
      */
     public VolumeDataAxisDescriptor getAxisDescriptor(int dimension) {
@@ -274,7 +277,7 @@ public class VolumeDataLayout extends MetadataReadAccess {
     }
 
     /**
-     * @param dimension dimension, @see org.opengroup.openvds.Dimensionality
+     * @param dimension dimension
      * @return the number of samples for the given dimension
      */
     public int getDimensionNumSamples(int dimension) {
@@ -282,7 +285,7 @@ public class VolumeDataLayout extends MetadataReadAccess {
     }
 
     /**
-     * @param dimension dimension, @see org.opengroup.openvds.Dimensionality
+     * @param dimension dimension
      * @return the name for the given dimension
      */
     public String getDimensionName(int dimension) {
@@ -290,7 +293,7 @@ public class VolumeDataLayout extends MetadataReadAccess {
     }
 
     /**
-     * @param dimension dimension, @see org.opengroup.openvds.Dimensionality
+     * @param dimension dimension
      * @return the unit for the given dimension
      */
     public String getDimensionUnit(int dimension) {
@@ -298,7 +301,7 @@ public class VolumeDataLayout extends MetadataReadAccess {
     }
 
     /**
-     * @param dimension dimension, @see org.opengroup.openvds.Dimensionality
+     * @param dimension dimension
      * @return the coordinate minimum for the given dimension
      */
     public float getDimensionMin(int dimension) {
@@ -306,7 +309,7 @@ public class VolumeDataLayout extends MetadataReadAccess {
     }
 
     /**
-     * @param dimension dimension, @see org.opengroup.openvds.Dimensionality
+     * @param dimension dimension
      * @return the coordinate maximum for the given dimension
      */
     public float getDimensionMax(int dimension) {

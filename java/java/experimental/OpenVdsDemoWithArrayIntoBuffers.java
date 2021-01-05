@@ -21,8 +21,6 @@ import org.opengroup.openvds.VolumeDataChannelDescriptor.Format;
 import java.io.FileOutputStream;
 import java.nio.FloatBuffer;
 
-import static org.opengroup.openvds.Dimensionality.DIMENSIONALITY_MAX;
-
 public class OpenVdsDemoWithArrayIntoBuffers {
     public static void main(String[] args) throws Exception {
         System.out.println(JniPointer.libraryDescription());
@@ -64,7 +62,7 @@ public class OpenVdsDemoWithArrayIntoBuffers {
 
         float x_sample_shift = (float) sampleCount[1] / output_width;
         float y_sample_shift = (float) sampleCount[2] / output_height;
-        final int elemSize = DIMENSIONALITY_MAX.getNbDimension();
+        final int elemSize = VolumeDataAccessManager.Dimensionality_Max;
         final int elemCount = output_width * output_height;
         float[] samples = new float[elemCount * elemSize];
 

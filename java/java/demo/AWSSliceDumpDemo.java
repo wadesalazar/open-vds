@@ -77,7 +77,7 @@ public class AWSSliceDumpDemo {
 
         float x_sample_shift = (float) sampleCount[1] / output_width;
         float y_sample_shift = (float) sampleCount[2] / output_height;
-        final int elemSize = Dimensionality.DIMENSIONALITY_MAX.getNbDimension();
+        final int elemSize = VolumeDataAccessManager.Dimensionality_Max;
         final int elemCount = output_width * output_height;
         float[] samples = new float[elemCount * elemSize];
 

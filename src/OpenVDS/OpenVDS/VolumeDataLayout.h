@@ -35,6 +35,8 @@ protected:
                 VolumeDataLayout() {};
   virtual      ~VolumeDataLayout() {};
 public:
+  static constexpr int Dimensionality_Max = 6; ///< the maximum number of dimensions a VDS can have
+
   virtual uint64_t
                 GetContentsHash() const = 0; ///< gets the contents hash of this VDS
 

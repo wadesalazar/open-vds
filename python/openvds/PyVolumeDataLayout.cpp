@@ -85,5 +85,7 @@ PyVolumeDataLayout::initModule(py::module& m)
         return py::make_tuple(anVoxelCount[0], anVoxelCount[1], anVoxelCount[2], anVoxelCount[3], anVoxelCount[4], anVoxelCount[5]);
       }
     });
+
+  VolumeDataLayout_.attr("Dimensionality_Max") = py::int_(VolumeDataLayout::Dimensionality_Max);
 }
 

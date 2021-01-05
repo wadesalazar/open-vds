@@ -17,7 +17,6 @@ set(JAVA_SOURCE_FILES
   java/src/org/opengroup/openvds/BufferUtils.java
   java/src/org/opengroup/openvds/Cleaner.java
   java/src/org/opengroup/openvds/CompressionMethod.java
-  java/src/org/opengroup/openvds/Dimensionality.java
   java/src/org/opengroup/openvds/DimensionsND.java
   java/src/org/opengroup/openvds/experimental/VariousJavaTests.java
   java/src/org/opengroup/openvds/GoogleOpenOptions.java

@@ -114,16 +114,7 @@ public:
   }
 };
 
-enum Dimensionality
-{
-  Dimensionality_1 = 1,
-  Dimensionality_2,
-  Dimensionality_3,
-  Dimensionality_4,
-  Dimensionality_5,
-  Dimensionality_6,
-  Dimensionality_Max = Dimensionality_6
-};
+constexpr int Dimensionality_Max = 6;
 
 /// <summary>
 /// Get the number of voxels at a particular LOD from a voxel range (ranges are exclusive).
