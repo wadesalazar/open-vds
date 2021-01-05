@@ -49,7 +49,7 @@ VolumeIndexerData::VolumeIndexerData(const VolumeDataPage *page,
   dataBlockSamples[2] = dataBlock.Size[2];
   dataBlockSamples[3] = dataBlock.Size[3];
 
-  for (int iDataBlockDim = 0; iDataBlockDim < DataStoreDimensionality::DataStoreDimensionality_Max; iDataBlockDim++)
+  for (int iDataBlockDim = 0; iDataBlockDim < DataBlockDimensionality_Max; iDataBlockDim++)
   {
     dataBlockBitPitch[iDataBlockDim] = dataBlockPitch[iDataBlockDim] * (iDataBlockDim == 0 ? 1 : 8);
 

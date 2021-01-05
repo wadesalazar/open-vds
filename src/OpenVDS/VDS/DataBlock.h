@@ -24,23 +24,23 @@
 namespace OpenVDS
 {
 
-enum DataStoreDimensionality
-{
-  DataStoreDimensionality_1 = 1,
-  DataStoreDimensionality_2 = 2,
-  DataStoreDimensionality_3 = 3,
-  DataStoreDimensionality_4 = 4,
-  DataStoreDimensionality_Max = DataStoreDimensionality_4 
-};
-
 struct DataBlock
 {
+  enum Dimensionality
+  {
+    Dimensionality_1 = 1,
+    Dimensionality_2 = 2,
+    Dimensionality_3 = 3,
+    Dimensionality_4 = 4,
+    Dimensionality_Max = Dimensionality_4 
+  };
+
   VolumeDataChannelDescriptor::Format Format;
   VolumeDataChannelDescriptor::Components Components;
   enum Dimensionality Dimensionality;
-  int32_t Size[DataStoreDimensionality_Max];
-  int32_t AllocatedSize[DataStoreDimensionality_Max];
-  int32_t Pitch[DataStoreDimensionality_Max];
+  int32_t Size[DataBlock::Dimensionality_Max];
+  int32_t AllocatedSize[DataBlock::Dimensionality_Max];
+  int32_t Pitch[DataBlock::Dimensionality_Max];
 };
 
 class DataBlockDescriptor
@@ -57,7 +57,7 @@ public:
   VolumeDataChannelDescriptor::Components Components;
 
 
-  bool IsValid(const int32_t (&voxelSize)[DataStoreDimensionality_Max]) const
+  bool IsValid(const int32_t (&voxelSize)[DataBlock::Dimensionality_Max]) const
   {
     return Dimensionality >= 1 &&
            Dimensionality <= 3 &&
@@ -76,11 +76,11 @@ public:
             Components == VolumeDataChannelDescriptor::Components_4);
   }
 
-  bool IsValid() const { int32_t voxelSize[DataStoreDimensionality_Max] = {SizeX, SizeY, SizeZ}; return IsValid(voxelSize); }
+  bool IsValid() const { int32_t voxelSize[DataBlock::Dimensionality_Max] = {SizeX, SizeY, SizeZ}; return IsValid(voxelSize); }
 };
 
 bool InitializeDataBlock(const DataBlockDescriptor &descriptor, DataBlock &dataBlock, Error &error);
-bool InitializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, Dimensionality dimensionality, int32_t (&size)[DataStoreDimensionality_Max], DataBlock &dataBlock, Error &error);
+bool InitializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, enum DataBlock::Dimensionality dimensionality, int32_t (&size)[DataBlock::Dimensionality_Max], DataBlock &dataBlock, Error &error);
 
 inline int32_t GetVoxelFormatByteSize(VolumeDataChannelDescriptor::Format format)
 {
@@ -136,7 +136,7 @@ inline uint32_t GetElementSize(const DataBlock &datablock)
   return GetElementSize(datablock.Format, datablock.Components);
 }
 
-inline uint32_t GetByteSize(const int32_t (&size)[DataStoreDimensionality_Max], VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, bool isBitSize = true)
+inline uint32_t GetByteSize(const int32_t (&size)[DataBlock::Dimensionality_Max], VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, bool isBitSize = true)
 {
   int byteSize = size[0] * GetElementSize(format, components);
 
@@ -145,7 +145,7 @@ inline uint32_t GetByteSize(const int32_t (&size)[DataStoreDimensionality_Max], 
     byteSize = (byteSize + 7) / 8;
   }
 
-  for (int i = 1; i < DataStoreDimensionality_Max; i++)
+  for (int i = 1; i < DataBlock::Dimensionality_Max; i++)
   {
     byteSize *= size[i];
   }

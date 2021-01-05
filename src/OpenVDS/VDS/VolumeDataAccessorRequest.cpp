@@ -61,11 +61,11 @@ static ConversionParameters makeConversionParameters(VolumeDataLayer *layer, boo
   return ret;
 }
 
-static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDimensionality_Max],
-                                           int32_t (&sourceOffset)[DataStoreDimensionality_Max],
-                                           int32_t (&targetSize  )[DataStoreDimensionality_Max],
-                                           int32_t (&targetOffset)[DataStoreDimensionality_Max],
-                                           int32_t (&overlapSize )[DataStoreDimensionality_Max],
+static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataBlock::Dimensionality_Max],
+                                           int32_t (&sourceOffset)[DataBlock::Dimensionality_Max],
+                                           int32_t (&targetSize  )[DataBlock::Dimensionality_Max],
+                                           int32_t (&targetOffset)[DataBlock::Dimensionality_Max],
+                                           int32_t (&overlapSize )[DataBlock::Dimensionality_Max],
                                            const int32_t (&origSourceSize  )[Dimensionality_Max],
                                            const int32_t (&origSourceOffset)[Dimensionality_Max],
                                            const int32_t (&origTargetSize  )[Dimensionality_Max],
@@ -114,7 +114,7 @@ static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDime
   int32_t nCopyDimensions = 0;
 
   // Reduce dimensions where the source and target size is 1 (and the offset is 0)
-  for (int32_t dimension = 0; dimension < DataStoreDimensionality_Max; dimension++)
+  for (int32_t dimension = 0; dimension < DataBlock::Dimensionality_Max; dimension++)
   {
     if(tmpSourceSize[dimension] == 1 && tmpTargetSize[dimension] == 1)
     {
@@ -135,7 +135,7 @@ static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDime
     nCopyDimensions++;
   }
 
-  assert(nCopyDimensions <= DataStoreDimensionality_Max && "Invalid Copy Parameters #4");
+  assert(nCopyDimensions <= DataBlock::Dimensionality_Max && "Invalid Copy Parameters #4");
 
   // Further combine inner dimensions if possible, to minimize number of copy invocations
   int32_t nCombineDimensions = nCopyDimensions - 1;
@@ -171,7 +171,7 @@ static int32_t CombineAndReduceDimensions (int32_t (&sourceSize  )[DataStoreDime
   }
 
   // Reset remaining dimensions
-  for(int32_t dimension = nCopyDimensions; dimension < DataStoreDimensionality_Max; dimension++)
+  for(int32_t dimension = nCopyDimensions; dimension < DataBlock::Dimensionality_Max; dimension++)
   {
     sourceOffset[dimension] = 0;
     targetOffset[dimension] = 0;
@@ -317,9 +317,9 @@ QuantizingValueConverterWithNoValue<T,S,noValue> createValueConverter(const Conv
 template<typename T, bool targetOneBit, typename S, bool sourceOneBit, bool noValue>
 struct BlockCopy
 {
-  static void Do(void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
-                 void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
-                 const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParamters)
+  static void Do(void       *target, const int32_t (&targetOffset)[DataBlock::Dimensionality_Max], const int32_t (&targetSize)[DataBlock::Dimensionality_Max],
+                 void const *source, const int32_t (&sourceOffset)[DataBlock::Dimensionality_Max], const int32_t (&sourceSize)[DataBlock::Dimensionality_Max],
+                 const int32_t (&overlapSize) [DataBlock::Dimensionality_Max], const ConversionParameters &conversionParamters)
   {
     int64_t sourceLocalBaseSize = ((((int64_t)sourceOffset[3] * sourceSize[2] + sourceOffset[2]) * sourceSize[1] + sourceOffset[1]) * sourceSize[0] + sourceOffset[0]) * (int64_t)sizeof(S);
     int64_t targetLocalBaseSize = ((((int64_t)targetOffset[3] * targetSize[2] + targetOffset[2]) * targetSize[1] + targetOffset[1]) * targetSize[0] + targetOffset[0]) * (int64_t)sizeof(T);
@@ -366,9 +366,9 @@ struct BlockCopy
 template<typename T, bool is1Bit>
 struct BlockCopy<T, is1Bit, T, is1Bit, false>
 {
-  static void Do(void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
-                 void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
-                 const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParamters)
+  static void Do(void       *target, const int32_t (&targetOffset)[DataBlock::Dimensionality_Max], const int32_t (&targetSize)[DataBlock::Dimensionality_Max],
+                 void const *source, const int32_t (&sourceOffset)[DataBlock::Dimensionality_Max], const int32_t (&sourceSize)[DataBlock::Dimensionality_Max],
+                 const int32_t (&overlapSize) [DataBlock::Dimensionality_Max], const ConversionParameters &conversionParamters)
   {
     int64_t sourceLocalBaseSize = ((((int64_t)sourceOffset[3] * sourceSize[2] + sourceOffset[2]) * sourceSize[1] + sourceOffset[1]) * sourceSize[0] + sourceOffset[0]) * (int64_t)sizeof(T);
     int64_t targetLocalBaseSize = ((((int64_t)targetOffset[3] * targetSize[2] + targetOffset[2]) * targetSize[1] + targetOffset[1]) * targetSize[0] + targetOffset[0]) * (int64_t)sizeof(T);
@@ -398,9 +398,9 @@ struct BlockCopy<T, is1Bit, T, is1Bit, false>
 };
 
 template<typename T, bool targetOneBit, typename S, bool sourceOneBit>
-static void DispatchBlockCopy3(void *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
-                              void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
-                              const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParameters)
+static void DispatchBlockCopy3(void *target, const int32_t (&targetOffset)[DataBlock::Dimensionality_Max], const int32_t (&targetSize)[DataBlock::Dimensionality_Max],
+                              void const *source, const int32_t (&sourceOffset)[DataBlock::Dimensionality_Max], const int32_t (&sourceSize)[DataBlock::Dimensionality_Max],
+                              const int32_t (&overlapSize) [DataBlock::Dimensionality_Max], const ConversionParameters &conversionParameters)
 {
   if (conversionParameters.hasReplacementNoValue && !(targetOneBit && sourceOneBit))
     BlockCopy<T, targetOneBit, S, sourceOneBit, true>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
@@ -408,10 +408,10 @@ static void DispatchBlockCopy3(void *target, const int32_t (&targetOffset)[DataS
     BlockCopy<T, targetOneBit, S, sourceOneBit, false>::Do(target, targetOffset, targetSize, source, sourceOffset, sourceSize, overlapSize, conversionParameters);
 }
 template<typename T, bool targetOneBit>
-static void DispatchBlockCopy2(void *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
+static void DispatchBlockCopy2(void *target, const int32_t (&targetOffset)[DataBlock::Dimensionality_Max], const int32_t (&targetSize)[DataBlock::Dimensionality_Max],
                               VolumeDataChannelDescriptor::Format sourceFormat,
-                              void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
-                              const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParameters)
+                              void const *source, const int32_t (&sourceOffset)[DataBlock::Dimensionality_Max], const int32_t (&sourceSize)[DataBlock::Dimensionality_Max],
+                              const int32_t (&overlapSize) [DataBlock::Dimensionality_Max], const ConversionParameters &conversionParameters)
 {
   switch(sourceFormat)
   {
@@ -435,10 +435,10 @@ static void DispatchBlockCopy2(void *target, const int32_t (&targetOffset)[DataS
 }
 
 static void DispatchBlockCopy(VolumeDataChannelDescriptor::Format destinationFormat,
-                              void       *target, const int32_t (&targetOffset)[DataStoreDimensionality_Max], const int32_t (&targetSize)[DataStoreDimensionality_Max],
+                              void       *target, const int32_t (&targetOffset)[DataBlock::Dimensionality_Max], const int32_t (&targetSize)[DataBlock::Dimensionality_Max],
                               VolumeDataChannelDescriptor::Format sourceFormat,
-                              void const *source, const int32_t (&sourceOffset)[DataStoreDimensionality_Max], const int32_t (&sourceSize)[DataStoreDimensionality_Max],
-                              const int32_t (&overlapSize) [DataStoreDimensionality_Max], const ConversionParameters &conversionParamters)
+                              void const *source, const int32_t (&sourceOffset)[DataBlock::Dimensionality_Max], const int32_t (&sourceSize)[DataBlock::Dimensionality_Max],
+                              const int32_t (&overlapSize) [DataBlock::Dimensionality_Max], const ConversionParameters &conversionParamters)
 {
   switch(destinationFormat)
   {
@@ -508,7 +508,7 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
   for (int32_t dimension = 0; dimension < Dimensionality_Max; dimension++)
   {
     globalSourceSize[dimension] = 1;
-    for (int iCopyDimension = 0; iCopyDimension < DataStoreDimensionality_Max; iCopyDimension++)
+    for (int iCopyDimension = 0; iCopyDimension < DataBlock::Dimensionality_Max; iCopyDimension++)
     {
       if (dimension == DimensionGroupUtil::GetDimension(sourceDimensionGroup, iCopyDimension))
       {
@@ -537,11 +537,11 @@ static bool RequestSubsetProcessPage(VolumeDataPageImpl* page, const VolumeDataC
     }
   }
 
-  int32_t sourceSize[DataStoreDimensionality_Max];
-  int32_t sourceOffset[DataStoreDimensionality_Max];
-  int32_t targetSize[DataStoreDimensionality_Max];
-  int32_t targetOffset[DataStoreDimensionality_Max];
-  int32_t overlapSize[DataStoreDimensionality_Max];
+  int32_t sourceSize[DataBlock::Dimensionality_Max];
+  int32_t sourceOffset[DataBlock::Dimensionality_Max];
+  int32_t targetSize[DataBlock::Dimensionality_Max];
+  int32_t targetOffset[DataBlock::Dimensionality_Max];
+  int32_t overlapSize[DataBlock::Dimensionality_Max];
 
   int32_t copyDimensions = CombineAndReduceDimensions(sourceSize, sourceOffset, targetSize, targetOffset, overlapSize, globalSourceSize, globalSourceOffset, globalTargetSize, globalTargetOffset, globalOverlapSize);
   (void) copyDimensions;
@@ -669,11 +669,11 @@ struct IndexValues
   int32_t bitPitch[Dimensionality_Max];
   int32_t axisNumSamples[Dimensionality_Max];
 
-  int32_t dataBlockSamples[DataStoreDimensionality_Max];
-  int32_t dataBlockAllocatedSize[DataStoreDimensionality_Max];
-  int32_t dataBlockPitch[DataStoreDimensionality_Max];
-  int32_t dataBlockBitPitch[DataStoreDimensionality_Max];
-  int32_t dimensionMap[DataStoreDimensionality_Max];
+  int32_t dataBlockSamples[DataBlock::Dimensionality_Max];
+  int32_t dataBlockAllocatedSize[DataBlock::Dimensionality_Max];
+  int32_t dataBlockPitch[DataBlock::Dimensionality_Max];
+  int32_t dataBlockBitPitch[DataBlock::Dimensionality_Max];
+  int32_t dimensionMap[DataBlock::Dimensionality_Max];
 
 
   float coordinateMin[Dimensionality_Max];
@@ -706,13 +706,13 @@ struct IndexValues
       localChunkAllocatedSize[dimension] = 1;
     }
 
-    for (int dimension = 0; dimension < DataStoreDimensionality_Max; dimension++)
+    for (int dimension = 0; dimension < DataBlock::Dimensionality_Max; dimension++)
     {
       dataBlockPitch[dimension] = dataBlock.Pitch[dimension];
       dataBlockAllocatedSize[dimension] = dataBlock.AllocatedSize[dimension];
       dataBlockSamples[dimension] = dataBlock.Size[dimension];
 
-      for (int iDataBlockDim = 0; iDataBlockDim < DataStoreDimensionality_Max; iDataBlockDim++)
+      for (int iDataBlockDim = 0; iDataBlockDim < DataBlock::Dimensionality_Max; iDataBlockDim++)
       {
         dataBlockBitPitch[iDataBlockDim] = dataBlockPitch[iDataBlockDim] * (iDataBlockDim == 0 ? 1 : 8);
 
@@ -749,7 +749,7 @@ static void VoxelIndexToLocalIndexFloat(const IndexValues &indexValues, const fl
     for (int i = 0; i < Dimensionality_Max; i++)
       localIndex[i] = 0.0f;
 
-    for (int i = 0; i < DataStoreDimensionality_Max; i++)
+    for (int i = 0; i < DataBlock::Dimensionality_Max; i++)
     {
       if (indexValues.dimensionMap[i] >= 0)
       {

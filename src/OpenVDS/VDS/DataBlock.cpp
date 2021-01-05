@@ -22,14 +22,14 @@ namespace OpenVDS
 
 bool InitializeDataBlock(const DataBlockDescriptor &descriptor, DataBlock &dataBlock, Error &error)
 {
-  int32_t size[DataStoreDimensionality_Max];
+  int32_t size[DataBlock::Dimensionality_Max];
   size[0] = descriptor.SizeX;
   size[1] = descriptor.SizeY;
   size[2] = descriptor.SizeZ;
-  return InitializeDataBlock(descriptor.Format, descriptor.Components, Dimensionality(descriptor.Dimensionality), size, dataBlock, error);
+  return InitializeDataBlock(descriptor.Format, descriptor.Components, enum DataBlock::Dimensionality(descriptor.Dimensionality), size, dataBlock, error);
 }
 
-bool InitializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, Dimensionality dimensionality, int32_t (&size)[DataStoreDimensionality_Max], DataBlock &dataBlock, Error &error)
+bool InitializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components, enum DataBlock::Dimensionality dimensionality, int32_t (&size)[DataBlock::Dimensionality_Max], DataBlock &dataBlock, Error &error)
 {
   dataBlock.Components = components;
   dataBlock.Format = format;
@@ -66,14 +66,14 @@ bool InitializeDataBlock(VolumeDataChannelDescriptor::Format format, VolumeDataC
   dataBlock.AllocatedSize[2] = GetAllocatedByteSizeForSize(dataBlock.Size[2]);
   dataBlock.AllocatedSize[3] = GetAllocatedByteSizeForSize(dataBlock.Size[3]);
   dataBlock.Pitch[0] = 1;
-  for (int i = 1; i < DataStoreDimensionality_Max; i++)
+  for (int i = 1; i < DataBlock::Dimensionality_Max; i++)
   {
     dataBlock.Pitch[i] = dataBlock.Pitch[i - 1] * dataBlock.AllocatedSize[i - 1];
   }
 
   uint64_t allocatedByteSize = dataBlock.AllocatedSize[0];
 
-  for (int i = 1; i < DataStoreDimensionality_Max; i++)
+  for (int i = 1; i < DataBlock::Dimensionality_Max; i++)
   {
     allocatedByteSize *= dataBlock.AllocatedSize[i];
   }

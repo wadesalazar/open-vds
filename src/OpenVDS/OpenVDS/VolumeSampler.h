@@ -35,6 +35,8 @@ template <> struct InterpolatedRealType<uint32_t> { typedef double type; };
 template <typename T, InterpolationMethod INTERPMETHOD, bool ISUSENOVALUE>
 class VolumeSampler
 {
+public:
+  static constexpr int DataBlockDimensionality_Max = 4;
 private:
   int32_t m_sizeX;
   int32_t m_sizeY;
@@ -100,13 +102,13 @@ public:
     , m_quantizedTypesToFloatConverter()
   {}
 
-  /// \param anSize the 6D size of the buffer to be sampled
-  /// \param anPitch the pitch of the buffer to be sampled
+  /// \param anSize the (at least 3D) size of the buffer to be sampled
+  /// \param anPitch the (at least 3D) pitch of the buffer to be sampled
   /// \param rangeMin the value range minimum of the data to be sampled
   /// \param rangemax the value range maximum of the data to be sampled
   /// \param noValalue the no value for the data to be sampled
   /// \param replacementNoValue the value to replace any NoValues with
-    VolumeSampler(const int(&anSize)[DataStoreDimensionality_Max], const int(&anPitch)[DataStoreDimensionality_Max], float rangeMin, float rangeMax, float integerScale, float integerOffset, float noValalue, float replacementNoValue)
+    VolumeSampler(const int(&anSize)[DataBlockDimensionality_Max], const int(&anPitch)[DataBlockDimensionality_Max], float rangeMin, float rangeMax, float integerScale, float integerOffset, float noValalue, float replacementNoValue)
       : m_sizeX(anSize[0])
       , m_sizeY(anSize[1])
       , m_sizeZ(anSize[2])

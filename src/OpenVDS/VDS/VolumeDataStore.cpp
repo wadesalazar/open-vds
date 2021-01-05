@@ -57,7 +57,7 @@ static bool CompressionMethodIsWavelet(CompressionMethod compressionMethod)
 
 static uint32_t GetByteSize(const DataBlockDescriptor &descriptor)
 {
-  int32_t size[DataStoreDimensionality_Max];
+  int32_t size[DataBlock::Dimensionality_Max];
   size[0] = descriptor.SizeX;
   size[1] = descriptor.SizeY;
   size[2] = descriptor.SizeZ;
@@ -69,7 +69,7 @@ bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::
 {
   bool isValid = false;
 
-  int32_t voxelSize[DataStoreDimensionality_Max];
+  int32_t voxelSize[DataBlock::Dimensionality_Max];
 
   volumeDataChunk.layer->GetChunkVoxelSize(volumeDataChunk.index, voxelSize);
 
@@ -144,9 +144,9 @@ static void CopyLinearBufferIntoDataBlock(const void *sourceBuffer, const DataBl
 
 static bool CopyDataBlockIntoLinearBuffer(const DataBlock &dataBlock, const void *sourceBuffer, void *targetBuffer, int32_t bufferSize)
 {
-  int32_t size[DataStoreDimensionality_Max];
+  int32_t size[DataBlock::Dimensionality_Max];
   memcpy(size, dataBlock.Size, sizeof(size));
-  int32_t allocatedSize[DataStoreDimensionality_Max];
+  int32_t allocatedSize[DataBlock::Dimensionality_Max];
   memcpy(allocatedSize, dataBlock.AllocatedSize, sizeof(allocatedSize));
 
   int32_t elementSize = int32_t(GetElementSize(dataBlock));
@@ -462,7 +462,7 @@ bool VolumeDataStore::CreateConstantValueDataBlock(VolumeDataChunk const &volume
   int32_t size[4];
   volumeDataChunk.layer->GetChunkVoxelSize(volumeDataChunk.index, size);
   int32_t dimensionality = volumeDataChunk.layer->GetChunkDimensionality();
-  if (!InitializeDataBlock(format, components, Dimensionality(dimensionality), size, dataBlock, error))
+  if (!InitializeDataBlock(format, components, enum DataBlock::Dimensionality(dimensionality), size, dataBlock, error))
     return false;
 
  
