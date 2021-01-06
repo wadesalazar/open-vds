@@ -311,7 +311,7 @@ bool
 IsSEGYTypeWithGatherOffset(const SEGYType segyType)
 {
   // TODO what other SEGY types have offsets?
-  return segyType == SEGY::SEGYType::Prestack;
+  return segyType == SEGY::SEGYType::Prestack || IsSEGYTypeUnbinned(segyType);
 }
 
 } // end namespace SEGY

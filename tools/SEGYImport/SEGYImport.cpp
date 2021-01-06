@@ -629,7 +629,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
       gatherFold = 1;
     }
 
-    if (SEGY::IsSEGYTypeWithGatherOffset(segyType))
+    if (fileInfo.HasGatherOffset())
     {
       auto
         thisOffset = SEGY::ReadFieldFromHeader(header, g_traceHeaderFields["Offset"], fileInfo.m_headerEndianness);
@@ -686,14 +686,17 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
     }
   }
 
-  // check that offset start/end/step is consistent
-  if (offsetStart + (fold - 1) * offsetStep != offsetEnd)
+  if (fileInfo.HasGatherOffset() && !fileInfo.IsUnbinned())
   {
-    const auto
-      msgFormat = "The detected gather offset start/end/step of '{0}/{1}/{2}' is not consistent with the detected fold of '{3}'. This usually indicates using the wrong header format for the input dataset.\n.";
-    fmt::print(stderr, msgFormat, offsetStart, offsetEnd, offsetStep, fold);
-    return false;
+    // check that offset start/end/step is consistent
+    if (offsetStart + (fold - 1) * offsetStep != offsetEnd)
+    {
+      const auto
+        msgFormat = "The detected gather offset start/end/step of '{0}/{1}/{2}' is not consistent with the detected fold of '{3}'. This usually indicates using the wrong header format for the input dataset.\n.";
+      fmt::print(stderr, msgFormat, offsetStart, offsetEnd, offsetStep, fold);
+      return false;
 
+    }
   }
 
   // If the secondary step couldn't be determined, set it to the last step or 1
@@ -1126,7 +1129,7 @@ createChannelDescriptors(SEGYFileInfo const& fileInfo, OpenVDS::FloatRange const
   if (offsetInfo.hasOffset)
   {
     // offset channel
-    channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Offset", KNOWNMETADATA_UNIT_UNITLESS, static_cast<float>(offsetInfo.offsetStart), static_cast<float>(offsetInfo.offsetEnd),OpenVDS::VolumeDataMapping::PerTrace, OpenVDS::VolumeDataChannelDescriptor::NoLossyCompression);
+    channelDescriptors.emplace_back(OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataChannelDescriptor::Components_1, "Offset", KNOWNMETADATA_UNIT_METER, static_cast<float>(offsetInfo.offsetStart), static_cast<float>(offsetInfo.offsetEnd),OpenVDS::VolumeDataMapping::PerTrace, OpenVDS::VolumeDataChannelDescriptor::NoLossyCompression);
 
     // TODO channels for other gather types - "Angle", "Vrms", "Frequency"
   }
@@ -1799,7 +1802,7 @@ main(int argc, char* argv[])
   auto amplitudeAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
   auto traceFlagAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
   auto segyTraceHeaderAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto offsetAccessor = fileInfo.Is4D() ? accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 3, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create) : nullptr;
+  auto offsetAccessor = fileInfo.HasGatherOffset() ? accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 3, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create) : nullptr;
 
   int64_t traceByteSize = fileInfo.TraceByteSize();
 
@@ -2082,7 +2085,7 @@ main(int argc, char* argv[])
           assert(primaryIndex >= chunkInfo.min[PrimaryKeyDimension(fileInfo)] && primaryIndex < chunkInfo.max[PrimaryKeyDimension(fileInfo)]);
           assert(secondaryIndex >= chunkInfo.min[SecondaryKeyDimension(fileInfo)] && secondaryIndex < chunkInfo.max[SecondaryKeyDimension(fileInfo)]);
 
-          if (fileInfo.HasGatherOffset() && traceOrderByOffset)
+          if (fileInfo.Is4D() && traceOrderByOffset)
           {
             // recalculate tertiaryIndex from header offset value
             const auto
@@ -2149,7 +2152,15 @@ main(int argc, char* argv[])
           if (offsetBuffer)
           {
             // offset is only applicable to 4D?
-            int targetOffset = (primaryIndex - chunkInfo.min[3]) * offsetPitch[3] + (secondaryIndex - chunkInfo.min[2]) * offsetPitch[2] + (tertiaryIndex - chunkInfo.min[1]) * offsetPitch[1];
+            int targetOffset;
+            if (fileInfo.Is4D())
+            {
+              targetOffset = (primaryIndex - chunkInfo.min[3]) * offsetPitch[3] + (secondaryIndex - chunkInfo.min[2]) * offsetPitch[2] + (tertiaryIndex - chunkInfo.min[1]) * offsetPitch[1];
+            }
+            else
+            {
+              targetOffset = (primaryIndex - chunkInfo.min[2]) * offsetPitch[2] + (secondaryIndex - chunkInfo.min[1]) * offsetPitch[1];
+            }
 
             const int
               traceOffset = SEGY::ReadFieldFromHeader(header, g_traceHeaderFields["Offset"], fileInfo.m_headerEndianness);
