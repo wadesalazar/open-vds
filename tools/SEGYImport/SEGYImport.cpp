@@ -406,9 +406,9 @@ getOrderedSegmentListIndices(SEGYFileInfo const& fileInfo, size_t& globalTotalSe
   int
     longestList = 0;
   globalTotalSegments = 0;
-  for (int i = 0; i < fileInfo.m_segmentInfoLists.size(); ++i)
+  for (size_t i = 0; i < fileInfo.m_segmentInfoLists.size(); ++i)
   {
-    orderedListIndices.push_back(i);
+    orderedListIndices.push_back(static_cast<int>(i));
     globalTotalSegments += fileInfo.m_segmentInfoLists[i].size();
     if (fileInfo.m_segmentInfoLists[i].size() > fileInfo.m_segmentInfoLists[longestList].size())
     {
@@ -456,7 +456,7 @@ findRepresentativeSegment(SEGYFileInfo const& fileInfo, int& primaryStep, int& b
     const auto&
       segmentInfoList = fileInfo.m_segmentInfoLists[listIndex];
 
-    for (int i = 0; i < segmentInfoList.size(); i++)
+    for (size_t i = 0; i < segmentInfoList.size(); i++)
     {
       int64_t
         numTraces = (segmentInfoList[i].m_traceStop - segmentInfoList[i].m_traceStart + 1);
@@ -1837,7 +1837,7 @@ main(int argc, char* argv[])
   const auto
     perFileMemoryLimit = dvmMemoryLimit / dataProviders.size();
 
-  for (int fileIndex = 0; fileIndex < fileInfo.m_segmentInfoLists.size(); ++fileIndex)
+  for (size_t fileIndex = 0; fileIndex < fileInfo.m_segmentInfoLists.size(); ++fileIndex)
   {
     dataViewManagers.emplace_back(std::make_shared<DataViewManager>(dataProviders[fileIndex], perFileMemoryLimit));
     traceDataManagers.emplace_back(dataViewManagers.back(), 128, traceByteSize, fileInfo.m_traceCounts[fileIndex]);
@@ -1863,7 +1863,7 @@ main(int argc, char* argv[])
 
     // For each input file, find the lower/upper segments and then add data requests to that file's traceDataManager
 
-    for (int fileIndex = 0; fileIndex < fileInfo.m_segmentInfoLists.size(); ++fileIndex)
+    for (size_t fileIndex = 0; fileIndex < fileInfo.m_segmentInfoLists.size(); ++fileIndex)
     {
       auto&
         segmentInfoList = fileInfo.m_segmentInfoLists[fileIndex];
@@ -1873,7 +1873,7 @@ main(int argc, char* argv[])
       if (fileInfo.IsUnbinned())
       {
         // Unbinned primary keys are 1-based segment indices
-        hasSegments = 1 <= chunkInfo.primaryKeyStop && segmentInfoList.size() >= chunkInfo.primaryKeyStart;
+        hasSegments = 1 <= chunkInfo.primaryKeyStop && static_cast<int>(segmentInfoList.size()) >= chunkInfo.primaryKeyStart;
       }
       else
       {
@@ -1940,7 +1940,7 @@ main(int argc, char* argv[])
     {
       const auto& previousChunkInfo = chunkInfos[chunk - 1];
 
-      for (int chunkFileIndex = 0; chunkFileIndex < dataProviders.size(); ++chunkFileIndex)
+      for (size_t chunkFileIndex = 0; chunkFileIndex < dataProviders.size(); ++chunkFileIndex)
       {
         auto prevIndexIter = previousChunkInfo.lowerUpperSegmentIndices.find(chunkFileIndex);
         if (prevIndexIter != previousChunkInfo.lowerUpperSegmentIndices.end())
@@ -1998,7 +1998,7 @@ main(int argc, char* argv[])
     assert(!segyTraceHeaderBuffer || segyTraceHeaderPitch[1] == SEGY::TraceHeaderSize);
     assert(!offsetBuffer || offsetPitch[1] == 1);
     
-    for (int fileIndex = 0; fileIndex < fileInfo.m_segmentInfoLists.size(); ++fileIndex)
+    for (size_t fileIndex = 0; fileIndex < fileInfo.m_segmentInfoLists.size(); ++fileIndex)
     {
       auto result = chunkInfo.lowerUpperSegmentIndices.find(fileIndex);
       if (result == chunkInfo.lowerUpperSegmentIndices.end())
