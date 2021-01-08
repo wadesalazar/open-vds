@@ -403,7 +403,7 @@ getOrderedSegmentListIndices(SEGYFileInfo const& fileInfo, size_t& globalTotalSe
 
   std::vector<int>
     orderedListIndices;
-  int
+  size_t
     longestList = 0;
   globalTotalSegments = 0;
   for (size_t i = 0; i < fileInfo.m_segmentInfoLists.size(); ++i)
@@ -444,7 +444,7 @@ findRepresentativeSegment(SEGYFileInfo const& fileInfo, int& primaryStep, int& b
   bestListIndex = 0;
 
   float bestScore = 0.0f;
-  int bestIndex = 0;
+  size_t bestIndex = 0;
 
   int segmentPrimaryStep = 0;
 
@@ -1822,7 +1822,7 @@ main(int argc, char* argv[])
     int secondaryKeyStop;
     int primaryKeyStart;
     int primaryKeyStop;
-    std::map<int, std::pair<size_t, size_t>>
+    std::map<size_t, std::pair<size_t, size_t>>
       lowerUpperSegmentIndices;
   };
 
