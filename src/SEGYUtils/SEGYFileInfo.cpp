@@ -74,7 +74,7 @@ SEGYFileInfo::StaticGetUniqueID()
 }
 
 bool
-SEGYFileInfo::Scan(DataProvider &dataProvider, HeaderField const &primaryKeyHeaderField, HeaderField const &secondaryKeyHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
+SEGYFileInfo::Scan(DataProvider &dataProvider, HeaderField const &primaryKeyHeaderField, HeaderField const &secondaryKeyHeaderField, SEGY::HeaderField const &startTimeHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
 {
   char textualFileHeader[TextualFileHeaderSize];
   char binaryFileHeader[BinaryFileHeaderSize];
@@ -116,6 +116,8 @@ SEGYFileInfo::Scan(DataProvider &dataProvider, HeaderField const &primaryKeyHead
   }
 
   m_sampleCount = ReadFieldFromHeader(binaryFileHeader, BinaryHeader::NumSamplesHeaderField, m_headerEndianness);
+
+  m_startTimeMilliseconds = ReadFieldFromHeader(traceHeader, startTimeHeaderField, m_headerEndianness);
 
   m_sampleIntervalMilliseconds = ReadFieldFromHeader(binaryFileHeader, BinaryHeader::SampleIntervalHeaderField, m_headerEndianness) / 1000.0;
   

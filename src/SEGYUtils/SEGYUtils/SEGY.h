@@ -296,4 +296,11 @@ OPENVDS_EXPORT int ReadFieldFromHeader(const void *header, HeaderField const &he
 
 OPENVDS_EXPORT int FormatSize(BinaryHeader::DataSampleFormatCode dataSampleFormatCode);
 
+enum class SampleUnits
+{
+  Milliseconds = 0,
+  Feet = 1,
+  Meters = 2
+};
+
 } // end namespace SEGY

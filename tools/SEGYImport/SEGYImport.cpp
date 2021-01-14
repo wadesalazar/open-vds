@@ -164,6 +164,7 @@ SerializeSEGYFileInfo(SEGYFileInfo const& fileInfo)
   jsonFileInfo["headerEndianness"] = ToString(fileInfo.m_headerEndianness);
   jsonFileInfo["dataSampleFormatCode"] = (int)fileInfo.m_dataSampleFormatCode;
   jsonFileInfo["sampleCount"] = fileInfo.m_sampleCount;
+  jsonFileInfo["startTime"] = fileInfo.m_startTimeMilliseconds;
   jsonFileInfo["sampleInterval"] = fileInfo.m_sampleIntervalMilliseconds;
   jsonFileInfo["traceCount"] = fileInfo.m_traceCount;
   jsonFileInfo["primaryKey"] = SerializeSEGYHeaderField(fileInfo.m_primaryKey);
@@ -830,6 +831,7 @@ parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
     fileInfo.m_headerEndianness = EndiannessFromJson(jsonFileInfo["headerEndianness"]);
     fileInfo.m_dataSampleFormatCode = SEGY::BinaryHeader::DataSampleFormatCode(jsonFileInfo["dataSampleFormatCode"].asInt());
     fileInfo.m_sampleCount = jsonFileInfo["sampleCount"].asInt();
+    fileInfo.m_startTimeMilliseconds = jsonFileInfo["startTime"].asDouble();
     fileInfo.m_sampleIntervalMilliseconds = jsonFileInfo["sampleInterval"].asDouble();
     fileInfo.m_traceCount = jsonFileInfo["traceCount"].asInt64();
     fileInfo.m_primaryKey = HeaderFieldFromJson(jsonFileInfo["primaryKey"]);
@@ -849,15 +851,8 @@ parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
   return true;
 }
 
-enum class SampleUnits
-{
-  Milliseconds = 0,
-  Feet = 1,
-  Meters = 2
-};
-
 std::vector<OpenVDS::VolumeDataAxisDescriptor>
-createAxisDescriptors(SEGYFileInfo const& fileInfo, SampleUnits sampleUnits, int inlineStep, int crosslineStep)
+createAxisDescriptors(SEGYFileInfo const& fileInfo, SEGY::SampleUnits sampleUnits, int inlineStep, int crosslineStep)
 {
   std::vector<OpenVDS::VolumeDataAxisDescriptor>
     axisDescriptors;
@@ -866,14 +861,15 @@ createAxisDescriptors(SEGYFileInfo const& fileInfo, SampleUnits sampleUnits, int
 
   switch(sampleUnits)
   {
-  case SampleUnits::Milliseconds: sampleUnit = KNOWNMETADATA_UNIT_MILLISECOND; break;
-  case SampleUnits::Feet:         sampleUnit = KNOWNMETADATA_UNIT_FOOT;        break;
-  case SampleUnits::Meters:       sampleUnit = KNOWNMETADATA_UNIT_METER;       break;
+  case SEGY::SampleUnits::Milliseconds: sampleUnit = KNOWNMETADATA_UNIT_MILLISECOND; break;
+  case SEGY::SampleUnits::Feet:         sampleUnit = KNOWNMETADATA_UNIT_FOOT;        break;
+  case SEGY::SampleUnits::Meters:       sampleUnit = KNOWNMETADATA_UNIT_METER;       break;
   default:
     assert(0 && "Unknown sample unit");
   }
 
-  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, sampleUnit, 0.0f, (fileInfo.m_sampleCount - 1) * (float)fileInfo.m_sampleIntervalMilliseconds));
+  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, sampleUnit, (float)fileInfo.m_startTimeMilliseconds, (float)fileInfo.m_startTimeMilliseconds + (fileInfo.m_sampleCount - 1) * (float)fileInfo.m_sampleIntervalMilliseconds));
+  axisDescriptors.push_back(OpenVDS::VolumeDataAxisDescriptor(fileInfo.m_sampleCount, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_AXISNAME_SAMPLE, sampleUnit, (float)fileInfo.m_startTimeMilliseconds, (float)fileInfo.m_startTimeMilliseconds + (fileInfo.m_sampleCount - 1) * (float)fileInfo.m_sampleIntervalMilliseconds));
 
   int minInline    = fileInfo.m_segmentInfo[0].m_binInfoStart.m_inlineNumber,
       minCrossline = fileInfo.m_segmentInfo[0].m_binInfoStart.m_crosslineNumber,
@@ -1068,6 +1064,8 @@ main(int argc, char* argv[])
   std::string sampleUnit;
   std::string crsWkt;
   double scale = 0;
+  bool overrideSampleStart = false;
+  double sampleStart = 0;
   bool littleEndian = false;
   bool scan = false;
   std::string fileInfoFileName;
@@ -1091,6 +1089,7 @@ main(int argc, char* argv[])
   options.add_option("", "s", "secondary-key", "The name of the trace header field to use as the secondary key.", cxxopts::value<std::string>(secondaryKey)->default_value("Crossline"), "<field>");
   options.add_option("", "", "scale", "If a scale override (floating point) is given, it is used to scale the coordinates in the header instead of determining the scale factor from the coordinate scale trace header field.", cxxopts::value<double>(scale), "<value>");
   options.add_option("", "", "sample-unit", "A sample unit of 'ms' is used for datasets in the time domain (default), while a sample unit of 'm' or 'ft' is used for datasets in the depth domain", cxxopts::value<std::string>(sampleUnit), "<string>");
+  options.add_option("", "", "sample-start", "The start time/depth/frequency (depending on the domain) of the sampling", cxxopts::value<double>(sampleStart), "<value>");
   options.add_option("", "", "crs-wkt", "A coordinate reference system in well-known text format can optionally be provided", cxxopts::value<std::string>(crsWkt), "<string>");
   options.add_option("", "l", "little-endian", "Force little-endian trace headers.", cxxopts::value<bool>(littleEndian), "");
   options.add_option("", "", "scan", "Generate a JSON file containing information about the input SEG-Y file.", cxxopts::value<bool>(scan), "");
@@ -1120,7 +1119,8 @@ main(int argc, char* argv[])
 
   try
   {
-    options.parse(argc, argv);
+    auto result = options.parse(argc, argv);
+    overrideSampleStart = result.count("sample-start") != 0;
   }
   catch (cxxopts::OptionParseException &e)
   {
@@ -1208,6 +1208,9 @@ main(int argc, char* argv[])
     secondaryKeyHeaderField = g_traceHeaderFields[secondaryKey];
   }
 
+  SEGY::HeaderField
+    startTimeHeaderField = g_traceHeaderFields["StartTime"];
+
   SEGYBinInfoHeaderFields
     binInfoHeaderFields(g_traceHeaderFields["InlineNumber"], g_traceHeaderFields["CrosslineNumber"], g_traceHeaderFields["CoordinateScale"], g_traceHeaderFields["EnsembleXCoordinate"], g_traceHeaderFields["EnsembleYCoordinate"], scale);
 
@@ -1240,12 +1243,17 @@ main(int argc, char* argv[])
       fileInfo.m_persistentID = OpenVDS::HashCombiner(hash);
     }
 
-    bool success = fileInfo.Scan(dataProvider, primaryKeyHeaderField, secondaryKeyHeaderField, binInfoHeaderFields);
+    bool success = fileInfo.Scan(dataProvider, primaryKeyHeaderField, secondaryKeyHeaderField, startTimeHeaderField, binInfoHeaderFields);
 
     if (!success)
     {
       std::cerr << std::string("Failed to scan file: ") << fileNames[0];
       return EXIT_FAILURE;
+    }
+
+    if(overrideSampleStart)
+    {
+      fileInfo.m_startTimeMilliseconds = sampleStart;
     }
 
     // If we are in scan mode we serialize the result of the file scan either to a fileInfo file (if specified) or to stdout and exit
@@ -1309,6 +1317,11 @@ main(int argc, char* argv[])
     if (!success)
     {
       return EXIT_FAILURE;
+    }
+
+    if(overrideSampleStart)
+    {
+      fileInfo.m_startTimeMilliseconds = sampleStart;
     }
   }
   else
@@ -1378,20 +1391,20 @@ main(int argc, char* argv[])
 
   OpenVDS::VolumeDataLayoutDescriptor layoutDescriptor(brickSizeEnum, negativeMargin, positiveMargin, brickSize2DMultiplier, lodLevels, layoutOptions);
 
-  SampleUnits
+  SEGY::SampleUnits
     sampleUnits;
 
   if(sampleUnit.empty() || sampleUnit == "ms" || sampleUnit == "millisecond"  || sampleUnit == "milliseconds")
   {
-    sampleUnits = SampleUnits::Milliseconds;
+    sampleUnits = SEGY::SampleUnits::Milliseconds;
   }
   else if(sampleUnit == "m" || sampleUnit == "meter" || sampleUnit == "meters")
   {
-    sampleUnits = SampleUnits::Meters;
+    sampleUnits = SEGY::SampleUnits::Meters;
   }
   else if(sampleUnit == "ft" || sampleUnit == "foot" || sampleUnit == "feet")
   {
-    sampleUnits = SampleUnits::Feet;
+    sampleUnits = SEGY::SampleUnits::Feet;
   }
   else
   {

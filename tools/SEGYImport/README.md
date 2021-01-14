@@ -14,6 +14,7 @@ SEGYImport [OPTION...] <input file>
 | -s, --secondary-key \<field>      | The name of the trace header field to use as the secondary key. (default: Crossline) |
 |     --scale \<value>              | If a scale override (floating point) is given, it is used to scale the coordinates in the header instead of determining the scale factor from the coordinate scale trace header field. |
 | --sample-unit \<string>           | A sample unit of 'ms' is used for datasets in the time domain (default), while a sample unit of 'm' or 'ft' is used for datasets in the depth domain |
+| --start-time \<value>              | If a start time override (floating point) is given, it is used instead of the value read from the start time trace header field. |
 | --crs-wkt \<string>               | A coordinate reference system in well-known text format can optionally be provided |
 | -l, --little-endian               | Force little-endian header fields. |
 |     --scan                        | Generate a JSON file containing information about the input SEG-Y file. |

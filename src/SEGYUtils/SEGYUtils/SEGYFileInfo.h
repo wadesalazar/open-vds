@@ -81,6 +81,8 @@ struct SEGYFileInfo
 
   int           m_sampleCount;
 
+  double        m_startTimeMilliseconds;
+
   double        m_sampleIntervalMilliseconds;
 
   int64_t       m_traceCount;
@@ -94,13 +96,13 @@ struct SEGYFileInfo
 
   OPENVDS_EXPORT static uint64_t StaticGetUniqueID();
 
-  SEGYFileInfo() : m_persistentID(), m_headerEndianness(), m_dataSampleFormatCode(), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
-  SEGYFileInfo(uint64_t persistentID, SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_persistentID(persistentID), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
-  SEGYFileInfo(SEGY::Endianness headerEndianness) : m_persistentID(StaticGetUniqueID()), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
+  SEGYFileInfo() : m_persistentID(), m_headerEndianness(), m_dataSampleFormatCode(), m_sampleCount(), m_startTimeMilliseconds(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
+  SEGYFileInfo(uint64_t persistentID, SEGY::Endianness headerEndianness = SEGY::Endianness::BigEndian) : m_persistentID(persistentID), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_startTimeMilliseconds(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
+  SEGYFileInfo(SEGY::Endianness headerEndianness) : m_persistentID(StaticGetUniqueID()), m_headerEndianness(headerEndianness), m_dataSampleFormatCode(SEGY::BinaryHeader::DataSampleFormatCode::Unknown), m_sampleCount(), m_startTimeMilliseconds(), m_sampleIntervalMilliseconds(), m_traceCount(), m_segmentInfo(), m_primaryKey(), m_secondaryKey() {}
 
   OPENVDS_EXPORT int  TraceByteSize() const;
 
-  OPENVDS_EXPORT bool Scan(DataProvider &dataprovider, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::StandardHeaderFields());
+  OPENVDS_EXPORT bool Scan(DataProvider &dataprovider, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGY::HeaderField const &startTimeHeaderField = SEGY::TraceHeader::StartTimeHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::StandardHeaderFields());
 };
 
 #endif  // SEGY_FILE_INFO_H
