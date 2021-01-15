@@ -657,7 +657,13 @@ public:
   /// </returns>
   virtual float GetCompletionFactor(int64_t requestID) = 0;
   
-  virtual void FlushUploadQueue() = 0;
+  /// <summary>
+  /// Flush any pending writes and write updated layer status
+  /// </summary>
+  /// <param name="writeUpdatedLayerStatus">
+  /// Write the updated layer status (or only flush pending writes of chunks and chunk-metadata).
+  /// </param>
+  virtual void FlushUploadQueue(bool writeUpdatedLayerStatus = true) = 0;
   virtual void ClearUploadErrors() = 0;
   virtual void ForceClearAllUploadErrors() = 0;
   virtual int32_t UploadErrorCount() = 0;

@@ -1837,7 +1837,15 @@ Parameters:
 pVolumeDataPageAccessor :
     The VolumeDataPageAccessor object to destroy.)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_FlushUploadQueue = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAccessManager_FlushUploadQueue =
+R"doc(Flush any pending writes and write updated layer status
+
+Parameters:
+-----------
+
+writeUpdatedLayerStatus :
+    Write the updated layer status (or only flush pending writes of
+    chunks and chunk-metadata).)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_ForceClearAllUploadErrors = R"doc()doc";
 

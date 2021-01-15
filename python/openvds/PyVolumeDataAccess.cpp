@@ -184,7 +184,7 @@ PyVolumeDataAccess::initModule(py::module& m)
   VolumeDataAccessManager_.def("waitForCompletion"           , static_cast<bool(VolumeDataAccessManager::*)(int64_t, int)>(&VolumeDataAccessManager::WaitForCompletion), py::arg("requestID").none(false), py::arg("millisecondsBeforeTimeout").none(false), OPENVDS_DOCSTRING(VolumeDataAccessManager_WaitForCompletion));
   VolumeDataAccessManager_.def("cancel"                      , static_cast<void(VolumeDataAccessManager::*)(int64_t)>(&VolumeDataAccessManager::Cancel), py::arg("requestID").none(false), OPENVDS_DOCSTRING(VolumeDataAccessManager_Cancel));
   VolumeDataAccessManager_.def("getCompletionFactor"         , static_cast<float(VolumeDataAccessManager::*)(int64_t)>(&VolumeDataAccessManager::GetCompletionFactor), py::arg("requestID").none(false), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCompletionFactor));
-  VolumeDataAccessManager_.def("flushUploadQueue"            , static_cast<void(VolumeDataAccessManager::*)()>(&VolumeDataAccessManager::FlushUploadQueue), OPENVDS_DOCSTRING(VolumeDataAccessManager_FlushUploadQueue));
+  VolumeDataAccessManager_.def("flushUploadQueue"            , static_cast<void(VolumeDataAccessManager::*)(bool)>(&VolumeDataAccessManager::FlushUploadQueue), py::arg("writeUpdatedLayerStatus").none(false), OPENVDS_DOCSTRING(VolumeDataAccessManager_FlushUploadQueue));
   VolumeDataAccessManager_.def("clearUploadErrors"           , static_cast<void(VolumeDataAccessManager::*)()>(&VolumeDataAccessManager::ClearUploadErrors), OPENVDS_DOCSTRING(VolumeDataAccessManager_ClearUploadErrors));
   VolumeDataAccessManager_.def("forceClearAllUploadErrors"   , static_cast<void(VolumeDataAccessManager::*)()>(&VolumeDataAccessManager::ForceClearAllUploadErrors), OPENVDS_DOCSTRING(VolumeDataAccessManager_ForceClearAllUploadErrors));
   VolumeDataAccessManager_.def("uploadErrorCount"            , static_cast<int32_t(VolumeDataAccessManager::*)()>(&VolumeDataAccessManager::UploadErrorCount), OPENVDS_DOCSTRING(VolumeDataAccessManager_UploadErrorCount));
@@ -360,6 +360,9 @@ PyVolumeDataAccess::initModule(py::module& m)
       return self->RequestVolumeTraces((float*)info.ptr, layout, dimensions, lod, channel, &traceCoordinates, traceCount, interpolationMethod, traceDimension, replacementNoValue);
     }
   , py::arg("buffer").none(false), py::arg("volumeDataLayout").none(false), py::arg("dimensionsND").none(false), py::arg("lod").none(false), py::arg("channel").none(false), py::arg("tracePositions").none(false), py::arg("interpolationMethod").none(false), py::arg("traceDimension").none(false), py::arg("replacementNoValue").none(false), OPENVDS_DOCSTRING(VolumeDataAccessManager_RequestVolumeTraces_2));
+
+// IMPLEMENTED :   VolumeDataAccessManager_.def("flushUploadQueue"            , static_cast<void(VolumeDataAccessManager::*)(bool)>(&VolumeDataAccessManager::FlushUploadQueue), py::arg("writeUpdatedLayerStatus").none(false), OPENVDS_DOCSTRING(VolumeDataAccessManager_FlushUploadQueue));
+VolumeDataAccessManager_.def("flushUploadQueue"            , static_cast<void(VolumeDataAccessManager::*)(bool)>(&VolumeDataAccessManager::FlushUploadQueue), py::arg("writeUpdatedLayerStatus").none(false) = true, OPENVDS_DOCSTRING(VolumeDataAccessManager_FlushUploadQueue));
 
 // IMPLEMENTED :   VolumeDataAccessManager_.def("getCurrentUploadError"       , static_cast<void(VolumeDataAccessManager::*)(const char **, int32_t *, const char **)>(&VolumeDataAccessManager::GetCurrentUploadError), py::arg("objectId").none(false), py::arg("errorCode").none(false), py::arg("errorString").none(false), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentUploadError));
   VolumeDataAccessManager_.def("getCurrentUploadError"       , [](VolumeDataAccessManager* self)

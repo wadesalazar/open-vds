@@ -106,6 +106,8 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
 
     private static native void cpFlushUploadQueue(long handle);
 
+    private static native void cpFlushUploadQueue(long handle, boolean writeUpdatedLayerStatus);
+
     private static native void cpClearUploadErrors(long handle);
 
     private static native void cpForceClearAllUploadErrors(long handle);
@@ -733,8 +735,20 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
         return cpGetCompletionFactor(_handle, requestID);
     }
 
+    /**
+     * Flush any pending writes and write updated layer status.
+     */
     public void flushUploadQueue() {
         cpFlushUploadQueue(_handle);
+    }
+
+    /**
+     * Flush any pending writes and write updated layer status.
+     *
+     * @param writeUpdatedLayerStatus Write the updated layer status (or only flush pending writes of chunks and chunk-metadata).
+     */
+    public void flushUploadQueue(boolean writeUpdatedLayerStatus) {
+        cpFlushUploadQueue(_handle, writeUpdatedLayerStatus);
     }
 
     public void clearUploadErrors() {

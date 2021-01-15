@@ -764,7 +764,7 @@ bool VolumeDataStoreIOManager::WriteChunk(const VolumeDataChunk& chunk, const st
   return true;
 }
 
-bool VolumeDataStoreIOManager::Flush()
+bool VolumeDataStoreIOManager::Flush(bool writeUpdatedLayerStatus)
 {
   while(true)
   {
@@ -782,12 +782,16 @@ bool VolumeDataStoreIOManager::Flush()
     metadataManager->UploadDirtyPages(this);
   }
 
-  Error error;
-  SerializeAndUploadLayerStatus(m_vds, error);
-
-  if(error.code != 0)
+  if(writeUpdatedLayerStatus)
   {
-    m_vds.accessManager->AddUploadError(error, "LayerStatus");
+    Error error;
+    SerializeAndUploadLayerStatus(m_vds, error);
+
+    if(error.code != 0)
+    {
+      m_vds.accessManager->AddUploadError(error, "LayerStatus");
+      return false;
+    }
   }
 
   return true;

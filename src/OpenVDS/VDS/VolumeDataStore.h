@@ -46,7 +46,7 @@ public:
   virtual bool          ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error) = 0;
   virtual bool          CancelReadChunk(const VolumeDataChunk& chunk, Error& error) = 0;
   virtual bool          WriteChunk(const VolumeDataChunk& chunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata) = 0;
-  virtual bool          Flush() = 0;
+  virtual bool          Flush(bool writeUpdatedLayerStatus) = 0;
   virtual bool          ReadSerializedVolumeDataLayout(std::vector<uint8_t>& serializedVolumeDataLayout, Error &error) = 0;
   virtual bool          WriteSerializedVolumeDataLayout(const std::vector<uint8_t>& serializedVolumeDataLayout, Error &error) = 0;
   virtual bool          AddLayer(VolumeDataLayer* volumeDataLayer, int chunkMetadataPageSize) = 0;

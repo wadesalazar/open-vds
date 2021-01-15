@@ -176,9 +176,9 @@ float VolumeDataAccessManagerImpl::GetCompletionFactor(int64_t requestID)
   return m_requestProcessor->GetCompletionFactor(requestID);
 }
 
-void VolumeDataAccessManagerImpl::FlushUploadQueue()
+void VolumeDataAccessManagerImpl::FlushUploadQueue(bool writeUpdatedLayerStatus)
 {
-  GetVolumeDataStore()->Flush();
+  GetVolumeDataStore()->Flush(writeUpdatedLayerStatus);
 }
 
 void VolumeDataAccessManagerImpl::AddUploadError(Error const &error, const std::string &url)

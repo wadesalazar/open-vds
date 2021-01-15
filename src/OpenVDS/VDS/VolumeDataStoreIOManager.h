@@ -122,7 +122,7 @@ public:
   bool          ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error) override;
   bool          CancelReadChunk(const VolumeDataChunk& chunk, Error& error) override;
   bool          WriteChunk(const VolumeDataChunk& chunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata) override;
-  bool          Flush() override;
+  bool          Flush(bool writeUpdatedLayerStatus) override;
   bool          ReadSerializedVolumeDataLayout(std::vector<uint8_t>& serializedVolumeDataLayout, Error &error) override;
   bool          WriteSerializedVolumeDataLayout(const std::vector<uint8_t>& serializedVolumeDataLayout, Error &error) override;
   bool          AddLayer(VolumeDataLayer* volumeDataLayer, int chunkMetadataPageSize) override;

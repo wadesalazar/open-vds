@@ -111,7 +111,7 @@ public:
   VolumeDataStore *GetVolumeDataStore();
   void AddUploadError(Error const &error, const std::string &url);
 
-  void FlushUploadQueue() override;
+  void FlushUploadQueue(bool writeUpdatedLayerStatus = true) override;
   void ClearUploadErrors() override;
   void ForceClearAllUploadErrors() override;
   int32_t UploadErrorCount() override;

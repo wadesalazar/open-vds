@@ -521,10 +521,23 @@ JNIEXPORT jfloat JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGe
 * Method:    cpFlushUploadQueue
 * Signature: (J)V
 */
-JNIEXPORT void JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpFlushUploadQueue
+JNIEXPORT void JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpFlushUploadQueue__J
         (JNIEnv *env, jclass, jlong handle) {
     try {
         GetManager(handle)->FlushUploadQueue();
+    }
+    CATCH_EXCEPTIONS_FOR_JAVA;
+}
+
+/*
+* Class:     org_opengroup_openvds_VolumeDataAccessManager
+* Method:    cpFlushUploadQueue
+* Signature: (JZ)V
+*/
+JNIEXPORT void JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpFlushUploadQueue__JZ
+        (JNIEnv *env, jclass, jlong handle, jboolean writeUpdatedLayerStatus) {
+    try {
+        GetManager(handle)->FlushUploadQueue(writeUpdatedLayerStatus);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
 }
