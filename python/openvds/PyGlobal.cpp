@@ -75,7 +75,10 @@ PyGlobal::initModule(py::module& m)
   AzureOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptions));
   AzureOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &>(), py::arg("connectionString").none(false), py::arg("container").none(false), py::arg("blob").none(false), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptions_2));
   AzureOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &, int &, int &>(), py::arg("connectionString").none(false), py::arg("container").none(false), py::arg("blob").none(false), py::arg("parallelism_factor").none(false), py::arg("max_execution_time").none(false), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptions_3));
+  AzureOpenOptions_.def_static("azureOpenOptionsBearer"      , static_cast<native::AzureOpenOptions(*)(const std::string &, const std::string &, const std::string &, const std::string &)>(&AzureOpenOptions::AzureOpenOptionsBearer), py::arg("accountName").none(false), py::arg("bearerToken").none(false), py::arg("container").none(false), py::arg("blob").none(false), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptionsBearer));
   AzureOpenOptions_.def_readwrite("connectionString"            , &AzureOpenOptions::connectionString, OPENVDS_DOCSTRING(AzureOpenOptions_connectionString));
+  AzureOpenOptions_.def_readwrite("accountName"                 , &AzureOpenOptions::accountName , OPENVDS_DOCSTRING(AzureOpenOptions_accountName));
+  AzureOpenOptions_.def_readwrite("bearerToken"                 , &AzureOpenOptions::bearerToken , OPENVDS_DOCSTRING(AzureOpenOptions_bearerToken));
   AzureOpenOptions_.def_readwrite("container"                   , &AzureOpenOptions::container   , OPENVDS_DOCSTRING(AzureOpenOptions_container));
   AzureOpenOptions_.def_readwrite("blob"                        , &AzureOpenOptions::blob        , OPENVDS_DOCSTRING(AzureOpenOptions_blob));
   AzureOpenOptions_.def_readwrite("parallelism_factor"          , &AzureOpenOptions::parallelism_factor, OPENVDS_DOCSTRING(AzureOpenOptions_parallelism_factor));

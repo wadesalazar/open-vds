@@ -116,6 +116,30 @@ parallelism_factor :
 max_execution_time :
     The max execution time setting for the Azure Blob Storage library)doc";
 
+static const char *__doc_OpenVDS_AzureOpenOptions_AzureOpenOptionsBearer =
+R"doc(AzureOpenOptions factory function for bearer token based
+authentication
+
+Parameters:
+-----------
+
+bearerToken :
+    The bearer token
+
+container :
+    The container of the VDS
+
+blob :
+    The blob prefix of the VDS
+
+Returns:
+--------
+    A valid AzureOpenOptions)doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_accountName = R"doc()doc";
+
+static const char *__doc_OpenVDS_AzureOpenOptions_bearerToken = R"doc()doc";
+
 static const char *__doc_OpenVDS_AzureOpenOptions_blob = R"doc()doc";
 
 static const char *__doc_OpenVDS_AzureOpenOptions_connectionString = R"doc()doc";
@@ -365,26 +389,6 @@ static const char *__doc_OpenVDS_CreateVolumeDataAccessor_20 = R"doc()doc";
 
 static const char *__doc_OpenVDS_CreateVolumeDataAccessor_21 = R"doc()doc";
 
-static const char *__doc_OpenVDS_DataBlockDimensionality = R"doc()doc";
-
-static const char *__doc_OpenVDS_DataBlockDimensionality_DataBlockDimensionality_Max = R"doc()doc";
-
-static const char *__doc_OpenVDS_Dimensionality = R"doc()doc";
-
-static const char *__doc_OpenVDS_Dimensionality_Dimensionality_1 = R"doc()doc";
-
-static const char *__doc_OpenVDS_Dimensionality_Dimensionality_2 = R"doc()doc";
-
-static const char *__doc_OpenVDS_Dimensionality_Dimensionality_3 = R"doc()doc";
-
-static const char *__doc_OpenVDS_Dimensionality_Dimensionality_4 = R"doc()doc";
-
-static const char *__doc_OpenVDS_Dimensionality_Dimensionality_5 = R"doc()doc";
-
-static const char *__doc_OpenVDS_Dimensionality_Dimensionality_6 = R"doc()doc";
-
-static const char *__doc_OpenVDS_Dimensionality_Dimensionality_Max = R"doc()doc";
-
 static const char *__doc_OpenVDS_DimensionsND = R"doc(2D or 3D dimension group\n)doc";
 
 static const char *__doc_OpenVDS_DimensionsND_Dimensions_01 = R"doc()doc";
@@ -479,10 +483,6 @@ handle :
 Returns:
 --------
     The VolumeDataAccessManager of the VDS)doc";
-
-static const char *__doc_OpenVDS_GetDataBlockDimensionality = R"doc()doc";
-
-static const char *__doc_OpenVDS_GetDataBlockDimensionality_Dimensionality = R"doc()doc";
 
 static const char *__doc_OpenVDS_GetGlobalState =
 R"doc(Get the GlobalState interface
@@ -2991,7 +2991,11 @@ static const char *__doc_OpenVDS_VolumeDataChannelDescriptor_m_valueRange = R"do
 
 static const char *__doc_OpenVDS_VolumeDataLayout = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataLayout_2 = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataLayout_2 =
+R"doc(\class VolumeDataLayout a class that contains axis and channel
+information for a VDS A layout is associated with a VDS object and
+contains information about axis and channels in the VDS. A
+VolumeDataLayout can be invalidated when the VDS is invalidated.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataLayout_3 =
 R"doc(\class VolumeDataLayout a class that contains axis and channel
@@ -3530,6 +3534,10 @@ the float voxel index)doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerData = R"doc()doc";
 
+static const char *__doc_OpenVDS_VolumeIndexerData_GetDataBlockDimensionality = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeIndexerData_GetDataBlockDimensionality_Dimensionality = R"doc()doc";
+
 static const char *__doc_OpenVDS_VolumeIndexerData_VolumeIndexerData = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerData_VolumeIndexerData_2 = R"doc()doc";
@@ -3623,10 +3631,10 @@ R"doc(Parameters:
 -----------
 
 anSize :
-    the 6D size of the buffer to be sampled
+    the (at least 3D) size of the buffer to be sampled
 
 anPitch :
-    the pitch of the buffer to be sampled
+    the (at least 3D) pitch of the buffer to be sampled
 
 rangeMin :
     the value range minimum of the data to be sampled
