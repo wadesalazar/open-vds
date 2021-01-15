@@ -289,7 +289,7 @@ void UploadRequestAzure::run(azure::storage::cloud_blob_container& container, az
 
       try
       {
-        //uploadTask.get();
+        uploadTask.get();
         m_data.reset();
 
         m_error.code = 0;
