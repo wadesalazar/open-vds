@@ -1,3 +1,4 @@
+set(CMAKE_DEBUG_POSTFIX "")
 include(UseJava)
 
 set(OPENVDS_JAVA_VERSION 0.0.6)

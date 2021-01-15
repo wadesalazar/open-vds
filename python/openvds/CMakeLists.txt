@@ -1,3 +1,4 @@
+set(CMAKE_DEBUG_POSTFIX "")
 pybind11_add_module(core MODULE SYSTEM
     core.cpp
     PyGlobal.cpp

@@ -157,7 +157,9 @@ build3rdparty()
 include(CMake/CopyDllForTarget.cmake)
 include(CMake/AddSystemHeadersToTarget.cmake)
 
+#this is disabled in Java and Python since they match dl open with a string
 set(CMAKE_DEBUG_POSTFIX d)
+
 add_subdirectory(src)
 add_subdirectory(tools)
 
