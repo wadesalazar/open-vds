@@ -120,7 +120,7 @@ VDSProduceStatus VolumeDataAccessManagerImpl::GetVDSProduceStatus(VolumeDataLayo
   }
 }
 
-VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode)
+VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccessor(VolumeDataLayout const* volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode, int chunkMetadataPageSize)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -131,7 +131,7 @@ VolumeDataPageAccessor* VolumeDataAccessManagerImpl::CreateVolumeDataPageAccesso
   if(accessMode == VolumeDataAccessManager::AccessMode_Create)
   {
     layer->SetProduceStatus(VolumeDataLayer::ProduceStatus_Normal);
-    bool success = GetVolumeDataStore()->AddLayer(layer);
+    bool success = GetVolumeDataStore()->AddLayer(layer, chunkMetadataPageSize);
     if(!success)
     {
       throw std::runtime_error("Failed to create layer");

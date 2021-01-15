@@ -315,11 +315,12 @@ bool VolumeDataStoreIOManager::SerializeAndUploadLayerStatus(VDS& vds, Error& er
 }
 
 bool
-VolumeDataStoreIOManager::AddLayer(VolumeDataLayer* volumeDataLayer)
+VolumeDataStoreIOManager::AddLayer(VolumeDataLayer* volumeDataLayer, int chunkMetadataPageSize)
 {
+  assert(chunkMetadataPageSize > 0);
   MetadataStatus metadataStatus = {};
   metadataStatus.m_chunkIndexCount = (int)volumeDataLayer->GetTotalChunkCount();
-  metadataStatus.m_chunkMetadataPageSize = 1024;
+  metadataStatus.m_chunkMetadataPageSize = chunkMetadataPageSize;
   metadataStatus.m_chunkMetadataByteSize = sizeof(int64_t);
   metadataStatus.m_compressionMethod = volumeDataLayer->GetEffectiveCompressionMethod();
   metadataStatus.m_compressionTolerance = volumeDataLayer->GetEffectiveCompressionTolerance();

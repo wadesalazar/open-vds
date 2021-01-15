@@ -1804,13 +1804,22 @@ lod :
 channel :
     The channel index that the volume data page accessor will access.
 
-nMaxPages :
+maxPages :
     The maximum number of pages that the volume data page accessor
     will cache.
 
 accessMode :
     This specifies the access mode (ReadOnly/ReadWrite/Create) of the
     volume data page accessor.
+
+chunkMetadataPageSize :
+    The chunk metadata page size of the layer. This controls how many
+    chunk metadata entries are written per page, and is only used when
+    the access mode is Create. If this number is too low it will
+    degrade performance, but in certain situations it can be
+    advantageous to make this number a multiple of the number of
+    chunks in some of the dimensions. Do not change this from the
+    default (1024) unless you know exactly what you are doing.
 
 Returns:
 --------

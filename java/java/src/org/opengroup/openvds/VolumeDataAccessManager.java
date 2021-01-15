@@ -34,6 +34,9 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
     private static native long cpCreateVolumeDataPageAccessor(long managerHandle,
             long layoutHandle, int dimensionsND, int lod, int channel, int maxPages, int accessMode);
 
+    private static native long cpCreateVolumeDataPageAccessor(long managerHandle,
+            long layoutHandle, int dimensionsND, int lod, int channel, int maxPages, int accessMode, int chunkMetadataPageSize);
+
     private static native void cpDestroyVolumeDataPageAccessor(long managerHandle, long pageAccessorHandle);
 
     private static native void cpDestroyVolumeDataAccessor(long managerHandle, long dataAccessorHandle);
@@ -168,6 +171,34 @@ public class VolumeDataAccessManager extends JniPointerWithoutDeletion {
         return new VolumeDataPageAccessor(cpCreateVolumeDataPageAccessor(
                 _handle, volumeDataLayout.handle(),
                 dimensionsND, lod, channel, maxPages, accessMode));
+    }
+
+    /**
+     * Create a volume data page accessor object for the VDS associated with the
+     * given VolumeDataLayout object.
+     *
+     * @param volumeDataLayout the VolumeDataLayout object associated with the
+     * VDS that the volume data page accessor will access.
+     * @param dimensionsND the dimensions group that the volume data page
+     * accessor will access.
+     * @param lod the LOD level that the volume data page accessor will access.
+     * @param channel the channel index that the volume data page accessor will
+     * access.
+     * @param maxPages the maximum number of pages that the volume data page
+     * accessor will cache.
+     * @param accessMode this specifies the access mode
+     * (ReadOnly/ReadWrite/Create) of the volume data page accessor.
+     * @param chunkMetadataPageSize the chunk metadata page size of the layer. This controls how many chunk metadata entries are written per page, and is only used when the access mode is Create.
+     * If this number is too low it will degrade performance, but in certain situations it can be advantageous to make this number a multiple
+     * of the number of chunks in some of the dimensions. Do not change this from the default (1024) unless you know exactly what you are doing.
+     * @return a VolumeDataPageAccessor object for the VDS associated with the
+     * given VolumeDataLayout object.
+     */
+    VolumeDataPageAccessor createVolumeDataPageAccessor(VolumeDataLayout volumeDataLayout,
+            int dimensionsND, int lod, int channel, int maxPages, int accessMode, int chunkMetadataPageSize) {
+        return new VolumeDataPageAccessor(cpCreateVolumeDataPageAccessor(
+                _handle, volumeDataLayout.handle(),
+                dimensionsND, lod, channel, maxPages, accessMode, chunkMetadataPageSize));
     }
 
     /**

@@ -80,7 +80,7 @@ JNIEXPORT jint JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetV
 * Method:    cpCreateVolumeDataPageAccessor
 * Signature: (JJIIIII)J
 */
-JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpCreateVolumeDataPageAccessor
+JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpCreateVolumeDataPageAccessor__JJIIIII
         (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jint dimensionsND, jint lod, jint channel,
          jint maxPages, jint accessMode) {
     try {
@@ -88,6 +88,24 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpCre
                                                                                (DimensionsND) (dimensionsND), lod,
                                                                                channel, maxPages,
                                                                                (VolumeDataAccessManager::AccessMode) accessMode);
+    }
+    CATCH_EXCEPTIONS_FOR_JAVA;
+    return 0;
+}
+
+/*
+* Class:     org_opengroup_openvds_VolumeDataAccessManager
+* Method:    cpCreateVolumeDataPageAccessor
+* Signature: (JJIIIIII)J
+*/
+JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpCreateVolumeDataPageAccessor__JJIIIIII
+        (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jint dimensionsND, jint lod, jint channel,
+         jint maxPages, jint accessMode, jint chunkMetadataPageSize) {
+    try {
+        return (jlong) GetManager(managerHandle)->CreateVolumeDataPageAccessor(GetLayout(layoutHandle),
+                                                                               (DimensionsND) (dimensionsND), lod,
+                                                                               channel, maxPages,
+                                                                               (VolumeDataAccessManager::AccessMode) accessMode, chunkMetadataPageSize);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
     return 0;

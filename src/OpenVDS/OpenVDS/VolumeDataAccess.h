@@ -106,6 +106,7 @@ public:
   /// </returns>
   virtual VDSProduceStatus GetVDSProduceStatus(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel) const = 0;
 
+
   /// <summary>
   /// Create a volume data page accessor object for the VDS associated with the given VolumeDataLayout object.
   /// </summary>
@@ -121,16 +122,21 @@ public:
   /// <param name="channel">
   /// The channel index that the volume data page accessor will access.
   /// </param>
-  /// <param name="nMaxPages">
+  /// <param name="maxPages">
   /// The maximum number of pages that the volume data page accessor will cache.
   /// </param>
   /// <param name="accessMode">
   /// This specifies the access mode (ReadOnly/ReadWrite/Create) of the volume data page accessor.
   /// </param>
+  /// <param name="chunkMetadataPageSize">
+  /// The chunk metadata page size of the layer. This controls how many chunk metadata entries are written per page, and is only used when the access mode is Create.
+  /// If this number is too low it will degrade performance, but in certain situations it can be advantageous to make this number a multiple
+  /// of the number of chunks in some of the dimensions. Do not change this from the default (1024) unless you know exactly what you are doing.
+  /// </param>
   /// <returns>
   /// A VolumeDataPageAccessor object for the VDS associated with the given VolumeDataLayout object.
   /// </returns>
-  virtual VolumeDataPageAccessor *CreateVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode) = 0;
+  virtual VolumeDataPageAccessor *CreateVolumeDataPageAccessor(VolumeDataLayout const *volumeDataLayout, DimensionsND dimensionsND, int lod, int channel, int maxPages, AccessMode accessMode, int chunkMetadataPageSize = 1024) = 0;
 
   /// <summary>
   /// Destroy a volume data page accessor object.

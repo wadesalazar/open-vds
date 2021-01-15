@@ -74,7 +74,7 @@ public:
   bool          Flush() override;
   bool          ReadSerializedVolumeDataLayout(std::vector<uint8_t>& serializedVolumeDataLayout, Error &error) override;
   bool          WriteSerializedVolumeDataLayout(const std::vector<uint8_t>& serializedVolumeDataLayout, Error &error) override;
-  bool          AddLayer(VolumeDataLayer* volumeDataLayer) override;
+  bool          AddLayer(VolumeDataLayer* volumeDataLayer, int chunkMetadataPageSize) override;
   bool          RemoveLayer(VolumeDataLayer* volumeDataLayer) override { return false; }
 
   bool          GetMetadataStatus(std::string const &layerName, MetadataStatus &metadataStatus) const override;

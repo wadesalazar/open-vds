@@ -358,9 +358,10 @@ bool VolumeDataStoreVDSFile::WriteSerializedVolumeDataLayout(const std::vector<u
   return success;
 }
 
-bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer)
+bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer, int chunkMetadataPageSize)
 {
   assert(volumeDataLayer);
+  assert(chunkMetadataPageSize > 0);
   std::unique_lock<std::mutex> lock(m_mutex);
 
   if(volumeDataLayer->GetTotalChunkCount() > INT_MAX)
@@ -381,7 +382,7 @@ bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer)
     return true;
   }
 
-  HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile(layerName.c_str(), (int)volumeDataLayer->GetTotalChunkCount(), 1024, FILETYPE_VDS_LAYER, sizeof(VDSChunkMetadata), sizeof(VDSLayerMetadata), true);
+  HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile(layerName.c_str(), (int)volumeDataLayer->GetTotalChunkCount(), chunkMetadataPageSize, FILETYPE_VDS_LAYER, sizeof(VDSChunkMetadata), sizeof(VDSLayerMetadata), true);
   assert(fileInterface);
 
   VDSLayerMetadataWaveletAdaptive layerMetadata = VDSLayerMetadataWaveletAdaptive();
