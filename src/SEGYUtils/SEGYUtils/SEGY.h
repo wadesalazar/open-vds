@@ -311,11 +311,9 @@ enum class SEGYType
   Prestack = 1,
   Prestack2D = 2,
   Poststack2D = 3,
-  UnbinnedCDP = 4,
-  UnbinnedShot = 5,
-  UnbinnedReceiver = 6,
-  MinValue = Poststack,
-  MaxValue = UnbinnedReceiver
+  CDPGathers = 4,
+  ShotGathers = 5,
+  ReceiverGathers = 6,
 };
 
 OPENVDS_EXPORT bool IsSEGYTypeUnbinned(SEGYType segyType);

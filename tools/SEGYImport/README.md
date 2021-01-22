@@ -12,6 +12,7 @@ SEGYImport [OPTION...] <input file>
 |     --header-format \<file>       | A JSON file defining the header format for the input SEG-Y file. The expected format is a dictonary of strings (field names) to pairs (byte position, field width) where field width can be "TwoByte" or "FourByte". Additionally, an "Endianness" key can be specified as "BigEndian" or "LittleEndian". |
 | -p, --primary-key \<field>        | The name of the trace header field to use as the primary key. (default: Inline) |
 | -s, --secondary-key \<field>      | The name of the trace header field to use as the secondary key. (default: Crossline) |
+|     --prestack                    | Import binned prestack data (PSTM/PSDM gathers). |
 |     --scale \<value>              | If a scale override (floating point) is given, it is used to scale the coordinates in the header instead of determining the scale factor from the coordinate scale trace header field. |
 | --sample-unit \<string>           | A sample unit of 'ms' is used for datasets in the time domain (default), while a sample unit of 'm' or 'ft' is used for datasets in the depth domain |
 | --start-time \<value>              | If a start time override (floating point) is given, it is used instead of the value read from the start time trace header field. |
@@ -55,9 +56,11 @@ endianness in this file. This is an example of such a JSON file:
 }
 ```
 
-For other data types (or crossline-sorted poststack data) it is possible to
+To import binned prestack data you need to pass the --prestack parameter which will allow multiple traces for each inline/crossline location and create an extra "Trace (offset)" dimension in the VDS assuming the traces in each gather are sorted by offset.
+
+For other data types (or crossline-sorted data) it is possible to
 specify which trace header fields the file is sorted on by using the
-`--primary-key` and `--secondary-key` options. 
+`--primary-key` and `--secondary-key` options.
 
   The result of the scanning process is the 'file info' and can optionally be
 saved to a separate file using the `--scan` option. Such a file can be used
@@ -94,17 +97,21 @@ different place.
 
 The default trace header fields (that can be overridden with a header format JSON file) are:
 
-| Header Field Name     | Aliases                                  | Offset | Width |
-|-----------------------|------------------------------------------|--------|-------|
-| InlineNumber          | Inline                                   | 189    | 4     |
-| CrosslineNumber       | Crossline                                | 193    | 4     |
-| EnsembleXCoordinate   | CDPXCoordinate, CDP-X, Easting           | 181    | 4     |
-| EnsembleYCoordinate   | CDPYCoordinate, CDP-Y, Northing          | 185    | 4     |
-| SourceXCoordinate     | Source-X                                 |  73    | 4     |
-| SourceYCoordinate     | Source-Y                                 |  77    | 4     |
-| GroupXCoordinate      | Group-X, ReceiverXCoordinate, Receiver-X |  81    | 4     |
-| GroupYCoordinate      | Group-Y, ReceiverYCoordinate, Receiver-Y |  85    | 4     |
-| CoordinateScale       | Scalar                                   |  71    | 2     |
+| Header Field Name       | Aliases                                  | Offset | Width |
+|-------------------------|------------------------------------------|--------|-------|
+| InlineNumber            | Inline                                   | 189    | 4     |
+| CrosslineNumber         | Crossline                                | 193    | 4     |
+| EnergySourcePointNumber | Shot, SP                                 |  17    | 4     |
+| Receiver                |                                          |  13    | 4     |
+| Offset                  |                                          |  37    | 4     |
+| EnsembleNumber          | CDP, CMP                                 |  21    | 4     |
+| EnsembleXCoordinate     | CDPXCoordinate, CDP-X, Easting           | 181    | 4     |
+| EnsembleYCoordinate     | CDPYCoordinate, CDP-Y, Northing          | 185    | 4     |
+| SourceXCoordinate       | Source-X                                 |  73    | 4     |
+| SourceYCoordinate       | Source-Y                                 |  77    | 4     |
+| GroupXCoordinate        | Group-X, ReceiverXCoordinate, Receiver-X |  81    | 4     |
+| GroupYCoordinate        | Group-Y, ReceiverYCoordinate, Receiver-Y |  85    | 4     |
+| CoordinateScale         | Scalar                                   |  71    | 2     |
 
 A valid ``--url`` an optional ``--connection`` argument and an
 input SEG-Y file must be specified.

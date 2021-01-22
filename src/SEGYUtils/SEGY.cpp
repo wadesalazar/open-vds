@@ -304,7 +304,7 @@ int FormatSize(BinaryHeader::DataSampleFormatCode dataSampleFormatCode)
 bool
 IsSEGYTypeUnbinned(SEGYType segyType)
 {
-  return segyType == SEGYType::UnbinnedCDP || segyType == SEGYType::UnbinnedReceiver || segyType == SEGYType::UnbinnedShot;
+  return segyType == SEGYType::CDPGathers || segyType == SEGYType::ReceiverGathers || segyType == SEGYType::ShotGathers;
 }
 
 bool

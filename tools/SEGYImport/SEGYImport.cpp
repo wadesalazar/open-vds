@@ -187,53 +187,57 @@ SerializeSEGYFileInfo(SEGYFileInfo const& fileInfo, const int fileIndex)
 std::map<std::string, SEGY::HeaderField>
 g_traceHeaderFields =
 {
- { "TraceSequenceNumber"     , SEGY::TraceHeader::TraceSequenceNumberHeaderField },
+ { "TraceSequenceNumber",           SEGY::TraceHeader::TraceSequenceNumberHeaderField },
  { "TraceSequenceNumberWithinFile", SEGY::TraceHeader::TraceSequenceNumberWithinFileHeaderField },
- { "EnergySourcePointNumber"   , SEGY::TraceHeader::EnergySourcePointNumberHeaderField },
- { "EnsembleNumber"        , SEGY::TraceHeader::EnsembleNumberHeaderField },
- { "TraceNumberWithinEnsemble"  , SEGY::TraceHeader::TraceNumberWithinEnsembleHeaderField },
- { "TraceIdentificationCode"   , SEGY::TraceHeader::TraceIdentificationCodeHeaderField },
- { "CoordinateScale"       , SEGY::TraceHeader::CoordinateScaleHeaderField },
- { "SourceXCoordinate"      , SEGY::TraceHeader::SourceXCoordinateHeaderField },
- { "SourceYCoordinate"      , SEGY::TraceHeader::SourceYCoordinateHeaderField },
- { "GroupXCoordinate"       , SEGY::TraceHeader::GroupXCoordinateHeaderField },
- { "GroupYCoordinate"       , SEGY::TraceHeader::GroupYCoordinateHeaderField },
- { "CoordinateUnits"       , SEGY::TraceHeader::CoordinateUnitsHeaderField },
- { "StartTime"          , SEGY::TraceHeader::StartTimeHeaderField },
- { "NumSamples"          , SEGY::TraceHeader::NumSamplesHeaderField },
- { "SampleInterval"        , SEGY::TraceHeader::SampleIntervalHeaderField },
- { "EnsembleXCoordinate"     , SEGY::TraceHeader::EnsembleXCoordinateHeaderField },
- { "EnsembleYCoordinate"     , SEGY::TraceHeader::EnsembleYCoordinateHeaderField },
- { "InlineNumber"         , SEGY::TraceHeader::InlineNumberHeaderField },
- { "CrosslineNumber"       , SEGY::TraceHeader::CrosslineNumberHeaderField },
- { "Receiver"              , SEGY::TraceHeader::ReceiverHeaderField },
- { "Offset"                , SEGY::TraceHeader::OffsetHeaderField }
+ { "EnergySourcePointNumber",       SEGY::TraceHeader::EnergySourcePointNumberHeaderField },
+ { "EnsembleNumber",                SEGY::TraceHeader::EnsembleNumberHeaderField },
+ { "TraceNumberWithinEnsemble",     SEGY::TraceHeader::TraceNumberWithinEnsembleHeaderField },
+ { "TraceIdentificationCode",       SEGY::TraceHeader::TraceIdentificationCodeHeaderField },
+ { "CoordinateScale",               SEGY::TraceHeader::CoordinateScaleHeaderField },
+ { "SourceXCoordinate",             SEGY::TraceHeader::SourceXCoordinateHeaderField },
+ { "SourceYCoordinate",             SEGY::TraceHeader::SourceYCoordinateHeaderField },
+ { "GroupXCoordinate",              SEGY::TraceHeader::GroupXCoordinateHeaderField },
+ { "GroupYCoordinate",              SEGY::TraceHeader::GroupYCoordinateHeaderField },
+ { "CoordinateUnits",               SEGY::TraceHeader::CoordinateUnitsHeaderField },
+ { "StartTime",                     SEGY::TraceHeader::StartTimeHeaderField },
+ { "NumSamples",                    SEGY::TraceHeader::NumSamplesHeaderField },
+ { "SampleInterval",                SEGY::TraceHeader::SampleIntervalHeaderField },
+ { "EnsembleXCoordinate",           SEGY::TraceHeader::EnsembleXCoordinateHeaderField },
+ { "EnsembleYCoordinate",           SEGY::TraceHeader::EnsembleYCoordinateHeaderField },
+ { "InlineNumber",                  SEGY::TraceHeader::InlineNumberHeaderField },
+ { "CrosslineNumber",               SEGY::TraceHeader::CrosslineNumberHeaderField },
+ { "Receiver",                      SEGY::TraceHeader::ReceiverHeaderField },
+ { "Offset",                        SEGY::TraceHeader::OffsetHeaderField }
 };
 
 std::map<std::string, std::string>
 g_aliases =
 {
- { "Inline",       "InlineNumber" },
- { "InLine",       "InlineNumber" },
- { "InLineNumber",    "InlineNumber" },
- { "Crossline",      "CrosslineNumber" },
- { "CrossLine",      "CrosslineNumber" },
- { "CrossLineNumber",   "CrosslineNumber" },
- { "Easting",       "EnsembleXCoordinate" },
- { "Northing",      "EnsembleYCoordinate" },
- { "CDPXCoordinate",   "EnsembleXCoordinate" },
- { "CDPYCoordinate",   "EnsembleYCoordinate" },
- { "CDP-X",        "EnsembleXCoordinate" },
- { "CDP-Y",        "EnsembleYCoordinate" },
- { "Source-X",      "SourceXCoordinate" },
- { "Source-Y",      "SourceYCoordinate" },
- { "Group-X",       "GroupXCoordinate" },
- { "Group-Y",       "GroupYCoordinate" },
+ { "Inline",              "InlineNumber" },
+ { "InLine",              "InlineNumber" },
+ { "InLineNumber",        "InlineNumber" },
+ { "Crossline",           "CrosslineNumber" },
+ { "CrossLine",           "CrosslineNumber" },
+ { "CrossLineNumber",     "CrosslineNumber" },
+ { "Shot",                "EnergySourcePointNumber" },
+ { "SP",                  "EnergySourcePointNumber" },
+ { "CDP",                 "EnsembleNumber" },
+ { "CMP",                 "EnsembleNumber" },
+ { "Easting",             "EnsembleXCoordinate" },
+ { "Northing",            "EnsembleYCoordinate" },
+ { "CDPXCoordinate",      "EnsembleXCoordinate" },
+ { "CDPYCoordinate",      "EnsembleYCoordinate" },
+ { "CDP-X",               "EnsembleXCoordinate" },
+ { "CDP-Y",               "EnsembleYCoordinate" },
+ { "Source-X",            "SourceXCoordinate" },
+ { "Source-Y",            "SourceYCoordinate" },
+ { "Group-X",             "GroupXCoordinate" },
+ { "Group-Y",             "GroupYCoordinate" },
  { "ReceiverXCoordinate", "GroupXCoordinate" },
  { "ReceiverYCoordinate", "GroupYCoordinate" },
- { "Receiver-X",     "GroupXCoordinate" },
- { "Receiver-Y",     "GroupYCoordinate" },
- { "Scalar",       "CoordinateScale" }
+ { "Receiver-X",          "GroupXCoordinate" },
+ { "Receiver-Y",          "GroupYCoordinate" },
+ { "Scalar",              "CoordinateScale" }
 };
 
 void
@@ -1036,18 +1040,19 @@ createAxisDescriptors(SEGYFileInfo const& fileInfo, SEGY::SampleUnits sampleUnit
 
     const char
       * axisName;
+
     // figure out the unbinned primary axis name
     //switch (fileInfo.m_segyType)
     //{
-    //case SEGY::SEGYType::UnbinnedReceiver:
+    //case SEGY::SEGYType::ReceiverGathers:
     //  axisName = VDS_DIMENSION_RECEIVER_NAME;
     //  break;
 
-    //case SEGY::SEGYType::UnbinnedShot:
+    //case SEGY::SEGYType::ShotGathers:
     //  axisName = VDS_DIMENSION_SHOT_NAME;
     //  break;
 
-    //case SEGY::SEGYType::UnbinnedCDP:
+    //case SEGY::SEGYType::CDPGathers:
     //default:
     //  axisName = VDS_DIMENSION_CDP_NAME;
     //  break;
@@ -1332,7 +1337,7 @@ main(int argc, char* argv[])
   std::string persistentID;
   bool uniqueID = false;
   bool disablePersistentID = false;
-  int segyTypeInt = static_cast<int>(SEGY::SEGYType::Poststack);
+  bool prestack = false;
   bool traceOrderByOffset = true;
   bool help = false;
 
@@ -1341,6 +1346,7 @@ main(int argc, char* argv[])
   options.add_option("", "", "header-format", "A JSON file defining the header format for the input SEG-Y file. The expected format is a dictonary of strings (field names) to pairs (byte position, field width) where field width can be \"TwoByte\" or \"FourByte\". Additionally, an \"Endianness\" key can be specified as \"BigEndian\" or \"LittleEndian\".", cxxopts::value<std::string>(headerFormatFileName), "<file>");
   options.add_option("", "p", "primary-key", "The name of the trace header field to use as the primary key.", cxxopts::value<std::string>(primaryKey)->default_value("Inline"), "<field>");
   options.add_option("", "s", "secondary-key", "The name of the trace header field to use as the secondary key.", cxxopts::value<std::string>(secondaryKey)->default_value("Crossline"), "<field>");
+  options.add_option("", "", "prestack", "Import binned prestack data (PSTM/PSDM gathers).", cxxopts::value<bool>(prestack), "");
   options.add_option("", "", "scale", "If a scale override (floating point) is given, it is used to scale the coordinates in the header instead of determining the scale factor from the coordinate scale trace header field.", cxxopts::value<double>(scale), "<value>");
   options.add_option("", "", "sample-unit", "A sample unit of 'ms' is used for datasets in the time domain (default), while a sample unit of 'm' or 'ft' is used for datasets in the depth domain", cxxopts::value<std::string>(sampleUnit), "<string>");
   options.add_option("", "", "sample-start", "The start time/depth/frequency (depending on the domain) of the sampling", cxxopts::value<double>(sampleStart), "<value>");
@@ -1359,7 +1365,6 @@ main(int argc, char* argv[])
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
   options.add_option("", "", "uniqueID", "Generate a new globally unique ID when scanning the input SEG-Y file.", cxxopts::value<bool>(uniqueID), "");
   options.add_option("", "", "disable-persistentID", "Disable the persistentID usage, placing the VDS directly into the url location.", cxxopts::value<bool>(disablePersistentID), "");
-  options.add_option("", "t", "segy-type", "Type of SEG-Y file being imported. 0=Poststack, 1=Prestack, 4=UnbinnedCDP, 5=UnbinnedShot, 6=UnbinnedReceiver.", cxxopts::value<int>(segyTypeInt), "");
   // TODO add option for turning off traceOrderByOffset
 
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
@@ -1390,7 +1395,36 @@ main(int argc, char* argv[])
     return EXIT_SUCCESS;
   }
 
-  const SEGY::SEGYType segyType = static_cast<SEGY::SEGYType>(segyTypeInt);
+  // get the canonical field name for the primary and secondary key
+  ResolveAlias(primaryKey);
+  ResolveAlias(secondaryKey);
+
+  SEGY::SEGYType segyType = SEGY::SEGYType::Poststack;
+
+  if (primaryKey == "InlineNumber" || primaryKey == "CrosslineNumber" )
+  {
+    if(prestack)
+    {
+      segyType = SEGY::SEGYType::Prestack;
+    }
+    else
+    {
+      segyType = SEGY::SEGYType::Poststack;
+    }
+  }
+  else if (primaryKey == "Receiver")
+  {
+    segyType = SEGY::SEGYType::ReceiverGathers;
+  }
+  else if (primaryKey == "EnergySourcePointNumber")
+  {
+    segyType = SEGY::SEGYType::ShotGathers;
+  }
+  else
+  {
+    std::cerr << std::string("Primary key does not match a known SEG-Y type");
+    return EXIT_FAILURE;
+  }
 
   if (fileNames.empty())
   {
@@ -1418,20 +1452,6 @@ main(int argc, char* argv[])
 
   SEGY::Endianness headerEndianness = (littleEndian ? SEGY::Endianness::LittleEndian : SEGY::Endianness::BigEndian);
 
-  // For unbinned gathers set the primary key. (What happens if the user specifies the primary key?)
-  if (segyType == SEGY::SEGYType::UnbinnedCDP)
-  {
-    primaryKey = "EnsembleNumber";
-  }
-  else if (segyType == SEGY::SEGYType::UnbinnedReceiver)
-  {
-    primaryKey = "Receiver";
-  }
-  else if (segyType == SEGY::SEGYType::UnbinnedShot)
-  {
-    primaryKey = "EnergySourcePointNumber";
-  }
-
   if (!headerFormatFileName.empty())
   {
     OpenVDS::File
@@ -1456,10 +1476,6 @@ main(int argc, char* argv[])
       return EXIT_FAILURE;
     }
   }
-
-  // get the canonical field name for the primary and secondary key
-  ResolveAlias(primaryKey);
-  ResolveAlias(secondaryKey);
 
   SEGY::HeaderField
     primaryKeyHeaderField,
@@ -1640,28 +1656,24 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  const char
-    * foldMessageFmt = "Detected a fold of '{0}', either this is {1} data or this usually indicates using the wrong header format for the input dataset. If this is {1} data the SEGYType plugin parameter should be set correspondingly.";
-
-  if (segyType == SEGY::SEGYType::Prestack || segyType == SEGY::SEGYType::Prestack2D)
+  if (segyType == SEGY::SEGYType::Poststack || segyType == SEGY::SEGYType::Poststack2D)
   {
-    if (fold <= 1)
+    if(fold > 1)
     {
-      fmt::print(stderr, foldMessageFmt, fold, "Poststack");
+      fmt::print(stderr, "Detected a fold of '{0}', this usually indicates using the wrong header format or primary key for the input dataset or that the input data is binned prestack data (PSTM/PSDM gathers) in which case the --prestack option should be used.", fold);
       return EXIT_FAILURE;
     }
   }
   else
   {
-    if(fold > 1)
+    if (fold <= 1)
     {
-      fmt::print(stderr, foldMessageFmt, fold, "Prestack");
+      fmt::print(stderr, "Detected a fold of '{0}', this usually indicates using the wrong header format or primary key for the input dataset or that the input data is poststack in which case the --prestack option should not been used.", fold);
       return EXIT_FAILURE;
     }
   }
 
   // Create layout descriptor
-
   enum OpenVDS::VolumeDataLayoutDescriptor::BrickSize
     brickSizeEnum;
 
@@ -1724,7 +1736,7 @@ main(int argc, char* argv[])
 
   if(traceCountInVDS >= totalTraceCount * 2)
   {
-    fmt::print(stderr, "Warning: There is more than {:.1f}% empty traces in the VDS, this usually indicates using the wrong header format for the input dataset.\n", double(traceCountInVDS - totalTraceCount) * 100.0 / double(traceCountInVDS));
+    fmt::print(stderr, "Warning: There is more than {:.1f}% empty traces in the VDS, this usually indicates using the wrong header format or primary key for the input dataset.\n", double(traceCountInVDS - totalTraceCount) * 100.0 / double(traceCountInVDS));
     if(!ignoreWarnings)
     {
       fmt::print(stderr, "Use --ignore-warnings to force the import to go ahead.\n");
@@ -1759,9 +1771,9 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  if (primaryKey == "InlineNumber")
+  if (primaryKey == "InlineNumber" || primaryKey == "CrosslineNumber")
   {
-    // only create the lattice metadata if the primary key is Inline, else we may not have Inline/Crossline bin data
+    // only create the lattice metadata if the primary key is Inline or Crossline, otherwise we may not be able to determine the bin grid
     createSurveyCoordinateSystemMetadata(fileInfo, measurementSystem, crsWkt, metadataContainer);
   }
 
