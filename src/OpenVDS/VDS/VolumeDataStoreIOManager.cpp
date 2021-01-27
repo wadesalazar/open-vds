@@ -90,11 +90,25 @@ public:
   void HandleMetadata(const std::string& key, const std::string& header) override
   {
     static const char vdschunkmetadata[] = "vdschunkmetadata=";
+    static const char vdschunkmetadata_old[] = "VDS-Chunk-Metadata=";
     constexpr int vdschunkmetadataKeySize = sizeof(vdschunkmetadata) - 2;
+    constexpr int vdschunkmetadataKeySize_old = sizeof(vdschunkmetadata_old) - 2;
     constexpr int vdschunkmetadataValueSize = sizeof(vdschunkmetadata) - 1;
     if (key.size() >= vdschunkmetadataKeySize)
     {
       if (memcmp(key.data() + key.size() - vdschunkmetadataKeySize, vdschunkmetadata, vdschunkmetadataKeySize) == 0)
+      {
+        if (!Base64Decode(header.data(), (int)header.size(), m_metadataFromHeader))
+        {
+          m_error.code = -1;
+          m_error.string = "Failed to decode chunk metadata";
+        }
+        return;
+      }
+    }
+    if (key.size() >= vdschunkmetadataKeySize_old)
+    {
+      if (memcmp(key.data() + key.size() - vdschunkmetadataKeySize_old, vdschunkmetadata_old, vdschunkmetadataKeySize_old) == 0)
       {
         if (!Base64Decode(header.data(), (int)header.size(), m_metadataFromHeader))
         {
