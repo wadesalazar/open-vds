@@ -194,7 +194,10 @@ int main(int argc, char **argv)
   bool finished = accessManager->WaitForCompletion(request);
   if (!finished)
   {
-    fprintf(stderr, "Failed to download request. Failing\n");
+    int code;
+    const char* errorstr;
+    accessManager->GetCurrentDownloadError(&code, &errorstr);
+    fprintf(stderr, "Failed to download request: %d - %s\n", code, errorstr);
     return -2;
   }
 
