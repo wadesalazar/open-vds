@@ -36,6 +36,7 @@ set(JAVA_SOURCE_FILES
   java/src/org/opengroup/openvds/OpenVDS.java
   java/src/org/opengroup/openvds/QuantizingValueConverter_FloatToByte.java
   java/src/org/opengroup/openvds/VdsHandle.java
+  java/src/org/opengroup/openvds/VDSFileOpenOptions.java
   java/src/org/opengroup/openvds/VDSProduceStatus.java
   java/src/org/opengroup/openvds/VolumeDataAccessManager.java
   java/src/org/opengroup/openvds/VolumeDataAccessor.java

@@ -88,6 +88,20 @@ jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenGoogle
 
 /*
  * Class:     org_opengroup_openvds_OpenVDS
+ * Method:    cpOpenVDSFile
+ * Signature: (Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_OpenVDS_cpOpenVDSFile
+        (JNIEnv *env, jclass, jstring jfilepath) {
+    OpenVDS::VDSFileOpenOptions openOptions;
+
+    openOptions.fileName = JStringToString(env, jfilepath);
+
+    return openVDSOrThrowJavaIOException(env, openOptions);
+}
+
+/*
+ * Class:     org_opengroup_openvds_OpenVDS
  * Method:    cpOpenAzurePresigned
  * Signature: (Ljava/lang/String;Ljava/lang/String;)J
  */
