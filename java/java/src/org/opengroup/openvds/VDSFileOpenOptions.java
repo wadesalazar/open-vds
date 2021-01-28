@@ -38,5 +38,7 @@ public class VDSFileOpenOptions extends OpenOptions {
      */
     public VDSFileOpenOptions(String pFilePath) {
         super(ConnectionType.File);
+
+        this.filePath = pFilePath;
     }
 }
