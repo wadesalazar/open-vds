@@ -115,6 +115,7 @@ namespace OpenVDS
       if (request_ptr->m_cancelled)
         return;
 
+      lock.unlock();
       try
       {
         auto size = request_ptr->m_dataset.getBlockSize(requestName);
@@ -124,14 +125,17 @@ namespace OpenVDS
         {
           request_ptr->m_dataset.readBlock(requestName, (char*)request_ptr->m_data.data(), 0, request_ptr->m_data.size());
         }
+        lock.lock();
       }
       catch (const seismicdrive::SDException& ex)
       {
+        lock.lock();
         request_ptr->m_error.code = -1;
         request_ptr->m_error.string = ex.what();
       }
       catch (...)
       {
+        lock.lock();
         request_ptr->m_error.code = -1;
         request_ptr->m_error.string = "Unknown exception in DMS upload";
       }
@@ -165,17 +169,21 @@ namespace OpenVDS
       if (request_ptr->m_cancelled)
         return;
 
+      lock.unlock();
       try
       {
         request_ptr->m_dataset.writeBlock(requestName, (const char*)data->data(), data->size(), false);
+        lock.lock();
       }
       catch (const seismicdrive::SDException& ex)
       {
+        lock.lock();
         request_ptr->m_error.code = -1;
         request_ptr->m_error.string = ex.what();
       }
       catch (...)
       {
+        lock.lock();
         request_ptr->m_error.code = -1;
         request_ptr->m_error.string = "Unknown exception in DMS upload";
       }
@@ -224,7 +232,7 @@ namespace OpenVDS
   IOManagerDms::IOManagerDms(const DMSOpenOptions& openOptions, IOManager::AccessPattern accessPatttern, Error& error)
     : IOManager(openOptions.connectionType)
     , m_opened(false)
-    , m_threadPool(1)
+    , m_threadPool(16)
   {
     try {
       m_sdManager.reset(new seismicdrive::SDManager(openOptions.sdAuthorityUrl, openOptions.sdApiKey, openOptions.logLevel));
