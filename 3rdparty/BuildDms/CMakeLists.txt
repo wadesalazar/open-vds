@@ -83,7 +83,7 @@ target_link_libraries(sdapi_objects PUBLIC $<$<NOT:$<CONFIG:Debug>>:${link_3rdpa
 
 if (UNIX)
   find_package(Boost REQUIRED COMPONENTS system date_time regex)
-  target_link_libraries(sdapi_objects PUBLIC Boost::system)
+  target_link_libraries(sdapi_objects PRIVATE Boost::system)
 endif()
 
 add_library(sdapi SHARED $<TARGET_OBJECTS:sdapi_objects>)

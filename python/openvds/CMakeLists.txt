@@ -62,6 +62,11 @@ copyDllForTarget(core)
 setWarningFlagsForTarget(core)
 
 target_link_libraries(core PRIVATE openvds)
+
+if (OpenMP_CXX_FOUND)
+    target_link_libraries(core PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
 set_target_properties(core PROPERTIES INSTALL_RPATH "\\$\{ORIGIN\}/../../lib${LIBSUFFIX}")
 
 install(TARGETS core LIBRARY DESTINATION python/openvds)

@@ -48,6 +48,9 @@ function(add_test_executable name)
       target_link_libraries(${name} PRIVATE optimized ${item})
   endforeach()
 
+  if (OpenMP_CXX_FOUND)
+      target_link_libraries(${name} PRIVATE OpenMP::OpenMP_CXX)
+  endif()
 endfunction()
 
 add_test_executable(io_tests
