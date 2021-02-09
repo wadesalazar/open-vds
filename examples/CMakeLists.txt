@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.16.0)
 project(OpenVDSExamples)
 if (CMAKE_PROJECT_NAME STREQUAL "OpenVDSExamples")
   include(modules/InstalledPaths.cmake)

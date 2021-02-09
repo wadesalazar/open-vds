@@ -300,7 +300,7 @@ endforeach()
 if (ENABLE_RUNPATH_ORIGIN)
 set_target_properties(openvds
   PROPERTIES
-  INSTALL_RPATH  "\\$\{ORIGIN\}"
+  INSTALL_RPATH  "$ORIGIN"
 )
 endif()
 

@@ -25,7 +25,7 @@ target_link_libraries(segyutils PUBLIC openvds)
 if (ENABLE_RUNPATH_ORIGIN)
 set_target_properties(segyutils
   PROPERTIES
-  INSTALL_RPATH  "\\$\{ORIGIN\}"
+  INSTALL_RPATH  "$ORIGIN"
 )
 endif()
 

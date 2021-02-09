@@ -46,7 +46,6 @@ function(BuildExternal name version depends source_dir install_libs_release runt
     set_property(GLOBAL APPEND PROPERTY OPENVDS_LINK_LIBRARIES_RELEASE "${ABS_PATH_INSTALL_INT_CONFIG}/${LIB}")
   endforeach()
   foreach (LIB IN LISTS install_libs_debug)
-    message("${ABS_PATH_INSTALL_INT_CONFIG}/${LIB}")
     set_property(GLOBAL APPEND PROPERTY OPENVDS_LINK_LIBRARIES_DEBUG "${ABS_PATH_INSTALL_INT_CONFIG}/${LIB}")
   endforeach()
 
