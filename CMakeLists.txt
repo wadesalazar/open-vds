@@ -144,6 +144,8 @@ endif()
 
 if (NOT (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
   add_compile_options(-Werror=return-type)
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
 endif()
 
 include(CMake/SetWarnings.cmake)
