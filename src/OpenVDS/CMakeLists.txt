@@ -119,7 +119,7 @@ set (EXPORTED_HEADER_FILES
   )
 
 if (MSVC)
-  set(DISABLE_WARNING_FLAG "/w")
+  set(DISABLE_WARNING_FLAG "/W0 /WX-")
 else()
   set(DISABLE_WARNING_FLAG "-w")
 endif()
