@@ -1,3 +1,4 @@
+
 if(WIN32)
   list(APPEND CMAKE_MODULE_PATH ${dmsCMakeDir}/modules/version_info_win32)
 endif()
@@ -88,6 +89,9 @@ endif()
 
 add_library(sdapi SHARED $<TARGET_OBJECTS:sdapi_objects>)
 target_link_libraries(sdapi PUBLIC sdapi_objects)
+
+setLTOForTarget(sdapi_objects)
+setLTOForTarget(sdapi)
 
 if (WIN32)
   if(DEFINED LIB_VERSION_ON_NAME)

@@ -30,7 +30,8 @@ namespace OpenVDS
 
 static const bool curl_verbose_output = false;
 
-static char asciitolower(char in) {
+inline char asciitolower(char in)
+{
   if (in <= 'Z' && in >= 'A')
     return in - ('Z' - 'z');
   return in;

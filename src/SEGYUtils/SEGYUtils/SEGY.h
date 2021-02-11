@@ -15,6 +15,9 @@
 ** limitations under the License.
 ****************************************************************************/
 
+#ifndef OPENVDS_SEGY_H
+#define OPENVDS_SEGY_H
+
 #include <cstddef>
 
 #include <OpenVDS/openvds_export.h>
@@ -321,3 +324,5 @@ OPENVDS_EXPORT bool IsSEGYTypeUnbinned(SEGYType segyType);
 OPENVDS_EXPORT bool IsSEGYTypeWithGatherOffset(SEGYType segyType);
 
 } // end namespace SEGY
+
+#endif

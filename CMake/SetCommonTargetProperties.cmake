@@ -1,6 +1,8 @@
 function(setCommonTargetProperties target)
   setWarningFlagsForTarget(${target})
   setVersionForTarget(${target})
+  setLTOForTarget(${target})
+  setCompilerFlagsForTarget(${target})
 endfunction()
 
 function(setExportedHeadersForTarget target)

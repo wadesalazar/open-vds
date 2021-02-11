@@ -58,7 +58,7 @@ namespace OpenVDS
     return std::string(s.begin(), s.end());
   }
 
-  static char asciitolower(char in)
+  inline char asciitolower(char in)
   {
     if (in <= 'Z' && in >= 'A')
       return in - ('Z' - 'z');
