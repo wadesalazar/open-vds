@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.16.0)
+
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
@@ -149,6 +150,8 @@ if (NOT (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
 endif()
 
 include(CMake/SetWarnings.cmake)
+include(CMake/SetVersionForTarget.cmake)
+include(CMake/SetCommonTargetProperties.cmake)
 include(CMake/AddSystemHeadersToTarget.cmake)
 include(CMake/CopyDllForTarget.cmake)
 

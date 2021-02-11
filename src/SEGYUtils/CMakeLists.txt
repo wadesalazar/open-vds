@@ -9,15 +9,8 @@ add_library(segyutils
     SEGY.cpp
     SEGYFileInfo.cpp
     )
-setWarningFlagsForTarget(segyutils)
-set_target_properties(segyutils
-  PROPERTIES
-  FRAMEWORK ON
-  VERSION ${CMAKE_PROJECT_VERSION}
-  PUBLIC_HEADER "${EXPORTED_HEADER_FILES}"
-  #OUTPUT_NAME ${PROJECT_NAME}
-)
-
+setCommonTargetProperties(segyutils)
+setExportedHeadersForTarget(segyutils ${EXPORTED_HEADER_FILES})
 target_compile_definitions(segyutils PRIVATE openvds_EXPORTS)
 
 target_link_libraries(segyutils PUBLIC openvds)
@@ -53,17 +46,14 @@ install(TARGETS segyutils
 install(
     EXPORT segyutils-export
     NAMESPACE segyutils::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/segyutils
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/segyutils
     FILE segyutils-config.cmake
 )
 
-install(FILES ${runtime_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
-install(FILES ${runtime_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
+set(RUNTIME_LIBS_DESTINATION $<IF:$<PLATFORM_ID:Windows>,${CMAKE_INSTALL_BINDIR},${CMAKE_INSTALL_LIBDIR}>${LIB_TOOLSET_DIR})
+install(FILES ${runtime_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION ${RUNTIME_LIBS_DESTINATION})
+install(FILES ${runtime_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${RUNTIME_LIBS_DESTINATION})
 
-if (UNIX)
-  install(FILES ${link_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR})
-  install(FILES ${link_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR})
-endif()
 
 export(
     TARGETS

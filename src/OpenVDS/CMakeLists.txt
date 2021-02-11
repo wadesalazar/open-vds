@@ -132,8 +132,6 @@ add_library(openvds_objects OBJECT
   ${EXPORTED_HEADER_FILES}
   ${SOURCE_FILES} "IO/IOManagerDms.cpp")
 
-setWarningFlagsForTarget(openvds_objects)
-
 function(compileInTarget to_target source_target)
   get_target_property(src_sources ${source_target} SOURCES)
   get_target_property(src_include ${source_target} INTERFACE_INCLUDE_DIRECTORIES)
@@ -283,13 +281,11 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 add_library(openvds $<TARGET_OBJECTS:openvds_objects>)
 add_library(openvds::openvds ALIAS openvds)
 target_link_libraries(openvds PRIVATE openvds_objects)
-set_target_properties(openvds
-  PROPERTIES
-  FRAMEWORK ON
-  VERSION ${CMAKE_PROJECT_VERSION}
-  PUBLIC_HEADER "${EXPORTED_HEADER_FILES}"
-  #OUTPUT_NAME ${PROJECT_NAME}
-)
+
+setCommonTargetProperties(openvds_objects)
+setCommonTargetProperties(openvds)
+setExportedHeadersForTarget(openvds ${EXPORTED_HEADER_FILES})
+
 foreach(item ${link_3rdparty_debug})
     target_link_libraries(openvds PRIVATE debug ${item})
 endforeach()
@@ -346,7 +342,7 @@ export(
         openvds-config.cmake
 )
 
-set(CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR})
 include (InstallRequiredSystemLibraries)
 
 set(OPENVDS_LIB_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "")
