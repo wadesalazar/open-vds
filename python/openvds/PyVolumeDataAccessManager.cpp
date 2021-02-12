@@ -15,7 +15,7 @@
 ** limitations under the License.
 ****************************************************************************/
 
-#include "PyVolumeDataAccess.h"
+#include "PyVolumeDataAccessManager.h"
 
 using namespace native;
 
@@ -104,7 +104,7 @@ RegisterVolumeDataReadWriteAccessor(py::module& m, const char* name)
 }
 
 void 
-PyVolumeDataAccess::initModule(py::module& m)
+PyVolumeDataAccessManager::initModule(py::module& m)
 {
 //AUTOGEN-BEGIN
   py::enum_<VDSProduceStatus> 

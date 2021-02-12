@@ -144,7 +144,7 @@ public:
       nV = (int)floorf(rV - 0.5f),
       nW = (int)floorf(rW - 0.5f);
 
-    if(INTERPMETHOD == InterpolationMethod::Triangular)// || INTERPMETHOD == Triangular_Excluding_Valuerange_Min_And_Less)
+    if(INTERPMETHOD == InterpolationMethod::Triangular)
     {
       rU = rU - nU - 0.5f;
       rV = rV - nV - 0.5f;
@@ -404,10 +404,6 @@ public:
     {
       return tHeight != m_noValue;
     }
-//    else if(INTERPMETHOD == Triangular_Excluding_Valuerange_Min_And_Less)
-//    {
-//      return (TREAL)m_quantizedTypesToFloatConverter.convertValue(tHeight) > m_rangeMin;
-//    }
     else
     {
       return true;
@@ -433,7 +429,7 @@ public:
       nU = (int)floorf(rU - 0.5f),
       nV = (int)floorf(rV - 0.5f);
 
-    if(INTERPMETHOD == InterpolationMethod::Triangular) // || INTERPMETHOD == Triangular_Excluding_Valuerange_Min_And_Less)
+    if(INTERPMETHOD == InterpolationMethod::Triangular)
     {
       rU = rU - nU - 0.5f;
       rV = rV - nV - 0.5f;

@@ -21,6 +21,7 @@
 #include <OpenVDS/VolumeDataAccess.h>
 #include <OpenVDS/VolumeData.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
+#include <OpenVDS/ValueConversion.h>
 
 #include <CommonJni.h>
 
@@ -50,7 +51,7 @@ template <typename T_src, typename T_dst>
 static void copy_data_to_chunk_2d(OpenVDS::VolumeDataPageAccessor *p_access, const T_src *src,
                                const OpenVDS::VolumeDataLayout *layout, int chunk)
 {
-    const T_dst no_value = p_access->GetChannelDescriptor().GetNoValue();
+    const T_dst no_value = OpenVDS::ConvertNoValue<T_dst>(p_access->GetChannelDescriptor().GetNoValue());
 
     int min[OpenVDS::Dimensionality_Max];
     int max[OpenVDS::Dimensionality_Max];
@@ -70,8 +71,7 @@ static void copy_data_to_chunk_2d(OpenVDS::VolumeDataPageAccessor *p_access, con
         for (int i = 0; i < chunk_size_z; i++) {
             std::ptrdiff_t i_src = size_z * (j + chunk_offset_x) + i + chunk_offset_z;
             std::ptrdiff_t i_dest = chunk_pitch[1] * j + i;
-            T_src val = check_isfinite((double) src[i_src]) ? src[i_src] : no_value;
-            dest[i_dest] = static_cast<T_dst>(val);
+            dest[i_dest] = check_isfinite((double) src[i_src]) ? static_cast<T_dst>(src[i_src]) : no_value;
         }
     }
 
@@ -82,7 +82,7 @@ template <typename T_src, typename T_dst>
 static void copy_data_to_chunk_3d(OpenVDS::VolumeDataPageAccessor *p_access, const T_src *src,
                                const OpenVDS::VolumeDataLayout *layout, int chunk)
 {
-    const T_dst no_value = p_access->GetChannelDescriptor().GetNoValue();
+    const T_dst no_value = OpenVDS::ConvertNoValue<T_dst>(p_access->GetChannelDescriptor().GetNoValue());
 
     int min[OpenVDS::Dimensionality_Max];
     int max[OpenVDS::Dimensionality_Max];
@@ -106,8 +106,7 @@ static void copy_data_to_chunk_3d(OpenVDS::VolumeDataPageAccessor *p_access, con
             for (int i = 0; i < chunk_size_z; i++) {
                 std::ptrdiff_t i_src = chunk_offset_z + i + size_z * (chunk_offset_x + j) + size_z * size_x * (chunk_offset_i + k);
                 std::ptrdiff_t i_dest = chunk_pitch[2] * k + chunk_pitch[1] * j + i;
-                T_src val = check_isfinite((double) src[i_src]) ? src[i_src] : no_value;
-                dest[i_dest] = static_cast<T_dst>(val);
+                dest[i_dest] = check_isfinite((double) src[i_src]) ? static_cast<T_dst>(src[i_src]) : no_value;
             }
         }
     }
@@ -177,8 +176,8 @@ static copy_fcn_t<T> getCopyFunction_3d(OpenVDS::VolumeDataChannelDescriptor::Fo
 template <class T>
 void copy_data(const VDSHandle handle, const T *src, const std::string& channelName)
 {
-    auto *accessManager = OpenVDS::GetAccessManager(handle);
-    const auto *layout = accessManager->GetVolumeDataLayout();
+    auto accessManager = OpenVDS::GetAccessManager(handle);
+    const auto *layout = accessManager.GetVolumeDataLayout();
 
     const int lod_level = 0;
     const int max_pages = 8;
@@ -200,9 +199,8 @@ void copy_data(const VDSHandle handle, const T *src, const std::string& channelN
         throw std::domain_error("Only 2D or 3D data can be written");
     }
 
-    auto pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout,
-            dim, lod_level, channel, max_pages,
-            OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+    auto pageAccessor = accessManager.CreateVolumeDataPageAccessor(dim, lod_level, channel, max_pages,
+                                                                   OpenVDS::VolumeDataAccessManager::AccessMode_Create);
 
     for (int chunk = 0; chunk < pageAccessor->GetChunkCount(); chunk++) {
         copy_fcn(pageAccessor, src, layout, chunk);

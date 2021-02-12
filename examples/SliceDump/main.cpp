@@ -156,7 +156,7 @@ int main(int argc, char **argv)
   }
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle);
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle);
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle);
 
   int sampleCount[3];
   sampleCount[0] = layout->GetDimensionNumSamples(axis_mapper[0]);
@@ -187,16 +187,13 @@ int main(int argc, char **argv)
     }
   }
 
-  std::vector<float> data;
-  data.resize(size_t(output_width) * size_t(output_height));
-
-  int64_t request = accessManager->RequestVolumeSamples(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, reinterpret_cast<const float (*)[OpenVDS::Dimensionality_Max]>(samples.data()), (int)samples.size(), OpenVDS::InterpolationMethod::Linear);
-  bool finished = accessManager->WaitForCompletion(request);
+  auto request = accessManager.RequestVolumeSamples(OpenVDS::Dimensions_012, 0, 0, reinterpret_cast<const float (*)[OpenVDS::Dimensionality_Max]>(samples.data()), (int)samples.size(), OpenVDS::InterpolationMethod::Linear);
+  bool finished = request->WaitForCompletion();
   if (!finished)
   {
     int code;
     const char* errorstr;
-    accessManager->GetCurrentDownloadError(&code, &errorstr);
+    accessManager.GetCurrentDownloadError(&code, &errorstr);
     fprintf(stderr, "Failed to download request: %d - %s\n", code, errorstr);
     return -2;
   }
@@ -207,6 +204,7 @@ int main(int argc, char **argv)
   float intLayout = layout->GetChannelIntegerOffset(0);
   OpenVDS::QuantizingValueConverterWithNoValue<uint8_t, float, false> converter(minValue, maxValue, intScale, intLayout, 0.f, 0.f);
 
+  std::vector<float> data = std::move(request->Data());
   std::vector<std::array<uint8_t, 3>> fileData;
   fileData.resize(size_t(output_width) * size_t(output_height));
   for (int y = 0; y < output_height; y++)

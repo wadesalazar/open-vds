@@ -165,7 +165,7 @@ void VolumeDataPageImpl::SetBufferData(const DataBlock &dataBlock, int32_t (&pit
   m_blob = std::move(blob);
 }
 
-void VolumeDataPageImpl::WriteBack(VolumeDataLayer* volumeDataLayer, std::unique_lock<std::mutex>& pageListMutexLock)
+void VolumeDataPageImpl::WriteBack(VolumeDataLayer const* volumeDataLayer, std::unique_lock<std::mutex>& pageListMutexLock)
 {
   assert(m_isDirty);
   m_volumeDataPageAccessor->RequestWritePage(m_chunk, m_dataBlock, m_blob);
@@ -173,7 +173,6 @@ void VolumeDataPageImpl::WriteBack(VolumeDataLayer* volumeDataLayer, std::unique
   m_isDirty = false;
   layout->CompletePendingWriteChunkRequests(16);
 }
-
 
 void* VolumeDataPageImpl::GetBufferInternal(int(&anPitch)[Dimensionality_Max], bool isReadWrite)
 {

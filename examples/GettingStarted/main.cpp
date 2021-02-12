@@ -18,8 +18,8 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle);
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle);
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle);
+  OpenVDS::VolumeDataLayout const *layout = accessManager.GetVolumeDataLayout();
 
   const int sampleDimension = 0, crosslineDimension = 1, inlineDimension = 2;
   OpenVDS::VolumeDataAxisDescriptor inlineAxisDescriptor = layout->GetAxisDescriptor(inlineDimension);
@@ -38,8 +38,13 @@ int main(int argc, char *argv[])
 
   std::vector<float> buffer(layout->GetDimensionNumSamples(sampleDimension) * layout->GetDimensionNumSamples(crosslineDimension));
 
-  int64_t iRequestID = accessManager->RequestVolumeSubset(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, voxelMin, voxelMax, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+  auto request = accessManager.RequestVolumeSubset<float>(buffer.data(), buffer.size() * sizeof(float), OpenVDS::Dimensions_012, 0, 0, voxelMin, voxelMax);
 
-  bool success = accessManager->WaitForCompletion(iRequestID);
+  bool success = request->WaitForCompletion();
   (void)success;
+
+  {
+    auto request = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, voxelMin, voxelMax);
+    std::vector<float> data = std::move(request->Data());
+  }
 }

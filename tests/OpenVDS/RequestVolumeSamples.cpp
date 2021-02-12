@@ -57,9 +57,7 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(url, connectionString, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
-  ASSERT_TRUE(accessManager);
-
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
 
   int32_t dimensionality = layout->GetDimensionality();
@@ -83,15 +81,15 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
   }
 
   float buffer[100];
-  int64_t request = accessManager->RequestVolumeSamples(buffer, layout, OpenVDS::Dimensions_012, 0, 0, positions, 100, OpenVDS::InterpolationMethod::Linear);
-  bool success = accessManager->WaitForCompletion(request, 10000);
+  auto request = accessManager.RequestVolumeSamples(buffer, sizeof(buffer) * sizeof(float), OpenVDS::Dimensions_012, 0, 0, positions, 100, OpenVDS::InterpolationMethod::Linear);
+  bool success = request->WaitForCompletion(10000);
   if(!success)
   {
-    if(accessManager->IsCanceled(request))
+    if(request->IsCanceled())
     {
       int errorCode = 0;
       const char *errorMessage = nullptr;
-      accessManager->GetCurrentDownloadError(&errorCode, &errorMessage);
+      accessManager.GetCurrentDownloadError(&errorCode, &errorMessage);
       ASSERT_NE(errorCode, 0);
       ASSERT_NE(errorMessage, nullptr);
       FAIL() << std::string(errorMessage);
@@ -99,21 +97,19 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
     else
     {
       // We need to cancel and then wait until we can safely free the buffer
-      accessManager->Cancel(request);
-      accessManager->WaitForCompletion(request);
+      request->CancelAndWaitForCompletion();
       FAIL() << std::string("Timeout waiting for RequestVolumeSamples");
     }
   }
 
-  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
-  OpenVDS::VolumeDataReadAccessor<OpenVDS::FloatVector3, float >* readAccessor = accessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Linear);
+  auto readAccessor = accessManager.CreateVolumeData3DInterpolatingAccessorR32(OpenVDS::Dimensions_012, 0, 0, OpenVDS::InterpolationMethod::Linear, 100, 0.0f);
 
   float verifyBuffer[100];
   for (int i = 0; i < 100; i++)
   {
     auto &p = positions[i];
     OpenVDS::FloatVector3 pos(p[2], p[1], p[0]);
-    verifyBuffer[i] = readAccessor->GetValue(pos);
+    verifyBuffer[i] = readAccessor.GetValue(pos);
   }
 
   for (int i = 0; i < 100; i++)

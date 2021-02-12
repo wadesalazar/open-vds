@@ -26,22 +26,22 @@
 
 namespace OpenVDS
 {
-template <typename INDEX> INDEX NdPosToVector(const int (&pos)[Dimensionality_Max]){ assert(false); }
+template <typename INDEX> inline INDEX NdPosToVector(const int (&pos)[Dimensionality_Max]){ assert(false); }
 
-template <> IntVector2 NdPosToVector<IntVector2>(const int (&pos)[Dimensionality_Max]) { return { pos[1], pos[0]}; }
-template <> IntVector3 NdPosToVector<IntVector3>(const int (&pos)[Dimensionality_Max]) { return { pos[2], pos[1], pos[0]}; }
-template <> IntVector4 NdPosToVector<IntVector4>(const int (&pos)[Dimensionality_Max]) { return { pos[3], pos[2], pos[1], pos[0]}; }
-template <> FloatVector2 NdPosToVector<FloatVector2>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[1], (float)pos[0]}; }
-template <> FloatVector3 NdPosToVector<FloatVector3>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[2], (float)pos[1], (float)pos[0]}; }
-template <> FloatVector4 NdPosToVector<FloatVector4>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[3], (float)pos[2], (float)pos[1], (float)pos[0]}; }
+template <> inline IntVector2 NdPosToVector<IntVector2>(const int (&pos)[Dimensionality_Max]) { return { pos[1], pos[0]}; }
+template <> inline IntVector3 NdPosToVector<IntVector3>(const int (&pos)[Dimensionality_Max]) { return { pos[2], pos[1], pos[0]}; }
+template <> inline IntVector4 NdPosToVector<IntVector4>(const int (&pos)[Dimensionality_Max]) { return { pos[3], pos[2], pos[1], pos[0]}; }
+template <> inline FloatVector2 NdPosToVector<FloatVector2>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[1], (float)pos[0]}; }
+template <> inline FloatVector3 NdPosToVector<FloatVector3>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[2], (float)pos[1], (float)pos[0]}; }
+template <> inline FloatVector4 NdPosToVector<FloatVector4>(const int (&pos)[Dimensionality_Max]) { return { (float)pos[3], (float)pos[2], (float)pos[1], (float)pos[0]}; }
 
-template <typename INDEX> void VectorToNDPos(INDEX const &index, int (&pos)[Dimensionality_Max]) { assert(false); }
-template <> void VectorToNDPos(IntVector2 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; }
-template <> void VectorToNDPos(IntVector3 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; pos[2] = index[2]; }
-template <> void VectorToNDPos(IntVector4 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; pos[2] = index[2]; pos[3] = index[3]; }
-template <> void VectorToNDPos(FloatVector2 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); }
-template <> void VectorToNDPos(FloatVector3 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); pos[2] = (int)floorf(index[2]); }
-template <> void VectorToNDPos(FloatVector4 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); pos[2] = (int)floorf(index[2]); pos[3] = (int)floorf(index[3]); }
+template <typename INDEX> inline void VectorToNDPos(INDEX const &index, int (&pos)[Dimensionality_Max]) { assert(false); }
+template <> inline void VectorToNDPos(IntVector2 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; }
+template <> inline void VectorToNDPos(IntVector3 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; pos[2] = index[2]; }
+template <> inline void VectorToNDPos(IntVector4 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = index[0]; pos[1] = index[1]; pos[2] = index[2]; pos[3] = index[3]; }
+template <> inline void VectorToNDPos(FloatVector2 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); }
+template <> inline void VectorToNDPos(FloatVector3 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); pos[2] = (int)floorf(index[2]); }
+template <> inline void VectorToNDPos(FloatVector4 const &index, int (&pos)[Dimensionality_Max]) { pos[0] = (int)floorf(index[0]); pos[1] = (int)floorf(index[1]); pos[2] = (int)floorf(index[2]); pos[3] = (int)floorf(index[3]); }
 
 
 class AccessorRegion : public IndexRegion<IntVector4>
@@ -61,7 +61,7 @@ public:
     void           Expand(IntVector4 index);
 };
 
-bool AccessorRegion::Contains(IntVector4 index)
+inline bool AccessorRegion::Contains(IntVector4 index)
 {
   return index[0] >= Min[0] && index[0] < Max[0] &&
          index[1] >= Min[1] && index[1] < Max[1] &&
@@ -69,20 +69,20 @@ bool AccessorRegion::Contains(IntVector4 index)
          index[3] >= Min[3] && index[3] < Max[3];
 }
 
-bool AccessorRegion::Contains(IntVector3 index)
+inline bool AccessorRegion::Contains(IntVector3 index)
 {
   return index[0] >= Min[1] && index[0] < Max[1] &&
          index[1] >= Min[2] && index[1] < Max[2] &&
          index[2] >= Min[3] && index[2] < Max[3];
 }
 
-bool AccessorRegion::Contains(IntVector2 index)
+inline bool AccessorRegion::Contains(IntVector2 index)
 {
   return index[0] >= Min[2] && index[0] < Max[2] &&
          index[1] >= Min[3] && index[1] < Max[3];
 }
 
-void AccessorRegion::Expand(IntVector4 index)
+inline void AccessorRegion::Expand(IntVector4 index)
 {
   if(Min[0] > index[0])
   {
@@ -118,7 +118,7 @@ void AccessorRegion::Expand(IntVector4 index)
   }
 }
 
-void AccessorRegion::Expand(IntVector3 index)
+inline void AccessorRegion::Expand(IntVector3 index)
 {
   if(Min[1] > index[0])
   {
@@ -146,7 +146,7 @@ void AccessorRegion::Expand(IntVector3 index)
   }
 }
 
-void AccessorRegion::Expand(IntVector2 index)
+inline void AccessorRegion::Expand(IntVector2 index)
 {
   if(Min[2] > index[0])
   {
@@ -166,7 +166,7 @@ void AccessorRegion::Expand(IntVector2 index)
   }
 }
 
-bool AccessorRegion::IsEmpty()
+inline bool AccessorRegion::IsEmpty()
 {
   return Max[0] <= Min[0] ||
          Max[1] <= Min[1] ||
@@ -174,7 +174,7 @@ bool AccessorRegion::IsEmpty()
          Max[3] <= Min[3];
 }
 
-AccessorRegion AccessorRegion::Intersection(AccessorRegion const &region)
+inline AccessorRegion AccessorRegion::Intersection(AccessorRegion const &region)
 {
   IntVector4 minIntersection = { Min[0] >= region.Min[0] ? Min[0] : region.Min[0],
                                  Min[1] >= region.Min[1] ? Min[1] : region.Min[1],
@@ -226,10 +226,10 @@ public:
   void          Commit();
   void          Cancel();
 
-  virtual VolumeDataAccessor *Clone(VolumeDataPageAccessor &volumeDataPageAccessor) = 0;
+  virtual IVolumeDataAccessor *Clone(VolumeDataPageAccessor &volumeDataPageAccessor) const = 0;
 
 public:
-  VolumeDataPageAccessor *GetVolumeDataPageAccessor() { return m_volumeDataPageAccessor; }
+  VolumeDataPageAccessor *GetVolumeDataPageAccessor() const { return m_volumeDataPageAccessor; }
 
   VolumeDataAccessorBase(VolumeDataPageAccessor &VolumeDataPageAccessor);
   virtual ~VolumeDataAccessorBase();
@@ -255,8 +255,8 @@ protected:
   {}
 };
 
-template<typename INDEX, typename T1, typename T2, bool isUseNoValue>
-class ConvertingVolumeDataAccessor : public RawVolumeDataAccessor<T2>, public VolumeDataReadWriteAccessor<INDEX, T1>
+template<typename INDEX, typename T1, typename T2, bool useNoValue>
+class ConvertingVolumeDataAccessor : public RawVolumeDataAccessor<T2>, public IVolumeDataReadWriteAccessor<INDEX, T1>
 {
   using RawVolumeDataAccessor<T2>::m_min;
   using RawVolumeDataAccessor<T2>::m_max;
@@ -265,9 +265,9 @@ class ConvertingVolumeDataAccessor : public RawVolumeDataAccessor<T2>, public Vo
   using RawVolumeDataAccessor<T2>::m_pitch;
   using RawVolumeDataAccessor<T2>::m_volumeDataPageAccessor;
 
-  QuantizingValueConverterWithNoValue<T1, T2, isUseNoValue> m_readValueConverter;
+  QuantizingValueConverterWithNoValue<T1, T2, useNoValue> m_readValueConverter;
 
-  QuantizingValueConverterWithNoValue<T2, T1, isUseNoValue> m_writeValueConverter;
+  QuantizingValueConverterWithNoValue<T2, T1, useNoValue> m_writeValueConverter;
 
   float m_replacementNoValue;
 
@@ -308,8 +308,8 @@ public:
     float integerOffset = channelDescriptor.GetIntegerOffset();
     float noValue       = channelDescriptor.GetNoValue();
 
-    m_readValueConverter  = QuantizingValueConverterWithNoValue<T1, T2, isUseNoValue>(valueRangeMin, valueRangeMax, integerScale, integerOffset, noValue, replacementNoValue, isConvertWithValueRange);
-    m_writeValueConverter = QuantizingValueConverterWithNoValue<T2, T1, isUseNoValue>(valueRangeMin, valueRangeMax, integerScale, integerOffset, replacementNoValue, noValue, isConvertWithValueRange);
+    m_readValueConverter  = QuantizingValueConverterWithNoValue<T1, T2, useNoValue>(valueRangeMin, valueRangeMax, integerScale, integerOffset, noValue, replacementNoValue, isConvertWithValueRange);
+    m_writeValueConverter = QuantizingValueConverterWithNoValue<T2, T1, useNoValue>(valueRangeMin, valueRangeMax, integerScale, integerOffset, replacementNoValue, noValue, isConvertWithValueRange);
     m_replacementNoValue  = replacementNoValue;
   }
 
@@ -350,16 +350,15 @@ public:
   void Commit() override { return RawVolumeDataAccessor<T2>::Commit(); }
   void Cancel() override { return RawVolumeDataAccessor<T2>::Cancel(); }
 
-  VolumeDataAccessManager &GetManager() override { return *m_volumeDataPageAccessor->GetManager(); }
+  VolumeDataAccessManagerImpl &GetManager() override { return *m_volumeDataPageAccessor->GetManager(); }
 
   VolumeDataLayout const *GetLayout() override { return VolumeDataAccessorBase::GetLayout(); }
 
-  VolumeDataAccessor *Clone(VolumeDataPageAccessor &volumeDataPageAccessor) override { volumeDataPageAccessor.AddReference(); return new ConvertingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
-  VolumeDataAccessorBase *GetBase() override { return this; }
+  IVolumeDataAccessor *Clone(VolumeDataPageAccessor &volumeDataPageAccessor) const override { volumeDataPageAccessor.AddReference(); return new ConvertingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
 };
 
-template<typename INDEX, typename T1, typename T2, bool isUseNoValue, InterpolationMethod interpolationMethod>
-class InterpolatingVolumeDataAccessor : public RawVolumeDataAccessor<T2>, public VolumeDataReadAccessor<INDEX, T1>
+template<typename INDEX, typename T1, typename T2, bool useNoValue, int interpolationMethod>
+class InterpolatingVolumeDataAccessor : public RawVolumeDataAccessor<T2>, public IVolumeDataReadAccessor<INDEX, T1>
 {
   using RawVolumeDataAccessor<T2>::m_min;
   using RawVolumeDataAccessor<T2>::m_max;
@@ -376,7 +375,7 @@ class InterpolatingVolumeDataAccessor : public RawVolumeDataAccessor<T2>, public
   float m_integerScale;
   float m_integerOffset;
 
-  VolumeSampler<T2, interpolationMethod, isUseNoValue> m_volumeSampler;
+  VolumeSampler<T2, (InterpolationMethod)interpolationMethod, useNoValue> m_volumeSampler;
 
   float m_replacementNoValue;
 
@@ -405,7 +404,7 @@ class InterpolatingVolumeDataAccessor : public RawVolumeDataAccessor<T2>, public
    int32_t size[DataBlock::Dimensionality_Max] = { m_max[3] - m_min[3],  m_max[2] - m_min[2], m_max[1] - m_min[1],  m_max[0] - m_min[0] };
    int32_t pitch[DataBlock::Dimensionality_Max] = { m_pitch[3], m_pitch[2], m_pitch[1], m_pitch[0] };
 
-    m_volumeSampler = VolumeSampler<T2, (InterpolationMethod)interpolationMethod, isUseNoValue>(size, pitch, m_valueRangeMin, m_valueRangeMax, m_integerScale, m_integerOffset, m_noValue, m_replacementNoValue);
+    m_volumeSampler = VolumeSampler<T2, (InterpolationMethod)interpolationMethod, useNoValue>(size, pitch, m_valueRangeMin, m_valueRangeMax, m_integerScale, m_integerOffset, m_noValue, m_replacementNoValue);
   }
 
 public:
@@ -515,35 +514,34 @@ public:
       return GetValue_t(pos);
   }
 
-  VolumeDataAccessManager &GetManager() override { return *m_volumeDataPageAccessor->GetManager(); }
+  VolumeDataAccessManagerImpl &GetManager() override { return *m_volumeDataPageAccessor->GetManager(); }
 
   VolumeDataLayout const *GetLayout() override { return VolumeDataAccessorBase::GetLayout(); }
 
-  VolumeDataAccessor *Clone(VolumeDataPageAccessor &volumeDataPageAccessor) override { volumeDataPageAccessor.AddReference(); return new InterpolatingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
-  VolumeDataAccessorBase *GetBase() override { return this; }
+  IVolumeDataAccessor *Clone(VolumeDataPageAccessor &volumeDataPageAccessor) const override { volumeDataPageAccessor.AddReference(); return new InterpolatingVolumeDataAccessor(volumeDataPageAccessor, m_replacementNoValue); }
 };
 
 
   template <typename T>
-  T ReadBuffer(const void *buffer, int index)
+  inline T ReadBuffer(const void *buffer, int index)
   {
     return static_cast<const T *>(buffer)[index];
   }
 
   template <typename T>
-  void WriteBuffer(void *buffer, int index, T value)
+  inline void WriteBuffer(void *buffer, int index, T value)
   {
     static_cast<T *>(buffer)[index] = value;
   }
 
   template <>
-  bool ReadBuffer<bool>(const void *buffer, int index)
+  inline bool ReadBuffer<bool>(const void *buffer, int index)
   {
     return (static_cast<const unsigned char *>(buffer)[index / 8] & (1 << (index % 8))) != 0;
   }
 
   template <>
-  void WriteBuffer<bool>(void *buffer, int index, bool value)
+  inline void WriteBuffer<bool>(void *buffer, int index, bool value)
   {
     if(value)
     {

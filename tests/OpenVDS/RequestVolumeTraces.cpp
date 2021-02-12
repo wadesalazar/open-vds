@@ -41,9 +41,7 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeTraces)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(url, connectionString, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
-  ASSERT_TRUE(accessManager);
-
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
  
   int sampleCount0 = layout->GetDimensionNumSamples(0);
@@ -64,28 +62,27 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeTraces)
     tracePos[trace][5] = 0;
   }
 
-  int64_t requestId = accessManager->RequestVolumeTraces(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, tracePos, 10, OpenVDS::InterpolationMethod::Nearest, 0);
+  auto request = accessManager.RequestVolumeTraces(buffer.data(), buffer.size() * sizeof(float), OpenVDS::Dimensions_012, 0, 0, tracePos, 10, OpenVDS::InterpolationMethod::Nearest, 0);
 
   float previousProgress = -1;
-  while(!accessManager->WaitForCompletion(requestId,1000)){
-      ASSERT_FALSE(accessManager->IsCanceled(requestId));
+  while(!request->WaitForCompletion(1000)){
+      ASSERT_FALSE(request->IsCanceled());
 
-      float progress = accessManager->GetCompletionFactor(requestId);
+      float progress = request->GetCompletionFactor();
       if (progress != previousProgress) {
           previousProgress = progress;
           GTEST_LOG_(INFO) << "Request progress : " << progress * 100. << " %";
       }
   }
 
-  auto pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
-  auto valueReader = accessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Nearest);
+  auto valueReader = accessManager.CreateVolumeData3DInterpolatingAccessorR32(OpenVDS::Dimensions_012, 0, 0, OpenVDS::InterpolationMethod::Nearest, 1000, 0.0f);
 
   std::vector<float> verify(10 * sampleCount0);
   for (int trace = 0; trace < 10; trace++)
   {
     for (int i = 0; i < sampleCount0; i++)
     {
-      verify[trace * sampleCount0 + i] = valueReader->GetValue(OpenVDS::FloatVector3(tracePos[trace][2], tracePos[trace][1], float(i)));
+      verify[trace * sampleCount0 + i] = valueReader.GetValue(OpenVDS::FloatVector3(tracePos[trace][2], tracePos[trace][1], float(i)));
     }
   }
   ASSERT_EQ(buffer, verify);

@@ -18,7 +18,7 @@
 #include <org_opengroup_openvds_VolumeDataAccessManager.h>
 #include <Common.h>
 #include <CommonJni.h>
-#include <OpenVDS/VolumeDataAccess.h>
+#include <OpenVDS/VolumeDataAccessManager.h>
 #include <iostream>
 
 
@@ -30,8 +30,8 @@ typedef int Voxel[Dimensionality_Max];
 extern "C" {
 #endif
 
-inline OpenVDS::VolumeDataAccessManager *GetManager(jlong handle) {
-    return (OpenVDS::VolumeDataAccessManager *) CheckHandle(handle);
+inline OpenVDS::IVolumeDataAccessManager *GetManager(jlong handle) {
+    return (OpenVDS::IVolumeDataAccessManager *) CheckHandle(handle);
 }
 
 inline OpenVDS::VolumeDataLayout *GetLayout(jlong handle) {
@@ -42,8 +42,8 @@ inline OpenVDS::VolumeDataPageAccessor *GetPageAccessor(jlong handle) {
     return (OpenVDS::VolumeDataPageAccessor *) CheckHandle(handle);
 }
 
-inline OpenVDS::VolumeDataAccessor *GetDataAccessor(jlong handle) {
-    return (OpenVDS::VolumeDataAccessor *) CheckHandle(handle);
+inline OpenVDS::IVolumeDataAccessor *GetDataAccessor(jlong handle) {
+    return (OpenVDS::IVolumeDataAccessor *) CheckHandle(handle);
 }
 
 /*
@@ -63,12 +63,12 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGet
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpGetVDSProduceStatus
-* Signature: (JJIII)I
+* Signature: (JIII)I
 */
 JNIEXPORT jint JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetVDSProduceStatus
-        (JNIEnv *env, jclass, jlong handle, jlong layoutHandle, jint dimensionsND, jint lod, jint channel) {
+        (JNIEnv *env, jclass, jlong handle, jint dimensionsND, jint lod, jint channel) {
     try {
-        return (jint) GetManager(handle)->GetVDSProduceStatus(GetLayout(layoutHandle), (DimensionsND) dimensionsND, lod,
+        return (jint) GetManager(handle)->GetVDSProduceStatus((DimensionsND) dimensionsND, lod,
                                                               channel);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
@@ -78,16 +78,15 @@ JNIEXPORT jint JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetV
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpCreateVolumeDataPageAccessor
-* Signature: (JJIIIII)J
+* Signature: (JIIIII)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpCreateVolumeDataPageAccessor__JJIIIII
-        (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jint dimensionsND, jint lod, jint channel,
+        (JNIEnv *env, jclass, jlong managerHandle, jint dimensionsND, jint lod, jint channel,
          jint maxPages, jint accessMode) {
     try {
-        return (jlong) GetManager(managerHandle)->CreateVolumeDataPageAccessor(GetLayout(layoutHandle),
-                                                                               (DimensionsND) (dimensionsND), lod,
+        return (jlong) GetManager(managerHandle)->CreateVolumeDataPageAccessor((DimensionsND) (dimensionsND), lod,
                                                                                channel, maxPages,
-                                                                               (VolumeDataAccessManager::AccessMode) accessMode);
+                                                                               (IVolumeDataAccessManager::AccessMode) accessMode);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
     return 0;
@@ -96,16 +95,15 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpCre
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpCreateVolumeDataPageAccessor
-* Signature: (JJIIIIII)J
+* Signature: (JIIIIII)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpCreateVolumeDataPageAccessor__JJIIIIII
-        (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jint dimensionsND, jint lod, jint channel,
+        (JNIEnv *env, jclass, jlong managerHandle, jint dimensionsND, jint lod, jint channel,
          jint maxPages, jint accessMode, jint chunkMetadataPageSize) {
     try {
-        return (jlong) GetManager(managerHandle)->CreateVolumeDataPageAccessor(GetLayout(layoutHandle),
-                                                                               (DimensionsND) (dimensionsND), lod,
+        return (jlong) GetManager(managerHandle)->CreateVolumeDataPageAccessor((DimensionsND) (dimensionsND), lod,
                                                                                channel, maxPages,
-                                                                               (VolumeDataAccessManager::AccessMode) accessMode, chunkMetadataPageSize);
+                                                                               (IVolumeDataAccessManager::AccessMode) accessMode, chunkMetadataPageSize);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
     return 0;
@@ -154,16 +152,15 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpClo
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpGetVolumeSubsetBufferSize
-* Signature: (JJ[I[IIII)J
+* Signature: (J[I[IIII)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetVolumeSubsetBufferSize
-        (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jintArray minVoxelCoordinates,
+        (JNIEnv *env, jclass, jlong managerHandle, jintArray minVoxelCoordinates,
          jintArray maxVoxelCoordinates, jint format, jint lod, jint channel) {
     try {
         std::vector<int> minVoxel = JArrayToVector(env, minVoxelCoordinates);
         std::vector<int> maxVoxel = JArrayToVector(env, maxVoxelCoordinates);
-        return GetManager(managerHandle)->GetVolumeSubsetBufferSize(GetLayout(layoutHandle),
-                                                                    (Voxel &) *minVoxel.data(),
+        return GetManager(managerHandle)->GetVolumeSubsetBufferSize((Voxel &) *minVoxel.data(),
                                                                     (Voxel &) *maxVoxel.data(),
                                                                     (VolumeDataChannelDescriptor::Format) format, lod, channel);
     }
@@ -177,17 +174,15 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGet
  * Signature: (JLjava/nio/Buffer;JIII[I[II)J
  */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpRequestVolumeSubset
-        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong layoutHandle,
+        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong sampleBufferSize,
          jint dimensionsND, jint lod, jint channel, jintArray minVoxelCoordinates, jintArray maxVoxelCoordinates, jint formatCode){
     std::vector<int> minVoxel = JArrayToVector(env, minVoxelCoordinates);
     std::vector<int> maxVoxel = JArrayToVector(env, maxVoxelCoordinates);
     auto output = static_cast<void *>(env->GetDirectBufferAddress(jsampleBuffer));
 
-    VolumeDataAccessManager *pManager = GetManager(managerHandle);
-    VolumeDataLayout *layout = GetLayout(layoutHandle);
+    IVolumeDataAccessManager *pManager = GetManager(managerHandle);
     try {
-        return pManager->RequestVolumeSubset(output,
-                                             layout,
+        return pManager->RequestVolumeSubset(output, sampleBufferSize,
                                              (DimensionsND) dimensionsND,
                                              lod, channel,
                                              (Voxel &) *minVoxel.data(),
@@ -204,17 +199,15 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
  * Signature: (JLjava/nio/Buffer;JIII[I[IIF)J
  */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpRequestVolumeSubsetR
-        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong layoutHandle,
+        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong sampleBufferSize,
          jint dimensionsND, jint lod, jint channel, jintArray minVoxelCoordinates, jintArray maxVoxelCoordinates, jint formatCode, jfloat replacementValue) {
     std::vector<int> minVoxel = JArrayToVector(env, minVoxelCoordinates);
     std::vector<int> maxVoxel = JArrayToVector(env, maxVoxelCoordinates);
     auto output = static_cast<void *>(env->GetDirectBufferAddress(jsampleBuffer));
 
-    VolumeDataAccessManager *pManager = GetManager(managerHandle);
-    VolumeDataLayout *layout = GetLayout(layoutHandle);
+    IVolumeDataAccessManager *pManager = GetManager(managerHandle);
     try {
-        return pManager->RequestVolumeSubset(output,
-                                             layout,
+        return pManager->RequestVolumeSubset(output, sampleBufferSize,
                                              (DimensionsND) dimensionsND,
                                              lod, channel,
                                              (Voxel &) *minVoxel.data(),
@@ -229,17 +222,16 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpGetProjectedVolumeSubsetBufferSize
-* Signature: (JJ[I[IIIII)J
+* Signature: (J[I[IIIII)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetProjectedVolumeSubsetBufferSize
-        (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jintArray minVoxelCoordinates,
+        (JNIEnv *env, jclass, jlong managerHandle, jintArray minVoxelCoordinates,
          jintArray maxVoxelCoordinates,
          jint projectedDimensions, jint format, jint lod, jint channel) {
     try {
         std::vector<int> minVoxelArray = JArrayToVector(env, minVoxelCoordinates);
         std::vector<int> maxVoxelArray = JArrayToVector(env, maxVoxelCoordinates);
-        return GetManager(managerHandle)->GetProjectedVolumeSubsetBufferSize(GetLayout(layoutHandle),
-                                                                             (Voxel &) *minVoxelArray.data(),
+        return GetManager(managerHandle)->GetProjectedVolumeSubsetBufferSize((Voxel &) *minVoxelArray.data(),
                                                                              (Voxel &) *maxVoxelArray.data(),
                                                                              (DimensionsND) projectedDimensions,
                                                                              (VolumeDataChannelDescriptor::Format) format,
@@ -255,12 +247,11 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGet
  * Signature: (JLjava/nio/FloatBuffer;JIII[I[IFFFFIII)J
  */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpRequestProjectedVolumeSubset
-        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong layoutHandle,
+        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong sampleBufferSize,
          jint jDimensionsND, jint lod, jint channel, jintArray minVoxelCoordinates, jintArray maxVoxelCoordinates,
          jfloat jVp0, jfloat jVp1, jfloat jVp2, jfloat jVp3,  jint projectedDimensions, jint jFormat, jint interpolationMethod){
     try {
-        VolumeDataAccessManager *manager = GetManager(managerHandle);
-        VolumeDataLayout *layout = GetLayout(layoutHandle);
+        IVolumeDataAccessManager *manager = GetManager(managerHandle);
         std::vector<int> minVoxelArray = JArrayToVector(env, minVoxelCoordinates);
         std::vector<int> maxVoxelArray = JArrayToVector(env, maxVoxelCoordinates);
         Voxel &minVoxel = (Voxel &) *minVoxelArray.data();
@@ -270,7 +261,7 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
         FloatVector4 voxelPlane(jVp0, jVp1, jVp2, jVp3);
         auto output = static_cast<float *>(env->GetDirectBufferAddress(jsampleBuffer));
         return manager->RequestProjectedVolumeSubset(
-                output, layout, dimensionsND, lod, channel,
+                output, sampleBufferSize, dimensionsND, lod, channel,
                 minVoxel, maxVoxel, voxelPlane,
                 (DimensionsND) projectedDimensions, format, (InterpolationMethod) interpolationMethod);
     }
@@ -284,12 +275,11 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
  * Signature: (JJJJIII[I[I[FIIIF)J
  */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpRequestProjectedVolumeSubsetR
-        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong layoutHandle,
+        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong sampleBufferSize,
          jint jDimensionsND, jint lod, jint channel, jintArray minVoxelCoordinates, jintArray maxVoxelCoordinates,
          jfloat jVp0, jfloat jVp1, jfloat jVp2, jfloat jVp3,  jint projectedDimensions, jint jFormat, jint interpolationMethod, jfloat replacementNoValue) {
     try {
-        VolumeDataAccessManager *manager = GetManager(managerHandle);
-        VolumeDataLayout *layout = GetLayout(layoutHandle);
+        IVolumeDataAccessManager *manager = GetManager(managerHandle);
         std::vector<int> minVoxelArray = JArrayToVector(env, minVoxelCoordinates);
         std::vector<int> maxVoxelArray = JArrayToVector(env, maxVoxelCoordinates);
         Voxel &minVoxel = (Voxel &) *minVoxelArray.data();
@@ -299,7 +289,7 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
         FloatVector4 voxelPlane(jVp0, jVp1, jVp2, jVp3);
         auto output = static_cast<float *>(env->GetDirectBufferAddress(jsampleBuffer));
         return manager->RequestProjectedVolumeSubset(
-                output, layout, dimensionsND, lod, channel,
+                output, sampleBufferSize, dimensionsND, lod, channel,
                 minVoxel, maxVoxel, voxelPlane,
                 (DimensionsND) projectedDimensions, format, (InterpolationMethod) interpolationMethod,
                 replacementNoValue);
@@ -314,13 +304,12 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
  * Signature: (JLjava/nio/FloatBuffer;JIIILjava/nio/FloatBuffer;II)J
  */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpRequestVolumeSamples
-        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong layoutHandle, jint dimensionsND,
+        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong sampleBufferSize, jint dimensionsND,
          jint lod, jint channel, jobject jpositionBuffer, jint sampleCount, jint interpolationMethod) {
     auto positions = reinterpret_cast<const float (*)[Dimensionality_Max]>(env->GetDirectBufferAddress(jpositionBuffer));
     auto output = static_cast<float *>(env->GetDirectBufferAddress(jsampleBuffer));
     try {
-        return GetManager(managerHandle)->RequestVolumeSamples(output,
-                                                               GetLayout(layoutHandle),
+        return GetManager(managerHandle)->RequestVolumeSamples(output, sampleBufferSize,
                                                                (DimensionsND) dimensionsND, lod, channel,
                                                                positions,
                                                                sampleCount, (InterpolationMethod) interpolationMethod);
@@ -332,12 +321,12 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpGetVolumeSamplesBufferSize
-* Signature: (JJII)J
+* Signature: (JII)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetVolumeSamplesBufferSize
-(JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jint sampleCount, jint channel) {
+(JNIEnv *env, jclass, jlong managerHandle, jint sampleCount, jint channel) {
   try {
-    return GetManager(managerHandle)->GetVolumeSamplesBufferSize(GetLayout(layoutHandle), sampleCount, channel);
+    return GetManager(managerHandle)->GetVolumeSamplesBufferSize(sampleCount, channel);
   }
   CATCH_EXCEPTIONS_FOR_JAVA;
   return 0;
@@ -349,14 +338,13 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGet
 * Signature: (JLjava/nio/FloatBuffer;JIIILjava/nio/FloatBuffer;IIF)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpRequestVolumeSamplesR
-        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong layoutHandle, jint dimensionsND,
+        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong sampleBufferSize, jint dimensionsND,
          jint lod, jint channel, jobject jpositionBuffer, jint sampleCount, jint interpolationMethod,
          jfloat replacementValue) {
     auto positions = reinterpret_cast<const float (*)[Dimensionality_Max]>(env->GetDirectBufferAddress(jpositionBuffer));
     auto output = static_cast<float *>(env->GetDirectBufferAddress(jsampleBuffer));
     try {
-        return GetManager(managerHandle)->RequestVolumeSamples(output,
-                                                               GetLayout(layoutHandle),
+        return GetManager(managerHandle)->RequestVolumeSamples(output, sampleBufferSize,
                                                                (DimensionsND) dimensionsND, lod, channel,
                                                                positions,
                                                                sampleCount, (InterpolationMethod) interpolationMethod,
@@ -369,12 +357,12 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpGetVolumeTracesBufferSize
-* Signature: (JJIIII)J
+* Signature: (JIIII)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGetVolumeTracesBufferSize
-        (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jint traceCount, jint traceDimension, jint lod, jint channel) {
+        (JNIEnv *env, jclass, jlong managerHandle, jint traceCount, jint traceDimension, jint lod, jint channel) {
     try {
-        return GetManager(managerHandle)->GetVolumeTracesBufferSize(GetLayout(layoutHandle), traceCount, traceDimension,
+        return GetManager(managerHandle)->GetVolumeTracesBufferSize(traceCount, traceDimension,
                                                                     lod, channel);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
@@ -387,16 +375,14 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpGet
  * Signature: (JLjava/nio/FloatBuffer;JIIILjava/nio/FloatBuffer;III)J
  */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpRequestVolumeTraces__JLjava_nio_FloatBuffer_2JIIILjava_nio_FloatBuffer_2III
-        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong layoutHandle,
+        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong sampleBufferSize,
             jint jDimensionsND, jint lod, jint channel, jobject jTracePositions, jint traceCount,
             jint interpolationMethod, jint traceDimension){
     auto tracePositions = reinterpret_cast<const float (*)[Dimensionality_Max]>(env->GetDirectBufferAddress(jTracePositions));
     auto output = static_cast<float*>(env->GetDirectBufferAddress(jsampleBuffer));
     auto pManager = GetManager(managerHandle);
-    auto layout = GetLayout(layoutHandle);
     try {
-        return pManager->RequestVolumeTraces(output,
-                                             layout,
+        return pManager->RequestVolumeTraces(output, sampleBufferSize,
                                              (DimensionsND) jDimensionsND, lod, channel,
                                              tracePositions,
                                              traceCount, (InterpolationMethod) interpolationMethod,
@@ -412,16 +398,14 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
  * Signature: (JLjava/nio/FloatBuffer;JIIILjava/nio/FloatBuffer;IIIF)J
  */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpRequestVolumeTraces__JLjava_nio_FloatBuffer_2JIIILjava_nio_FloatBuffer_2IIIF
-        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong layoutHandle,
+        (JNIEnv *env, jclass, jlong managerHandle, jobject jsampleBuffer, jlong sampleBufferSize,
          jint jDimensionsND, jint lod, jint channel, jobject jTracePositions, jint traceCount,
          jint interpolationMethod, jint traceDimension, jfloat replacementNoValue){
     auto tracePositions = reinterpret_cast<const float (*)[Dimensionality_Max]>(env->GetDirectBufferAddress(jTracePositions));
     auto output = static_cast<float*>(env->GetDirectBufferAddress(jsampleBuffer));
     auto pManager = GetManager(managerHandle);
-    auto layout = GetLayout(layoutHandle);
     try {
-        return pManager->RequestVolumeTraces(output,
-                                             layout,
+        return pManager->RequestVolumeTraces(output, sampleBufferSize,
                                              (DimensionsND) jDimensionsND, lod, channel,
                                              tracePositions,
                                              traceCount, (InterpolationMethod) interpolationMethod,
@@ -434,13 +418,13 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpReq
 /*
 * Class:     org_opengroup_openvds_VolumeDataAccessManager
 * Method:    cpPrefetchVolumeChunk
-* Signature: (JJIIIJ)J
+* Signature: (JIIIJ)J
 */
 JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpPrefetchVolumeChunk
-        (JNIEnv *env, jclass, jlong managerHandle, jlong layoutHandle, jint dimensionsND, jint lod, jint channel,
+        (JNIEnv *env, jclass, jlong managerHandle, jint dimensionsND, jint lod, jint channel,
          jlong chunk) {
     try {
-        return GetManager(managerHandle)->PrefetchVolumeChunk(GetLayout(layoutHandle), (DimensionsND) dimensionsND, lod,
+        return GetManager(managerHandle)->PrefetchVolumeChunk((DimensionsND) dimensionsND, lod,
                                                               channel, chunk);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;

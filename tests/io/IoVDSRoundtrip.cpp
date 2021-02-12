@@ -16,19 +16,19 @@
 
 //#define IN_MEMORY_TEST 1
 
-int handleUploadErrors(OpenVDS::VolumeDataAccessManager *accessManager)
+int handleUploadErrors(OpenVDS::VolumeDataAccessManager &accessManager)
 {
-  int32_t errorCount = accessManager->UploadErrorCount();
+  int32_t errorCount = accessManager.UploadErrorCount();
   for (int errorIndex = 0; errorIndex < errorCount; errorIndex++)
   {
     const char *object_id;
     int32_t error_code;
     const char *error_string;
-    accessManager->GetCurrentUploadError(&object_id, &error_code, &error_string);
+    accessManager.GetCurrentUploadError(&object_id, &error_code, &error_string);
     fprintf(stderr, "\nFailed to upload object: %s. Error code %d: %s\n", object_id, error_code, error_string);
   }
   if (errorCount)
-    accessManager->ClearUploadErrors();
+    accessManager.ClearUploadErrors();
   return errorCount;
 }
 
@@ -110,14 +110,14 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   ASSERT_TRUE(networkVDS);
 
 
-  OpenVDS::VolumeDataAccessManager *inMemoryAccessManager = OpenVDS::GetAccessManager(inMemoryVDS.get());
-  OpenVDS::VolumeDataPageAccessor *inMemoryPageAccessor = inMemoryAccessManager->CreateVolumeDataPageAccessor(inMemoryLayout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  OpenVDS::VolumeDataAccessManager inMemoryAccessManager = OpenVDS::GetAccessManager(inMemoryVDS.get());
+  OpenVDS::VolumeDataPageAccessor *inMemoryPageAccessor = inMemoryAccessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   int64_t chunkCount = inMemoryPageAccessor->GetChunkCount();
 
   {
     OpenVDS::VolumeDataLayout *networkLayout = OpenVDS::GetLayout(networkVDS.get());
-    OpenVDS::VolumeDataAccessManager *networkAccessManager = OpenVDS::GetAccessManager(networkVDS.get());
-    OpenVDS::VolumeDataPageAccessor *networkPageAccessor = networkAccessManager->CreateVolumeDataPageAccessor(networkLayout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+    OpenVDS::VolumeDataAccessManager networkAccessManager = OpenVDS::GetAccessManager(networkVDS.get());
+    OpenVDS::VolumeDataPageAccessor *networkPageAccessor = networkAccessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
 
     for (int64_t i = 0; i < chunkCount; i++)
     {
@@ -151,7 +151,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
     networkPageAccessor->Commit();
     int uploadErrors = handleUploadErrors(networkAccessManager);
     ASSERT_TRUE(uploadErrors == 0);
-    networkAccessManager->DestroyVolumeDataPageAccessor(networkPageAccessor);
+    networkAccessManager.DestroyVolumeDataPageAccessor(networkPageAccessor);
   }
 
   networkVDS.reset();
@@ -167,7 +167,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   ASSERT_TRUE(networkVDS);
 
   OpenVDS::VolumeDataLayout *networkLayout = OpenVDS::GetLayout(networkVDS.get());
-  OpenVDS::VolumeDataAccessManager *networkAccessManager = OpenVDS::GetAccessManager(networkVDS.get());
+  OpenVDS::VolumeDataAccessManager networkAccessManager = OpenVDS::GetAccessManager(networkVDS.get());
 
   std::vector<uint8_t> networkData;
 
@@ -178,14 +178,14 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   int minPos[OpenVDS::Dimensionality_Max] = {};
   int maxPos[OpenVDS::Dimensionality_Max] = {x_samples, y_samples, z_samples, 0, 0, 0};
 
-  networkData.resize(networkAccessManager->GetVolumeSubsetBufferSize(networkLayout, minPos, maxPos, networkLayout->GetChannelFormat(0), 0));
+  networkData.resize(networkAccessManager.GetVolumeSubsetBufferSize(minPos, maxPos, networkLayout->GetChannelFormat(0), 0));
 
 
   fmt::print(stderr, "About to start download request.\n");
   auto download_start_time = std::chrono::high_resolution_clock::now();
-  int64_t networkRequest = networkAccessManager->RequestVolumeSubset(networkData.data(), networkLayout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, networkLayout->GetChannelFormat(0));
+  auto networkRequest = networkAccessManager.RequestVolumeSubset((void *)networkData.data(), networkData.size(), OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, networkLayout->GetChannelFormat(0));
 
-  ASSERT_TRUE(networkAccessManager->WaitForCompletion(networkRequest));
+  ASSERT_TRUE(networkRequest->WaitForCompletion());
 
   auto download_end_time = std::chrono::high_resolution_clock::now();
 
@@ -214,14 +214,13 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   delete[] memcpy_data;
 
   std::vector<uint8_t> inMemoryData;
-  inMemoryData.resize(inMemoryAccessManager->GetVolumeSubsetBufferSize(inMemoryLayout, minPos, maxPos, inMemoryLayout->GetChannelFormat(0), 0));
-  int64_t inMemoryRequest = inMemoryAccessManager->RequestVolumeSubset(inMemoryData.data(), inMemoryLayout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, inMemoryLayout->GetChannelFormat(0));
-  ASSERT_TRUE(inMemoryAccessManager->WaitForCompletion(inMemoryRequest));
-  inMemoryAccessManager->DestroyVolumeDataPageAccessor(inMemoryPageAccessor);
+  inMemoryData.resize(inMemoryAccessManager.GetVolumeSubsetBufferSize(minPos, maxPos, inMemoryLayout->GetChannelFormat(0), 0));
+  auto inMemoryRequest = inMemoryAccessManager.RequestVolumeSubset((void *)inMemoryData.data(), inMemoryData.size(), OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, inMemoryLayout->GetChannelFormat(0));
+  ASSERT_TRUE(inMemoryRequest->WaitForCompletion());
+  inMemoryAccessManager.DestroyVolumeDataPageAccessor(inMemoryPageAccessor);
 
   ASSERT_EQ(inMemoryData.size(), networkData.size());
   ASSERT_TRUE(memcmp(inMemoryData.data(), networkData.data(), networkData.size()) == 0);
-
 }
 
 TEST(IOTests, CreateSyntheticVDSAndVerifyCreateVDSFile)
@@ -285,14 +284,13 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyCreateVDSFile)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> fileVDS(OpenVDS::Create(openOptions, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error), &OpenVDS::Close);
   ASSERT_TRUE(fileVDS);
 
-  OpenVDS::VolumeDataAccessManager *inMemoryAccessManager = OpenVDS::GetAccessManager(inMemoryVDS.get());
-  OpenVDS::VolumeDataPageAccessor *inMemoryPageAccessor = inMemoryAccessManager->CreateVolumeDataPageAccessor(inMemoryLayout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  OpenVDS::VolumeDataAccessManager inMemoryAccessManager = OpenVDS::GetAccessManager(inMemoryVDS.get());
+  OpenVDS::VolumeDataPageAccessor *inMemoryPageAccessor = inMemoryAccessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   int64_t chunkCount = inMemoryPageAccessor->GetChunkCount();
 
   {
-    OpenVDS::VolumeDataLayout *fileLayout = OpenVDS::GetLayout(fileVDS.get());
-    OpenVDS::VolumeDataAccessManager *fileAccessManager = OpenVDS::GetAccessManager(fileVDS.get());
-    OpenVDS::VolumeDataPageAccessor *filePageAccessor = fileAccessManager->CreateVolumeDataPageAccessor(fileLayout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+    OpenVDS::VolumeDataAccessManager fileAccessManager = OpenVDS::GetAccessManager(fileVDS.get());
+    OpenVDS::VolumeDataPageAccessor *filePageAccessor = fileAccessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
 
     for (int64_t i = 0; i < chunkCount; i++)
     {
@@ -326,7 +324,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyCreateVDSFile)
     filePageAccessor->Commit();
     int uploadErrors = handleUploadErrors(fileAccessManager);
     ASSERT_TRUE(uploadErrors == 0);
-    fileAccessManager->DestroyVolumeDataPageAccessor(filePageAccessor);
+    fileAccessManager.DestroyVolumeDataPageAccessor(filePageAccessor);
   }
 
   fileVDS.reset();
@@ -342,7 +340,7 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyCreateVDSFile)
   ASSERT_TRUE(fileVDS);
 
   OpenVDS::VolumeDataLayout *fileLayout = OpenVDS::GetLayout(fileVDS.get());
-  OpenVDS::VolumeDataAccessManager *fileAccessManager = OpenVDS::GetAccessManager(fileVDS.get());
+  OpenVDS::VolumeDataAccessManager fileAccessManager = OpenVDS::GetAccessManager(fileVDS.get());
 
   std::vector<uint8_t> fileData;
 
@@ -353,14 +351,14 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyCreateVDSFile)
   int minPos[OpenVDS::Dimensionality_Max] = {};
   int maxPos[OpenVDS::Dimensionality_Max] = {x_samples, y_samples, z_samples, 0, 0, 0};
 
-  fileData.resize(fileAccessManager->GetVolumeSubsetBufferSize(fileLayout, minPos, maxPos, fileLayout->GetChannelFormat(0), 0));
+  fileData.resize(fileAccessManager.GetVolumeSubsetBufferSize(minPos, maxPos, fileLayout->GetChannelFormat(0), 0));
 
 
   fmt::print(stderr, "About to start download request.\n");
   auto download_start_time = std::chrono::high_resolution_clock::now();
-  int64_t fileRequest = fileAccessManager->RequestVolumeSubset(fileData.data(), fileLayout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, fileLayout->GetChannelFormat(0));
+  auto fileRequest = fileAccessManager.RequestVolumeSubset((void *)fileData.data(), fileData.size(), OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, fileLayout->GetChannelFormat(0));
 
-  ASSERT_TRUE(fileAccessManager->WaitForCompletion(fileRequest));
+  ASSERT_TRUE(fileRequest->WaitForCompletion());
 
   auto download_end_time = std::chrono::high_resolution_clock::now();
 
@@ -389,10 +387,10 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyCreateVDSFile)
   delete[] memcpy_data;
 
   std::vector<uint8_t> inMemoryData;
-  inMemoryData.resize(inMemoryAccessManager->GetVolumeSubsetBufferSize(inMemoryLayout, minPos, maxPos, inMemoryLayout->GetChannelFormat(0), 0));
-  int64_t inMemoryRequest = inMemoryAccessManager->RequestVolumeSubset(inMemoryData.data(), inMemoryLayout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, inMemoryLayout->GetChannelFormat(0));
-  ASSERT_TRUE(inMemoryAccessManager->WaitForCompletion(inMemoryRequest));
-  inMemoryAccessManager->DestroyVolumeDataPageAccessor(inMemoryPageAccessor);
+  inMemoryData.resize(inMemoryAccessManager.GetVolumeSubsetBufferSize(minPos, maxPos, inMemoryLayout->GetChannelFormat(0), 0));
+  auto inMemoryRequest = inMemoryAccessManager.RequestVolumeSubset((void *)inMemoryData.data(), inMemoryData.size(), OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, inMemoryLayout->GetChannelFormat(0));
+  ASSERT_TRUE(inMemoryRequest->WaitForCompletion());
+  inMemoryAccessManager.DestroyVolumeDataPageAccessor(inMemoryPageAccessor);
 
   ASSERT_EQ(inMemoryData.size(), fileData.size());
   ASSERT_TRUE(memcmp(inMemoryData.data(), fileData.data(), fileData.size()) == 0);

@@ -63,15 +63,16 @@ public class WriteDataTest {
 
         VolumeDataAccessManager access = vds2.getAccessManager();
         VolumeDataLayout layout = vds2.getLayout();
+
         NDBox box = new NDBox(0, 0, 0, 0, 0, 0, nz, nx, 0, 0, 0, 0);
 
         int channel = layout.getChannelIndex("chan1");
-        long size = access.getVolumeSubsetBufferSize(layout, box, f, 0, channel);
+        long size = access.getVolumeSubsetBufferSize(box, f, 0, channel);
 
         java.nio.FloatBuffer outbuf = BufferUtils.createFloatBuffer((int) size / 4);
         DimensionsND dims = DimensionsND.DIMENSIONS_01;
 
-        long t = access.requestVolumeSubset(outbuf, layout, dims, 0, channel, box);
+        long t = access.requestVolumeSubset(outbuf, dims, 0, channel, box);
         access.waitForCompletion(t);
         float[] arr = new float[outbuf.remaining()];
         outbuf.get(arr);
@@ -128,11 +129,12 @@ public class WriteDataTest {
         NDBox box = new NDBox(0, 0, 0, 0, 0, 0, nz, ny, nx, 0, 0, 0);
 
         int channel = layout.getChannelIndex("chan2");
-        long size = access.getVolumeSubsetBufferSize(layout, box, f, 0, channel);
+        long size = access.getVolumeSubsetBufferSize(box, f, 0, channel);
+
         java.nio.FloatBuffer outbuf = BufferUtils.createFloatBuffer((int) size / 4);
         DimensionsND dims = DimensionsND.DIMENSIONS_012;
 
-        long t = access.requestVolumeSubset(outbuf, layout, dims, 0, channel, box);
+        long t = access.requestVolumeSubset(outbuf, dims, 0, channel, box);
         access.waitForCompletion(t);
         float[] arr = new float[outbuf.remaining()];
         outbuf.get(arr);

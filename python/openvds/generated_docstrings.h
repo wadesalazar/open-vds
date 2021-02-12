@@ -324,6 +324,18 @@ static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_5 = R"doc
 
 static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_6 = R"doc()doc";
 
+static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_7 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_9 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_10 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_11 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor_12 = R"doc()doc";
+
 static const char *__doc_OpenVDS_CreateOpenOptions =
 R"doc(Create an OpenOptions struct from a url and connection string
 
@@ -347,47 +359,173 @@ Returns:
     the OpenOption before passing it to Open. Use the Open and Create
     functions with url and string instead if this is not needed.)doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_2 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_3 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_3 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_4 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_4 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_5 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_5 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_6 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_6 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_7 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_7 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_8 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_8 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_9 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_9 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_10 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_10 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_11 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_11 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_12 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_12 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_13 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_13 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_14 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_14 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_15 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_15 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_16 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_16 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_17 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_17 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_18 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_18 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_19 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_19 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_20 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_20 = R"doc()doc";
 
-static const char *__doc_OpenVDS_CreateVolumeDataAccessor_21 = R"doc()doc";
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_21 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_22 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_23 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_24 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_25 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_26 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_27 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_28 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_29 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_30 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_31 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_33 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_34 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_35 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_36 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_37 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_38 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_39 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_40 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_41 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadAccessor_42 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_4 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_5 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_6 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_7 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_9 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_10 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_11 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_12 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_13 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_14 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_15 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_16 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_17 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_18 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_19 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_20 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_21 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_22 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_23 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_24 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_25 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_26 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_27 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_28 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_29 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_30 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_31 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_33 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_34 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_35 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_36 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_37 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_38 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_39 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_40 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_41 = R"doc()doc";
+
+static const char *__doc_OpenVDS_CreateVolumeDataReadWriteAccessor_42 = R"doc()doc";
 
 static const char *__doc_OpenVDS_DMSOpenOptions = R"doc()doc";
 
@@ -483,6 +621,20 @@ static const char *__doc_OpenVDS_Error_code = R"doc()doc";
 
 static const char *__doc_OpenVDS_Error_string = R"doc()doc";
 
+static const char *__doc_OpenVDS_Exception = R"doc()doc";
+
+static const char *__doc_OpenVDS_Exception_GetErrorMessage = R"doc()doc";
+
+static const char *__doc_OpenVDS_Exception_what = R"doc()doc";
+
+static const char *__doc_OpenVDS_FatalException = R"doc()doc";
+
+static const char *__doc_OpenVDS_FatalException_FatalException = R"doc()doc";
+
+static const char *__doc_OpenVDS_FatalException_GetErrorMessage = R"doc()doc";
+
+static const char *__doc_OpenVDS_FatalException_m_errorMessage = R"doc()doc";
+
 static const char *__doc_OpenVDS_GenericDispatcher = R"doc()doc";
 
 static const char *__doc_OpenVDS_GenericDispatcher_1 = R"doc()doc";
@@ -499,6 +651,19 @@ handle :
 Returns:
 --------
     The VolumeDataAccessManager of the VDS)doc";
+
+static const char *__doc_OpenVDS_GetAccessManagerInterface =
+R"doc(Get the VolumeDataAccessManagerInterface for a VDS
+
+Parameters:
+-----------
+
+handle :
+    The handle of the VDS
+
+Returns:
+--------
+    The VolumeDataAccessManagerInterface of the VDS)doc";
 
 static const char *__doc_OpenVDS_GetGlobalState =
 R"doc(Get the GlobalState interface
@@ -803,6 +968,12 @@ url :
 
 static const char *__doc_OpenVDS_HttpOpenOptions_url = R"doc()doc";
 
+static const char *__doc_OpenVDS_IHasVolumeDataAccess = R"doc()doc";
+
+static const char *__doc_OpenVDS_IHasVolumeDataAccess_GetVolumeDataAccessManager = R"doc()doc";
+
+static const char *__doc_OpenVDS_IHasVolumeDataAccess_IHasVolumeDataAccess = R"doc()doc";
+
 static const char *__doc_OpenVDS_IJKGridDefinition = R"doc()doc";
 
 static const char *__doc_OpenVDS_IJKGridDefinition_IJKGridDefinition = R"doc()doc";
@@ -818,6 +989,640 @@ static const char *__doc_OpenVDS_IJKGridDefinition_kUnitStep = R"doc()doc";
 static const char *__doc_OpenVDS_IJKGridDefinition_origin = R"doc()doc";
 
 static const char *__doc_OpenVDS_IOManager = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_AccessMode = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_AccessMode_AccessMode_Create = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_AccessMode_AccessMode_ReadOnly = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_AccessMode_AccessMode_ReadWrite = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_AddRef = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Cancel =
+R"doc(Try to cancel the request. You still have to call
+WaitForCompletion/IsCanceled to make sure the buffer is not being
+written to and to take the job out of the system. It is possible that
+the request has completed concurrently with the call to Cancel in
+which case WaitForCompletion will return True.
+
+Parameters:
+-----------
+
+requestID :
+    The RequestID to cancel.)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_CancelAndWaitForCompletion =
+R"doc(Cancel the request and wait for it to complete. This call will block
+until the request has completed so you can be sure the buffer is not
+being written to and the job is taken out of the system.
+
+Parameters:
+-----------
+
+requestID :
+    The RequestID to cancel.)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_ClearUploadErrors = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_CloneVolumeDataAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create2DInterpolatingVolumeDataAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create2DInterpolatingVolumeDataAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create2DVolumeDataAccessor1Bit = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create2DVolumeDataAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create2DVolumeDataAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create2DVolumeDataAccessorU16 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create2DVolumeDataAccessorU32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create2DVolumeDataAccessorU64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create2DVolumeDataAccessorU8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create3DInterpolatingVolumeDataAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create3DInterpolatingVolumeDataAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create3DVolumeDataAccessor1Bit = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create3DVolumeDataAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create3DVolumeDataAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create3DVolumeDataAccessorU16 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create3DVolumeDataAccessorU32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create3DVolumeDataAccessorU64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create3DVolumeDataAccessorU8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DInterpolatingVolumeDataAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DInterpolatingVolumeDataAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DVolumeDataAccessor1Bit = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DVolumeDataAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DVolumeDataAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DVolumeDataAccessorU16 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DVolumeDataAccessorU32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DVolumeDataAccessorU64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DVolumeDataAccessorU8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_CreateVolumeDataPageAccessor =
+R"doc(Create a volume data page accessor object for the VDS associated with
+the given VolumeDataLayout object.
+
+Parameters:
+-----------
+
+dimensionsND :
+    The dimensions group that the volume data page accessor will
+    access.
+
+LOD :
+    The LOD level that the volume data page accessor will access.
+
+channel :
+    The channel index that the volume data page accessor will access.
+
+maxPages :
+    The maximum number of pages that the volume data page accessor
+    will cache.
+
+accessMode :
+    This specifies the access mode (ReadOnly/ReadWrite/Create) of the
+    volume data page accessor.
+
+chunkMetadataPageSize :
+    The chunk metadata page size of the layer. This controls how many
+    chunk metadata entries are written per page, and is only used when
+    the access mode is Create. If this number is too low it will
+    degrade performance, but in certain situations it can be
+    advantageous to make this number a multiple of the number of
+    chunks in some of the dimensions. Do not change this from the
+    default (1024) unless you know exactly what you are doing.
+
+Returns:
+--------
+    A VolumeDataPageAccessor object for the VDS associated with the
+    given VolumeDataLayout object.)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_DestroyVolumeDataAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_DestroyVolumeDataPageAccessor =
+R"doc(Destroy a volume data page accessor object.
+
+Parameters:
+-----------
+
+volumeDataPageAccessor :
+    The VolumeDataPageAccessor object to destroy.)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_FlushUploadQueue =
+R"doc(Flush any pending writes and write updated layer status
+
+Parameters:
+-----------
+
+writeUpdatedLayerStatus :
+    Write the updated layer status (or only flush pending writes of
+    chunks and chunk-metadata).)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_ForceClearAllUploadErrors = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetCompletionFactor =
+R"doc(Get the completion factor (between 0 and 1) of the request.
+
+Parameters:
+-----------
+
+requestID :
+    The RequestID to get the completion factor of.
+
+Returns:
+--------
+    A factor (between 0 and 1) indicating how much of the request has
+    been completed.)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetCurrentDownloadError = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetCurrentUploadError = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetProjectedVolumeSubsetBufferSize =
+R"doc(Compute the buffer size (in bytes) for a projected volume subset
+request.
+
+Parameters:
+-----------
+
+minVoxelCoordinates :
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+maxVoxelCoordinates :
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+projectedDimensions :
+    The 2D dimension group that the plane in the source dimensiongroup
+    is projected into. It must be a 2D subset of the source
+    dimensions.
+
+format :
+    Voxel format of the destination buffer.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+Returns:
+--------
+    The buffer size needed)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetVDSProduceStatus =
+R"doc(Get the produce status for the specific DimensionsND/LOD/Channel
+combination.
+
+Parameters:
+-----------
+
+dimensionsND :
+    The dimensions group we're getting the produce status for.
+
+LOD :
+    The LOD level we're getting the produce status for.
+
+channel :
+    The channel index we're getting the produce status for.
+
+Returns:
+--------
+    The produce status for the specific DimensionsND/LOD/Channel
+    combination.)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetVolumeDataLayout =
+R"doc(Get the VolumeDataLayout object for a VDS.
+
+Returns:
+--------
+    The VolumeDataLayout object associated with the VDS or NULL if
+    there is no valid VolumeDataLayout.)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetVolumeSamplesBufferSize =
+R"doc(Compute the buffer size (in bytes) for a volume samples request.
+
+Parameters:
+-----------
+
+sampleCount :
+    Number of samples to request.
+
+channel :
+    The channel index the requested data is read from.
+
+Returns:
+--------
+    The buffer size needed)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetVolumeSubsetBufferSize =
+R"doc(Compute the buffer size (in bytes) for a volume subset request.
+
+Parameters:
+-----------
+
+minVoxelCoordinates :
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+maxVoxelCoordinates :
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+format :
+    Voxel format of the destination buffer.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+Returns:
+--------
+    The buffer size needed)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetVolumeTracesBufferSize =
+R"doc(Compute the buffer size (in bytes) for a volume traces request.
+
+Parameters:
+-----------
+
+traceCount :
+    Number of traces to request.
+
+traceDimension :
+    The dimension to trace
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+Returns:
+--------
+    The buffer size needed)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_IVolumeDataAccessManager = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_IsCanceled =
+R"doc(Check if a request was canceled (e.g. the VDS was invalidated before
+the request was processed). If the request was canceled, the buffer
+does not contain valid data.
+
+Parameters:
+-----------
+
+requestID :
+    The RequestID to check for cancellation.
+
+Returns:
+--------
+    Either IsCompleted, IsCanceled or WaitForCompletion will return
+    True a single time, after that the request is taken out of the
+    system.)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_IsCompleted =
+R"doc(Check if a request completed successfully. If the request completed,
+the buffer now contains valid data.
+
+Parameters:
+-----------
+
+requestID :
+    The RequestID to check for completion.
+
+Returns:
+--------
+    Either IsCompleted, IsCanceled or WaitForCompletion will return
+    True a single time, after that the request is taken out of the
+    system.)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_PrefetchVolumeChunk =
+R"doc(Force production of a specific volume data chunk
+
+Parameters:
+-----------
+
+dimensionsND :
+    The dimensiongroup the requested chunk belongs to.
+
+LOD :
+    The LOD level the requested chunk belongs to.
+
+channel :
+    The channel index the requested chunk belongs to.
+
+chunkIndex :
+    The index of the chunk to prefetch.
+
+Returns:
+--------
+    The RequestID which can be used to query the status of the
+    request, cancel the request or wait for the request to complete)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_RefCount = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_Release = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_RequestProjectedVolumeSubset =
+R"doc(Request a subset projected from an arbitrary 3D plane through the
+subset onto one of the sides of the subset.
+
+Parameters:
+-----------
+
+buffer :
+    Pointer to a preallocated buffer holding at least as many elements
+    of format as indicated by minVoxelCoordinates and
+    maxVoxelCoordinates for the projected dimensions.
+
+bufferByteSize :
+    The size of the provided buffer, in bytes.
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+minVoxelCoordinates :
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+maxVoxelCoordinates :
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+voxelPlane :
+    The plane equation for the projection from the dimension source to
+    the projected dimensions (which must be a 2D subset of the source
+    dimensions).
+
+projectedDimensions :
+    The 2D dimension group that the plane in the source dimensiongroup
+    is projected into. It must be a 2D subset of the source
+    dimensions.
+
+interpolationMethod :
+    Interpolation method to use when sampling the buffer.
+
+format :
+    Voxel format of the destination buffer.
+
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
+
+Returns:
+--------
+    The RequestID which can be used to query the status of the
+    request, cancel the request or wait for the request to complete)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_RequestVolumeSamples =
+R"doc(Request sampling of the input VDS at the specified coordinates.
+
+Parameters:
+-----------
+
+buffer :
+    Pointer to a preallocated buffer holding at least sampleCount
+    elements.
+
+bufferByteSize :
+    The size of the provided buffer, in bytes.
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+samplePositions :
+    Pointer to array of VolumeDataLayout::Dimensionality_Max-elements
+    indicating the positions to sample. May be deleted once
+    RequestVolumeSamples return, as HueSpace makes a deep copy of the
+    data.
+
+sampleCount :
+    Number of samples to request.
+
+interpolationMethod :
+    Interpolation method to use when sampling the buffer.
+
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
+
+Returns:
+--------
+    The RequestID which can be used to query the status of the
+    request, cancel the request or wait for the request to complete)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_RequestVolumeSubset =
+R"doc(Request a subset of the input VDS.
+
+Parameters:
+-----------
+
+buffer :
+    Pointer to a preallocated buffer holding at least as many elements
+    of format as indicated by minVoxelCoordinates and
+    maxVoxelCoordinates.
+
+bufferByteSize :
+    The size of the provided buffer, in bytes.
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+minVoxelCoordinates :
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+maxVoxelCoordinates :
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+format :
+    Voxel format of the destination buffer.
+
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
+
+Returns:
+--------
+    The RequestID which can be used to query the status of the
+    request, cancel the request or wait for the request to complete)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_RequestVolumeTraces =
+R"doc(Request traces from the input VDS.
+
+Parameters:
+-----------
+
+buffer :
+    Pointer to a preallocated buffer holding at least traceCount *
+    number of samples in the traceDimension.
+
+bufferByteSize :
+    The size of the provided buffer, in bytes.
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+tracePositions :
+    Pointer to array of traceCount
+    VolumeDataLayout::Dimensionality_Max-elements indicating the trace
+    positions.
+
+traceCount :
+    Number of traces to request.
+
+interpolationMethod :
+    Interpolation method to use when sampling the buffer.
+
+traceDimension :
+    The dimension to trace
+
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
+
+Returns:
+--------
+    The RequestID which can be used to query the status of the
+    request, cancel the request or wait for the request to complete)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_UploadErrorCount = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessManager_WaitForCompletion =
+R"doc(Wait for a request to complete successfully. If the request completed,
+the buffer now contains valid data.
+
+Parameters:
+-----------
+
+requestID :
+    The RequestID to wait for completion of.
+
+millisecondsBeforeTimeout :
+    The number of milliseconds to wait before timing out (optional). A
+    value of 0 indicates there is no timeout and we will wait for
+    however long it takes. Note that the request is not automatically
+    canceled if the wait times out, you can also use this mechanism to
+    e.g. update a progress bar while waiting. If you want to cancel
+    the request you have to explicitly call CancelRequest() and then
+    wait for the request to stop writing to the buffer.
+
+Returns:
+--------
+    Either IsCompleted, IsCanceled or WaitForCompletion will return
+    True a single time, after that the request is taken out of the
+    system. Whenever WaitForCompletion returns False you need to call
+    IsCanceled() to know if that was because of a timeout or if the
+    request was canceled.)doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessorWithRegions = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessorWithRegions_CurrentRegion = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_GetLayout = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_GetManager = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_IVolumeDataAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_IndexOutOfRangeException = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_Manager = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_Manager_CloneVolumeDataAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_Manager_DestroyVolumeDataAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_Manager_Manager = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_ReadErrorException = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_ReadErrorException_errorCode = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataAccessor_ReadErrorException_message = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataReadAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataReadAccessor_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataReadAccessor_GetValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataReadWriteAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataReadWriteAccessor_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataReadWriteAccessor_Cancel = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataReadWriteAccessor_Commit = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataReadWriteAccessor_SetValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataRegions = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataRegions_Region = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataRegions_RegionCount = R"doc()doc";
+
+static const char *__doc_OpenVDS_IVolumeDataRegions_RegionFromIndex = R"doc()doc";
 
 static const char *__doc_OpenVDS_InMemoryOpenOptions = R"doc(Options for opening a VDS which is stored in memory (for testing))doc";
 
@@ -860,6 +1665,26 @@ static const char *__doc_OpenVDS_InterpolationMethod_Linear = R"doc(< Linear int
 static const char *__doc_OpenVDS_InterpolationMethod_Nearest = R"doc(< Snap to the closest sample)doc";
 
 static const char *__doc_OpenVDS_InterpolationMethod_Triangular = R"doc(< Triangular interpolation used to interpolate heightmap data)doc";
+
+static const char *__doc_OpenVDS_InvalidArgument = R"doc()doc";
+
+static const char *__doc_OpenVDS_InvalidArgument_GetErrorMessage = R"doc()doc";
+
+static const char *__doc_OpenVDS_InvalidArgument_GetParameterName = R"doc()doc";
+
+static const char *__doc_OpenVDS_InvalidArgument_InvalidArgument = R"doc()doc";
+
+static const char *__doc_OpenVDS_InvalidArgument_m_errorMessage = R"doc()doc";
+
+static const char *__doc_OpenVDS_InvalidArgument_m_parameterName = R"doc()doc";
+
+static const char *__doc_OpenVDS_InvalidOperation = R"doc()doc";
+
+static const char *__doc_OpenVDS_InvalidOperation_GetErrorMessage = R"doc()doc";
+
+static const char *__doc_OpenVDS_InvalidOperation_InvalidOperation = R"doc()doc";
+
+static const char *__doc_OpenVDS_InvalidOperation_m_errorMessage = R"doc()doc";
 
 static const char *__doc_OpenVDS_KnownAxisNames = R"doc()doc";
 
@@ -1062,6 +1887,18 @@ static const char *__doc_OpenVDS_KnownUnitNames_USSurveyFoot = R"doc(String repr
 static const char *__doc_OpenVDS_M4 = R"doc()doc";
 
 static const char *__doc_OpenVDS_M4_data = R"doc()doc";
+
+static const char *__doc_OpenVDS_MessageBufferException = R"doc()doc";
+
+static const char *__doc_OpenVDS_MessageBufferException_AddToBuffer = R"doc()doc";
+
+static const char *__doc_OpenVDS_MessageBufferException_MESSAGE_BUFFER_SIZE = R"doc()doc";
+
+static const char *__doc_OpenVDS_MessageBufferException_MessageBufferException = R"doc()doc";
+
+static const char *__doc_OpenVDS_MessageBufferException_m_messageBuffer = R"doc()doc";
+
+static const char *__doc_OpenVDS_MessageBufferException_m_usedSize = R"doc()doc";
 
 static const char *__doc_OpenVDS_MetadataContainer = R"doc()doc";
 
@@ -1593,6 +2430,18 @@ Returns:
 
 static const char *__doc_OpenVDS_ReadElement_2 = R"doc()doc";
 
+static const char *__doc_OpenVDS_RequestFormat = R"doc()doc";
+
+static const char *__doc_OpenVDS_RequestFormat_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_RequestFormat_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_RequestFormat_4 = R"doc()doc";
+
+static const char *__doc_OpenVDS_RequestFormat_5 = R"doc()doc";
+
+static const char *__doc_OpenVDS_RequestFormat_6 = R"doc()doc";
+
 static const char *__doc_OpenVDS_ResultConverter = R"doc()doc";
 
 static const char *__doc_OpenVDS_ResultConverter_ConvertValueT = R"doc()doc";
@@ -1610,8 +2459,6 @@ static const char *__doc_OpenVDS_StringWrapper_data = R"doc()doc";
 static const char *__doc_OpenVDS_StringWrapper_size = R"doc()doc";
 
 static const char *__doc_OpenVDS_VDS = R"doc()doc";
-
-static const char *__doc_OpenVDS_VDS_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VDSCoordinateTransformerBase = R"doc()doc";
 
@@ -1716,8 +2563,6 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_3 = R"doc()doc";
-
 static const char *__doc_OpenVDS_VolumeDataAccessManager_AccessMode = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_AccessMode_AccessMode_Create = R"doc()doc";
@@ -1726,80 +2571,203 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_AccessMode_AccessMode_R
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_AccessMode_AccessMode_ReadWrite = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Cancel =
-R"doc(Try to cancel the request. You still have to call
-WaitForCompletion/IsCanceled to make sure the buffer is not being
-written to and to take the job out of the system. It is possible that
-the request has completed concurrently with the call to Cancel in
-which case WaitForCompletion will return True.
-
-Parameters:
------------
-
-requestID :
-    The requestID to cancel.)doc";
-
 static const char *__doc_OpenVDS_VolumeDataAccessManager_ClearUploadErrors = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_CloneVolumeDataAccessor = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create2DInterpolatingVolumeDataAccessorR32 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create2DInterpolatingVolumeDataAccessorR64 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create2DVolumeDataAccessor1Bit = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create2DVolumeDataAccessorR32 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create2DVolumeDataAccessorR64 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create2DVolumeDataAccessorU16 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create2DVolumeDataAccessorU32 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create2DVolumeDataAccessorU64 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create2DVolumeDataAccessorU8 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create3DInterpolatingVolumeDataAccessorR32 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create3DInterpolatingVolumeDataAccessorR64 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create3DVolumeDataAccessor1Bit = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create3DVolumeDataAccessorR32 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create3DVolumeDataAccessorR64 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create3DVolumeDataAccessorU16 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create3DVolumeDataAccessorU32 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create3DVolumeDataAccessorU64 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create3DVolumeDataAccessorU8 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create4DInterpolatingVolumeDataAccessorR32 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create4DInterpolatingVolumeDataAccessorR64 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create4DVolumeDataAccessor1Bit = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create4DVolumeDataAccessorR32 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create4DVolumeDataAccessorR64 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create4DVolumeDataAccessorU16 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create4DVolumeDataAccessorU32 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create4DVolumeDataAccessorU64 = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_Create4DVolumeDataAccessorU8 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateInterpolatingVolumeDataAccessor = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataAccessor = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateInterpolatingVolumeDataAccessor_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DInterpolatingAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DInterpolatingAccessorR32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DInterpolatingAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DInterpolatingAccessorR64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessor1Bit = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessor1Bit_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorR32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorR64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorU16 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorU16_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorU32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorU32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorU64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorU64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorU8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadAccessorU8_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessor1Bit = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessor1Bit_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorR32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorR64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorU16 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorU16_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorU32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorU32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorU64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorU64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorU8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData2DReadWriteAccessorU8_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DInterpolatingAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DInterpolatingAccessorR32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DInterpolatingAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DInterpolatingAccessorR64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessor1Bit = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessor1Bit_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorR32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorR64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorU16 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorU16_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorU32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorU32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorU64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorU64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorU8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadAccessorU8_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessor1Bit = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessor1Bit_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorR32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorR64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorU16 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorU16_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorU32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorU32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorU64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorU64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorU8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData3DReadWriteAccessorU8_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DInterpolatingAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DInterpolatingAccessorR32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DInterpolatingAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DInterpolatingAccessorR64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessor1Bit = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessor1Bit_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorR32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorR64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorU16 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorU16_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorU32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorU32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorU64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorU64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorU8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadAccessorU8_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessor1Bit = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessor1Bit_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorR32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorR32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorR64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorR64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorU16 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorU16_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorU32 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorU32_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorU64 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorU64_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorU8 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorU8_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataPageAccessor =
 R"doc(Create a volume data page accessor object for the VDS associated with
@@ -1808,15 +2776,11 @@ the given VolumeDataLayout object.
 Parameters:
 -----------
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the VDS that the
-    volume data page accessor will access.
-
 dimensionsND :
     The dimensions group that the volume data page accessor will
     access.
 
-lod :
+LOD :
     The LOD level that the volume data page accessor will access.
 
 channel :
@@ -1844,7 +2808,13 @@ Returns:
     A VolumeDataPageAccessor object for the VDS associated with the
     given VolumeDataLayout object.)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_DestroyVolumeDataAccessor = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataReadAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataReadAccessor_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataReadWriteAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataReadWriteAccessor_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_DestroyVolumeDataPageAccessor =
 R"doc(Destroy a volume data page accessor object.
@@ -1852,8 +2822,20 @@ R"doc(Destroy a volume data page accessor object.
 Parameters:
 -----------
 
-pVolumeDataPageAccessor :
+volumeDataPageAccessor :
     The VolumeDataPageAccessor object to destroy.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_Dispose = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_DoRequestProjectedVolumeSubset = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_DoRequestVolumeSamples = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_DoRequestVolumeSubset = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_DoRequestVolumeTraces = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_EnsureValid = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_FlushUploadQueue =
 R"doc(Flush any pending writes and write updated layer status
@@ -1867,20 +2849,6 @@ writeUpdatedLayerStatus :
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_ForceClearAllUploadErrors = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCompletionFactor =
-R"doc(Get the completion factor (between 0 and 1) of the request.
-
-Parameters:
------------
-
-requestID :
-    The requestID to get the completion factor of.
-
-Returns:
---------
-    A factor (between 0 and 1) indicating how much of the request has
-    been completed.)doc";
-
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentDownloadError = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentUploadError = R"doc()doc";
@@ -1891,9 +2859,6 @@ request.
 
 Parameters:
 -----------
-
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
 
 minVoxelCoordinates :
     The minimum voxel coordinates to request in each dimension
@@ -1911,7 +2876,7 @@ projectedDimensions :
 format :
     Voxel format of the destination buffer.
 
-lod :
+LOD :
     The LOD level the requested data is read from.
 
 channel :
@@ -1921,6 +2886,8 @@ Returns:
 --------
     The buffer size needed)doc";
 
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetProjectedVolumeSubsetBufferSize_2 = R"doc()doc";
+
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVDSProduceStatus =
 R"doc(Get the produce status for the specific DimensionsND/LOD/Channel
 combination.
@@ -1928,14 +2895,10 @@ combination.
 Parameters:
 -----------
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the VDS that we're
-    getting the produce status for.
-
 dimensionsND :
     The dimensions group we're getting the produce status for.
 
-lod :
+LOD :
     The LOD level we're getting the produce status for.
 
 channel :
@@ -1960,9 +2923,6 @@ R"doc(Compute the buffer size (in bytes) for a volume samples request.
 Parameters:
 -----------
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
-
 sampleCount :
     Number of samples to request.
 
@@ -1979,9 +2939,6 @@ R"doc(Compute the buffer size (in bytes) for a volume subset request.
 Parameters:
 -----------
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
-
 minVoxelCoordinates :
     The minimum voxel coordinates to request in each dimension
     (inclusive).
@@ -1993,7 +2950,7 @@ maxVoxelCoordinates :
 format :
     Voxel format of the destination buffer.
 
-lod :
+LOD :
     The LOD level the requested data is read from.
 
 channel :
@@ -2002,6 +2959,8 @@ channel :
 Returns:
 --------
     The buffer size needed)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeSubsetBufferSize_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeTracesBufferSize =
 R"doc(Compute the buffer size (in bytes) for a volume traces request.
@@ -2009,16 +2968,13 @@ R"doc(Compute the buffer size (in bytes) for a volume traces request.
 Parameters:
 -----------
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
-
 traceCount :
     Number of traces to request.
 
 traceDimension :
     The dimension to trace
 
-lod :
+LOD :
     The LOD level the requested data is read from.
 
 channel :
@@ -2028,38 +2984,7 @@ Returns:
 --------
     The buffer size needed)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_IsCanceled =
-R"doc(Check if a request was canceled (e.g. the VDS was invalidated before
-the request was processed). If the request was canceled, the buffer
-does not contain valid data.
-
-Parameters:
------------
-
-requestID :
-    The requestID to check for cancellation.
-
-Returns:
---------
-    Either IsCompleted, IsCanceled or WaitForCompletion will return
-    True a single time, after that the request is taken out of the
-    system.)doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_IsCompleted =
-R"doc(Check if a request completed successfully. If the request completed,
-the buffer now contains valid data.
-
-Parameters:
------------
-
-requestID :
-    The requestID to check for completion.
-
-Returns:
---------
-    Either IsCompleted, IsCanceled or WaitForCompletion will return
-    True a single time, after that the request is taken out of the
-    system.)doc";
+static const char *__doc_OpenVDS_VolumeDataAccessManager_IsValid = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_PrefetchVolumeChunk =
 R"doc(Force production of a specific volume data chunk
@@ -2067,25 +2992,21 @@ R"doc(Force production of a specific volume data chunk
 Parameters:
 -----------
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
-
 dimensionsND :
     The dimensiongroup the requested chunk belongs to.
 
-lod :
+LOD :
     The LOD level the requested chunk belongs to.
 
 channel :
     The channel index the requested chunk belongs to.
 
-chunk :
+chunkIndex :
     The index of the chunk to prefetch.
 
 Returns:
 --------
-    The requestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    A VolumeDataRequest instance encapsulating the request status.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestProjectedVolumeSubset =
 R"doc(Request a subset projected from an arbitrary 3D plane through the
@@ -2094,71 +3015,18 @@ subset onto one of the sides of the subset.
 Parameters:
 -----------
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
-
 buffer :
     Pointer to a preallocated buffer holding at least as many elements
     of format as indicated by minVoxelCoordinates and
     maxVoxelCoordinates for the projected dimensions.
 
-dimensionsND :
-    The dimensiongroup the requested data is read from.
-
-lod :
-    The LOD level the requested data is read from.
-
-channel :
-    The channel index the requested data is read from.
-
-minVoxelCoordinates :
-    The minimum voxel coordinates to request in each dimension
-    (inclusive).
-
-maxVoxelCoordinates :
-    The maximum voxel coordinates to request in each dimension
-    (exclusive).
-
-voxelPlane :
-    The plane equation for the projection from the dimension source to
-    the projected dimensions (which must be a 2D subset of the source
-    dimensions).
-
-projectedDimensions :
-    The 2D dimension group that the plane in the source dimensiongroup
-    is projected into. It must be a 2D subset of the source
-    dimensions.
-
-interpolationMethod :
-    Interpolation method to use when sampling the buffer.
-
-format :
-    Voxel format of the destination buffer.
-
-Returns:
---------
-    The requestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestProjectedVolumeSubset_2 =
-R"doc(Request a subset projected from an arbitrary 3D plane through the
-subset onto one of the sides of the subset.
-
-Parameters:
------------
-
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
-
-buffer :
-    Pointer to a preallocated buffer holding at least as many elements
-    of format as indicated by minVoxelCoordinates and
-    maxVoxelCoordinates for the projected dimensions.
+bufferByteSize :
+    The size of the provided buffer, in bytes.
 
 dimensionsND :
     The dimensiongroup the requested data is read from.
 
-lod :
+LOD :
     The LOD level the requested data is read from.
 
 channel :
@@ -2189,12 +3057,110 @@ format :
     Voxel format of the destination buffer.
 
 replacementNoValue :
-    Value used to replace region of the input VDS that has no data.
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
 
 Returns:
 --------
-    The requestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestProjectedVolumeSubset_2 =
+R"doc(Request a subset projected from an arbitrary 3D plane through the
+subset onto one of the sides of the subset, using an automatically
+allocated buffer.
+
+Parameters:
+-----------
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+minVoxelCoordinates :
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+maxVoxelCoordinates :
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+voxelPlane :
+    The plane equation for the projection from the dimension source to
+    the projected dimensions (which must be a 2D subset of the source
+    dimensions).
+
+projectedDimensions :
+    The 2D dimension group that the plane in the source dimensiongroup
+    is projected into. It must be a 2D subset of the source
+    dimensions.
+
+format :
+    Voxel format of the destination buffer.
+
+interpolationMethod :
+    Interpolation method to use when sampling the buffer.
+
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
+
+Returns:
+--------
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestProjectedVolumeSubset_3 =
+R"doc(Request a subset projected from an arbitrary 3D plane through the
+subset onto one of the sides of the subset, using an automatically
+allocated typed buffer.
+
+Parameters:
+-----------
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+minVoxelCoordinates :
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+maxVoxelCoordinates :
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+voxelPlane :
+    The plane equation for the projection from the dimension source to
+    the projected dimensions (which must be a 2D subset of the source
+    dimensions).
+
+projectedDimensions :
+    The 2D dimension group that the plane in the source dimensiongroup
+    is projected into. It must be a 2D subset of the source
+    dimensions.
+
+interpolationMethod :
+    Interpolation method to use when sampling the buffer.
+
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
+
+Returns:
+--------
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSamples =
 R"doc(Request sampling of the input VDS at the specified coordinates.
@@ -2202,64 +3168,27 @@ R"doc(Request sampling of the input VDS at the specified coordinates.
 Parameters:
 -----------
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
-
 buffer :
     Pointer to a preallocated buffer holding at least sampleCount
     elements.
 
+bufferByteSize :
+    The size of the provided buffer, in bytes.
+
 dimensionsND :
     The dimensiongroup the requested data is read from.
 
-lod :
+LOD :
     The LOD level the requested data is read from.
 
 channel :
     The channel index the requested data is read from.
 
 samplePositions :
-    Pointer to array of Dimensionality_Max-elements indicating the
-    positions to sample. May be deleted once requestVolumeSamples
-    return, as OpenVDS makes a deep copy of the data.
-
-sampleCount :
-    Number of samples to request.
-
-interpolationMethod :
-    Interpolation method to use when sampling the buffer.
-
-Returns:
---------
-    The requestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSamples_2 =
-R"doc(Request sampling of the input VDS at the specified coordinates.
-
-Parameters:
------------
-
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
-
-buffer :
-    Pointer to a preallocated buffer holding at least sampleCount
-    elements.
-
-dimensionsND :
-    The dimensiongroup the requested data is read from.
-
-lod :
-    The LOD level the requested data is read from.
-
-channel :
-    The channel index the requested data is read from.
-
-samplePositions :
-    Pointer to array of Dimensionality_Max-elements indicating the
-    positions to sample. May be deleted once requestVolumeSamples
-    return, as OpenVDS makes a deep copy of the data.
+    Pointer to array of VolumeDataLayout::Dimensionality_Max-elements
+    indicating the positions to sample. May be deleted once
+    RequestVolumeSamples return, as HueSpace makes a deep copy of the
+    data.
 
 sampleCount :
     Number of samples to request.
@@ -2268,12 +3197,50 @@ interpolationMethod :
     Interpolation method to use when sampling the buffer.
 
 replacementNoValue :
-    Value used to replace region of the input VDS that has no data.
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
 
 Returns:
 --------
-    The requestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSamples_2 =
+R"doc(Request sampling of the input VDS at the specified coordinates, using
+an automatically allocated buffer.
+
+Parameters:
+-----------
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+samplePositions :
+    Pointer to array of VolumeDataLayout::Dimensionality_Max-elements
+    indicating the positions to sample. May be deleted once
+    RequestVolumeSamples return, as HueSpace makes a deep copy of the
+    data.
+
+sampleCount :
+    Number of samples to request.
+
+interpolationMethod :
+    Interpolation method to use when sampling the buffer.
+
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
+
+Returns:
+--------
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSubset =
 R"doc(Request a subset of the input VDS.
@@ -2286,13 +3253,13 @@ buffer :
     of format as indicated by minVoxelCoordinates and
     maxVoxelCoordinates.
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
+bufferByteSize :
+    The size of the provided buffer, in bytes.
 
 dimensionsND :
     The dimensiongroup the requested data is read from.
 
-lod :
+LOD :
     The LOD level the requested data is read from.
 
 channel :
@@ -2309,10 +3276,14 @@ maxVoxelCoordinates :
 format :
     Voxel format of the destination buffer.
 
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
+
 Returns:
 --------
-    The requestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSubset_2 =
 R"doc(Request a subset of the input VDS.
@@ -2325,13 +3296,46 @@ buffer :
     of format as indicated by minVoxelCoordinates and
     maxVoxelCoordinates.
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
+bufferByteSize :
+    The size of the provided buffer, in bytes.
 
 dimensionsND :
     The dimensiongroup the requested data is read from.
 
-lod :
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+minVoxelCoordinates :
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+maxVoxelCoordinates :
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
+
+Returns:
+--------
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSubset_3 =
+R"doc(Request a subset of the input VDS, using an automatically allocated
+buffer.
+
+Parameters:
+-----------
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
     The LOD level the requested data is read from.
 
 channel :
@@ -2349,71 +3353,123 @@ format :
     Voxel format of the destination buffer.
 
 replacementNoValue :
-    Value used to replace region of the input VDS that has no data.
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
 
 Returns:
 --------
-    The requestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeTraces =
-R"doc(Request traces from the input VDS.
+static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSubset_4 =
+R"doc(Request a subset of the input VDS, using an automatically allocated
+typed buffer.
 
 Parameters:
 -----------
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
-
-buffer :
-    Pointer to a preallocated buffer holding at least traceCount *
-    number of samples in the traceDimension.
-
 dimensionsND :
     The dimensiongroup the requested data is read from.
 
-lod :
+LOD :
     The LOD level the requested data is read from.
 
 channel :
     The channel index the requested data is read from.
 
-tracePositions :
-    Pointer to array of traceCount
-    VolumeDataLayout::Dimensionality_Max-elements indicating the trace
-    positions.
+minVoxelCoordinates :
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
 
-traceCount :
-    Number of traces to request.
+maxVoxelCoordinates :
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
 
-interpolationMethod :
-    Interpolation method to use when sampling the buffer.
-
-traceDimension :
-    The dimension to trace
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
 
 Returns:
 --------
-    The requestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeTraces_2 =
-R"doc(Request traces from the input VDS.
+static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSubset1Bit =
+R"doc(Request a subset of the input VDS.
 
 Parameters:
 -----------
 
-volumeDataLayout :
-    The VolumeDataLayout object associated with the input VDS.
-
 buffer :
-    Pointer to a preallocated buffer holding at least traceCount *
-    number of samples in the traceDimension.
+    Pointer to a preallocated buffer holding at least as many elements
+    of format as indicated by minVoxelCoordinates and
+    maxVoxelCoordinates.
+
+bufferByteSize :
+    The size of the provided buffer, in bytes.
 
 dimensionsND :
     The dimensiongroup the requested data is read from.
 
-lod :
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+minVoxelCoordinates :
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+maxVoxelCoordinates :
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+Returns:
+--------
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeSubset1Bit_2 =
+R"doc(Request a subset of the input VDS, using an automatically allocated
+buffer.
+
+Parameters:
+-----------
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+minVoxelCoordinates :
+    The minimum voxel coordinates to request in each dimension
+    (inclusive).
+
+maxVoxelCoordinates :
+    The maximum voxel coordinates to request in each dimension
+    (exclusive).
+
+Returns:
+--------
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeTraces =
+R"doc(Request traces from the input VDS, using an automatically allocated
+buffer.
+
+Parameters:
+-----------
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
     The LOD level the requested data is read from.
 
 channel :
@@ -2434,63 +3490,74 @@ traceDimension :
     The dimension to trace
 
 replacementNoValue :
-    Value used to replace region of the input VDS that has no data.
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
 
 Returns:
 --------
-    The requestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataAccessManager_RequestVolumeTraces_2 =
+R"doc(Request traces from the input VDS.
+
+Parameters:
+-----------
+
+buffer :
+    Pointer to a preallocated buffer holding at least traceCount *
+    number of samples in the traceDimension.
+
+bufferByteSize :
+    The size of the provided buffer, in bytes.
+
+dimensionsND :
+    The dimensiongroup the requested data is read from.
+
+LOD :
+    The LOD level the requested data is read from.
+
+channel :
+    The channel index the requested data is read from.
+
+tracePositions :
+    Pointer to array of traceCount
+    VolumeDataLayout::Dimensionality_Max-elements indicating the trace
+    positions.
+
+traceCount :
+    Number of traces to request.
+
+interpolationMethod :
+    Interpolation method to use when sampling the buffer.
+
+traceDimension :
+    The dimension to trace
+
+replacementNoValue :
+    If specified, this value is used to replace regions of the input
+    VDS that has no data.
+
+Returns:
+--------
+    A VolumeDataRequest instance encapsulating the request status and
+    buffer.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_UploadErrorCount = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_VolumeDataAccessManager = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_WaitForCompletion =
-R"doc(Wait for a request to complete successfully. If the request completed,
-the buffer now contains valid data.
+static const char *__doc_OpenVDS_VolumeDataAccessManager_VolumeDataAccessManager_2 = R"doc()doc";
 
-Parameters:
------------
+static const char *__doc_OpenVDS_VolumeDataAccessManager_VolumeDataAccessManager_3 = R"doc()doc";
 
-requestID :
-    The requestID to wait for completion of.
+static const char *__doc_OpenVDS_VolumeDataAccessManager_m_IVolumeDataAccessManager = R"doc()doc";
 
-millisecondsBeforeTimeout :
-    The number of milliseconds to wait before timing out (optional). A
-    value of 0 indicates there is no timeout and we will wait for
-    however long it takes. Note that the request is not automatically
-    canceled if the wait times out, you can also use this mechanism to
-    e.g. update a progress bar while waiting. If you want to cancel
-    the request you have to explicitly call CancelRequest() and then
-    wait for the request to stop writing to the buffer.
+static const char *__doc_OpenVDS_VolumeDataAccessManager_operator_assign = R"doc()doc";
 
-Returns:
---------
-    Either IsCompleted, IsCanceled or WaitForCompletion will return
-    True a single time, after that the request is taken out of the
-    system. Whenever WaitForCompletion returns False you need to call
-    IsCanceled() to know if that was because of a timeout or if the
-    request was canceled.)doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessor = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessorBase = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessorWithRegions = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessorWithRegions_CurrentRegion = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessor_GetBase = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessor_GetLayout = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessor_GetManager = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessor_IndexOutOfRangeException = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessor_VolumeDataAccessor = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAxisDescriptor = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAxisDescriptor =
+R"doc(Describes the number of samples, name, unit and coordinates
+(annotation) of an axis (dimension) of the volume)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_2 =
 R"doc(Describes the number of samples, name, unit and coordinates
@@ -2611,7 +3678,7 @@ static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_m_numSamples = R"doc()
 
 static const char *__doc_OpenVDS_VolumeDataAxisDescriptor_m_unit = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataChannelDescriptor = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataChannelDescriptor = R"doc(\class VolumeDataChannelDescriptor Describes a channel of a VDS)doc";
 
 static const char *__doc_OpenVDS_VolumeDataChannelDescriptor_2 = R"doc(\class VolumeDataChannelDescriptor Describes a channel of a VDS)doc";
 
@@ -3024,7 +4091,11 @@ static const char *__doc_OpenVDS_VolumeDataChannelDescriptor_m_useNoValue = R"do
 
 static const char *__doc_OpenVDS_VolumeDataChannelDescriptor_m_valueRange = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataLayout = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataLayout =
+R"doc(\class VolumeDataLayout a class that contains axis and channel
+information for a VDS A layout is associated with a VDS object and
+contains information about axis and channels in the VDS. A
+VolumeDataLayout can be invalidated when the VDS is invalidated.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataLayout_2 =
 R"doc(\class VolumeDataLayout a class that contains axis and channel
@@ -3260,15 +4331,33 @@ static const char *__doc_OpenVDS_VolumeDataPage_UpdateWrittenRegion = R"doc()doc
 
 static const char *__doc_OpenVDS_VolumeDataPage_VolumeDataPage = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataReadAccessor = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataReadAccessor =
+R"doc(\class VolumeDataReadAccessor A class that provides random read access
+to the voxel values of a VDS)doc";
 
-static const char *__doc_OpenVDS_VolumeDataReadAccessor_2 = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataReadAccessor_CurrentRegion = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataReadAccessor_GetLayout = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataReadAccessor_GetValue = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataReadAccessor_Region = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor_2 = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataReadAccessor_RegionCount = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataReadAccessor_VolumeDataReadAccessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataReadAccessor_VolumeDataReadAccessor_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataReadAccessor_VolumeDataReadAccessor_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataReadAccessor_m_accessor = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor =
+R"doc(\class VolumeDataReadWriteAccessor A class that provides random
+read/write access to the voxel values of a VDS)doc";
+
+static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor_Accessor = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor_Cancel = R"doc()doc";
 
@@ -3276,13 +4365,83 @@ static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor_Commit = R"doc()doc
 
 static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor_SetValue = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataRegions = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor_VolumeDataReadWriteAccessor = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataRegions_Region = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor_VolumeDataReadWriteAccessor_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataRegions_RegionCount = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor_VolumeDataReadWriteAccessor_3 = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataRegions_RegionFromIndex = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataRequest = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_Buffer = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_BufferByteSize = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_BufferDataType = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_Cancel = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_CancelAndWaitForCompletion = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_CancelInternal = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_Deleter = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_GetCompletionFactor = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_IsCanceled = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_IsCompleted = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_IsDataOwner = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_RequestFormat = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_RequestID = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_SetJobID = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_ValidateRequest = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_VolumeDataRequest = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_VolumeDataRequest_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_VolumeDataRequest_3 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_VolumeDataRequest_4 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_WaitForCompletion = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_m_Buffer = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_m_BufferByteSize = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_m_BufferDataType = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_m_Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_m_IsCanceled = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_m_IsCompleted = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_m_JobID = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_m_Manager = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_t = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_t_Data = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_t_EnsureRequestCompleted = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_t_IsDataOwner = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_t_VolumeDataRequest_t = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_t_VolumeDataRequest_t_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_t_m_TypedData = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeIndexerBase = R"doc()doc";
 
@@ -3733,6 +4892,26 @@ static const char *__doc_OpenVDS_fastInvert = R"doc()doc";
 static const char *__doc_OpenVDS_operator_bor = R"doc()doc";
 
 static const char *__doc_OpenVDS_operator_bor_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_optional = R"doc()doc";
+
+static const char *__doc_OpenVDS_optional_emplace = R"doc()doc";
+
+static const char *__doc_OpenVDS_optional_has_value = R"doc()doc";
+
+static const char *__doc_OpenVDS_optional_m_HasValue = R"doc()doc";
+
+static const char *__doc_OpenVDS_optional_m_Value = R"doc()doc";
+
+static const char *__doc_OpenVDS_optional_operator_bool = R"doc()doc";
+
+static const char *__doc_OpenVDS_optional_optional = R"doc()doc";
+
+static const char *__doc_OpenVDS_optional_optional_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_optional_value = R"doc()doc";
+
+static const char *__doc_OpenVDS_optional_value_or = R"doc()doc";
 
 static const char *__doc_OpenVDS_rangeSize = R"doc()doc";
 

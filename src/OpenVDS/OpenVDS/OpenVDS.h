@@ -23,7 +23,7 @@
 #include <OpenVDS/openvds_export.h>
 #include <OpenVDS/MetadataAccess.h>
 #include <OpenVDS/VolumeData.h>
-
+#include <OpenVDS/VolumeDataAccessManager.h>
 
 #include <cstdint>
 #include <string>
@@ -36,6 +36,7 @@ class VolumeDataAxisDescriptor;
 class VolumeDataChannelDescriptor;
 class GlobalState;
 class IOManager;
+class IVolumeDataAccessManager;
 
 struct OpenOptions
 {
@@ -723,6 +724,17 @@ OPENVDS_EXPORT VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor
 OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle handle);
 
 /// <summary>
+/// Get the VolumeDataAccessManagerInterface for a VDS
+/// </summary>
+/// <param name="handle">
+/// The handle of the VDS
+/// </param>
+/// <returns>
+/// The VolumeDataAccessManagerInterface of the VDS
+/// </returns>
+OPENVDS_EXPORT IVolumeDataAccessManager *GetAccessManagerInterface(VDSHandle handle);
+
+/// <summary>
 /// Get the VolumeDataAccessManager for a VDS
 /// </summary>
 /// <param name="handle">
@@ -731,7 +743,10 @@ OPENVDS_EXPORT VolumeDataLayout *GetLayout(VDSHandle handle);
 /// <returns>
 /// The VolumeDataAccessManager of the VDS
 /// </returns>
-OPENVDS_EXPORT VolumeDataAccessManager *GetAccessManager(VDSHandle handle);
+inline VolumeDataAccessManager GetAccessManager(VDSHandle handle)
+{
+  return VolumeDataAccessManager(OpenVDS::GetAccessManagerInterface(handle));
+}
 
 /// <summary>
 /// Close a VDS and free up all associated resources

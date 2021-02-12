@@ -476,7 +476,7 @@ static bool Init(VDS *vds, VolumeDataStore *volumeDataStore, Error& error)
   }
   CreateVolumeDataLayout(*vds);
 
-  vds->accessManager.reset(new VolumeDataAccessManagerImpl(*vds));
+  vds->accessManager = std::shared_ptr<VolumeDataAccessManagerImpl>(VolumeDataAccessManagerImpl::Create(*vds), [](VolumeDataAccessManagerImpl *accessManager) { accessManager->Release(); });
   return true;
 }
 
@@ -534,7 +534,7 @@ VolumeDataLayout *GetLayout(VDS *vds)
   return vds->volumeDataLayout.get();
 }
 
-VolumeDataAccessManager *GetAccessManager(VDS *vds)
+IVolumeDataAccessManager *GetAccessManagerInterface(VDS *vds)
 {
   if (!vds)
     return nullptr;
@@ -681,7 +681,7 @@ static bool Init(VDS *vds, VolumeDataStore* volumeDataStore, VolumeDataLayoutDes
   if (!vds->volumeDataStore->WriteSerializedVolumeDataLayout(SerializeVolumeDataLayout(*vds), error))
     return false;
 
-  vds->accessManager.reset(new VolumeDataAccessManagerImpl(*vds));
+  vds->accessManager = std::shared_ptr<VolumeDataAccessManagerImpl>(VolumeDataAccessManagerImpl::Create(*vds), [](VolumeDataAccessManagerImpl *accessManager) { accessManager->Release(); });
   return true;
 }
 
@@ -743,6 +743,7 @@ VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& l
 
 void Close(VDS *vds)
 {
+  vds->accessManager->Invalidate();
   delete vds;
 }
 

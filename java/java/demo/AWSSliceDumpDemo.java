@@ -96,7 +96,7 @@ public class AWSSliceDumpDemo {
 
         System.out.println("Request samples from VolumeDataAccessManager...");
         FloatBuffer samplePositions = BufferUtils.toBuffer(samples);
-        long request = accessManager.requestVolumeSamples(data, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        long request = accessManager.requestVolumeSamples(data, DimensionsND.DIMENSIONS_012, 0, 0,
                 samplePositions, elemCount, InterpolationMethod.LINEAR, 0);
 
         System.out.println("Wait for request completion...");

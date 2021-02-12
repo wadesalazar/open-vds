@@ -40,7 +40,7 @@ class VolumeDataPageAccessorImpl : public VolumeDataPageAccessor
 {
 private:
   VolumeDataAccessManagerImpl *m_accessManager;
-  VolumeDataLayer *m_layer;
+  VolumeDataLayer const *m_layer;
   int m_pagesFound;
   int m_pagesRead;
   int m_pagesWritten;
@@ -61,7 +61,7 @@ private:
   void LimitPageListSize(int maxPages, std::unique_lock<std::mutex> &pageListMutexLock);
 
 public:
-  VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl *acccessManager, VolumeDataLayer* layer, int maxPages, bool IsReadWrite);
+  VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl *acccessManager, VolumeDataLayer const* layer, int maxPages, bool IsReadWrite);
   ~VolumeDataPageAccessorImpl();
 
   VolumeDataLayout const* GetLayout() const override;

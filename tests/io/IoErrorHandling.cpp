@@ -71,12 +71,10 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingCorruptMetadata)
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
   int32_t maxPos[OpenVDS::Dimensionality_Max] = { 55, 55, 55 };
-  std::vector<float> data;
-  data.resize((maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]));
-  int64_t request = accessManager->RequestVolumeSubset(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  bool finished = accessManager->WaitForCompletion(request);
+  auto request = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
+  bool finished = request->WaitForCompletion();
   ASSERT_FALSE(finished);
-  ASSERT_TRUE(accessManager->IsCanceled(request));
+  ASSERT_TRUE(request->IsCanceled());
 }
 
 TEST_F(IOErrorHandlingFixture, ErrorHandlingMetadataHttpError)
@@ -93,12 +91,10 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingMetadataHttpError)
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
   int32_t maxPos[OpenVDS::Dimensionality_Max] = { 55, 55, 55 };
-  std::vector<float> data;
-  data.resize((maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]));
-  int64_t request = accessManager->RequestVolumeSubset(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  bool finished = accessManager->WaitForCompletion(request);
+  auto request = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
+  bool finished = request->WaitForCompletion();
   ASSERT_FALSE(finished);
-  ASSERT_TRUE(accessManager->IsCanceled(request));
+  ASSERT_TRUE(request->IsCanceled());
 }
 
 TEST_F(IOErrorHandlingFixture, ErrorHandlingCorruptChunk)
@@ -116,12 +112,10 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingCorruptChunk)
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
   int32_t maxPos[OpenVDS::Dimensionality_Max] = { 55, 55, 55 };
-  std::vector<float> data;
-  data.resize((maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]));
-  int64_t request = accessManager->RequestVolumeSubset(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  bool finished = accessManager->WaitForCompletion(request);
+  auto request = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
+  bool finished = request->WaitForCompletion();
   ASSERT_FALSE(finished);
-  ASSERT_TRUE(accessManager->IsCanceled(request));
+  ASSERT_TRUE(request->IsCanceled());
 }
 
 TEST_F(IOErrorHandlingFixture, ErrorHandlingChunkHttpError)
@@ -138,12 +132,10 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingChunkHttpError)
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
   int32_t maxPos[OpenVDS::Dimensionality_Max] = { 55, 55, 55 };
-  std::vector<float> data;
-  data.resize((maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]));
-  int64_t request = accessManager->RequestVolumeSubset(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  bool finished = accessManager->WaitForCompletion(request);
+  auto request = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
+  bool finished = request->WaitForCompletion();
   ASSERT_FALSE(finished);
-  ASSERT_TRUE(accessManager->IsCanceled(request));
+  ASSERT_TRUE(request->IsCanceled());
 }
 
 TEST_F(IOErrorHandlingFixture, ErrorHandlingVDSJsonHttpError)
@@ -241,10 +233,8 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingMissingMetadataTag)
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
   int32_t maxPos[OpenVDS::Dimensionality_Max] = { 55, 55, 55 };
-  std::vector<float> data;
-  data.resize((maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]));
-  int64_t request = accessManager->RequestVolumeSubset(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  bool finished = accessManager->WaitForCompletion(request);
+  auto request = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
+  bool finished = request->WaitForCompletion();
   ASSERT_TRUE(finished);
 }
 
@@ -278,16 +268,14 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingChangedMetadataTag)
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
   int32_t maxPos[OpenVDS::Dimensionality_Max] = { 55, 55, 55 };
-  std::vector<float> data;
-  data.resize((maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]));
-  int64_t request = accessManager->RequestVolumeSubset(data.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  bool finished = accessManager->WaitForCompletion(request);
+  auto request = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
+  bool finished = request->WaitForCompletion();
   ASSERT_FALSE(finished);
   int errorCode = 0;
   const char* errorString = nullptr;
-  accessManager->GetCurrentDownloadError(&errorCode, &errorString);
+  accessManager.GetCurrentDownloadError(&errorCode, &errorString);
   ASSERT_TRUE(strContains(errorString, "Inconsistent metadata"));
-  ASSERT_TRUE(accessManager->IsCanceled(request));
+  ASSERT_TRUE(request->IsCanceled());
 }
 
 TEST(IOErrorHandlingUpload, ErrorHandlingVolumeDataLayoutHttpError)
@@ -362,9 +350,8 @@ TEST(IOErrorHandlingUpload, ErrorHandlingChunkHttpError)
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   ASSERT_TRUE(layout);
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
-  ASSERT_TRUE(accessManager);
-  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
   ASSERT_TRUE(pageAccessor);
 
   int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
@@ -379,13 +366,13 @@ TEST(IOErrorHandlingUpload, ErrorHandlingChunkHttpError)
   }
   pageAccessor->Commit();
   pageAccessor->SetMaxPages(0);
-  accessManager->DestroyVolumeDataPageAccessor(pageAccessor);
+  accessManager.DestroyVolumeDataPageAccessor(pageAccessor);
 
-  ASSERT_EQ(accessManager->UploadErrorCount(), 1);
+  ASSERT_EQ(accessManager.UploadErrorCount(), 1);
   const char *object;
   int errorCode;
   const char *errorString;
-  accessManager->GetCurrentUploadError(&object, &errorCode, &errorString);
+  accessManager.GetCurrentUploadError(&object, &errorCode, &errorString);
   ASSERT_EQ(errorCode, 489);
   ASSERT_EQ(std::string(object), std::string("Dimensions_012LOD0/1"));
 }
@@ -425,9 +412,8 @@ TEST(IOErrorHandlingUpload, ErrorHandlingLayerStatusHttpError)
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   ASSERT_TRUE(layout);
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
-  ASSERT_TRUE(accessManager);
-  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
   ASSERT_TRUE(pageAccessor);
 
   int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
@@ -442,13 +428,13 @@ TEST(IOErrorHandlingUpload, ErrorHandlingLayerStatusHttpError)
   }
   pageAccessor->Commit();
   pageAccessor->SetMaxPages(0);
-  accessManager->DestroyVolumeDataPageAccessor(pageAccessor);
+  accessManager.DestroyVolumeDataPageAccessor(pageAccessor);
 
-  ASSERT_EQ(accessManager->UploadErrorCount(), 1);
+  ASSERT_EQ(accessManager.UploadErrorCount(), 1);
   const char *object;
   int errorCode;
   const char *errorString;
-  accessManager->GetCurrentUploadError(&object, &errorCode, &errorString);
+  accessManager.GetCurrentUploadError(&object, &errorCode, &errorString);
   ASSERT_EQ(errorCode, 466);
   ASSERT_EQ(std::string(object), std::string("LayerStatus"));
 }
@@ -488,9 +474,8 @@ TEST(IOErrorHandlingUpload, ErrorHandlingChunkMetadataHttpError)
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   ASSERT_TRUE(layout);
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
-  ASSERT_TRUE(accessManager);
-  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
   ASSERT_TRUE(pageAccessor);
 
   int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
@@ -505,13 +490,13 @@ TEST(IOErrorHandlingUpload, ErrorHandlingChunkMetadataHttpError)
   }
   pageAccessor->Commit();
   pageAccessor->SetMaxPages(0);
-  accessManager->DestroyVolumeDataPageAccessor(pageAccessor);
+  accessManager.DestroyVolumeDataPageAccessor(pageAccessor);
 
-  ASSERT_EQ(accessManager->UploadErrorCount(), 1);
+  ASSERT_EQ(accessManager.UploadErrorCount(), 1);
   const char *object;
   int errorCode;
   const char *errorString;
-  accessManager->GetCurrentUploadError(&object, &errorCode, &errorString);
+  accessManager.GetCurrentUploadError(&object, &errorCode, &errorString);
   ASSERT_EQ(errorCode, 433);
   ASSERT_EQ(std::string(object), std::string("Dimensions_012LOD0/ChunkMetadata/0"));
 }

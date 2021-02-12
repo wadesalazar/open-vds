@@ -132,7 +132,7 @@ getVolumeDataChannelDescriptor(JNIEnv *env, jobjectArray obj, std::multiset<std:
         auto unit = string_buffer.insert(JStringToString(env, (jstring) env->CallObjectMethod(element, env->GetMethodID(elm_class, "getUnit", "()Ljava/lang/String;"))));
         float valuerangemin = env->CallFloatMethod(element, env->GetMethodID(elm_class, "getValueRangeMin", "()F"));
         float valuerangemax = env->CallFloatMethod(element, env->GetMethodID(elm_class, "getValueRangeMax", "()F"));
-        long mapping = env->CallLongMethod(element, env->GetMethodID(elm_class, "getMapping", "()J"));
+        uint64_t mapping = env->CallLongMethod(element, env->GetMethodID(elm_class, "getMapping", "()J"));
         int mappedvaluecount = env->CallIntMethod(element, env->GetMethodID(elm_class, "getMappedValueCount", "()I"));
         bool isdiscrete = env->CallBooleanMethod(element, env->GetMethodID(elm_class, "isDiscrete", "()Z"));
         bool isrenderable = env->CallBooleanMethod(element, env->GetMethodID(elm_class, "isRenderable", "()Z"));

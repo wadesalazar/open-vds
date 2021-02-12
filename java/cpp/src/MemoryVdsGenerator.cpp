@@ -109,10 +109,9 @@ static void fill3DVDSWithNoise(OpenVDS::VDS *vds, int32_t channel = 0, const Ope
 {
     OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(vds);
     //ASSERT_TRUE(layout);
-    OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(vds);
-    //ASSERT_TRUE(accessManager);
+    OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(vds);
 
-    OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, channel, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+    OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, channel, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
     //ASSERT_TRUE(pageAccessor);
 
     int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
@@ -131,8 +130,8 @@ static void fill3DVDSWithNoise(OpenVDS::VDS *vds, int32_t channel = 0, const Ope
     }
     pageAccessor->Commit();
     pageAccessor->SetMaxPages(0);
-    accessManager->FlushUploadQueue();
-    accessManager->DestroyVolumeDataPageAccessor(pageAccessor);
+    accessManager.FlushUploadQueue();
+    accessManager.DestroyVolumeDataPageAccessor(pageAccessor);
 
 }
 
@@ -140,10 +139,9 @@ static void fill3DVDSWithBitNoise(OpenVDS::VDS *vds, int32_t channel = 0)
 {
     OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(vds);
     //ASSERT_TRUE(layout);
-    OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(vds);
-    //ASSERT_TRUE(accessManager);
+    OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(vds);
 
-    OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, channel, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+    OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, channel, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
     //ASSERT_TRUE(pageAccessor);
 
     int32_t chunkCount = int32_t(pageAccessor->GetChunkCount());
@@ -187,8 +185,8 @@ static void fill3DVDSWithBitNoise(OpenVDS::VDS *vds, int32_t channel = 0)
     }
     pageAccessor->Commit();
     pageAccessor->SetMaxPages(0);
-    accessManager->FlushUploadQueue();
-    accessManager->DestroyVolumeDataPageAccessor(pageAccessor);
+    accessManager.FlushUploadQueue();
+    accessManager.DestroyVolumeDataPageAccessor(pageAccessor);
 
 }
 

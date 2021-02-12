@@ -89,15 +89,15 @@ public class MemoryVdsGeneratorTest {
         }
 
         final FloatBuffer floatBuffer1 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestSubsetId = accessManager.requestVolumeTraces(floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestSubsetId = accessManager.requestVolumeTraces(floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0,
                 tracePositions, nYSamples, InterpolationMethod.NEAREST, 0);
         accessManager.waitForCompletion(requestSubsetId);
 
         final FloatBuffer floatBuffer0 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestId0 = accessManager.requestVolumeSamples(
-                floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestID0 = accessManager.requestVolumeSamples(
+                floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0,
                 samplePositions, nZSamples * nYSamples, InterpolationMethod.NEAREST);
-        accessManager.waitForCompletion(requestId0);
+        accessManager.waitForCompletion(requestID0);
 
         B.release(samplePositions, tracePositions);
 
@@ -127,7 +127,7 @@ public class MemoryVdsGeneratorTest {
         final VolumeDataAccessManager accessManager = generator.getAccessManager();
         assertTrue(!accessManager.isNull());
 
-        final long volumeTracesBufferSize = accessManager.getVolumeTracesBufferSize(layout, nYSamples, 0, 0, 0);
+        final long volumeTracesBufferSize = accessManager.getVolumeTracesBufferSize(nYSamples, 0, 0, 0);
         assertEquals(nZSamples * nYSamples * Float.BYTES, volumeTracesBufferSize);
 
         final FloatBuffer tracePositions = B.createFloatBuffer(nYSamples * VolumeDataAccessManager.Dimensionality_Max);
@@ -141,14 +141,14 @@ public class MemoryVdsGeneratorTest {
         }
 
         final FloatBuffer floatBuffer1 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestSubsetId = accessManager.requestVolumeTraces(floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestSubsetId = accessManager.requestVolumeTraces(floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0,
                 tracePositions, nYSamples, InterpolationMethod.NEAREST, 0);
         accessManager.waitForCompletion(requestSubsetId);
 
         final FloatBuffer floatBuffer0 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestId0 = accessManager.requestVolumeTraces(floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestID0 = accessManager.requestVolumeTraces(floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0,
                 tracePositions, nYSamples, InterpolationMethod.NEAREST, 0, layout.getChannelNoValue(0));
-        accessManager.waitForCompletion(requestId0);
+        accessManager.waitForCompletion(requestID0);
 
         B.release(tracePositions);
 
@@ -181,11 +181,11 @@ public class MemoryVdsGeneratorTest {
         NDBox box = new NDBox(0, 0, 0, 0, 0, 0, nZSamples, nYSamples, 1, 0, 0, 0);
 
         final FloatBuffer floatBuffer1 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestSubsetId1 = accessManager.requestVolumeSubset(floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0, box);
+        final long requestSubsetId1 = accessManager.requestVolumeSubset(floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0, box);
         accessManager.waitForCompletion(requestSubsetId1);
 
         final FloatBuffer floatBuffer0 = B.toBuffer(new float[nZSamples * nYSamples]);
-        final long requestSubsetId0 = accessManager.requestVolumeSubset(floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0, box);
+        final long requestSubsetId0 = accessManager.requestVolumeSubset(floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0, box);
         accessManager.waitForCompletion(requestSubsetId0);
 
         for (int i = 0; i < nZSamples * nYSamples; i++) {
@@ -217,11 +217,11 @@ public class MemoryVdsGeneratorTest {
         NDBox box = new NDBox(0, 0, 0, 0, 0, 0, nZSamples, nYSamples, 1, 0, 0, 0);
 
         final FloatBuffer floatBuffer1 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestSubsetId1 = accessManager.requestVolumeSubset(floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0, box);
+        final long requestSubsetId1 = accessManager.requestVolumeSubset(floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0, box);
         accessManager.waitForCompletion(requestSubsetId1);
 
         final FloatBuffer floatBuffer0 = B.toBuffer(new float[nZSamples * nYSamples]);
-        final long requestSubsetId0 = accessManager.requestVolumeSubset(floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0, box);
+        final long requestSubsetId0 = accessManager.requestVolumeSubset(floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0, box);
         accessManager.waitForCompletion(requestSubsetId0);
         float[] floatArray = B.toArrayAndRelease(floatBuffer0);
 
@@ -266,14 +266,14 @@ public class MemoryVdsGeneratorTest {
         NDBox box = new NDBox(0, 0, 0, 0, 0, 0, nZSamples, nYSamples, 1, 0, 0, 0);
 
         final FloatBuffer floatBuffer1 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestSubsetId = accessManager.requestVolumeSubset(floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0, box);
+        final long requestSubsetId = accessManager.requestVolumeSubset(floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0, box);
         accessManager.waitForCompletion(requestSubsetId);
 
         final FloatBuffer floatBuffer0 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestId0 = accessManager.requestVolumeSamples(
-                floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestID0 = accessManager.requestVolumeSamples(
+                floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0,
                 samplePositions, nZSamples * nYSamples, InterpolationMethod.NEAREST);
-        accessManager.waitForCompletion(requestId0);
+        accessManager.waitForCompletion(requestID0);
 
         B.release(samplePositions);
 
@@ -306,12 +306,12 @@ public class MemoryVdsGeneratorTest {
         NDBox wholeCube = new NDBox(0, 0, 0, 0, 0, 0, nZSamples, nYSamples, nXSamples, 0, 0, 0);
 
         final FloatBuffer floatBuffer1 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestSubsetId = accessManager.requestProjectedVolumeSubset(floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestSubsetId = accessManager.requestProjectedVolumeSubset(floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0,
                 wholeCube, 0.5f, 0.1f, 0.9f, 1.f, DimensionsND.DIMENSIONS_01, InterpolationMethod.NEAREST);
         accessManager.waitForCompletion(requestSubsetId);
 
         final FloatBuffer floatBuffer0 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestSubsetId0 = accessManager.requestProjectedVolumeSubset(floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestSubsetId0 = accessManager.requestProjectedVolumeSubset(floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0,
                 wholeCube, 0.5f, 0.1f, 0.9f, 1.f, DimensionsND.DIMENSIONS_01, InterpolationMethod.NEAREST, layout.getChannelNoValue(0));
         accessManager.waitForCompletion(requestSubsetId0);
 
@@ -343,20 +343,20 @@ public class MemoryVdsGeneratorTest {
 
         NDBox wholeCube = new NDBox(0, 0, 0, 0, 0, 0, nZSamples, nYSamples, nXSamples, 0, 0, 0);
 
-        final long projectedVolumeSubsetBufferSize = accessManager.getProjectedVolumeSubsetBufferSize(layout, wholeCube, DimensionsND.DIMENSIONS_01, FORMAT_R32, 0, 0);
+        final long projectedVolumeSubsetBufferSize = accessManager.getProjectedVolumeSubsetBufferSize(wholeCube, DimensionsND.DIMENSIONS_01, FORMAT_R32, 0, 0);
         assertEquals(nZSamples * nYSamples * Float.BYTES, projectedVolumeSubsetBufferSize);
 
         final FloatBuffer floatBuffer1 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestSubsetId = accessManager.requestProjectedVolumeSubset(floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestSubsetId = accessManager.requestProjectedVolumeSubset(floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0,
                 wholeCube, 0.5f, 0.1f, 0.9f, 1.f, DimensionsND.DIMENSIONS_01, InterpolationMethod.NEAREST);
         accessManager.waitForCompletion(requestSubsetId);
 
         NDBox boxSlice = new NDBox(0, 0, 0, 0, 0, 0, nZSamples, nYSamples, 1, 0, 0, 0);
         final FloatBuffer floatBuffer0 = B.createFloatBuffer(nZSamples * nYSamples);
         final float channelNoValue = layout.getChannelNoValue(0);
-        final long requestId0 = accessManager.requestVolumeSubset(floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestID0 = accessManager.requestVolumeSubset(floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0,
                 boxSlice, channelNoValue);
-        accessManager.waitForCompletion(requestId0);
+        accessManager.waitForCompletion(requestID0);
 
         for (int i = 0; i < nZSamples * nYSamples; i++) {
             final float f1 = floatBuffer0.get(i);
@@ -391,13 +391,13 @@ public class MemoryVdsGeneratorTest {
             final FloatBuffer floatBuffer0 = B.createFloatBuffer(nZSamples * nYSamples);
             final VolumeDataAccessManager accessManager = generator.getAccessManager();
             assertTrue(!accessManager.isNull());
-            final long requestId1 = accessManager.requestVolumeSubset(
-                    floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0, box);
-            final long requestId0 = accessManager.requestVolumeSubset(
-                    floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0, box, layout.getChannelNoValue(0));
+            final long requestID1 = accessManager.requestVolumeSubset(
+                    floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0, box);
+            final long requestID0 = accessManager.requestVolumeSubset(
+                    floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0, box, layout.getChannelNoValue(0));
 
-            accessManager.waitForCompletion(requestId1);
-            accessManager.waitForCompletion(requestId0);
+            accessManager.waitForCompletion(requestID1);
+            accessManager.waitForCompletion(requestID0);
 
             for (int i = 0; i < nZSamples * nYSamples; i++) {
                 final float f1 = floatBuffer0.get(i);
@@ -439,13 +439,13 @@ public class MemoryVdsGeneratorTest {
                             final FloatBuffer floatBuffer0 = BufferUtils.createFloatBuffer(nZSamples * nYSamples);
                             final VolumeDataAccessManager accessManager = generator.getAccessManager();
                             assertTrue(!accessManager.isNull());
-                            final long requestId1 = accessManager.requestVolumeSubset(
-                                    floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0, box);
-                            final long requestId0 = accessManager.requestVolumeSubset(
-                                    floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0, box, layout.getChannelNoValue(0));
+                            final long requestID1 = accessManager.requestVolumeSubset(
+                                    floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0, box);
+                            final long requestID0 = accessManager.requestVolumeSubset(
+                                    floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0, box, layout.getChannelNoValue(0));
 
-                            accessManager.waitForCompletion(requestId1);
-                            accessManager.waitForCompletion(requestId0);
+                            accessManager.waitForCompletion(requestID1);
+                            accessManager.waitForCompletion(requestID0);
 
                             for (int i = 0; i < nZSamples * nYSamples; i++) {
                                 final float f1 = floatBuffer0.get(i);
@@ -509,13 +509,13 @@ public class MemoryVdsGeneratorTest {
                                 final VolumeDataAccessManager accessManager = generator.getAccessManager();
                                 assertTrue(!accessManager.isNull());
 //                                synchronized (accessManager) {
-                                final long requestId1 = accessManager.requestVolumeSubset(
-                                        floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0, box);
-                                final long requestId0 = accessManager.requestVolumeSubset(
-                                        floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0, box, layout.getChannelNoValue(0));
+                                final long requestID1 = accessManager.requestVolumeSubset(
+                                        floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0, box);
+                                final long requestID0 = accessManager.requestVolumeSubset(
+                                        floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0, box, layout.getChannelNoValue(0));
 
-                                waitComplationAndDisplayProgress(accessManager, requestId1);
-                                waitComplationAndDisplayProgress(accessManager, requestId0);
+                                waitComplationAndDisplayProgress(accessManager, requestID1);
+                                waitComplationAndDisplayProgress(accessManager, requestID0);
 
                                 for (int i = 0; i < nZSamples * nYSamples; i++) {
                                     final float f1 = floatBuffer0.get(i);
@@ -525,7 +525,7 @@ public class MemoryVdsGeneratorTest {
 
                                 B.release(floatBuffer0, floatBuffer1);
 
-//                                System.out.println("Done " + requestId0 + " " + requestId1);
+//                                System.out.println("Done " + requestID0 + " " + requestID1);
 //                                System.out.flush();
                                 return null;
                             }));
@@ -571,15 +571,15 @@ public class MemoryVdsGeneratorTest {
         NDBox box = new NDBox(0, 0, 0, 0, 0, 0, nZSamples, nYSamples, 1, 0, 0, 0);
 
         final FloatBuffer floatBuffer1 = B.createFloatBuffer(nZSamples * nYSamples);
-        final long requestSubsetId = accessManager.requestVolumeSubset(floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestSubsetId = accessManager.requestVolumeSubset(floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0,
                 box);
         accessManager.waitForCompletion(requestSubsetId);
 
         final FloatBuffer floatBuffer0 = B.createFloatBuffer(nZSamples * nYSamples);
         final float channelNoValue = layout.getChannelNoValue(0);
-        final long requestId0 = accessManager.requestVolumeSubset(floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestID0 = accessManager.requestVolumeSubset(floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0,
                 box, channelNoValue);
-        accessManager.waitForCompletion(requestId0);
+        accessManager.waitForCompletion(requestID0);
 
         for (int i = 0; i < nZSamples * nYSamples; i++) {
             final float f1 = floatBuffer0.get(i);
@@ -610,15 +610,15 @@ public class MemoryVdsGeneratorTest {
         NDBox box = new NDBox(0, 0, 0, 0, 0, 0, nZSamples, nYSamples, 1, 0, 0, 0);
 
         final ByteBuffer floatBuffer1 = B.createByteBuffer(nZSamples * nYSamples);
-        final long requestSubsetId = accessManager.requestVolumeSubset(floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestSubsetId = accessManager.requestVolumeSubset(floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0,
                 box);
         accessManager.waitForCompletion(requestSubsetId);
 
         final ByteBuffer floatBuffer0 = B.createByteBuffer(nZSamples * nYSamples);
         final float channelNoValue = layout.getChannelNoValue(0);
-        final long requestId0 = accessManager.requestVolumeSubset(floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestID0 = accessManager.requestVolumeSubset(floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0,
                 box, channelNoValue);
-        accessManager.waitForCompletion(requestId0);
+        accessManager.waitForCompletion(requestID0);
 
         for (int i = 0; i < nZSamples * nYSamples; i++) {
             final float f1 = floatBuffer0.get(i);
@@ -649,15 +649,15 @@ public class MemoryVdsGeneratorTest {
         NDBox box = new NDBox(0, 0, 0, 0, 0, 0, nZSamples, nYSamples, 1, 0, 0, 0);
 
         final IntBuffer floatBuffer1 = B.createIntBuffer(nZSamples * nYSamples);
-        final long requestSubsetId = accessManager.requestVolumeSubset(floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestSubsetId = accessManager.requestVolumeSubset(floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0,
                 box);
         accessManager.waitForCompletion(requestSubsetId);
 
         final IntBuffer floatBuffer0 = B.createIntBuffer(nZSamples * nYSamples);
         final float channelNoValue = layout.getChannelNoValue(0);
-        final long requestId0 = accessManager.requestVolumeSubset(floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestID0 = accessManager.requestVolumeSubset(floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0,
                 box, channelNoValue);
-        accessManager.waitForCompletion(requestId0);
+        accessManager.waitForCompletion(requestID0);
 
         for (int i = 0; i < nZSamples * nYSamples; i++) {
             final float f1 = floatBuffer0.get(i);
@@ -698,16 +698,16 @@ public class MemoryVdsGeneratorTest {
         }
 
         final FloatBuffer floatBuffer0 = BufferUtils.createFloatBuffer(NB_SAMPLE_REQUESTED);
-        final long requestId0 = accessManager.requestVolumeSamples(
-                floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestID0 = accessManager.requestVolumeSamples(
+                floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0,
                 samplePositions, NB_SAMPLE_REQUESTED, InterpolationMethod.LINEAR);
-        accessManager.waitForCompletion(requestId0);
+        accessManager.waitForCompletion(requestID0);
 
         final FloatBuffer floatBuffer1 = BufferUtils.createFloatBuffer(NB_SAMPLE_REQUESTED);
-        final long requestId1 = accessManager.requestVolumeSamples(
-                floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0,
+        final long requestID1 = accessManager.requestVolumeSamples(
+                floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0,
                 samplePositions, NB_SAMPLE_REQUESTED, InterpolationMethod.LINEAR, Float.NaN);
-        accessManager.waitForCompletion(requestId1);
+        accessManager.waitForCompletion(requestID1);
 
         for (int i = 0; i < NB_SAMPLE_REQUESTED; i++) {
             final float f1 = floatBuffer0.get(i);
@@ -731,7 +731,7 @@ public class MemoryVdsGeneratorTest {
         for (VolumeDataLayoutDescriptor.LODLevels l : VolumeDataLayoutDescriptor.LODLevels.values()) {
             for (int channel = 0; channel < nbChannel; channel++) {
                 for (DimensionsND dimGroup : DimensionsND.values()) {
-                    VDSProduceStatus vdsProduceStatus = accessManager.getVDSProduceStatus(layout, dimGroup, l.ordinal(), channel);
+                    VDSProduceStatus vdsProduceStatus = accessManager.getVDSProduceStatus(dimGroup, l.ordinal(), channel);
                     if (channel == 0 && LOD_LEVELS_NONE.equals(l) && DimensionsND.DIMENSIONS_012.equals(dimGroup))
                         assertEquals(VDSProduceStatus.NORMAL, vdsProduceStatus);
                     else

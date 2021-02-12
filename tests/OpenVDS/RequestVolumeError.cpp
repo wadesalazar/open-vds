@@ -97,8 +97,7 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeError)
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   ASSERT_TRUE(layout);
 
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
-  ASSERT_TRUE(accessManager);
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int samples[3];
   for (int i = 0; i < 3; i++)
@@ -135,18 +134,18 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeError)
   std::array<std::vector<float>, boundingBoxes.size()> buffers;
   for (int i = 0; i < int(boundingBoxes.size()); i++)
   {
-    auto size = accessManager->GetVolumeSubsetBufferSize(layout, PODArrayReference(boundingBoxes[i].voxelMin), PODArrayReference(boundingBoxes[i].voxelMax), OpenVDS::VolumeDataChannelDescriptor::Format_R32, 0, 0);
-    buffers[i].resize(size);
+    auto size = accessManager.GetVolumeSubsetBufferSize(PODArrayReference(boundingBoxes[i].voxelMin), PODArrayReference(boundingBoxes[i].voxelMax), OpenVDS::VolumeDataChannelDescriptor::Format_R32, 0, 0);
+    buffers[i].resize(size/sizeof(float));
   }
 
-  std::array<int64_t, boundingBoxes.size()> requestIds;
+  std::array<std::shared_ptr<OpenVDS::VolumeDataRequestFloat>, boundingBoxes.size()> requests;
   for (int i = 0; i < int(boundingBoxes.size()); i++)
   {
-    requestIds[i] = accessManager->RequestVolumeSubset(buffers[i].data(), layout, OpenVDS::Dimensions_012, 0, 0, PODArrayReference(boundingBoxes[i].voxelMin), PODArrayReference(boundingBoxes[i].voxelMax), OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+    requests[i] = accessManager.RequestVolumeSubset<float>(buffers[i].data(), buffers[i].size() * sizeof(float), OpenVDS::Dimensions_012, 0, 0, PODArrayReference(boundingBoxes[i].voxelMin), PODArrayReference(boundingBoxes[i].voxelMax));
   }
   for (int i = 0; i < int(boundingBoxes.size()); i++)
   {
-    bool returned = accessManager->WaitForCompletion(requestIds[i]);
+    bool returned = requests[i]->WaitForCompletion();
     (void)returned;
   }
   //we don't need to assert anything as we are just loking for that the system does not segfault or deadlock.

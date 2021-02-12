@@ -50,17 +50,15 @@ struct RequestSharedData
     maxPos[0] = 50; maxPos[1] = 50; maxPos[2] = 50;
     voxelCount = (maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]);
 
-    bufferFloat.resize(voxelCount);
-    int64_t requestFloat = accessManager->RequestVolumeSubset(bufferFloat.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-    accessManager->WaitForCompletion(requestFloat);
+    auto requestFloat = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
+    bufferFloat = std::move(requestFloat->Data());
   }
   ~RequestSharedData()
   {
-
   }
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle;
   OpenVDS::VolumeDataLayout *layout;
-  OpenVDS::VolumeDataAccessManager *accessManager;
+  OpenVDS::VolumeDataAccessManager accessManager;
   int32_t minPos[OpenVDS::Dimensionality_Max];
   int32_t maxPos[OpenVDS::Dimensionality_Max];
   int32_t voxelCount;
@@ -99,11 +97,8 @@ TEST_F(RequestVolumeSubsetFormat, test1Byte)
 {
   auto *shared_data = RequestVolumeSubsetFormat::shared_data.get();
 
-  std::vector<uint8_t> buffer;
-  buffer.resize(shared_data->voxelCount);
-  int64_t request= shared_data->accessManager->RequestVolumeSubset(buffer.data(), shared_data->layout, OpenVDS::Dimensions_012, 0, 0, shared_data->minPos, shared_data->maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
-
-  shared_data->accessManager->WaitForCompletion(request);
+  auto request= shared_data->accessManager.RequestVolumeSubset<uint8_t>(OpenVDS::Dimensions_012, 0, 0, shared_data->minPos, shared_data->maxPos);
+  std::vector<uint8_t> buffer = std::move(request->Data());
 
   float minValue = shared_data->layout->GetChannelValueRangeMin(0);
   float maxValue = shared_data->layout->GetChannelValueRangeMax(0);
@@ -123,9 +118,8 @@ TEST_F(RequestVolumeSubsetFormat, test1Bit)
   auto *shared_data = RequestVolumeSubsetFormat::shared_data.get();
 
   std::vector<uint8_t> buffer;
-  buffer.resize(shared_data->voxelCount / 8 + 1);
-  int64_t request= shared_data->accessManager->RequestVolumeSubset(buffer.data(), shared_data->layout, OpenVDS::Dimensions_012, 0, 0, shared_data->minPos, shared_data->maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_1Bit);
-  shared_data->accessManager->WaitForCompletion(request);
+  auto request= shared_data->accessManager.RequestVolumeSubset1Bit(OpenVDS::Dimensions_012, 0, 0, shared_data->minPos, shared_data->maxPos);
+  buffer = std::move(request->Data());
 
   for (int32_t i = 0; i < shared_data->voxelCount; i++)
   {
@@ -140,7 +134,7 @@ TEST(ReqeustVolumeSubsetFormat, source1Bit)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_1Bit), OpenVDS::Close);
   fill3DVDSWithBitNoise(handle.get());
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max];
   int32_t maxPos[OpenVDS::Dimensionality_Max];
@@ -150,22 +144,19 @@ TEST(ReqeustVolumeSubsetFormat, source1Bit)
   voxelCount = (maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]);
 
   std::vector<float> bufferFloat;
-  bufferFloat.resize(voxelCount);
-  int64_t requestFloat = accessManager->RequestVolumeSubset(bufferFloat.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  accessManager->WaitForCompletion(requestFloat);
+  auto requestFloat = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
+  bufferFloat = std::move(requestFloat->Data());
 
-  std::vector<uint8_t> bufferByte;
-  bufferByte.resize(voxelCount / 8);
-  int64_t requestByte = accessManager->RequestVolumeSubset(bufferByte.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_1Bit);
-  accessManager->WaitForCompletion(requestByte);
+  std::vector<uint8_t> buffer1Bit;
+  auto request1Bit = accessManager.RequestVolumeSubset1Bit(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
+  buffer1Bit = std::move(request1Bit->Data());
 
   for (int i = 0; i < voxelCount; i++)
   {
     float floatVal = bufferFloat[i];
     bool floatBool = bool(floatVal);
-    uint8_t byteBool = bufferByte[i / 8] & (uint8_t(1) << (i%8));
+    uint8_t byteBool = buffer1Bit[i / 8] & (uint8_t(1) << (i%8));
     bool boolBool = bool(byteBool);
     ASSERT_EQ(floatBool, boolBool);
   }
-
 }

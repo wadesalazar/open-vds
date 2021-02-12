@@ -58,8 +58,8 @@ If everything went well we can now get the :cpp:class:`VolumeDataAccessManager` 
 
 .. code-block:: cpp
 
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle);
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle);
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle);
+  OpenVDS::VolumeDataLayout const *layout = accessManager.GetVolumeDataLayout();
 
 Using the VolumeDataLayout
 -------------
@@ -90,18 +90,25 @@ To request data we need to set up the index region that we want to read:
   voxelMin[inlineDimension] = inlineIndex;
   voxelMax[inlineDimension] = inlineIndex + 1;
 
-Then we can make the request for data:
+Then we can make the request for data, the data is automatically converted to the type of the buffer (there is also an overload with a void-pointer and a format):
 
 .. code-block:: cpp
 
   std::vector<float> buffer(layout->GetDimensionNumSamples(sampleDimension) * layout->GetDimensionNumSamples(crosslineDimension));
 
-  int64_t iRequestID = accessManager->RequestVolumeSubset(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, voxelMin, voxelMax, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+  auto request = accessManager.RequestVolumeSubset(buffer.data(), buffer.size() * sizeof(float), OpenVDS::Dimensions_012, 0, 0, voxelMin, voxelMax);
 
 Because all requests in OpenVDS are asynchronous we need to wait for the request to complete before we can access the data in the buffer:
 
 .. code-block:: cpp
 
-  bool success = accessManager->WaitForCompletion(iRequestID);
+  bool success = request->WaitForCompletion();
+
+Alternatively you can let OpenVDS allocate the buffer for you, getting the data will block until the request has completed or throw an exception:
+
+.. code-block:: cpp
+
+  auto request = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, voxelMin, voxelMax);
+  std::vector<float> data = std::move(request->Data());
 
 The complete code for this tutorial can be found in examples/GettingStarted.

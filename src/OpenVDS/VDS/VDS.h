@@ -61,6 +61,8 @@ public:
   }
 };
 
+void ReleaseVolumeDataAccessManager(VolumeDataAccessManagerImpl *);
+
 struct VDS
 {
   VolumeDataLayoutDescriptor
@@ -82,7 +84,7 @@ struct VDS
 
   std::unique_ptr<VolumeDataLayoutImpl>
                     volumeDataLayout;
-  std::unique_ptr<VolumeDataAccessManagerImpl>
+  std::shared_ptr<VolumeDataAccessManagerImpl>
                     accessManager;
   std::unique_ptr<VolumeDataStore>
                     volumeDataStore;

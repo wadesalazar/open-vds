@@ -35,7 +35,7 @@
 namespace OpenVDS
 {
 
-VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl* accessManager, VolumeDataLayer* layer, int maxPages, bool isReadWrite)
+VolumeDataPageAccessorImpl::VolumeDataPageAccessorImpl(VolumeDataAccessManagerImpl* accessManager, VolumeDataLayer const* layer, int maxPages, bool isReadWrite)
   : m_accessManager(accessManager)
   , m_layer(layer)
   , m_pagesFound(0)

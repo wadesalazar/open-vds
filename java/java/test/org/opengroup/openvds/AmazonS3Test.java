@@ -73,15 +73,15 @@ public class AmazonS3Test {
                                 final FloatBuffer floatBuffer0 = BufferUtils.createFloatBuffer(nZSamples * nYSamples);
                                 final VolumeDataAccessManager accessManager = openVDS.getAccessManager();
                                 assertTrue(!accessManager.isNull());
-                                final long requestId1 = accessManager.requestVolumeSubset(
-                                        floatBuffer1, layout, DimensionsND.DIMENSIONS_012, 0, 0, box);
-                                final long requestId0 = accessManager.requestVolumeSubset(
-                                        floatBuffer0, layout, DimensionsND.DIMENSIONS_012, 0, 0, box, layout.getChannelNoValue(0));
+                                final long requestID1 = accessManager.requestVolumeSubset(
+                                        floatBuffer1, DimensionsND.DIMENSIONS_012, 0, 0, box);
+                                final long requestID0 = accessManager.requestVolumeSubset(
+                                        floatBuffer0, DimensionsND.DIMENSIONS_012, 0, 0, box, layout.getChannelNoValue(0));
 
-                                System.out.println("Wait for request completion " + requestId1 + " ...");
-                                waitAndDisplayProgress(accessManager, requestId1);
-                                System.out.println("Wait for request completion " + requestId1 + " ...");
-                                waitAndDisplayProgress(accessManager, requestId0);
+                                System.out.println("Wait for request completion " + requestID1 + " ...");
+                                waitAndDisplayProgress(accessManager, requestID1);
+                                System.out.println("Wait for request completion " + requestID1 + " ...");
+                                waitAndDisplayProgress(accessManager, requestID0);
 
                                 for (int i = 0; i < nZSamples * nYSamples; i++) {
                                     final float f1 = floatBuffer0.get(i);

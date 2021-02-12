@@ -36,13 +36,13 @@ GTEST_TEST(OpenVDS_integration, DataAccessorClone)
   fill3DVDSWithNoise(VDS.get());
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(VDS.get());
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(VDS.get());
+  OpenVDS::IVolumeDataAccessManager *accessManagerInterface = OpenVDS::GetAccessManagerInterface(VDS.get());
 
-  auto pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  auto pageAccessor = accessManagerInterface->CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
 
-  OpenVDS::VolumeDataReadAccessor<OpenVDS::FloatVector3, float > *accessor1 = accessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 345.f, OpenVDS::InterpolationMethod::Linear);
+  OpenVDS::IVolumeDataReadAccessor<OpenVDS::FloatVector3, float > *accessor1 = accessManagerInterface->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 345.f, OpenVDS::InterpolationMethod::Linear);
 
-  auto accessor2 = static_cast<OpenVDS::VolumeDataReadAccessor<OpenVDS::FloatVector3, float > *>(accessManager->CloneVolumeDataAccessor(*accessor1));
+  auto accessor2 = static_cast<OpenVDS::IVolumeDataReadAccessor<OpenVDS::FloatVector3, float > *>(accessManagerInterface->CloneVolumeDataAccessor(*accessor1));
 
   for (float z = 0; z < dimensionSize; z+=0.5f)
   {
@@ -57,6 +57,6 @@ GTEST_TEST(OpenVDS_integration, DataAccessorClone)
       }
     }
   }
-  accessManager->DestroyVolumeDataAccessor(accessor1);
-  accessManager->DestroyVolumeDataAccessor(accessor2);
+  accessManagerInterface->DestroyVolumeDataAccessor(accessor1);
+  accessManagerInterface->DestroyVolumeDataAccessor(accessor2);
 }

@@ -19,6 +19,8 @@ pybind11_add_module(core MODULE SYSTEM
     PyVolumeData.h
     PyVolumeDataAccess.cpp
     PyVolumeDataAccess.h
+    PyVolumeDataAccessManager.cpp
+    PyVolumeDataAccessManager.h
     PyVolumeDataAxisDescriptor.cpp
     PyVolumeDataAxisDescriptor.h
     PyVolumeDataChannelDescriptor.cpp

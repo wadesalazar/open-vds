@@ -1809,12 +1809,12 @@ main(int argc, char* argv[])
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vdsGuard(handle, &OpenVDS::Close);
 
   auto accessManager = OpenVDS::GetAccessManager(handle);
-  auto layout = accessManager->GetVolumeDataLayout();
+  auto layout = accessManager.GetVolumeDataLayout();
 
-  auto amplitudeAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto traceFlagAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto segyTraceHeaderAccessor = accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto offsetAccessor = fileInfo.HasGatherOffset() ? accessManager->CreateVolumeDataPageAccessor(accessManager->GetVolumeDataLayout(), OpenVDS::DimensionsND::Dimensions_012, 0, 3, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create) : nullptr;
+  auto amplitudeAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto traceFlagAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto segyTraceHeaderAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto offsetAccessor = fileInfo.HasGatherOffset() ? accessManager->CreateVolumeDataPageAccessor(OpenVDS::DimensionsND::Dimensions_012, 0, 3, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create) : nullptr;
 
   int64_t traceByteSize = fileInfo.TraceByteSize();
 
@@ -1931,13 +1931,13 @@ main(int argc, char* argv[])
       fmt::print(stdout, "\r {:3}% Done. ", percentage);
       fflush(stdout);
     }
-    int32_t errorCount = accessManager->UploadErrorCount();
+    int32_t errorCount = accessManager.UploadErrorCount();
     for (int i = 0; i < errorCount; i++)
     {
       const char* object_id;
       int32_t error_code;
       const char* error_string;
-      accessManager->GetCurrentUploadError(&object_id, &error_code, &error_string);
+      accessManager.GetCurrentUploadError(&object_id, &error_code, &error_string);
       fprintf(stderr, "\nFailed to upload object: %s. Error code %d: %s\n", object_id, error_code, error_string);
     }
     if (errorCount && !force)

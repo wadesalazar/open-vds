@@ -52,13 +52,13 @@ TEST(Multithreading, requests)
   SlowIOManager* slowIOManager = new SlowIOManager(requestDelayMs, inMemory.get());
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(slowIOManager, error), OpenVDS::Close);
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
 
   ThreadPool threadPool(threadCount);
 
   struct ThreadRequestData
   {
-    int64_t requestId;
+    std::shared_ptr<OpenVDS::VolumeDataRequest> request;
     int32_t minPos[OpenVDS::Dimensionality_Max];
     int32_t maxPos[OpenVDS::Dimensionality_Max];
     int32_t voxelCount;
@@ -93,19 +93,19 @@ TEST(Multithreading, requests)
         requestData.maxPos[2] = requestData.minPos[2] + width_dist(gen);
         requestData.voxelCount = (requestData.maxPos[0] - requestData.minPos[0]) * (requestData.maxPos[1] - requestData.minPos[1]) * (requestData.maxPos[2] - requestData.minPos[2]);
       }
-      auto threadedRequest = [&threadRequestData, accessManager, layout]
+      auto threadedRequest = [&threadRequestData, accessManager, layout] () mutable
       {
         std::vector<bool> ret;
         ret.reserve(threadRequestData.size());
         for (auto& requestData : threadRequestData)
         {
           requestData.bufferFloat.resize(requestData.voxelCount);
-          requestData.requestId = accessManager->RequestVolumeSubset(requestData.bufferFloat.data(), layout, OpenVDS::Dimensions_012, 0, 0, requestData.minPos, requestData.maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+          requestData.request = accessManager.RequestVolumeSubset<float>(requestData.bufferFloat.data(), requestData.bufferFloat.size() * sizeof(float), OpenVDS::Dimensions_012, 0, 0, requestData.minPos, requestData.maxPos);
         }
         bool success = true;
         for (auto& requestData : threadRequestData)
         {
-          if (!accessManager->WaitForCompletion(requestData.requestId))
+          if (!requestData.request->WaitForCompletion())
             success = false;
         }
         return success;

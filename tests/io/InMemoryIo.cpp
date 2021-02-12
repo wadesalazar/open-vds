@@ -43,15 +43,14 @@ TEST(IOTests, InMemory)
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = {15, 15, 15};
   int32_t maxPos[OpenVDS::Dimensionality_Max] = {55, 55, 55};
-  std::vector<float> data;
-  data.resize((maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]));
-  int64_t request = accessManager->RequestVolumeSubset(data.data(), layout, OpenVDS::Dimensions_012, 0, 0,minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  bool finished = accessManager->WaitForCompletion(request);
+  auto request =  accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0,minPos, maxPos);
+  bool finished =  request->WaitForCompletion();
   if (!finished)
   {
     fmt::print(stderr, "Failed to download reuqest. Failing\n");
     ASSERT_TRUE(false);
   }
+  std::vector<float> data = std::move(request->Data());
 
   float minValue = layout->GetChannelValueRangeMin(0);
   float maxValue = layout->GetChannelValueRangeMax(0);

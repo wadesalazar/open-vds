@@ -21,6 +21,7 @@
 #include <OpenVDS/VolumeData.h>
 #include <OpenVDS/OpenVDS.h>
 
+#include "DimensionGroup.h"
 #include "VolumeDataPageAccessorImpl.h"
 #include "VolumeDataChunk.h"
 #include "ThreadPool.h"
@@ -120,6 +121,7 @@ public:
   ~VolumeDataRequestProcessor();
 
   int64_t AddJob(const std::vector<VolumeDataChunk> &chunks, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &volumeDataChunk, Error &error)> processor, bool singleThread = false);
+  bool  IsActive(int64_t requestID);
   bool  IsCompleted(int64_t requestID);
   bool  IsCanceled(int64_t requestID);
   bool  WaitForCompletion(int64_t requestID, int millisecondsBeforeTimeout = 0);
@@ -127,6 +129,17 @@ public:
   float GetCompletionFactor(int64_t requestID);
 
   int CountActivePages();
+
+  int64_t RequestVolumeSubset(void *buffer, VolumeDataLayer const *volumeDataLayer, const int32_t(&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], int32_t LOD, VolumeDataChannelDescriptor::Format format, bool isReplaceNoValue, float replacementNoValue);
+  int64_t RequestProjectedVolumeSubset(void *buffer, VolumeDataLayer const *volumeDataLayer, const int32_t (&minRequested)[Dimensionality_Max], const int32_t (&maxRequested)[Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionGroup projectedDimensions, int32_t LOD, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod, bool isReplaceNoValue, float replacementNoValue);
+  int64_t RequestVolumeSamples(void *buffer, VolumeDataLayer const *volumeDataLayer, const float(*samplePositions)[Dimensionality_Max], int32_t samplePosCount, InterpolationMethod interpolationMethod, bool isReplaceNoValue, float replacementNoValue);
+  int64_t RequestVolumeTraces(void *buffer, VolumeDataLayer const *volumeDataLayer, const float(*tracePositions)[Dimensionality_Max], int32_t tracePositionsCount, int32_t LOD, InterpolationMethod interpolationMethod, int32_t traceDimension, bool isReplaceNoValue, float replacementNoValue);
+  int64_t PrefetchVolumeChunk(VolumeDataLayer const *volumeDataLayer, int64_t chunkIndex);
+
+  static int64_t StaticGetVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], VolumeDataChannelDescriptor::Format format, int LOD, int channel);
+  static int64_t StaticGetProjectedVolumeSubsetBufferSize(VolumeDataLayout const *volumeDataLayout, const int (&minVoxelCoordinates)[Dimensionality_Max], const int (&maxVoxelCoordinates)[Dimensionality_Max], DimensionGroup projectedDimensions, VolumeDataChannelDescriptor::Format format, int LOD, int channel);
+  static int64_t StaticGetVolumeSamplesBufferSize(VolumeDataLayout const *volumeDataLayout, int sampleCount, int channel);
+  static int64_t StaticGetVolumeTracesBufferSize(VolumeDataLayout const *volumeDataLayout, int traceCount, int traceDimension, int LOD, int channel);
 private:
   VolumeDataAccessManagerImpl &m_manager;
   std::map<PageAccessorKey, VolumeDataPageAccessorImpl *> m_pageAccessors;

@@ -53,8 +53,7 @@ TEST(VDS_integration, RequestVolumeCleanupThread)
   fill3DVDSWithNoise(handle.get());
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManagerImpl *accessManager = static_cast<OpenVDS::VolumeDataAccessManagerImpl *>(OpenVDS::GetAccessManager(handle.get()));
-  ASSERT_TRUE(accessManager);
+  OpenVDS::VolumeDataAccessManagerImpl *accessManager = static_cast<OpenVDS::VolumeDataAccessManagerImpl *>(OpenVDS::GetAccessManagerInterface(handle.get()));
 
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
 
@@ -76,21 +75,21 @@ TEST(VDS_integration, RequestVolumeCleanupThread)
     tracePos[trace][5] = 0;
   }
 
-  int64_t requestId = accessManager->RequestVolumeTraces(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, tracePos, 10, OpenVDS::InterpolationMethod::Nearest, 0);
+  int64_t requestID = accessManager->RequestVolumeTraces(buffer.data(), buffer.size() * sizeof(float), OpenVDS::Dimensions_012, 0, 0, tracePos, 10, OpenVDS::InterpolationMethod::Nearest, 0, OpenVDS::optional<float>());
 
   int activePages = accessManager->CountActivePages();
   ASSERT_GT(activePages, 0);
   std::this_thread::sleep_for(std::chrono::seconds(1));
   activePages = accessManager->CountActivePages();
   ASSERT_GT(activePages, 0);
-  ASSERT_TRUE(accessManager->WaitForCompletion(requestId));
+  ASSERT_TRUE(accessManager->WaitForCompletion(requestID));
   activePages = accessManager->CountActivePages();
   ASSERT_GT(activePages, 0);
   std::this_thread::sleep_for(std::chrono::seconds(4));
   activePages = accessManager->CountActivePages();
   ASSERT_EQ(activePages, 0);
 
-  auto pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  auto pageAccessor = accessManager->CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::IVolumeDataAccessManager::AccessMode_ReadOnly);
   auto valueReader = accessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Nearest);
 
   std::vector<float> verify(10 * sampleCount0);

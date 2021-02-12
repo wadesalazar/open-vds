@@ -28,6 +28,7 @@
 #include "PyVector.h"
 #include "PyVolumeData.h"
 #include "PyVolumeDataAccess.h"
+#include "PyVolumeDataAccessManager.h"
 #include "PyVolumeDataAxisDescriptor.h"
 #include "PyVolumeDataChannelDescriptor.h"
 #include "PyVolumeDataLayout.h"
@@ -46,6 +47,7 @@ PYBIND11_MODULE(core, m) {
   PyVector::initModule(m);
   PyVolumeData::initModule(m);
   PyVolumeDataAccess::initModule(m);
+  PyVolumeDataAccessManager::initModule(m);
   PyVolumeDataAxisDescriptor::initModule(m);
   PyVolumeDataChannelDescriptor::initModule(m);
   PyVolumeDataLayout::initModule(m);

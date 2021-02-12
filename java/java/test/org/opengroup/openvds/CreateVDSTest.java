@@ -34,7 +34,7 @@ public class CreateVDSTest {
         for (VolumeDataLayoutDescriptor.LODLevels l : VolumeDataLayoutDescriptor.LODLevels.values()) {
             for (int channel = 0; channel < nbChannel; channel++) {
                 for (DimensionsND dimGroup : DimensionsND.values()) {
-                    VDSProduceStatus vdsProduceStatus = accessManager.getVDSProduceStatus(volumeDataLayout, dimGroup, l.ordinal(), channel);
+                    VDSProduceStatus vdsProduceStatus = accessManager.getVDSProduceStatus(dimGroup, l.ordinal(), channel);
                 }
             }
         }

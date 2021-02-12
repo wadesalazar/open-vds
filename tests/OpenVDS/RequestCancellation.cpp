@@ -38,7 +38,7 @@ TEST(OpenVDS_integration, RequestCancellation)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, slowIOManager), OpenVDS::Close);
   fill3DVDSWithBitNoise(handle.get());
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max];
   int32_t maxPos[OpenVDS::Dimensionality_Max];
@@ -47,22 +47,17 @@ TEST(OpenVDS_integration, RequestCancellation)
   maxPos[0] = 50; maxPos[1] = 60; maxPos[2] = 50;
   voxelCount = (maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]);
 
-  std::vector<float> bufferFloat;
-  bufferFloat.resize(voxelCount);
-
-  std::vector<int64_t> requests;
+  std::vector<std::shared_ptr<OpenVDS::VolumeDataRequestFloat>> requests;
   for (int i = 0; i < 10 ; i++) {
-      int64_t requestFloat = accessManager->RequestVolumeSubset(bufferFloat.data(), layout, OpenVDS::Dimensions_012, 0,
-                                                                0, minPos, maxPos,
-                                                                OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+      auto requestFloat = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
       requests.emplace_back(requestFloat);
   }
   for (auto &req : requests){
-      accessManager->Cancel(req);
-      if (!accessManager->IsCompleted(req)) {
-          ASSERT_FALSE(accessManager->WaitForCompletion(req));
-          ASSERT_TRUE(accessManager->IsCanceled(req));
-          ASSERT_FALSE(accessManager->IsCanceled(req));
+      req->Cancel();
+      if (!req->IsCompleted()) {
+          ASSERT_FALSE(req->WaitForCompletion());
+          ASSERT_TRUE(req->IsCanceled());
+          ASSERT_THROW(req->Data(), OpenVDS::InvalidOperation);
       }
   }
 }

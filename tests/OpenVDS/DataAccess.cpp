@@ -40,12 +40,10 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageRead)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(url, connectionString, error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
-  ASSERT_TRUE(accessManager);
-
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
 
-  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   ASSERT_TRUE(pageAccessor);
 
   int pos[OpenVDS::Dimensionality_Max] = {layout->GetDimensionNumSamples(0) / 2, layout->GetDimensionNumSamples(1) /2, layout->GetDimensionNumSamples(2) / 2};
@@ -78,12 +76,10 @@ GTEST_TEST(OpenVDS_integration, SimpleVolumeDataPageReadVDSFile)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(OpenVDS::VDSFileOpenOptions(fileName), error), &OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
-  ASSERT_TRUE(accessManager);
-
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
 
-  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
+  OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 10, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   ASSERT_TRUE(pageAccessor);
 
   int pos[OpenVDS::Dimensionality_Max] = {layout->GetDimensionNumSamples(0) / 2, layout->GetDimensionNumSamples(1) /2, layout->GetDimensionNumSamples(2) / 2};
@@ -127,9 +123,8 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSubset)
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   ASSERT_TRUE(layout);
 
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
-  ASSERT_TRUE(accessManager);
- 
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
+
   int loopDimension = 4;
   int groupSize = 100;
 
@@ -152,11 +147,8 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSubset)
   voxelMin[loopDimension] = 2;
   voxelMax[loopDimension] = 2 + 1;
 
-  std::vector<float> buffer((voxelMax[groupDimension] - voxelMin[groupDimension]) * traceDimensionSize);
-
-  int64_t iRequestID = accessManager->RequestVolumeSubset(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, PODArrayReference(voxelMin), PODArrayReference(voxelMax), OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  ASSERT_GT(iRequestID, 0);
-  bool returned = accessManager->WaitForCompletion(iRequestID);
+  auto request = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, PODArrayReference(voxelMin), PODArrayReference(voxelMax));
+  bool returned = request->WaitForCompletion();
   ASSERT_TRUE(returned);
 
 }
@@ -173,8 +165,7 @@ GTEST_TEST(VolumeSubset, BadLOD)
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   ASSERT_TRUE(layout);
 
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
-  ASSERT_TRUE(accessManager);
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int loopDimension = 4;
   int groupSize = 100;
@@ -198,16 +189,13 @@ GTEST_TEST(VolumeSubset, BadLOD)
   voxelMin[loopDimension] = 2;
   voxelMax[loopDimension] = 2 + 1;
 
-  std::vector<float> buffer((voxelMax[groupDimension] - voxelMin[groupDimension]) * traceDimensionSize);
-
   try
   {
-    int64_t iRequestID = accessManager->RequestVolumeSubset(buffer.data(), layout, OpenVDS::Dimensions_012, 1, 0, PODArrayReference(voxelMin), PODArrayReference(voxelMax), OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-    ASSERT_GT(iRequestID, 0);
-    bool returned = accessManager->WaitForCompletion(iRequestID);
+    auto request = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 1, 0, PODArrayReference(voxelMin), PODArrayReference(voxelMax));
+    bool returned = request->WaitForCompletion();
     ASSERT_TRUE(returned);
   }
-  catch (std::runtime_error&)
+  catch (OpenVDS::Exception &)
   {
     return;
   }

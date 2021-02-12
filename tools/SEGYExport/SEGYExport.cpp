@@ -118,9 +118,9 @@ main(int argc, char *argv[])
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> vdsGuard(handle, &OpenVDS::Close);
 
   auto accessManager = OpenVDS::GetAccessManager(handle);
-  auto volumeDataLayout = accessManager->GetVolumeDataLayout();
+  auto volumeDataLayout = accessManager.GetVolumeDataLayout();
 
-  int dimensionality = accessManager->GetVolumeDataLayout()->GetDimensionality();
+  int dimensionality = accessManager.GetVolumeDataLayout()->GetDimensionality();
   int outerDimension = std::max(2, dimensionality - 1);
 
   // Find a dimension group containing (at least) the inner dimensions and can be produced
@@ -131,27 +131,27 @@ main(int argc, char *argv[])
     dimensionGroup = OpenVDS::Dimensions_02;
   }
 
-  if(accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) != OpenVDS::VDSProduceStatus::Normal)
+  if(accessManager.GetVDSProduceStatus(dimensionGroup, 0, 0) != OpenVDS::VDSProduceStatus::Normal)
   {
     if(dimensionality == 4 && outerDimension == 2)
     {
-      if(accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_013, 0, 0) == OpenVDS::VDSProduceStatus::Normal || 
-        (accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_013, 0, 0) == OpenVDS::VDSProduceStatus::Remapped && accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable))
+      if(accessManager.GetVDSProduceStatus(OpenVDS::Dimensions_013, 0, 0) == OpenVDS::VDSProduceStatus::Normal || 
+        (accessManager.GetVDSProduceStatus(OpenVDS::Dimensions_013, 0, 0) == OpenVDS::VDSProduceStatus::Remapped && accessManager.GetVDSProduceStatus(dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable))
       {
         dimensionGroup = OpenVDS::Dimensions_013;
       }
     }
     else
     {
-      if(accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_012, 0, 0) == OpenVDS::VDSProduceStatus::Normal || 
-        (accessManager->GetVDSProduceStatus(volumeDataLayout, OpenVDS::Dimensions_012, 0, 0) == OpenVDS::VDSProduceStatus::Remapped && accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable))
+      if(accessManager.GetVDSProduceStatus(OpenVDS::Dimensions_012, 0, 0) == OpenVDS::VDSProduceStatus::Normal || 
+        (accessManager.GetVDSProduceStatus(OpenVDS::Dimensions_012, 0, 0) == OpenVDS::VDSProduceStatus::Remapped && accessManager.GetVDSProduceStatus(dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable))
       {
         dimensionGroup = OpenVDS::Dimensions_012;
       }
     }
   }
 
-  if(accessManager->GetVDSProduceStatus(volumeDataLayout, dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable)
+  if(accessManager.GetVDSProduceStatus(dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable)
   {
     fmt::print(stderr, "VDS cannot produce data");
     return EXIT_FAILURE;
@@ -357,40 +357,40 @@ main(int argc, char *argv[])
     min[outerDimension] = line;
     max[outerDimension] = line + 1;
 
-    int64_t dataRequestID = accessManager->RequestVolumeSubset(data.get(), volumeDataLayout, dimensionGroup, 0, 0, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
+    auto dataRequest = accessManager.RequestVolumeSubset((void *)data.get(), traceCount * traceDataSize, dimensionGroup, 0, 0, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
 
     max[0] = 1;
-    int64_t traceFlagRequestID = accessManager->RequestVolumeSubset(traceFlag.get(), volumeDataLayout, dimensionGroup, 0, traceFlagChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+    auto traceFlagRequest = accessManager.RequestVolumeSubset((void *)traceFlag.get(), traceCount, dimensionGroup, 0, traceFlagChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
 
     max[0] = 240;
-    int64_t segyTraceHaderRequestID = accessManager->RequestVolumeSubset(segyTraceHeader.get(), volumeDataLayout, dimensionGroup, 0, segyTraceHeaderChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
+    auto segyTraceHaderRequest = accessManager.RequestVolumeSubset((void *)segyTraceHeader.get(), traceCount * SEGY::TraceHeaderSize, dimensionGroup, 0, segyTraceHeaderChannel, min, max, OpenVDS::VolumeDataChannelDescriptor::Format_U8);
 
     // Need to queue the writing on another thread to get max. performance
-    if (!accessManager->WaitForCompletion(dataRequestID))
+    if (!dataRequest->WaitForCompletion())
     {
       int errorCode;
       const char* errorString;
-      accessManager->GetCurrentDownloadError(&errorCode, &errorString);
+      accessManager.GetCurrentDownloadError(&errorCode, &errorString);
       fmt::print(stderr, "\nError in data request: {} - {}\n", errorCode, errorString);
-      assert(accessManager->IsCanceled(dataRequestID));
+      assert(dataRequest->IsCanceled());
       exit(1);
     }
-    if (!accessManager->WaitForCompletion(traceFlagRequestID))
+    if (!traceFlagRequest->WaitForCompletion())
     {
       int errorCode;
       const char* errorString;
-      accessManager->GetCurrentDownloadError(&errorCode, &errorString);
+      accessManager.GetCurrentDownloadError(&errorCode, &errorString);
       fmt::print(stderr, "\nError in traceFlag request: {} - {}\n", errorCode, errorString);
-      assert(accessManager->IsCanceled(traceFlagRequestID));
+      assert(traceFlagRequest->IsCanceled());
       exit(1);
     }
-    if (!accessManager->WaitForCompletion(segyTraceHaderRequestID))
+    if (!segyTraceHaderRequest->WaitForCompletion())
     {
       int errorCode;
       const char* errorString;
-      accessManager->GetCurrentDownloadError(&errorCode, &errorString);
+      accessManager.GetCurrentDownloadError(&errorCode, &errorString);
       fmt::print(stderr, "\nError in segyTraceHeader request: {} - {}\n", errorCode, errorString);
-      assert(accessManager->IsCanceled(segyTraceHaderRequestID));
+      assert(segyTraceHaderRequest->IsCanceled());
       exit(1);
     }
 

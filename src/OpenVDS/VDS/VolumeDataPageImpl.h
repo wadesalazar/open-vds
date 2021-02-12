@@ -79,7 +79,7 @@ public:
   void          MakeDirty();
 
   void          SetBufferData(const DataBlock& dataBlock, int32_t(&pitch)[Dimensionality_Max], std::vector<uint8_t>&& blob);
-  void          WriteBack(VolumeDataLayer *volumeDataLayer, std::unique_lock<std::mutex> &pageListMutexLock);
+  void          WriteBack(VolumeDataLayer const *volumeDataLayer, std::unique_lock<std::mutex> &pageListMutexLock);
   void *        GetBufferInternal(int (&anPitch)[Dimensionality_Max], bool isReadWrite);
   void *        GetRawBufferInternal() { return m_blob.data(); }
   bool          IsCopyMarginNeeded(VolumeDataPageImpl *targetPage);

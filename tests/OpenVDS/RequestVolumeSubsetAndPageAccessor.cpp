@@ -25,19 +25,16 @@ TEST(OpenVDS, MixedRequests)
 
     OpenVDS::VolumeDataLayout* layout = OpenVDS::GetLayout(handle.get());
 
-    OpenVDS::VolumeDataAccessManager* accessManager = OpenVDS::GetAccessManager(handle.get());
-    ASSERT_TRUE(accessManager);
+    OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
 
     std::vector<uint8_t> buffer;
-    buffer.resize(accessManager->GetVolumeSubsetBufferSize(layout, { 0, 0, 0 }, { 100, 100, 100 }, layout->GetChannelFormat(0)));
-    auto request = accessManager->RequestVolumeSubset(buffer.data(), layout, OpenVDS::Dimensions_012, 0, 0, { 0, 0, 0 }, { 100, 100, 100 }, layout->GetChannelFormat(0));
+    buffer.resize(accessManager.GetVolumeSubsetBufferSize({ 0, 0, 0 }, { 100, 100, 100 }, layout->GetChannelFormat(0)));
+    auto request = accessManager.RequestVolumeSubset((void *)buffer.data(), buffer.size(), OpenVDS::Dimensions_012, 0, 0, { 0, 0, 0 }, { 100, 100, 100 }, layout->GetChannelFormat(0));
 
-    OpenVDS::VolumeDataPageAccessor* pageAccessor = accessManager->CreateVolumeDataPageAccessor(layout, OpenVDS::Dimensions_012, 0, 0, 256, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
-    ASSERT_TRUE(pageAccessor);
-    auto dataAccessor = accessManager->Create3DVolumeDataAccessorR32(pageAccessor, -1000);
-    float value = dataAccessor->GetValue({ 100, 100, 100 });
+    auto dataAccessor = accessManager.CreateVolumeData3DReadAccessorR32(OpenVDS::Dimensions_012, 0, 0, 256, -1000);
+    float value = dataAccessor.GetValue({ 100, 100, 100 });
     (void)value;
 
-    accessManager->WaitForCompletion(request);
+    request->WaitForCompletion();
   }
 }

@@ -67,7 +67,7 @@ extern "C" {
     ( JNIEnv *env, jclass, jlong handle )
     {
         try {
-            return (jlong)OpenVDS::GetAccessManager( GetVds( handle ) );
+            return (jlong)OpenVDS::GetAccessManagerInterface( GetVds( handle ) );
         }
         CATCH_EXCEPTIONS_FOR_JAVA;
         return 0;

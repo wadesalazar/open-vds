@@ -38,7 +38,7 @@ TEST(WaitForCompletion, waitTimeout)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, slowIOManager), OpenVDS::Close);
   fill3DVDSWithBitNoise(handle.get());
   OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
-  OpenVDS::VolumeDataAccessManager *accessManager = OpenVDS::GetAccessManager(handle.get());
+  OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max];
   int32_t maxPos[OpenVDS::Dimensionality_Max];
@@ -47,11 +47,7 @@ TEST(WaitForCompletion, waitTimeout)
   maxPos[0] = 50; maxPos[1] = 60; maxPos[2] = 50;
   voxelCount = (maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]);
 
-  std::vector<float> bufferFloat;
-  bufferFloat.resize(voxelCount);
-  int64_t requestFloat = accessManager->RequestVolumeSubset(bufferFloat.data(), layout, OpenVDS::Dimensions_012, 0, 0, minPos, maxPos, OpenVDS::VolumeDataChannelDescriptor::Format_R32);
-  ASSERT_FALSE(accessManager->WaitForCompletion(requestFloat, 1));
-
-  ASSERT_TRUE(accessManager->WaitForCompletion(requestFloat, 0));
-  ASSERT_FALSE(accessManager->WaitForCompletion(requestFloat, 0));
+  auto requestFloat = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
+  ASSERT_FALSE(requestFloat->WaitForCompletion(1));
+  ASSERT_TRUE(requestFloat->WaitForCompletion(0));
 }
