@@ -7,7 +7,7 @@ function(setCompilerFlagsForTarget target)
       target_compile_options(${target} PRIVATE $<$<NOT:$<CONFIG:Release>>:/JMC>) 
     endif()
   else()
-    target_compile_options(${target} PRIVATE $<$<CONFIG:Release>:-s>)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS_RELEASE -s)
   endif()
   
   if (NOT (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
