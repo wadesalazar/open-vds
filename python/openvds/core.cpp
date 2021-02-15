@@ -24,8 +24,6 @@
 #include "PyKnownMetadata.h"
 #include "PyMetadataAccess.h"
 #include "PyMetadataContainer.h"
-#include "PyRange.h"
-#include "PyVector.h"
 #include "PyVolumeData.h"
 #include "PyVolumeDataAccess.h"
 #include "PyVolumeDataAccessManager.h"
@@ -43,8 +41,6 @@ PYBIND11_MODULE(core, m) {
   PyKnownMetadata::initModule(m);
   PyMetadataAccess::initModule(m);
   PyMetadataContainer::initModule(m);
-  PyRange::initModule(m);
-  PyVector::initModule(m);
   PyVolumeData::initModule(m);
   PyVolumeDataAccess::initModule(m);
   PyVolumeDataAccessManager::initModule(m);

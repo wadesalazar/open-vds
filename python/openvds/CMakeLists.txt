@@ -11,10 +11,6 @@ pybind11_add_module(core MODULE SYSTEM
     PyMetadataAccess.h
     PyMetadataContainer.cpp
     PyMetadataContainer.h
-    PyRange.cpp
-    PyRange.h
-    PyVector.cpp
-    PyVector.h
     PyVolumeData.cpp
     PyVolumeData.h
     PyVolumeDataAccess.cpp
