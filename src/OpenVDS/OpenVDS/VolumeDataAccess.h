@@ -180,9 +180,11 @@ public:
 
   IndexRegion<INDEX>    Region(int64_t region) const { return m_accessor ? m_accessor->Region(region) : IndexRegion<INDEX>(); }
 
+  int64_t               RegionFromIndex(INDEX index) { return m_accessor ? m_accessor->RegionFromIndex(index) : 0; }
+
   IndexRegion<INDEX>    CurrentRegion() const { return m_accessor ? m_accessor->CurrentRegion() : IndexRegion<INDEX>(); }
 
-  T                     GetValue(INDEX index) const { return m_accessor->GetValue(index); }
+  T                     GetValue(INDEX index) const { return m_accessor ? m_accessor->GetValue(index) : T(); }
 
                         VolumeDataReadAccessor() : m_accessor() {}
 
@@ -202,9 +204,9 @@ protected:
   IVolumeDataReadWriteAccessor<INDEX, T> *
                         Accessor() { return static_cast<IVolumeDataReadWriteAccessor<INDEX, T> *>(m_accessor); }
 public:
-  void                  SetValue(INDEX index, T value) { return Accessor().SetValue(index, value); }
-  void                  Commit() { return Accessor().Commit(); }
-  void                  Cancel() { return Accessor().Cancel(); }
+  void                  SetValue(INDEX index, T value) { if(Accessor()) return Accessor()->SetValue(index, value); }
+  void                  Commit() { if(Accessor()) return Accessor()->Commit(); }
+  void                  Cancel() { if(Accessor()) return Accessor()->Cancel(); }
 
                         VolumeDataReadWriteAccessor() : VolumeDataReadAccessor<INDEX, T>() {}
 
