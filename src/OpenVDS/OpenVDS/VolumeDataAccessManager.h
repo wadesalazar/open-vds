@@ -740,6 +740,8 @@ public:
   static constexpr AccessMode AccessMode_ReadWrite = IVolumeDataAccessManager::AccessMode_ReadWrite;
   static constexpr AccessMode AccessMode_Create    = IVolumeDataAccessManager::AccessMode_Create;
 
+  static constexpr int Dimensionality_Max = VolumeDataLayout::Dimensionality_Max;  ///< the maximum number of dimensions a VDS can have
+
   static constexpr int maxPagesDefault = 8;  ///< the default maxPages for VolumeDataPageAccessors
 
 private:
