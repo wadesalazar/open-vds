@@ -75,6 +75,42 @@ private:
 namespace py = pybind11;
 namespace native = OpenVDS;
 
+// Helpers for methods that take buffer pointers
+template<typename T, bool WRITABLE>
+T*
+PyGetBufferPtr(py::buffer& buffer)
+{
+  py::buffer_info info;
+  {
+    py::gil_scoped_acquire
+      acquire;
+
+    info = buffer.request(WRITABLE);
+    if (info.ptr == nullptr) 
+    {
+      throw std::runtime_error("Unable to obtain buffer.");
+    }
+  }
+  return (T*)info.ptr;
+}
+
+template<typename T, bool WRITABLE>
+T
+PyGetBufferSize(py::buffer& buffer)
+{
+  py::buffer_info info;
+  {
+    py::gil_scoped_acquire
+      acquire;
+
+    info = buffer.request(WRITABLE);
+    if (info.ptr == nullptr) 
+    {
+      throw std::runtime_error("Unable to obtain buffer.");
+    }
+    return (T)(info.size * info.itemsize);
+  }
+}
 
 // Adapter class to check fixed-size numpy arrays
 template<typename T, int LEN, bool MUTABLE>
@@ -86,6 +122,9 @@ struct PyArrayAdapter<T, LEN, true>
   static T*
   getArrayBufferChecked(py::array_t<T>& arr, int* arrayCount = nullptr)
   {
+    py::gil_scoped_acquire
+      acquire;
+
     py::ssize_t n = 0;
     int count = 0;
     if (arr.ndim() == 1)
@@ -102,7 +141,7 @@ struct PyArrayAdapter<T, LEN, true>
     {
       *arrayCount = count;
     }
-    if (n != LEN)
+    if (n < LEN)
     {
       throw std::invalid_argument("Array has the wrong size/dimensions.");
     }
@@ -126,6 +165,9 @@ struct PyArrayAdapter<T, LEN, false>
   static const T*
   getArrayBufferChecked(py::array_t<T> const& arr, int* arrayCount = nullptr)
   {
+    py::gil_scoped_acquire
+      acquire;
+
     py::ssize_t n = 0;
     int count = 0;
     if (arr.ndim() == 1)
@@ -142,7 +184,7 @@ struct PyArrayAdapter<T, LEN, false>
     {
       *arrayCount = count;
     }
-    if (n != LEN)
+    if (n < LEN)
     {
       throw std::invalid_argument("Array has the wrong size/dimensions.");
     }
@@ -158,6 +200,11 @@ struct PyArrayAdapter<T, LEN, false>
     return *reinterpret_cast<const T (*)[LEN]>(tmp);
   }
 
+  static const T (*getArrayPtrChecked(py::array_t<T> const& arr, int* arrayCount = nullptr))[LEN]
+  {
+    const T* tmp = getArrayBufferChecked(arr, arrayCount);
+    return reinterpret_cast<const T (*)[LEN]>(tmp);
+  }
 };
 
 struct BLOB

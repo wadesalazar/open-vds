@@ -1,8 +1,26 @@
+############################################################################
+# Copyright 2019 The Open Group
+# Copyright 2019 Bluware, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###########################################################################/
+
 import os
 import sys
 import platform
 import re
 import textwrap
+import fnmatch
 from os import path
 
 from clang import cindex
@@ -11,6 +29,9 @@ from collections import OrderedDict
 from glob import glob
 from threading import Thread, Semaphore
 from multiprocessing import cpu_count
+
+
+make_trampolines_readable = False # If True, don't put everything on one line
 
 #import cymbal
 #import ctypes
@@ -35,7 +56,6 @@ RECURSE_LIST = [
     CursorKind.CLASS_DECL,
     CursorKind.STRUCT_DECL,
     CursorKind.ENUM_DECL,
-#    CursorKind.CLASS_TEMPLATE,
     CursorKind.CXX_METHOD,
     CursorKind.FUNCTION_DECL,
 ]
@@ -45,7 +65,6 @@ PRINT_LIST = [
     CursorKind.STRUCT_DECL,
     CursorKind.ENUM_DECL,
     CursorKind.ENUM_CONSTANT_DECL,
-#   CursorKind.CLASS_TEMPLATE,
     CursorKind.FUNCTION_DECL,
 #    CursorKind.FUNCTION_TEMPLATE,
     CursorKind.CONVERSION_FUNCTION,
@@ -55,6 +74,8 @@ PRINT_LIST = [
     CursorKind.DESTRUCTOR,
     CursorKind.FIELD_DECL,
     CursorKind.PARM_DECL,
+    CursorKind.TYPE_ALIAS_DECL,
+    CursorKind.CLASS_TEMPLATE,
 ]
 
 PREFIX_BLACKLIST = [
@@ -113,6 +134,9 @@ def extract_nodes(filename, node, output, prefix=''):
     if not (node.location.file is None or
             os.path.samefile(d(node.location.file.name), filename)):
         return 0
+#    print("{}:{}".format(str(node.kind), node.spelling))
+#    if node.kind == CursorKind.TYPE_ALIAS_DECL:
+#        print(node.spelling)
     if node.kind in RECURSE_LIST:
         sub_prefix = prefix
         if node.kind not in PREFIX_BLACKLIST:
@@ -155,7 +179,7 @@ def getoverloads(node, all_, access_filter = PUBLIC_LIST):
 
 def getscope(node, all_, output):
     p = getparent(node, all_)
-    while p and not p.kind == CursorKind.NAMESPACE:
+    while p and not p.kind == CursorKind.NAMESPACE and not p.kind == CursorKind.TRANSLATION_UNIT:
         output.append(p)
         p = getparent(p, all_)
     output  .reverse()
@@ -176,11 +200,28 @@ def getnativename(node, all_):
     name = fixname(getfullname(node, all_))
     return name
 
-def fixarglist(arglist, node, all_):
-    if 'enum ' in arglist:
-        p = getparent(node, all_)
-        arglist = arglist.replace('enum ', getnativename(p, all_) + '::') # well...
-    return fixname(arglist)
+def find_node_updwards(node, all_, kind, name):
+    if not node:
+        return None
+    children = getchildren(node, all_, kind)
+    children = [c for c in children if c.spelling == name]
+    if children:
+        return children[0]
+    else:
+        return find_node_updwards(getparent(node, all_), all_, kind, name)
+
+def fixarglist(arglist_, node, all_):
+    params = get_args(node, all_)
+    arglist = arglist_
+    for arg in params:
+        t,_,_ = arg
+        if t.startswith('enum '):
+            n = t.replace('enum ', '')
+            decl = find_node_updwards(node, all_, CursorKind.ENUM_DECL, n)
+            n = getfullname(decl, all_)
+            arglist = arglist.replace(t, n)
+    arglist = fixname(arglist)
+    return arglist
 
 def getvarname(node, all_):
     return getfullname(node, all_).replace('::', '_') + '_'
@@ -207,6 +248,65 @@ def resolve_overload_name(node, all_):
 def generate_none(node, all_, output, indent, parent_prefix, context):
     pass
 
+def generate_classtemplate(node, all_, output, indent, parent_prefix, context):
+    context["class_templates"][node.spelling] = node
+
+# For normal classes, node == classnode. For template specializations, 
+# node is the specialization and classnode is the template class declaration
+def format_class_decl(node, classnode, all_, indent, parent_prefix):
+    varname = getvarname(node, all_)
+    bases = getbases(classnode, all_)
+    basesdecl = ''
+    for b in bases:
+        basesdecl += ', {}'.format(getnativename(b.get_definition(), all_))
+    deletor = ''
+    dtor = getdestructor(node, all_)
+    if dtor and not dtor.access_specifier == cindex.AccessSpecifier.PUBLIC:
+        deletor = ", std::unique_ptr<{}, py::nodelete>".format(getnativename(node, all_))
+    else:
+        deletor = ", std::shared_ptr<{}>".format(getnativename(node, all_))
+    code = [ 
+        '',
+        indent + """// {}""".format(
+            getfullname(node, all_)
+        ),
+        indent + """py::class_<{}{}{}> \n{}  {}({},"{}", {});""".format(
+            getnativename(node, all_),
+            basesdecl,
+            deletor,
+            indent,
+            varname,
+            parent_prefix,
+            getfullname(node, all_),
+            format_docstring_decl(getfullname(classnode, all_))
+        ),
+        ''
+    ]
+    return code
+
+# Generate wrapper for explicit template specialization
+def generate_typealias(node, all_, output, indent, parent_prefix, context):
+#    if 'Float' in node.spelling:
+#        debug = 1
+    canonical = node.type.get_canonical()
+#    print("{} = {}".format(node.spelling, canonical.spelling))
+    template_params = canonical.spelling.replace('<', ',').replace('>', ',').split(',')[1:-1]
+    children = [*node.get_children()]
+    if len(children) >= 1 and children[0].kind == CursorKind.TEMPLATE_REF and len(template_params) > 0:
+        class_template = children[0]
+        real_type_name = "{}<{}>".format(class_template.spelling, ", ".join(template_params))
+        if class_template.spelling in context["class_templates"]:
+            if real_type_name not in context["class_template_instantiations"]:
+                context["class_template_instantiations"][real_type_name] = node
+#                print("Alias: {} = {}".format(node.spelling, real_type_name))
+                template_node = context["class_templates"][class_template.spelling]
+                code = format_class_decl(node, template_node, all_, indent, parent_prefix)
+                output.extend(code)
+                output.append('')
+            else:
+                output.append(indent + "// Ignored: {} = {} already defined as {}".format(node.spelling, real_type_name, context["class_template_instantiations"][real_type_name].spelling))
+                pass
+
 def generate_field(node, all_, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all_)
     code = """.def_readwrite({0:30}, &{1:30}, {2});""".format(
@@ -216,18 +316,44 @@ def generate_field(node, all_, output, indent, parent_prefix, context):
     )
     output.append(indent + parent_prefix + code)
 
+literal_types = [ 
+    CursorKind.CHARACTER_LITERAL, 
+    CursorKind.COMPOUND_LITERAL_EXPR, 
+    CursorKind.CXX_BOOL_LITERAL_EXPR, 
+    CursorKind.CXX_NULL_PTR_LITERAL_EXPR, 
+    CursorKind.FLOATING_LITERAL, 
+    CursorKind.IMAGINARY_LITERAL, 
+    CursorKind.INTEGER_LITERAL, 
+    CursorKind.OBJC_STRING_LITERAL, 
+    CursorKind.OBJ_BOOL_LITERAL_EXPR, 
+    CursorKind.STRING_LITERAL 
+]
+
+def get_default_paramvalue(node):
+    assert node.kind == CursorKind.PARM_DECL
+    c = [*node.get_children()]
+    if c and [item.kind for item in c if item.kind in literal_types]:
+        assert len(c) == 1, "fixme!"
+        item = c[0]
+        tokens = " ".join([token.spelling for token in item.get_tokens()])
+#        print("{}: {} {}".format(node.spelling, str(item.kind), tokens))
+        return tokens
+    else:
+        return None
+
 def get_args(node, all_):
     paramnodes = getchildren(node, all_, CursorKind.PARM_DECL)
-    params = [(n.type.spelling, n.spelling) for n in paramnodes]
+    params = [(n.type.spelling, n.spelling, get_default_paramvalue(n)) for n in paramnodes]
     return params
 
 def get_argnames(node, all_):
     params = get_args(node, all_)
-    argnames = ""            
+    argnames = ''
     if params:   
         for p in params:
-            typ, name = p
-            argnames += ', py::arg("{}").none(false)'.format(name)
+            typ, name, defaultValue = p
+            typ.strip()
+            argnames += ', ' + format_parameter_decl(typ, name, defaultValue)
     return argnames
 
 def generate_constructor(node, all_, output, indent, parent_prefix, context):
@@ -242,6 +368,12 @@ def generate_constructor(node, all_, output, indent, parent_prefix, context):
     output.append(indent + parent_prefix + code)
 
 def can_generate_function(restype, arglist):
+#    if "cudaStream_t" in arglist:
+#        return False
+    if 'ProxyBLOB' in restype:
+        return False
+    if 'uint8_t *' in arglist: # This has room for improvement...
+        return False
     if '[' in arglist or 'void *' in arglist or '**' in arglist:
         return False
     if 'IntVector' in arglist or 'FloatVector' in arglist or 'DoubleVector' in arglist:
@@ -256,9 +388,40 @@ class UnsupportedFunctionSignatureError(ValueError):
 
 def get_adapter_type(native_type):
     if 'Vector' in native_type:
-        return re.sub(".+[:]+(.+)", r"\1Adapter", native_type)
+        tmp = native_type.replace("&", "").replace("const", "").strip()
+        return re.sub(".+[:]+(.+)", r"\1Adapter", tmp)
     else:
         return native_type
+
+buffer_types = [ 
+    'void', 
+    'uint8_t', 
+    'uint16_t', 
+    'uint32_t', 
+    'uint64_t', 
+    'int8_t', 
+    'int16_t', 
+    'int32_t', 
+    'int64_t', 
+    'float',
+    'double'  
+]
+
+size_types = [
+  'int',
+  'size_t',
+  'int64_t'
+]
+
+def format_parameter_decl(arg, argname, defaultValue):
+    nullAllowed = False
+    if 'optional' in arg:
+        nullAllowed = True
+        defaultValue = 'nullptr'
+    initializer = ' = {}'.format(defaultValue) if defaultValue else ''
+    argnone = '.none(false)' if not nullAllowed and not defaultValue else ''
+    decl = 'py::arg("{}"){}{}'.format(argname, argnone, initializer)
+    return decl
 
 def try_generate_trampoline_function(node, all_, restype, arglist, params):
     args = arglist[1:-1].split(',')
@@ -266,44 +429,60 @@ def try_generate_trampoline_function(node, all_, restype, arglist, params):
     callargs = []
     call_prefix = ''
     argnames = ''
+    if 'ProxyBLOB' in restype:
+         raise UnsupportedFunctionSignatureError(restype)
     if node.kind == CursorKind.CXX_METHOD:
         instance_arg = "{}* self".format(getnativename(getparent(node, all_), all_))
         newargs.append(instance_arg)
         call_prefix = 'self->'
-    for p in params:
-        arg, argname = p
+    iParam = 0
+    while iParam < len(params):
+        p = params[iParam]
+        arg, argname, defaultValue = p
         arg = arg.strip()
-        argnames += ', py::arg("{}")'.format(argname)
+        nextarg, nextargname, nextdefaultvalue = params[iParam + 1] if iParam + 1 < len(params) else ('','',None)
+        argnames += ', ' + format_parameter_decl(arg, argname, defaultValue)
         if '[' in arg:
             m=re.match(r"(.+)\((.+)\)\[(.+)\]", arg)
             if m:
                 typ = m.groups()[0].replace('const', '').strip()
                 cnt = int(m.groups()[2])
                 ref = m.groups()[1]
-                if ref == '*':
-                    raise UnsupportedFunctionSignatureError()
                 is_mutable = 'const' not in m.groups()[0]
                 const = '' if is_mutable else 'const '
-                newarg = "{}py::array_t<{}>{}".format(
-                    const,
-                    typ,
-                    ref
-                )
-                callarg = "PyArrayAdapter<{}, {}, {}>::getArrayChecked({})".format(
-                    typ, 
-                    cnt,
-                    "true" if is_mutable else "false",
-                    argname)
+                if ref == '*' and is_mutable:
+#                    print("HEPP! {}".format(arg))
+                    raise UnsupportedFunctionSignatureError()
+                else:
+                    newarg = "{}py::array_t<{}>&".format(
+                        const,
+                        typ
+                    )
+                    array_function = 'getArrayPtrChecked' if ref == '*' else 'getArrayChecked'
+                    callarg = "PyArrayAdapter<{}, {}, {}>::{}({})".format(
+                        typ, 
+                        cnt,
+                        "true" if is_mutable else "false",
+                        array_function,
+                        argname)
                 callargs.append(callarg)
                 newargs.append("{} {}".format(newarg, argname))
-                pass
             else:
                 raise UnsupportedFunctionSignatureError(arglist)
             pass
-        elif 'void *' in arg:
-            raise UnsupportedFunctionSignatureError(arglist)
         elif '**' in arg:
             raise UnsupportedFunctionSignatureError(arglist)
+        elif '*' in arg and any(t in arg for t in buffer_types):
+            is_mutable = False if 'const' in arg else True
+            buffer_type = arg.replace('*', '').strip()
+            newarg = "py::buffer"
+            callarg = "PyGetBufferPtr<{}, {}>({})".format(buffer_type, 'true' if is_mutable else 'false', argname)
+            callargs.append(callarg)
+            newargs.append("{} {}".format(newarg, argname))
+            if 'size' in nextargname.lower() and any(t in nextarg for t in size_types):
+              callarg = "PyGetBufferSize<{}, {}>({})".format(nextarg, 'true' if is_mutable else 'false', argname)
+              callargs.append(callarg)
+              iParam += 1
         elif 'Vector' in arg:
             arg = "{}::AdaptedType".format(get_adapter_type(arg))
             callargs.append(argname)
@@ -311,12 +490,17 @@ def try_generate_trampoline_function(node, all_, restype, arglist, params):
         else:
             callargs.append(argname)
             newargs.append("{} {}".format(arg, argname))
+        iParam += 1
     call = "{}{}({})".format(call_prefix, node.spelling, ", ".join(callargs))        
     if 'Vector' in restype:
         restype = get_adapter_type(restype)
         call = "({}::AdaptedType)({})".format(restype, call)
     newarglist = ", ".join(newargs)
-    sig = "[]({}) BEGIN return {}; END".format(newarglist, call).replace('BEGIN', '{').replace('END', '}')
+    sig = "[]({}) BEGIN return {}; END".format(newarglist, call)
+    if make_trampolines_readable:
+      sig = sig.replace('BEGIN', '\n    {\n      ').replace('END', '\n    }')
+    else:
+      sig = sig.replace('BEGIN', '{').replace('END', '}')
     sig += argnames
     return sig
 
@@ -326,6 +510,9 @@ relational_operators = {
 }
 
 def generate_function(node, all_, output, indent, parent_prefix, context):
+#    if 'RequestSerializedVolumeDataChunk' in node.displayname:
+#        a = 1000
+    autogen_failed = False
     if node.get_num_template_arguments() >= 0:
         # Don't generate wrappers for template specializations
         return
@@ -340,14 +527,14 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
         return
     restype   = fixname(node.result_type.spelling)
     arglist = fixarglist(fixname(node.displayname[node.displayname.find('('):]), node, all)
-    method_prefix = ''
     method_suffix = ''
+    method_prefix = ''
     if node.kind == CursorKind.CXX_METHOD:
         if not node.is_static_method():
             method_prefix = getnativename(node.semantic_parent, all_) + '::'
         if node.is_const_method():
             method_suffix = " const"
-    code = """.def({0:30}, static_cast<{1}({2}*){3}{4}>(&{5}){7}, {6});""".format(
+    code = """.def({0:30}, static_cast<{1}({2}*){3}{4}>(&{5}){7}, py::call_guard<py::gil_scoped_release>(), {6});""".format(
        q(fnname),
        restype,
        method_prefix,
@@ -360,63 +547,42 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
     line = ''
     if not can_generate_function(restype, arglist):
         try:
-            code = """.def({0:30}, {1}, {2});""".format(
+            code = """.def({0:30}, {1}, py::call_guard<py::gil_scoped_release>(), {2});""".format(
                q(fnname),
                try_generate_trampoline_function(node, all_, restype, arglist, params),
                format_docstring_decl(overload_name)
             )
         except UnsupportedFunctionSignatureError:
-            fnname = '' # Prevent generation of property getter
+            autogen_failed = True
             line = '// AUTOGENERATE FAIL : '
             _AUTOGEN_FAIL_LIST.append(node)
     if node.is_static_method():
         code = code.replace('.def(', '.def_static(')
     line = line + indent + parent_prefix + code
     output.append(line)
-    # Generate read-only property for get...() and is...() methods with no arguments
-    pname = getpyname(fnname[3:]) if fnname.startswith("get") else getpyname(fnname[2:]) if fnname.startswith("is") else ""
-    if pname and not argnames and not pname.isdigit() and not pname == "LODLevels" and not pname == "globalState":
+    if len(argnames) == 0 and (fnname.startswith("get") or fnname.startswith("is")) and not fnname.isdigit() and not fnname == "getGlobalState":
+        if fnname.startswith("get"):
+            pname = fnname[3:]
+        else:
+            pname = fnname[2:]
+        pname = getpyname(pname)
+#        print("Getter: {}".format(pname))
         getter_code = """.def_property_readonly("{}", &{}, {});""".format(
             pname,
             getnativename(node, all_),
             format_docstring_decl(overload_name)
         )
         getter_line = indent + parent_prefix + getter_code
-        output.append(getter_line)
+        if not autogen_failed:
+            output.append(getter_line)
     
 def generate_class(node, all_, output, indent, parent_prefix, context):
     if node.is_definition():
         if '<' in node.displayname:
             _AUTOGEN_FAIL_LIST.append(node)
             return
+        code = format_class_decl(node, node, all_, indent, parent_prefix)
         varname = getvarname(node, all_)
-        bases = getbases(node, all_)
-        basesdecl = ''
-        for b in bases:
-            basesdecl += ', {}'.format(getnativename(b.get_definition(), all_))
-        deletor = ''
-        dtor = getdestructor(node, all_)
-        if dtor and not dtor.access_specifier == cindex.AccessSpecifier.PUBLIC:
-            deletor = ", std::unique_ptr<{}, py::nodelete>".format(getnativename(node, all_))
-        else:
-            deletor = ", std::unique_ptr<{}>".format(getnativename(node, all_))
-        code = [ 
-            '',
-            indent + """// {}""".format(
-                getfullname(node, all_)
-            ),
-            indent + """py::class_<{}{}{}> \n{}  {}({},"{}", {});""".format(
-                getnativename(node, all_),
-                basesdecl,
-                deletor,
-                indent,
-                varname,
-                parent_prefix,
-                getfullname(node, all_),
-                format_docstring_decl(getfullname(node, all_))
-            ),
-            ''
-        ]
         for kind in CLASS_NODES:
             children = getchildren(node, all_, kind)
             for child in children:
@@ -439,7 +605,7 @@ def generate_enumvalue(node, all_, output, indent, parent_prefix, context):
     output.extend(code)
     
 def generate_enum(node, all_, output, indent, parent_prefix, context):
-    if node.get_definition():
+    if node.get_definition() and node.spelling:
         varname = getvarname(node, all_)
         bases = getbases(node, all_)
         basesdecl = ''
@@ -479,6 +645,8 @@ NODE_HANDLERS = {
     CursorKind.FIELD_DECL:          generate_field,
     CursorKind.CONSTRUCTOR:         generate_constructor,
     CursorKind.CXX_METHOD:          generate_function,
+    CursorKind.TYPE_ALIAS_DECL:     generate_typealias,
+    CursorKind.CLASS_TEMPLATE:      generate_classtemplate,
 }
 
 ENUM_NODES = [
@@ -505,8 +673,11 @@ class Parser(object):
     def run(self):
         print('Processing "%s" ..' % self.filename, file=sys.stderr)
         context = {
-          "filename":   self.filename,
-          "parameters": self.parameters
+          "filename":                       self.filename,
+          "parameters":                     self.parameters,
+          "classes":                        {},
+          "class_templates":                {},
+          "class_template_instantiations":  {},
         }
         index = cindex.Index(cindex.conf.lib.clang_createIndex(False, True))
         tu = index.parse(self.filename, self.parameters)
@@ -601,8 +772,8 @@ def generate_all(args):
             parser.run()
             output = cleanup_output(output)
             outfile = path.split(filename)[1]
-            with open("generated/" + outfile, "wb") as wr:
-                wr.writelines([(line+'\n').encode() for line in output])
+            with open("generated/" + outfile, "w") as wr:
+                wr.writelines([(line+'\n') for line in output])
     else:
         raise NoFilenamesError
 
