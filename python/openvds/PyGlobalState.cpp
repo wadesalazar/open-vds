@@ -27,10 +27,10 @@ PyGlobalState::initModule(py::module& m)
   py::class_<GlobalState, std::unique_ptr<GlobalState, py::nodelete>> 
     GlobalState_(m,"GlobalState", OPENVDS_DOCSTRING(GlobalState));
 
-  GlobalState_.def("getBytesDownloaded"          , static_cast<uint64_t(GlobalState::*)(OpenOptions::ConnectionType)>(&GlobalState::GetBytesDownloaded), py::arg("connectionType").none(false), OPENVDS_DOCSTRING(GlobalState_GetBytesDownloaded));
-  GlobalState_.def("getChunksDownloaded"         , static_cast<uint64_t(GlobalState::*)(OpenOptions::ConnectionType)>(&GlobalState::GetChunksDownloaded), py::arg("connectionType").none(false), OPENVDS_DOCSTRING(GlobalState_GetChunksDownloaded));
-  GlobalState_.def("getBytesDecompressed"        , static_cast<uint64_t(GlobalState::*)(OpenOptions::ConnectionType)>(&GlobalState::GetBytesDecompressed), py::arg("connectionType").none(false), OPENVDS_DOCSTRING(GlobalState_GetBytesDecompressed));
-  GlobalState_.def("getChunksDecompressed"       , static_cast<uint64_t(GlobalState::*)(OpenOptions::ConnectionType)>(&GlobalState::GetChunksDecompressed), py::arg("connectionType").none(false), OPENVDS_DOCSTRING(GlobalState_GetChunksDecompressed));
+  GlobalState_.def("getBytesDownloaded"          , static_cast<uint64_t(GlobalState::*)(OpenOptions::ConnectionType)>(&GlobalState::GetBytesDownloaded), py::arg("connectionType").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GlobalState_GetBytesDownloaded));
+  GlobalState_.def("getChunksDownloaded"         , static_cast<uint64_t(GlobalState::*)(OpenOptions::ConnectionType)>(&GlobalState::GetChunksDownloaded), py::arg("connectionType").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GlobalState_GetChunksDownloaded));
+  GlobalState_.def("getBytesDecompressed"        , static_cast<uint64_t(GlobalState::*)(OpenOptions::ConnectionType)>(&GlobalState::GetBytesDecompressed), py::arg("connectionType").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GlobalState_GetBytesDecompressed));
+  GlobalState_.def("getChunksDecompressed"       , static_cast<uint64_t(GlobalState::*)(OpenOptions::ConnectionType)>(&GlobalState::GetChunksDecompressed), py::arg("connectionType").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GlobalState_GetChunksDecompressed));
 
 //AUTOGEN-END
 }

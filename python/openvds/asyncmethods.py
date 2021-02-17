@@ -15,17 +15,12 @@
 # limitations under the License.
 ###########################################################################/
 
-import openvds.core
-from openvds.core import *
-from .volumedataaccess import VolumeDataAccessManager
-
-def getAccessManager(handle: int):
-    """Get the VolumeDataAccessManager for a VDS
-    
-    Parameter `handle`:
-        The handle of the VDS
-    
-    Returns:
-        The VolumeDataAccessManager of the VDS
-    """
-    return VolumeDataAccessManager(handle)
+async def awaitCompletion(self, timeout=0.0):
+    try:
+        import asyncio
+        if timeout:
+            await asyncio.wait_for(self, timeout)
+        else:
+            await self
+    except (asyncio.TimeoutError, asyncio.CancelledError):
+        self.cancel()

@@ -31,7 +31,7 @@ PyGlobal::initModule(py::module& m)
 
 //AUTOGEN-BEGIN
   // OpenOptions
-  py::class_<OpenOptions, std::unique_ptr<OpenOptions>> 
+  py::class_<OpenOptions> 
     OpenOptions_(m,"OpenOptions", OPENVDS_DOCSTRING(OpenOptions));
 
   OpenOptions_.def_readwrite("connectionType"              , &OpenOptions::connectionType   , OPENVDS_DOCSTRING(OpenOptions_connectionType));
@@ -51,11 +51,11 @@ PyGlobal::initModule(py::module& m)
   OpenOptions_ConnectionType_.value("ConnectionTypeCount"         , OpenOptions::ConnectionType::ConnectionTypeCount, OPENVDS_DOCSTRING(OpenOptions_ConnectionType_ConnectionTypeCount));
 
   // AWSOpenOptions
-  py::class_<AWSOpenOptions, OpenOptions, std::unique_ptr<AWSOpenOptions>> 
+  py::class_<AWSOpenOptions, OpenOptions> 
     AWSOpenOptions_(m,"AWSOpenOptions", OPENVDS_DOCSTRING(AWSOpenOptions));
 
   AWSOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions));
-  AWSOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &, const std::string &, int, int>(), py::arg("bucket").none(false), py::arg("key").none(false), py::arg("region").none(false), py::arg("endpointOverride").none(false), py::arg("connectionTimeoutMs").none(false), py::arg("requestTimeoutMs").none(false), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions_2));
+  AWSOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &, const std::string &, int, int>(), py::arg("bucket").none(false), py::arg("key").none(false), py::arg("region").none(false), py::arg("endpointOverride").none(false), py::arg("connectionTimeoutMs") = 3000, py::arg("requestTimeoutMs") = 6000, OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions_2));
   AWSOpenOptions_.def_readwrite("bucket"                      , &AWSOpenOptions::bucket        , OPENVDS_DOCSTRING(AWSOpenOptions_bucket));
   AWSOpenOptions_.def_readwrite("key"                         , &AWSOpenOptions::key           , OPENVDS_DOCSTRING(AWSOpenOptions_key));
   AWSOpenOptions_.def_readwrite("region"                      , &AWSOpenOptions::region        , OPENVDS_DOCSTRING(AWSOpenOptions_region));
@@ -70,13 +70,13 @@ PyGlobal::initModule(py::module& m)
   AWSOpenOptions_.def_readwrite("requestTimeoutMs"            , &AWSOpenOptions::requestTimeoutMs, OPENVDS_DOCSTRING(AWSOpenOptions_requestTimeoutMs));
 
   // AzureOpenOptions
-  py::class_<AzureOpenOptions, OpenOptions, std::unique_ptr<AzureOpenOptions>> 
+  py::class_<AzureOpenOptions, OpenOptions> 
     AzureOpenOptions_(m,"AzureOpenOptions", OPENVDS_DOCSTRING(AzureOpenOptions));
 
   AzureOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptions));
   AzureOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &>(), py::arg("connectionString").none(false), py::arg("container").none(false), py::arg("blob").none(false), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptions_2));
   AzureOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &, int &, int &>(), py::arg("connectionString").none(false), py::arg("container").none(false), py::arg("blob").none(false), py::arg("parallelism_factor").none(false), py::arg("max_execution_time").none(false), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptions_3));
-  AzureOpenOptions_.def_static("azureOpenOptionsBearer"      , static_cast<native::AzureOpenOptions(*)(const std::string &, const std::string &, const std::string &, const std::string &)>(&AzureOpenOptions::AzureOpenOptionsBearer), py::arg("accountName").none(false), py::arg("bearerToken").none(false), py::arg("container").none(false), py::arg("blob").none(false), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptionsBearer));
+  AzureOpenOptions_.def_static("azureOpenOptionsBearer"      , static_cast<native::AzureOpenOptions(*)(const std::string &, const std::string &, const std::string &, const std::string &)>(&AzureOpenOptions::AzureOpenOptionsBearer), py::arg("accountName").none(false), py::arg("bearerToken").none(false), py::arg("container").none(false), py::arg("blob").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(AzureOpenOptions_AzureOpenOptionsBearer));
   AzureOpenOptions_.def_readwrite("connectionString"            , &AzureOpenOptions::connectionString, OPENVDS_DOCSTRING(AzureOpenOptions_connectionString));
   AzureOpenOptions_.def_readwrite("accountName"                 , &AzureOpenOptions::accountName , OPENVDS_DOCSTRING(AzureOpenOptions_accountName));
   AzureOpenOptions_.def_readwrite("bearerToken"                 , &AzureOpenOptions::bearerToken , OPENVDS_DOCSTRING(AzureOpenOptions_bearerToken));
@@ -86,7 +86,7 @@ PyGlobal::initModule(py::module& m)
   AzureOpenOptions_.def_readwrite("max_execution_time"          , &AzureOpenOptions::max_execution_time, OPENVDS_DOCSTRING(AzureOpenOptions_max_execution_time));
 
   // AzurePresignedOpenOptions
-  py::class_<AzurePresignedOpenOptions, OpenOptions, std::unique_ptr<AzurePresignedOpenOptions>> 
+  py::class_<AzurePresignedOpenOptions, OpenOptions> 
     AzurePresignedOpenOptions_(m,"AzurePresignedOpenOptions", OPENVDS_DOCSTRING(AzurePresignedOpenOptions));
 
   AzurePresignedOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(AzurePresignedOpenOptions_AzurePresignedOpenOptions));
@@ -95,35 +95,35 @@ PyGlobal::initModule(py::module& m)
   AzurePresignedOpenOptions_.def_readwrite("urlSuffix"                   , &AzurePresignedOpenOptions::urlSuffix, OPENVDS_DOCSTRING(AzurePresignedOpenOptions_urlSuffix));
 
   // GoogleCredentialsToken
-  py::class_<GoogleCredentialsToken, std::unique_ptr<GoogleCredentialsToken>> 
+  py::class_<GoogleCredentialsToken> 
     GoogleCredentialsToken_(m,"GoogleCredentialsToken", OPENVDS_DOCSTRING(GoogleCredentialsToken));
 
   GoogleCredentialsToken_.def(py::init<const std::string &           >(), py::arg("token").none(false), OPENVDS_DOCSTRING(GoogleCredentialsToken_GoogleCredentialsToken));
   GoogleCredentialsToken_.def(py::init<std::string &&                >(), py::arg("token").none(false), OPENVDS_DOCSTRING(GoogleCredentialsToken_GoogleCredentialsToken_2));
 
   // GoogleCredentialsPath
-  py::class_<GoogleCredentialsPath, std::unique_ptr<GoogleCredentialsPath>> 
+  py::class_<GoogleCredentialsPath> 
     GoogleCredentialsPath_(m,"GoogleCredentialsPath", OPENVDS_DOCSTRING(GoogleCredentialsPath));
 
   GoogleCredentialsPath_.def(py::init<const std::string &           >(), py::arg("path").none(false), OPENVDS_DOCSTRING(GoogleCredentialsPath_GoogleCredentialsPath));
   GoogleCredentialsPath_.def(py::init<std::string &&                >(), py::arg("path").none(false), OPENVDS_DOCSTRING(GoogleCredentialsPath_GoogleCredentialsPath_2));
 
   // GoogleCredentialsJson
-  py::class_<GoogleCredentialsJson, std::unique_ptr<GoogleCredentialsJson>> 
+  py::class_<GoogleCredentialsJson> 
     GoogleCredentialsJson_(m,"GoogleCredentialsJson", OPENVDS_DOCSTRING(GoogleCredentialsJson));
 
   GoogleCredentialsJson_.def(py::init<const std::string &           >(), py::arg("json").none(false), OPENVDS_DOCSTRING(GoogleCredentialsJson_GoogleCredentialsJson));
   GoogleCredentialsJson_.def(py::init<std::string &&                >(), py::arg("json").none(false), OPENVDS_DOCSTRING(GoogleCredentialsJson_GoogleCredentialsJson_2));
 
   // GoogleCredentialsSignedUrl
-  py::class_<GoogleCredentialsSignedUrl, std::unique_ptr<GoogleCredentialsSignedUrl>> 
+  py::class_<GoogleCredentialsSignedUrl> 
     GoogleCredentialsSignedUrl_(m,"GoogleCredentialsSignedUrl", OPENVDS_DOCSTRING(GoogleCredentialsSignedUrl));
 
   GoogleCredentialsSignedUrl_.def(py::init<const std::string &           >(), py::arg("region").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrl_GoogleCredentialsSignedUrl));
   GoogleCredentialsSignedUrl_.def(py::init<std::string &&                >(), py::arg("region").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrl_GoogleCredentialsSignedUrl_2));
 
   // GoogleCredentialsSignedUrlPath
-  py::class_<GoogleCredentialsSignedUrlPath, std::unique_ptr<GoogleCredentialsSignedUrlPath>> 
+  py::class_<GoogleCredentialsSignedUrlPath> 
     GoogleCredentialsSignedUrlPath_(m,"GoogleCredentialsSignedUrlPath", OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlPath));
 
   GoogleCredentialsSignedUrlPath_.def(py::init<const std::string &, const std::string &>(), py::arg("region").none(false), py::arg("path").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlPath_GoogleCredentialsSignedUrlPath));
@@ -132,7 +132,7 @@ PyGlobal::initModule(py::module& m)
   GoogleCredentialsSignedUrlPath_.def(py::init<std::string &&, std::string &&>(), py::arg("region").none(false), py::arg("path").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlPath_GoogleCredentialsSignedUrlPath_4));
 
   // GoogleCredentialsSignedUrlJson
-  py::class_<GoogleCredentialsSignedUrlJson, std::unique_ptr<GoogleCredentialsSignedUrlJson>> 
+  py::class_<GoogleCredentialsSignedUrlJson> 
     GoogleCredentialsSignedUrlJson_(m,"GoogleCredentialsSignedUrlJson", OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlJson));
 
   GoogleCredentialsSignedUrlJson_.def(py::init<const std::string &, const std::string &>(), py::arg("region").none(false), py::arg("json").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlJson_GoogleCredentialsSignedUrlJson));
@@ -141,7 +141,7 @@ PyGlobal::initModule(py::module& m)
   GoogleCredentialsSignedUrlJson_.def(py::init<std::string &&, std::string &&>(), py::arg("region").none(false), py::arg("json").none(false), OPENVDS_DOCSTRING(GoogleCredentialsSignedUrlJson_GoogleCredentialsSignedUrlJson_4));
 
   // GoogleOpenOptions
-  py::class_<GoogleOpenOptions, OpenOptions, std::unique_ptr<GoogleOpenOptions>> 
+  py::class_<GoogleOpenOptions, OpenOptions> 
     GoogleOpenOptions_(m,"GoogleOpenOptions", OPENVDS_DOCSTRING(GoogleOpenOptions));
 
   GoogleOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions));
@@ -152,7 +152,7 @@ PyGlobal::initModule(py::module& m)
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsSignedUrl &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_6));
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsSignedUrlPath &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_7));
   GoogleOpenOptions_.def(py::init<const std::string &, const std::string &, const native::GoogleCredentialsSignedUrlJson &>(), py::arg("bucket").none(false), py::arg("pathPrefix").none(false), py::arg("credentials").none(false), OPENVDS_DOCSTRING(GoogleOpenOptions_GoogleOpenOptions_8));
-  GoogleOpenOptions_.def("setSignedUrl"                , static_cast<bool(GoogleOpenOptions::*)()>(&GoogleOpenOptions::SetSignedUrl), OPENVDS_DOCSTRING(GoogleOpenOptions_SetSignedUrl));
+  GoogleOpenOptions_.def("setSignedUrl"                , static_cast<bool(GoogleOpenOptions::*)()>(&GoogleOpenOptions::SetSignedUrl), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GoogleOpenOptions_SetSignedUrl));
   GoogleOpenOptions_.def_readwrite("credentialsType"             , &GoogleOpenOptions::credentialsType, OPENVDS_DOCSTRING(GoogleOpenOptions_credentialsType));
   GoogleOpenOptions_.def_readwrite("bucket"                      , &GoogleOpenOptions::bucket     , OPENVDS_DOCSTRING(GoogleOpenOptions_bucket));
   GoogleOpenOptions_.def_readwrite("pathPrefix"                  , &GoogleOpenOptions::pathPrefix , OPENVDS_DOCSTRING(GoogleOpenOptions_pathPrefix));
@@ -184,7 +184,7 @@ PyGlobal::initModule(py::module& m)
   DMSOpenOptions_.def_readwrite("logLevel"                    , &DMSOpenOptions::logLevel      , OPENVDS_DOCSTRING(DMSOpenOptions_logLevel));
 
   // HttpOpenOptions
-  py::class_<HttpOpenOptions, OpenOptions, std::unique_ptr<HttpOpenOptions>> 
+  py::class_<HttpOpenOptions, OpenOptions> 
     HttpOpenOptions_(m,"HttpOpenOptions", OPENVDS_DOCSTRING(HttpOpenOptions));
 
   HttpOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(HttpOpenOptions_HttpOpenOptions));
@@ -192,7 +192,7 @@ PyGlobal::initModule(py::module& m)
   HttpOpenOptions_.def_readwrite("url"                         , &HttpOpenOptions::url          , OPENVDS_DOCSTRING(HttpOpenOptions_url));
 
   // InMemoryOpenOptions
-  py::class_<InMemoryOpenOptions, OpenOptions, std::unique_ptr<InMemoryOpenOptions>> 
+  py::class_<InMemoryOpenOptions, OpenOptions> 
     InMemoryOpenOptions_(m,"InMemoryOpenOptions", OPENVDS_DOCSTRING(InMemoryOpenOptions));
 
   InMemoryOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(InMemoryOpenOptions_InMemoryOpenOptions));
@@ -201,7 +201,7 @@ PyGlobal::initModule(py::module& m)
   InMemoryOpenOptions_.def_readwrite("name"                        , &InMemoryOpenOptions::name     , OPENVDS_DOCSTRING(InMemoryOpenOptions_name));
 
   // VDSFileOpenOptions
-  py::class_<VDSFileOpenOptions, OpenOptions, std::unique_ptr<VDSFileOpenOptions>> 
+  py::class_<VDSFileOpenOptions, OpenOptions> 
     VDSFileOpenOptions_(m,"VDSFileOpenOptions", OPENVDS_DOCSTRING(VDSFileOpenOptions));
 
   VDSFileOpenOptions_.def(py::init<                              >(), OPENVDS_DOCSTRING(VDSFileOpenOptions_VDSFileOpenOptions));
@@ -209,34 +209,34 @@ PyGlobal::initModule(py::module& m)
   VDSFileOpenOptions_.def_readwrite("fileName"                    , &VDSFileOpenOptions::fileName  , OPENVDS_DOCSTRING(VDSFileOpenOptions_fileName));
 
   // Error
-  py::class_<Error, std::unique_ptr<Error>> 
+  py::class_<Error> 
     Error_(m,"Error", OPENVDS_DOCSTRING(Error));
 
   Error_.def_readwrite("code"                        , &Error::code                   , OPENVDS_DOCSTRING(Error_code));
   Error_.def_readwrite("string"                      , &Error::string                 , OPENVDS_DOCSTRING(Error_string));
 
   // StringWrapper
-  py::class_<StringWrapper, std::unique_ptr<StringWrapper>> 
+  py::class_<StringWrapper> 
     StringWrapper_(m,"StringWrapper", OPENVDS_DOCSTRING(StringWrapper));
 
   StringWrapper_.def(py::init<const std::string &           >(), py::arg("toWrap").none(false), OPENVDS_DOCSTRING(StringWrapper_StringWrapper));
   StringWrapper_.def_readwrite("data"                        , &StringWrapper::data           , OPENVDS_DOCSTRING(StringWrapper_data));
   StringWrapper_.def_readwrite("size"                        , &StringWrapper::size           , OPENVDS_DOCSTRING(StringWrapper_size));
 
-  m.def("createOpenOptions"           , static_cast<native::OpenOptions *(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&CreateOpenOptions), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(CreateOpenOptions));
-  m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&Open), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Open));
-  m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::Error &)>(&Open), py::arg("url").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Open_2));
-  m.def("open"                        , static_cast<native::VDSHandle(*)(const native::OpenOptions &, native::Error &)>(&Open), py::arg("options").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Open_3));
-  m.def("open"                        , static_cast<native::VDSHandle(*)(native::IOManager *, native::Error &)>(&Open), py::arg("ioManager").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Open_4));
-  m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Create));
-  m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("url").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Create_2));
-  m.def("create"                      , static_cast<native::VDSHandle(*)(const native::OpenOptions &, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Create_3));
-  m.def("create"                      , static_cast<native::VDSHandle(*)(native::IOManager *, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("ioManager").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Create_4));
-  m.def("getLayout"                   , static_cast<native::VolumeDataLayout *(*)(native::VDSHandle)>(&GetLayout), py::arg("handle").none(false), OPENVDS_DOCSTRING(GetLayout));
-  m.def("getAccessManagerInterface"   , static_cast<native::IVolumeDataAccessManager *(*)(native::VDSHandle)>(&GetAccessManagerInterface), py::arg("handle").none(false), OPENVDS_DOCSTRING(GetAccessManagerInterface));
-  m.def("getAccessManager"            , static_cast<native::VolumeDataAccessManager(*)(native::VDSHandle)>(&GetAccessManager), py::arg("handle").none(false), OPENVDS_DOCSTRING(GetAccessManager));
-  m.def("close"                       , static_cast<void(*)(native::VDSHandle)>(&Close), py::arg("handle").none(false), OPENVDS_DOCSTRING(Close));
-  m.def("getGlobalState"              , static_cast<native::GlobalState *(*)()>(&GetGlobalState), OPENVDS_DOCSTRING(GetGlobalState));
+  m.def("createOpenOptions"           , static_cast<native::OpenOptions *(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&CreateOpenOptions), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(CreateOpenOptions));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&Open), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::Error &)>(&Open), py::arg("url").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open_2));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(const native::OpenOptions &, native::Error &)>(&Open), py::arg("options").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open_3));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(native::IOManager *, native::Error &)>(&Open), py::arg("ioManager").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open_4));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("url").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_2));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(const native::OpenOptions &, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_3));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::IOManager *, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("ioManager").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_4));
+  m.def("getLayout"                   , static_cast<native::VolumeDataLayout *(*)(native::VDSHandle)>(&GetLayout), py::arg("handle").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GetLayout));
+  m.def("getAccessManagerInterface"   , static_cast<native::IVolumeDataAccessManager *(*)(native::VDSHandle)>(&GetAccessManagerInterface), py::arg("handle").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GetAccessManagerInterface));
+  m.def("getAccessManager"            , static_cast<native::VolumeDataAccessManager(*)(native::VDSHandle)>(&GetAccessManager), py::arg("handle").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GetAccessManager));
+  m.def("close"                       , static_cast<void(*)(native::VDSHandle)>(&Close), py::arg("handle").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Close));
+  m.def("getGlobalState"              , static_cast<native::GlobalState *(*)()>(&GetGlobalState), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GetGlobalState));
 //AUTOGEN-END
   Error_.def(py::init<>());
   Error_.def("__repr__", [](native::Error const& self){ std::string tmp = std::to_string(self.code); return std::string("Error(code=") + tmp + ", string='" + self.string + "')"; });

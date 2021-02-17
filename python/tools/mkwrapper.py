@@ -263,7 +263,7 @@ def format_class_decl(node, classnode, all_, indent, parent_prefix):
     dtor = getdestructor(node, all_)
     if dtor and not dtor.access_specifier == cindex.AccessSpecifier.PUBLIC:
         deletor = ", std::unique_ptr<{}, py::nodelete>".format(getnativename(node, all_))
-    else:
+    elif getnativename(node, all_).startswith('VolumeDataRequest'):
         deletor = ", std::shared_ptr<{}>".format(getnativename(node, all_))
     code = [ 
         '',
@@ -560,7 +560,7 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
         code = code.replace('.def(', '.def_static(')
     line = line + indent + parent_prefix + code
     output.append(line)
-    if len(argnames) == 0 and (fnname.startswith("get") or fnname.startswith("is")) and not fnname.isdigit() and not fnname == "getGlobalState":
+    if len(argnames) == 0 and (fnname.startswith("get") or fnname.startswith("is")) and not fnname.isdigit() and not fnname == "getGlobalState" and not fnname == "getLODLevels":
         if fnname.startswith("get"):
             pname = fnname[3:]
         else:

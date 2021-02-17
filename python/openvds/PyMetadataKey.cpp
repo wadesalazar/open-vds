@@ -42,27 +42,27 @@ PyMetadataKey::initModule(py::module& m)
   MetadataType_.value("BLOB"                        , MetadataType::BLOB                      , OPENVDS_DOCSTRING(MetadataType_BLOB));
 
   // MetadataKey
-  py::class_<MetadataKey, std::unique_ptr<MetadataKey>> 
+  py::class_<MetadataKey> 
     MetadataKey_(m,"MetadataKey", OPENVDS_DOCSTRING(MetadataKey));
 
   MetadataKey_.def(py::init<                              >(), OPENVDS_DOCSTRING(MetadataKey_MetadataKey));
   MetadataKey_.def(py::init<native::MetadataType, const char *, const char *>(), py::arg("type").none(false), py::arg("category").none(false), py::arg("name").none(false), OPENVDS_DOCSTRING(MetadataKey_MetadataKey_2));
-  MetadataKey_.def("getType"                     , static_cast<native::MetadataType(MetadataKey::*)() const>(&MetadataKey::GetType), OPENVDS_DOCSTRING(MetadataKey_GetType));
+  MetadataKey_.def("getType"                     , static_cast<native::MetadataType(MetadataKey::*)() const>(&MetadataKey::GetType), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataKey_GetType));
   MetadataKey_.def_property_readonly("type", &MetadataKey::GetType, OPENVDS_DOCSTRING(MetadataKey_GetType));
-  MetadataKey_.def("getCategory"                 , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::GetCategory), OPENVDS_DOCSTRING(MetadataKey_GetCategory));
+  MetadataKey_.def("getCategory"                 , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::GetCategory), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataKey_GetCategory));
   MetadataKey_.def_property_readonly("category", &MetadataKey::GetCategory, OPENVDS_DOCSTRING(MetadataKey_GetCategory));
-  MetadataKey_.def("getName"                     , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::GetName), OPENVDS_DOCSTRING(MetadataKey_GetName));
+  MetadataKey_.def("getName"                     , static_cast<const char *(MetadataKey::*)() const>(&MetadataKey::GetName), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataKey_GetName));
   MetadataKey_.def_property_readonly("name", &MetadataKey::GetName, OPENVDS_DOCSTRING(MetadataKey_GetName));
   MetadataKey_.def(py::self == py::self);
   MetadataKey_.def(py::self != py::self);
 
   // MetadataKeyRange
-  py::class_<MetadataKeyRange, std::unique_ptr<MetadataKeyRange>> 
+  py::class_<MetadataKeyRange> 
     MetadataKeyRange_(m,"MetadataKeyRange", OPENVDS_DOCSTRING(MetadataKeyRange));
 
   MetadataKeyRange_.def(py::init<native::MetadataKeyRange::const_iterator, native::MetadataKeyRange::const_iterator>(), py::arg("begin").none(false), py::arg("end").none(false), OPENVDS_DOCSTRING(MetadataKeyRange_MetadataKeyRange));
-  MetadataKeyRange_.def("begin"                       , static_cast<native::MetadataKeyRange::const_iterator(MetadataKeyRange::*)() const>(&MetadataKeyRange::begin), OPENVDS_DOCSTRING(MetadataKeyRange_begin));
-  MetadataKeyRange_.def("end"                         , static_cast<native::MetadataKeyRange::const_iterator(MetadataKeyRange::*)() const>(&MetadataKeyRange::end), OPENVDS_DOCSTRING(MetadataKeyRange_end));
+  MetadataKeyRange_.def("begin"                       , static_cast<native::MetadataKeyRange::const_iterator(MetadataKeyRange::*)() const>(&MetadataKeyRange::begin), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataKeyRange_begin));
+  MetadataKeyRange_.def("end"                         , static_cast<native::MetadataKeyRange::const_iterator(MetadataKeyRange::*)() const>(&MetadataKeyRange::end), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataKeyRange_end));
 
 //AUTOGEN-END
   MetadataKeyRange_.def("__len__", [](MetadataKeyRange* self) 

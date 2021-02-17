@@ -50,6 +50,7 @@ SET(pythonsources
     ${CMAKE_CURRENT_SOURCE_DIR}/api.py
     ${CMAKE_CURRENT_SOURCE_DIR}/volumedataaccess.py
     ${CMAKE_CURRENT_SOURCE_DIR}/volumedataaccessors.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/asyncmethods.py
 )
 
 add_custom_target(core_py_files ALL
