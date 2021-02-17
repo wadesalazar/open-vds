@@ -41,22 +41,28 @@ DataBlockNumpyTypes = {
 }
 NumpyDataBlockTypes = i = { DataBlockNumpyTypes[k]: k for k in DataBlockNumpyTypes }
 
-def _ndarray(vec: Tuple[int]):
-  """Convert a tuple of integers to a 6D integer vector as a numpy array"""
+def _ndarraymin(vec: Tuple[int]):
+  """Convert a tuple of integers to a 6D integer vector as a numpy array, padding with zeroes"""
+  arr = np.zeros((6), dtype=np.int32)
+  arr[:len(vec)] = vec[:]
+  return arr
+
+def _ndarraymax(vec: Tuple[int]):
+  """Convert a tuple of integers to a 6D integer vector as a numpy array, padding with ones"""
   arr = np.ones((6), dtype=np.int32)
   arr[:len(vec)] = vec[:]
   return arr
 
-def _ndarrayarray(tuples: List[Tuple[float]]):
-  """Convert a list of float tuples to a numpy array of 6D vectors"""
+def _ndarraypositions(tuples: List[Tuple[float]]):
+  """Convert a list of float tuples to a numpy array of 6D vectors, padding with zeros"""
   l = len(tuples)
-  arr = np.ones((l, 6), dtype=np.float32)
+  arr = np.zeros((l, 6), dtype=np.float32)
   for i in range(l):
       arr[i][:len(tuples[i])] = tuples[i]
   return arr
 
 class VolumeDataRequest(object):
-  def __init__(self, min: Tuple[int] = None, max: Tuple[int] = None, data_out=None, dimensionsND=DimensionsND.Dimensions_012, interpolationMethod=InterpolationMethod.Cubic, voxelPlane=None):
+  def __init__(self, min: Tuple[int] = None, max: Tuple[int] = None, data_out=None, dimensionsND=DimensionsND.Dimensions_012, lod=0, channel=0, format=VoxelFormat.Format_R32, replacementNoValue=None, projectedDimensions=DimensionsND.Dimensions_012, interpolationMethod=InterpolationMethod.Cubic, voxelPlane=None):
     array_interface = None
     if hasattr(data_out, "__array_interface__"):
       array_interface = data_out.__array_interface__
@@ -71,8 +77,8 @@ class VolumeDataRequest(object):
     self.channel              = channel
     self.data_out             = data_out
     self.replacementNoValue   = replacementNoValue
-    self.min                  = _ndarray(min)
-    self.max                  = _ndarray(max)
+    self.min                  = _ndarraymin(min)
+    self.max                  = _ndarraymax(max)
     self.dimensionsND         = dimensionsND
     self.format               = format
     self.interpolationMethod  = interpolationMethod
@@ -143,16 +149,16 @@ class VolumeDataAccessManager(object):
     return self._manager
 
   def getVolumeSubsetBufferSize(self, min: Tuple[int], max: Tuple[int], format=VoxelFormat.Format_R32, lod=0, channel=0):
-    return self._manager.GetVolumeSubsetBufferSize(min, max, format, lod, channel)
+    return self._manager.getVolumeSubsetBufferSize(_ndarraymin(min), _ndarraymax(max), format, lod, channel)
 
   def getProjectedVolumeSubsetBufferSize(self, min: Tuple[int], max: Tuple[int], projectedDimensions, format, lod=0, channel=0):
-    return self._manager.GetProjectedVolumeSubsetBufferSize(min, max, projectedDimensions, format, lod, channel)
+    return self._manager.getProjectedVolumeSubsetBufferSize(_ndarraymin(min), _ndarraymax(max), projectedDimensions, format, lod, channel)
 
   def getVolumeSamplesBufferSize(self, sampleCount, channel=0):
-    return self._manager.GetVolumeSamplesBufferSize(sampleCount, channel)
+    return self._manager.getVolumeSamplesBufferSize(sampleCount, channel)
 
   def getVolumeTracesBufferSize(self, traceCount, traceDimension, lod=0, channel=0):
-    return self._manager.GetVolumeTracesBufferSize(traceCount, traceDimension, lod, channel)
+    return self._manager.getVolumeTracesBufferSize(traceCount, traceDimension, lod, channel)
 
   def _allocateArray(self, format, data_size):
     arr = np.zeros(data_size, dtype=np.uint8)
@@ -213,7 +219,7 @@ class VolumeDataAccessManager(object):
       channel            = channel,
       format             = format,
       replacementNoValue = replacementNoValue)
-    req._request = self._manager.RequestVolumeSubset(
+    req._request = self._manager.requestVolumeSubset(
                          req.data_out,
                          req.dimensionsND,
                          req.lod,
@@ -274,7 +280,7 @@ class VolumeDataAccessManager(object):
       voxelPlane          = voxelPlane,
       projectedDimensions = projectedDimensions,
       interpolationMethod = interpolationMethod)
-    req._request = self._manager.RequestProjectedVolumeSubset(
+    req._request = self._manager.requestProjectedVolumeSubset(
                     req.data_out,
                     req.dimensionsND,
                     req.lod,
@@ -312,14 +318,8 @@ class VolumeDataAccessManager(object):
     request : VolumeDataRequest
         An object encapsulating the request, the request state, and the requested data.
     """
-    sampleCount = len(samplePositions)
-    arr = np.zeros(shape=(sampleCount, 6), dtype=np.float32)
-    for i in range(sampleCount):
-      pos = samplePositions[i]
-      for c in range(len(pos)):
-        arr[i][c] = pos[c]
     if data_out is None:
-      data_out = self.allocateVolumeSamplesBuffer(sampleCount, channel)
+      data_out = self.allocateVolumeSamplesBuffer(len(samplePositions), channel)
     else:
       if data_out.nbytes < self.getVolumeSamplesBufferSize(sampleCount, channel):
         raise ValueError("output array is too small to hold the requested data with format {}".format(str(VoxelFormat.Format_R32)))
@@ -331,14 +331,14 @@ class VolumeDataAccessManager(object):
       format              = VoxelFormat.Format_R32,
       replacementNoValue  = replacementNoValue,
       interpolationMethod = interpolationMethod)
-    req.samplePositions = arr
-    req._request = self._manager.RequestVolumeSamples(
+    req.samplePositions = _ndarraypositions(arr)
+    req._request = self._manager.requestVolumeSamples(
                     req.data_out, 
                     req.dimensionsND,
                     req.lod,
                     req.channel,
                     req.samplePositions,
-                    sampleCount,
+                    req.samplePositions.shape[0],
                     req.interpolationMethod,
                     req.replacementNoValue)
     return req
@@ -391,7 +391,7 @@ class VolumeDataAccessManager(object):
       interpolationMethod = interpolationMethod)
     req.tracePositions = arr
     req.traceDimension = traceDimension
-    req._request = self._manager.RequestVolumeTraces(
+    req._request = self._manager.requestVolumeTraces(
                     req.data_out, 
                     req.dimensionsND,
                     req.lod,
@@ -427,14 +427,14 @@ class VolumeDataAccessManager(object):
       lod                 = lod,
       channel             = channel)
     req.chunkIndex = chunkIndex
-    req._request = self._manager.PrefetchVolumeChunk(req.dimensionsND, req.lod, req.channel, req.chunkIndex)
+    req._request = self._manager.prefetchVolumeChunk(req.dimensionsND, req.lod, req.channel, req.chunkIndex)
     return req
 
     def _createVolumeDataAccessor(self, factoryName: str, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=None):
         if pageAccessor is None:
             defaultDimensions = { 2: DimensionsND.Dimensions_01, 3: DimensionsND.Dimensions_012, 4: DimensionsND.Dimensions_012 }
-            pageAccessor = self.manager.createVolumeDataPageAccessor(self.layout, defaultDimensions[self.layout.dimensionality], 0, 0, 8, self.manager.AccessMode.AccessMode_ReadOnly)
-        return VolmeDataAccessorManager(factoryName.strip(), self.manager, pageAccessor, replacementNoValue, interpolationMethod)
+            pageAccessor = self._manager.createVolumeDataPageAccessor(self.layout, defaultDimensions[self.layout.dimensionality], 0, 0, 8, self._manager.AccessMode.AccessMode_ReadOnly)
+        return VolmeDataAccessorManager(factoryName.strip(), self._manager, pageAccessor, replacementNoValue, interpolationMethod)
 
     def create2DVolumeDataAccessor1Bit            (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessor1Bit", pageAccessor, replacementNoValue)
     def create2DVolumeDataAccessorU8              (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorU8  ", pageAccessor, replacementNoValue)
