@@ -75,6 +75,15 @@ private:
 namespace py = pybind11;
 namespace native = OpenVDS;
 
+namespace pybind11 { namespace detail {
+
+template <typename T>
+struct type_caster<native::optional<T>> : optional_caster<native::optional<T>> 
+{
+};
+
+}}
+
 // Helpers for methods that take buffer pointers
 template<typename T, bool WRITABLE>
 T*
