@@ -49,22 +49,20 @@ OpenOptions::~OpenOptions()
 
 }
 
-template<int SIZE>
-static bool isProtocol(const StringWrapper &str, const char(&literal)[SIZE])
+static bool isProtocol(const StringWrapper &str, const StringWrapper &literal)
 {
-  if (str.size < SIZE - 1)
+  if (str.size < literal.size)
     return false;
-  std::string protocol(str.data, str.data + SIZE - 1);
+  std::string protocol(str.data, str.data + literal.size);
   std::transform(protocol.begin(), protocol.end(), protocol.begin(), asciitolower);
-  return memcmp(protocol.data(), literal, SIZE - 1) == 0;
+  return memcmp(protocol.data(), literal.data, literal.size) == 0;
 }
 
-template<int SIZE>
-static StringWrapper removeProtocol(const StringWrapper& str, const char(&literal)[SIZE])
+static StringWrapper removeProtocol(const StringWrapper& str, const StringWrapper &literal)
 {
   StringWrapper ret(str);
-  ret.data += SIZE - 1;
-  ret.size -= SIZE - 1;
+  ret.data += literal.size;
+  ret.size -= literal.size;
   return ret;
 }
 
@@ -390,55 +388,65 @@ static std::unique_ptr<OpenOptions> createInMemoryOpenOptions(const StringWrappe
   return openOptions;
 }
 
+typedef StringWrapper (*UrlTransformer)(const StringWrapper &url, const StringWrapper &transformer);
+typedef std::unique_ptr<OpenOptions>(*OpenOptionsCreator)(const StringWrapper& url, const StringWrapper& connectionString, Error& error);
+struct UrlToOpenOptions
+{
+  std::string protocol;
+  UrlTransformer transformer;
+  OpenOptionsCreator creator;
+};
+
+static const std::vector<UrlToOpenOptions> urlToOpenOptions = {
+  {std::string("s3://"), &removeProtocol, &createS3OpenOptions },
+  {std::string("az://"), &removeProtocol, &createAzureOpenOptions },
+  {std::string("azure://"), &removeProtocol, &createAzureOpenOptions },
+  {std::string("azuresas://"), &removeProtocol, &createAzureSASOpenOptions },
+  {std::string("gs://"), &removeProtocol, &createGoogleOpenOptions },
+  {std::string("sd://"), nullptr, &createDMSOpenOptions },
+  {std::string("http://"), nullptr, &createHttpOpenOptions },
+  {std::string("https://"), nullptr, &createHttpOpenOptions },
+  {std::string("file://"), nullptr, &createVDSFileOpenOptions },
+  {std::string("inmemory://"), &removeProtocol, &createInMemoryOpenOptions}
+};
+
 OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString, Error& error)
 {
   error = Error();
   std::unique_ptr<OpenOptions> openOptions;
 
-  if (isProtocol(url, "s3://"))
+  for (auto& urlToOpenOption : urlToOpenOptions)
   {
-    openOptions = createS3OpenOptions(removeProtocol(url, "s3://"), connectionString, error);
-  }
-  else if (isProtocol(url, "azure://"))
-  {
-    openOptions = createAzureOpenOptions(removeProtocol(url, "azure://"), connectionString, error);
-  }
-  else if (isProtocol(url, "azuresas://"))
-  {
-    openOptions = createAzureSASOpenOptions(removeProtocol(url, "azuresas://"), connectionString, error);
-  }
-  else if (isProtocol(url, "gs://"))
-  {
-    openOptions = createGoogleOpenOptions(removeProtocol(url, "gs://"), connectionString, error);
-  }
-  else if (isProtocol(url, "sd://"))
-  {
-    openOptions = createDMSOpenOptions(url, connectionString, error);
-  }
-  else if (isProtocol(url, "http://") || isProtocol(url, "https://"))
-  {
-    openOptions = createHttpOpenOptions(url, connectionString, error);
-  }
-  else if (isProtocol(url, "file://"))
-  {
-    openOptions = createVDSFileOpenOptions(removeProtocol(url, "file://"), connectionString, error);
-  }
-  else if (isProtocol(url, "inmemory://"))
-  {
-    openOptions = createInMemoryOpenOptions(removeProtocol(url, "inmemory://"), connectionString, error);
-  }
-  else
-  {
-    error.code = -1;
-    error.string = fmt::format("Unknown url scheme for {}.", std::string(url.data, url.data + url.size));
-    return nullptr;
+    if (!isProtocol(url, urlToOpenOption.protocol))
+      continue;
+    auto transformed_url = urlToOpenOption.transformer ? urlToOpenOption.transformer(url, urlToOpenOption.protocol) : url;
+    openOptions = urlToOpenOption.creator(transformed_url, connectionString, error);
+    break;
   }
 
   if (error.code)
   {
     return nullptr;
   }
+
+  if (!openOptions)
+  {
+    error.code = -1;
+    error.string = fmt::format("Unknown url scheme for {}.", std::string(url.data, url.data + url.size));
+    return nullptr;
+  }
+
   return openOptions.release();
+}
+
+bool IsSupportedProtocol(StringWrapper url)
+{
+  for (auto& urlToOpenOpiton : urlToOpenOptions)
+  {
+    if (isProtocol(url, urlToOpenOpiton.protocol))
+      return true;
+  }
+  return false;
 }
 
 VDSHandle Open(StringWrapper url, StringWrapper connectionString, Error& error)

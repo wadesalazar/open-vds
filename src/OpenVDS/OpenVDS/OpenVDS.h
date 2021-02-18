@@ -535,6 +535,13 @@ struct StringWrapper
     , size(toWrap.size())
   {}
 
+  template<size_t SIZE>
+  StringWrapper(const char(&toWrap)[SIZE])
+    : data(toWrap)
+    , size(SIZE - 1)
+  {
+  }
+
   const char* data;
   size_t size;
 };
@@ -564,6 +571,14 @@ class VolumeDataPageAccessor;
 /// with url and string instead if this is not needed.
 /// </returns>
 OPENVDS_EXPORT OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString, Error& error);
+
+/// <summary>
+/// Verifies that the url is a supported protocol
+/// </summary>
+/// <returns>
+/// Returnes true if the protocol specifier of the url is recognised by OpenVDS, otherwise returns false
+/// </returns>
+OPENVDS_EXPORT bool IsSupportedProtocol(StringWrapper url);
 
 /// <summary>
 /// Open an existing VDS
