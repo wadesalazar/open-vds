@@ -201,6 +201,7 @@ template <typename INDEX, typename T>
 class VolumeDataReadWriteAccessor : public VolumeDataReadAccessor<INDEX, T>
 {
 protected:
+  using VolumeDataReadAccessor<INDEX, T>::m_accessor;
   IVolumeDataReadWriteAccessor<INDEX, T> *
                         Accessor() { return static_cast<IVolumeDataReadWriteAccessor<INDEX, T> *>(m_accessor); }
 public:
