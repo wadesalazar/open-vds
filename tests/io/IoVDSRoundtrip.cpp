@@ -115,7 +115,6 @@ TEST(IOTests, CreateSyntheticVDSAndVerifyUpload)
   int64_t chunkCount = inMemoryPageAccessor->GetChunkCount();
 
   {
-    OpenVDS::VolumeDataLayout *networkLayout = OpenVDS::GetLayout(networkVDS.get());
     OpenVDS::VolumeDataAccessManager networkAccessManager = OpenVDS::GetAccessManager(networkVDS.get());
     OpenVDS::VolumeDataPageAccessor *networkPageAccessor = networkAccessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
 

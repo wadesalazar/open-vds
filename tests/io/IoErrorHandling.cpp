@@ -66,7 +66,6 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingCorruptMetadata)
 
   facadeIoManager->m_data["Dimensions_012LOD0/ChunkMetadata/0"].error.code = 0;
 
-  auto layout = OpenVDS::GetLayout(handle.get());
   auto accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
@@ -86,7 +85,6 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingMetadataHttpError)
   facadeIoManager->m_data["Dimensions_012LOD0/ChunkMetadata/0"].error.code = 403;
   facadeIoManager->m_data["Dimensions_012LOD0/ChunkMetadata/0"].error.string = "Test test meta deleted test";
 
-  auto layout = OpenVDS::GetLayout(handle.get());
   auto accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
@@ -107,7 +105,6 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingCorruptChunk)
   auto fiveData = facadeIoManager->m_data["Dimensions_012LOD0/5"].data;
   fiveData.insert(fiveData.end(), str.begin(), str.end());
 
-  auto layout = OpenVDS::GetLayout(handle.get());
   auto accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
@@ -127,7 +124,6 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingChunkHttpError)
   facadeIoManager->m_data["Dimensions_012LOD0/4"].error.code = 402;
   facadeIoManager->m_data["Dimensions_012LOD0/4"].error.string = "Four four four";
 
-  auto layout = OpenVDS::GetLayout(handle.get());
   auto accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
@@ -228,7 +224,6 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingMissingMetadataTag)
 
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(facadeIoManager, error), OpenVDS::Close);
   ASSERT_TRUE(handle);
-  auto layout = OpenVDS::GetLayout(handle.get());
   auto accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
@@ -263,7 +258,6 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingChangedMetadataTag)
   
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(facadeIoManager, error), OpenVDS::Close);
   ASSERT_TRUE(handle);
-  auto layout = OpenVDS::GetLayout(handle.get());
   auto accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max] = { 15, 15, 15 };
@@ -348,8 +342,6 @@ TEST(IOErrorHandlingUpload, ErrorHandlingChunkHttpError)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error), OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
-  ASSERT_TRUE(layout);
   OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
   OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
   ASSERT_TRUE(pageAccessor);
@@ -410,8 +402,6 @@ TEST(IOErrorHandlingUpload, ErrorHandlingLayerStatusHttpError)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error), OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
-  ASSERT_TRUE(layout);
   OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
   OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
   ASSERT_TRUE(pageAccessor);
@@ -472,8 +462,6 @@ TEST(IOErrorHandlingUpload, ErrorHandlingChunkMetadataHttpError)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, error), OpenVDS::Close);
   ASSERT_TRUE(handle);
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
-  ASSERT_TRUE(layout);
   OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
   OpenVDS::VolumeDataPageAccessor *pageAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
   ASSERT_TRUE(pageAccessor);

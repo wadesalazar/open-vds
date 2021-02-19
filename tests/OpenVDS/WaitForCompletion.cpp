@@ -37,15 +37,12 @@ TEST(WaitForCompletion, waitTimeout)
   SlowIOManager* slowIOManager = new SlowIOManager(50, inMemory.get());
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_R32, OpenVDS::VolumeDataLayoutDescriptor::BrickSize_32, slowIOManager), OpenVDS::Close);
   fill3DVDSWithBitNoise(handle.get());
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max];
   int32_t maxPos[OpenVDS::Dimensionality_Max];
-  int32_t voxelCount;
   minPos[0] = 0; minPos[1] = 10; minPos[2] = 10;
   maxPos[0] = 50; maxPos[1] = 60; maxPos[2] = 50;
-  voxelCount = (maxPos[0] - minPos[0]) * (maxPos[1] - minPos[1]) * (maxPos[2] - minPos[2]);
 
   auto requestFloat = accessManager.RequestVolumeSubset<float>(OpenVDS::Dimensions_012, 0, 0, minPos, maxPos);
   ASSERT_FALSE(requestFloat->WaitForCompletion(1));

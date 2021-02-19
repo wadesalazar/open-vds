@@ -35,7 +35,6 @@ GTEST_TEST(OpenVDS_integration, DataAccessorClone)
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> VDS(generateSimpleInMemory3DVDS(dimensionSize,dimensionSize,dimensionSize, OpenVDS::VolumeDataChannelDescriptor::Format_R32), OpenVDS::Close);
   fill3DVDSWithNoise(VDS.get());
 
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(VDS.get());
   OpenVDS::IVolumeDataAccessManager *accessManagerInterface = OpenVDS::GetAccessManagerInterface(VDS.get());
 
   auto pageAccessor = accessManagerInterface->CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 100, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);

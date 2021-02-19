@@ -600,39 +600,6 @@ int64_t VolumeDataRequestProcessor::RequestVolumeSubset(void *buffer, VolumeData
   return AddJob(chunksInRegion, [boxRequested, buffer, format, conversionParameters](VolumeDataPageImpl* page, VolumeDataChunk dataChunk, Error &error) {return RequestSubsetProcessPage(page, dataChunk, boxRequested.min, boxRequested.max, format, conversionParameters, buffer, error);}, format == VolumeDataChannelDescriptor::Format_1Bit);
 }
 
-static VolumeDataLayer *GetLayer(VolumeDataLayout const *layout, DimensionsND dimensionsND, int LOD, int channel, Error &error)
-{
-  if(!layout)
-  {
-    return nullptr;
-  }
-
-  VolumeDataLayoutImpl const *volumeDataLayout = static_cast<VolumeDataLayoutImpl const *>(layout);
-
-  if (channel >= volumeDataLayout->GetChannelCount())
-  {
-    error.code = -1;
-    error.string = fmt::format("Requesting channel outside VDS channel range. Requested {}, max channel {}", channel, volumeDataLayout->GetChannelCount() - 1);
-    return nullptr;
-  }
-
-  VolumeDataLayer *volumeDataLayer = volumeDataLayout->GetBaseLayer(DimensionGroupUtil::GetDimensionGroupFromDimensionsND(dimensionsND), channel);
-
-  while(volumeDataLayer && volumeDataLayer->GetLOD() < LOD)
-  {
-    volumeDataLayer = volumeDataLayer->GetParentLayer();
-  }
-
-  if (!volumeDataLayer || volumeDataLayer->GetLayerType() == VolumeDataLayer::Virtual)
-  {
-    error.code = -1;
-    error.string = fmt::format("Requesting not available LOD layer {}", LOD);
-    return nullptr;
-  }
-
-  return volumeDataLayer;
-}
-
 struct ProjectVars
 {
   FloatVector4 voxelPlane;
@@ -1869,7 +1836,6 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
   DimensionsND dimensions = DimensionGroupUtil::GetDimensionsNDFromDimensionGroup(layer->GetPrimaryChannelLayer().GetChunkDimensionGroup());
   int channel = layer->GetChannelIndex();
   int lod = layer->GetLOD();
-  auto layout = layer->GetLayout();
 
   const int maxPages = std::max(8, (int)chunks.size());
 

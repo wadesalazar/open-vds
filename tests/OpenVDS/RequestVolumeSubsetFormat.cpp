@@ -133,7 +133,6 @@ TEST(ReqeustVolumeSubsetFormat, source1Bit)
 {
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(generateSimpleInMemory3DVDS(60,60,60, OpenVDS::VolumeDataChannelDescriptor::Format_1Bit), OpenVDS::Close);
   fill3DVDSWithBitNoise(handle.get());
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
 
   int32_t minPos[OpenVDS::Dimensionality_Max];

@@ -259,8 +259,6 @@ VolumeDataAccessManagerImpl::ValidateChannelIndex(VolumeDataLayoutImpl const * v
 VolumeDataLayer const *
 VolumeDataAccessManagerImpl::ValidateChunkIndex(VolumeDataLayer const * volumeDataLayer, int64_t chunkIndex)
 {
-  const int dimensionality = volumeDataLayer->GetLayout()->GetDimensionality();
-
   if (chunkIndex < 0 || chunkIndex > volumeDataLayer->GetTotalChunkCount())
   {
     throw InvalidArgument("The requested chunk doesn't exist", "chunkIndex");
