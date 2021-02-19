@@ -148,16 +148,195 @@ class VolumeDataAccessManager(object):
   def manager(self):
     return self._manager
 
+  def getVolumeDataLayout(self):
+    """Get the VolumeDataLayout object for a VDS.
+
+    Returns:
+    --------
+        The VolumeDataLayout object associated with the VDS or None if
+        there is no valid VolumeDataLayout.
+    """
+    return self._manager.getVolumeDataLayout()
+
+  @property
+  def volumeDataLayout(self):
+    return self._manager.volumeDataLayout
+
+  def getVDSProduceStatus(self, dimensionsND, lod=0, channel=0):
+    """Get the produce status for the specific DimensionsND/LOD/Channel combination.
+
+    Parameters:
+    -----------
+
+    dimensionsND :
+        The dimensions group we're getting the produce status for.
+
+    LOD :
+        The LOD level we're getting the produce status for.
+
+    channel :
+        The channel index we're getting the produce status for.
+
+    Returns:
+    --------
+        The produce status for the specific DimensionsND/LOD/Channel
+        combination.
+    """
+    return self._manager.getVDSProduceStatus(dimensionsND, lod, channel)
+
+  def createVolumeDataPageAccessor(self, dimensionsND, lod, channel, maxPages, accessMode, chunkMetadataPageSize=1024):
+    """Create a VolumeDataPageAccessor object for the VDS.
+
+    Parameters:
+    -----------
+
+    dimensionsND :
+        The dimensions group that the volume data page accessor will
+        access.
+
+    LOD :
+        The LOD level that the volume data page accessor will access.
+
+    channel :
+        The channel index that the volume data page accessor will access.
+
+    maxPages :
+        The maximum number of pages that the volume data page accessor
+        will cache.
+
+    accessMode :
+        This specifies the access mode (ReadOnly/ReadWrite/Create) of the
+        volume data page accessor.
+
+    chunkMetadataPageSize :
+        The chunk metadata page size of the layer. This controls how many
+        chunk metadata entries are written per page, and is only used when
+        the access mode is Create. If this number is too low it will
+        degrade performance, but in certain situations it can be
+        advantageous to make this number a multiple of the number of
+        chunks in some of the dimensions. Do not change this from the
+        default (1024) unless you know exactly what you are doing.
+
+    Returns:
+    --------
+        A VolumeDataPageAccessor object for the VDS.
+    """
+    return self._manager.createVolumeDataPageAccessor(lod, channel, maxPages, accessMode, chunkMetadataPageSize)
+
+  def destroyVolumeDataPageAccessor(self, volumeDataPageAccessor):
+    """Destroy a volume data page accessor object.
+
+    Parameters:
+    -----------
+
+    volumeDataPageAccessor :
+        The VolumeDataPageAccessor object to destroy.)
+    """
+    return self._manager.destroyVolumeDataPageAccessor(volumeDataPageAccessor)
+
   def getVolumeSubsetBufferSize(self, min: Tuple[int], max: Tuple[int], format=VoxelFormat.Format_R32, lod=0, channel=0):
+    """Compute the buffer size (in bytes) for a volume subset request.
+
+    Parameters:
+    -----------
+
+    minVoxelCoordinates :
+        The minimum voxel coordinates to request in each dimension
+        (inclusive).
+
+    maxVoxelCoordinates :
+        The maximum voxel coordinates to request in each dimension
+        (exclusive).
+
+    format :
+        Voxel format of the destination buffer.
+
+    LOD :
+        The LOD level the requested data is read from.
+
+    channel :
+        The channel index the requested data is read from.
+
+    Returns:
+    --------
+        The buffer size needed.
+    """
     return self._manager.getVolumeSubsetBufferSize(_ndarraymin(min), _ndarraymax(max), format, lod, channel)
 
   def getProjectedVolumeSubsetBufferSize(self, min: Tuple[int], max: Tuple[int], projectedDimensions, format, lod=0, channel=0):
+    """Compute the buffer size (in bytes) for a projected volume subset request.
+
+    Parameters:
+    -----------
+
+    minVoxelCoordinates :
+        The minimum voxel coordinates to request in each dimension
+        (inclusive).
+
+    maxVoxelCoordinates :
+        The maximum voxel coordinates to request in each dimension
+        (exclusive).
+
+    projectedDimensions :
+        The 2D dimension group that the plane in the source dimensiongroup
+        is projected into. It must be a 2D subset of the source
+        dimensions.
+
+    format :
+        Voxel format of the destination buffer.
+
+    LOD :
+        The LOD level the requested data is read from.
+
+    channel :
+        The channel index the requested data is read from.
+
+    Returns:
+    --------
+        The buffer size needed.
+    """
     return self._manager.getProjectedVolumeSubsetBufferSize(_ndarraymin(min), _ndarraymax(max), projectedDimensions, format, lod, channel)
 
   def getVolumeSamplesBufferSize(self, sampleCount, channel=0):
+    """Compute the buffer size (in bytes) for a volume samples request.
+
+    Parameters:
+    -----------
+
+    sampleCount :
+        Number of samples to request.
+
+    channel :
+        The channel index the requested data is read from.
+
+    Returns:
+    --------
+        The buffer size needed
+    """
     return self._manager.getVolumeSamplesBufferSize(sampleCount, channel)
 
   def getVolumeTracesBufferSize(self, traceCount, traceDimension, lod=0, channel=0):
+    """Compute the buffer size (in bytes) for a volume traces request.
+
+    Parameters:
+    -----------
+
+    traceCount :
+        Number of traces to request.
+
+    traceDimension :
+        The dimension to trace
+
+    LOD :
+        The LOD level the requested data is read from.
+
+    channel :
+        The channel index the requested data is read from.
+
+    Returns:
+    --------
+        The buffer size needed.
+    """
     return self._manager.getVolumeTracesBufferSize(traceCount, traceDimension, lod, channel)
 
   def _allocateArray(self, format, data_size):
@@ -430,37 +609,163 @@ class VolumeDataAccessManager(object):
     req._request = self._manager.prefetchVolumeChunk(req.dimensionsND, req.lod, req.channel, req.chunkIndex)
     return req
 
-    def _createVolumeDataAccessor(self, factoryName: str, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=None):
-        if pageAccessor is None:
-            defaultDimensions = { 2: DimensionsND.Dimensions_01, 3: DimensionsND.Dimensions_012, 4: DimensionsND.Dimensions_012 }
-            pageAccessor = self._manager.createVolumeDataPageAccessor(self.layout, defaultDimensions[self.layout.dimensionality], 0, 0, 8, self._manager.AccessMode.AccessMode_ReadOnly)
-        return VolmeDataAccessorManager(factoryName.strip(), self._manager, pageAccessor, replacementNoValue, interpolationMethod)
+    def flushUploadQueue(self, writeUpdatedLayerStatus = True):
+      """Flush any pending writes and write updated layer status.
 
-    def create2DVolumeDataAccessor1Bit            (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessor1Bit", pageAccessor, replacementNoValue)
-    def create2DVolumeDataAccessorU8              (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorU8  ", pageAccessor, replacementNoValue)
-    def create2DVolumeDataAccessorU16             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorU16 ", pageAccessor, replacementNoValue)
-    def create2DVolumeDataAccessorU32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorU32 ", pageAccessor, replacementNoValue)
-    def create2DVolumeDataAccessorU64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorU64 ", pageAccessor, replacementNoValue)
-    def create2DVolumeDataAccessorR32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorR32 ", pageAccessor, replacementNoValue)
-    def create2DVolumeDataAccessorR64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create2DVolumeDataAccessorR64 ", pageAccessor, replacementNoValue)
-    def create3DVolumeDataAccessor1Bit            (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessor1Bit", pageAccessor, replacementNoValue)
-    def create3DVolumeDataAccessorU8              (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorU8  ", pageAccessor, replacementNoValue)
-    def create3DVolumeDataAccessorU16             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorU16 ", pageAccessor, replacementNoValue)
-    def create3DVolumeDataAccessorU32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorU32 ", pageAccessor, replacementNoValue)
-    def create3DVolumeDataAccessorU64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorU64 ", pageAccessor, replacementNoValue)
-    def create3DVolumeDataAccessorR32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorR32 ", pageAccessor, replacementNoValue)
-    def create3DVolumeDataAccessorR64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create3DVolumeDataAccessorR64 ", pageAccessor, replacementNoValue)
-    def create4DVolumeDataAccessor1Bit            (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessor1Bit", pageAccessor, replacementNoValue)
-    def create4DVolumeDataAccessorU8              (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorU8  ", pageAccessor, replacementNoValue)
-    def create4DVolumeDataAccessorU16             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorU16 ", pageAccessor, replacementNoValue)
-    def create4DVolumeDataAccessorU32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorU32 ", pageAccessor, replacementNoValue)
-    def create4DVolumeDataAccessorU64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorU64 ", pageAccessor, replacementNoValue)
-    def create4DVolumeDataAccessorR32             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorR32 ", pageAccessor, replacementNoValue)
-    def create4DVolumeDataAccessorR64             (self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None): return self._createVolumeDataAccessor("create4DVolumeDataAccessorR64 ", pageAccessor, replacementNoValue)
-    def create2DInterpolatingVolumeDataAccessorR32(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create2DInterpolatingVolumeDataAccessorR32", pageAccessor, replacementNoValue, interpolationMode)
-    def create2DInterpolatingVolumeDataAccessorR64(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create2DInterpolatingVolumeDataAccessorR64", pageAccessor, replacementNoValue, interpolationMode)
-    def create3DInterpolatingVolumeDataAccessorR32(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create3DInterpolatingVolumeDataAccessorR32", pageAccessor, replacementNoValue, interpolationMode)
-    def create3DInterpolatingVolumeDataAccessorR64(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create3DInterpolatingVolumeDataAccessorR64", pageAccessor, replacementNoValue, interpolationMode)
-    def create4DInterpolatingVolumeDataAccessorR32(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create4DInterpolatingVolumeDataAccessorR32", pageAccessor, replacementNoValue, interpolationMode)
-    def create4DInterpolatingVolumeDataAccessorR64(self, pageAccessor: VolumeDataPageAccessor=None, replacementNoValue=None, interpolationMethod: InterpolationMethod=InterpolationMethod.Cubic): return self._createVolumeDataAccessor("create4DInterpolatingVolumeDataAccessorR64", pageAccessor, replacementNoValue, interpolationMode)
+      Parameters
+      ----------
+      writeUpdatedLayerStatus: bool, optional
+          Write the updated layer status (or only flush pending writes of chunks and chunk-metadata).
+      """
+      self._manager.flushUploadQueue(writeUpdatedLayerStatus)
+
+    def clearUploadErrors(self):
+      """Clear all upload errors that have been retrieved
+      """
+      self._manager.clearUploadErrors(self)
+
+    def forceClearAllUploadErrors(self):
+      """Clear all upload errors
+      """
+      self._manager.forceClearAllUploadErrors()
+
+    def getUploadErrorCount(self):
+      """Get the number of unretrieved upload errors
+
+      Returns
+      -------
+      count : int
+          The number of errors you can retrieve with getCurrentUploadError()
+      """
+      return self._manager.getUploadErrorCount()
     
+    def getCurrentUploadError(self):
+      """Get the next unretrieved upload error or an empty error if there are no more errors to retrieve
+
+      Returns
+      -------
+      error : Tuple(object: string, code: int, message: string)
+          An tuple indicating the error or None if there are no more errors
+      """
+      return self._manager.getCurrentUploadError()
+
+    def getCurrentDownloadError(self):
+      """Get the download error from the most recent operation that failed
+
+      Returns
+      -------
+      error : Tuple(code: int, message: string)
+          An tuple indicating the error or None if there is no error
+      """
+      return self._manager.getCurrentDownloadError()
+
+  ##############################################################################
+  # 2D VolumeDataAccessors
+  ##############################################################################
+
+  def createVolumeData2DInterpolatingAccessorR64(self, dimensionsND, lod=0, channel=0, interpolationMethod=InterpolationMethod.Cubic, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DInterpolatingAccessorR64(dimensionsND, lod, channel, interpolationMethod, maxPages, replacementNoValue)
+  def createVolumeData2DInterpolatingAccessorR32(self, dimensionsND, lod=0, channel=0, interpolationMethod=InterpolationMethod.Cubic, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DInterpolatingAccessorR32(dimensionsND, lod, channel, interpolationMethod, maxPages, replacementNoValue)
+  def createVolumeData2DReadAccessor1Bit(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadAccessor1Bit(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadAccessorU8(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadAccessorU8(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadAccessorU16(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadAccessorU16(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadAccessorU32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadAccessorU32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadAccessorU64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadAccessorU64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadAccessorR32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadAccessorR32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadAccessorR64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadAccessorR64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadWriteAccessor1Bit(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadWriteAccessor1Bit(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadWriteAccessorU8(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadWriteAccessorU8(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadWriteAccessorU16(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadWriteAccessorU16(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadWriteAccessorU32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadWriteAccessorU32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadWriteAccessorU64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadWriteAccessorU64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadWriteAccessorR32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadWriteAccessorR32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData2DReadWriteAccessorR64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData2DReadWriteAccessorR64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+
+  ##############################################################################
+  # 3D VolumeDataAccessors
+  ##############################################################################
+
+  def createVolumeData3DInterpolatingAccessorR64(self, dimensionsND, lod=0, channel=0, interpolationMethod=InterpolationMethod.Cubic, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DInterpolatingAccessorR64(dimensionsND, lod, channel, interpolationMethod, maxPages, replacementNoValue)
+  def createVolumeData3DInterpolatingAccessorR32(self, dimensionsND, lod=0, channel=0, interpolationMethod=InterpolationMethod.Cubic, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DInterpolatingAccessorR32(dimensionsND, lod, channel, interpolationMethod, maxPages, replacementNoValue)
+  def createVolumeData3DReadAccessor1Bit(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadAccessor1Bit(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadAccessorU8(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadAccessorU8(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadAccessorU16(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadAccessorU16(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadAccessorU32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadAccessorU32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadAccessorU64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadAccessorU64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadAccessorR32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadAccessorR32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadAccessorR64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadAccessorR64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadWriteAccessor1Bit(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadWriteAccessor1Bit(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadWriteAccessorU8(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadWriteAccessorU8(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadWriteAccessorU16(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadWriteAccessorU16(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadWriteAccessorU32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadWriteAccessorU32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadWriteAccessorU64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadWriteAccessorU64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadWriteAccessorR32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadWriteAccessorR32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData3DReadWriteAccessorR64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData3DReadWriteAccessorR64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+
+  ##############################################################################
+  # 4D VolumeDataAccessors
+  ##############################################################################
+
+  def createVolumeData4DInterpolatingAccessorR64(self, dimensionsND, lod=0, channel=0, interpolationMethod=InterpolationMethod.Cubic, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DInterpolatingAccessorR64(dimensionsND, lod, channel, interpolationMethod, maxPages, replacementNoValue)
+  def createVolumeData4DInterpolatingAccessorR32(self, dimensionsND, lod=0, channel=0, interpolationMethod=InterpolationMethod.Cubic, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DInterpolatingAccessorR32(dimensionsND, lod, channel, interpolationMethod, maxPages, replacementNoValue)
+  def createVolumeData4DReadAccessor1Bit(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadAccessor1Bit(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadAccessorU8(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadAccessorU8(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadAccessorU16(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadAccessorU16(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadAccessorU32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadAccessorU32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadAccessorU64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadAccessorU64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadAccessorR32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadAccessorR32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadAccessorR64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadAccessorR64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadWriteAccessor1Bit(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadWriteAccessor1Bit(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadWriteAccessorU8(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadWriteAccessorU8(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadWriteAccessorU16(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadWriteAccessorU16(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadWriteAccessorU32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadWriteAccessorU32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadWriteAccessorU64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadWriteAccessorU64(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadWriteAccessorR32(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadWriteAccessorR32(dimensionsND, lod, channel, maxPages, replacementNoValue)
+  def createVolumeData4DReadWriteAccessorR64(self, dimensionsND, lod=0, channel=0, maxPages=8, replacementNoValue=None):
+    return self._manager.createVolumeData4DReadWriteAccessorR64(dimensionsND, lod, channel, maxPages, replacementNoValue)

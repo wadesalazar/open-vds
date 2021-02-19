@@ -1087,8 +1087,7 @@ static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DVolumeDataAcce
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_Create4DVolumeDataAccessorU8 = R"doc()doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_CreateVolumeDataPageAccessor =
-R"doc(Create a volume data page accessor object for the VDS associated with
-the given VolumeDataLayout object.
+R"doc(Create a VolumeDataPageAccessor object for the VDS.
 
 Parameters:
 -----------
@@ -1122,8 +1121,7 @@ chunkMetadataPageSize :
 
 Returns:
 --------
-    A VolumeDataPageAccessor object for the VDS associated with the
-    given VolumeDataLayout object.)doc";
+    A VolumeDataPageAccessor object for the VDS.)doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_DestroyVolumeDataAccessor = R"doc()doc";
 
@@ -1197,7 +1195,7 @@ channel :
 
 Returns:
 --------
-    The buffer size needed)doc";
+    The buffer size needed.)doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetVDSProduceStatus =
 R"doc(Get the produce status for the specific DimensionsND/LOD/Channel
@@ -1242,7 +1240,7 @@ channel :
 
 Returns:
 --------
-    The buffer size needed)doc";
+    The buffer size needed.)doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetVolumeSubsetBufferSize =
 R"doc(Compute the buffer size (in bytes) for a volume subset request.
@@ -1269,7 +1267,7 @@ channel :
 
 Returns:
 --------
-    The buffer size needed)doc";
+    The buffer size needed.)doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_GetVolumeTracesBufferSize =
 R"doc(Compute the buffer size (in bytes) for a volume traces request.
@@ -1291,7 +1289,7 @@ channel :
 
 Returns:
 --------
-    The buffer size needed)doc";
+    The buffer size needed.)doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_IVolumeDataAccessManager = R"doc()doc";
 
@@ -1349,7 +1347,7 @@ chunkIndex :
 Returns:
 --------
     The RequestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    request, cancel the request or wait for the request to complete.)doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_RefCount = R"doc()doc";
 
@@ -1410,7 +1408,7 @@ replacementNoValue :
 Returns:
 --------
     The RequestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    request, cancel the request or wait for the request to complete.)doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_RequestVolumeSamples =
 R"doc(Request sampling of the input VDS at the specified coordinates.
@@ -1453,7 +1451,7 @@ replacementNoValue :
 Returns:
 --------
     The RequestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    request, cancel the request or wait for the request to complete.)doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_RequestVolumeSubset =
 R"doc(Request a subset of the input VDS.
@@ -1496,7 +1494,7 @@ replacementNoValue :
 Returns:
 --------
     The RequestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    request, cancel the request or wait for the request to complete.)doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_RequestVolumeTraces =
 R"doc(Request traces from the input VDS.
@@ -1541,7 +1539,7 @@ replacementNoValue :
 Returns:
 --------
     The RequestID which can be used to query the status of the
-    request, cancel the request or wait for the request to complete)doc";
+    request, cancel the request or wait for the request to complete.)doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_UploadErrorCount = R"doc()doc";
 
@@ -2563,15 +2561,7 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_AccessMode = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_AccessMode_AccessMode_Create = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_AccessMode_AccessMode_ReadOnly = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_AccessMode_AccessMode_ReadWrite = R"doc()doc";
-
-static const char *__doc_OpenVDS_VolumeDataAccessManager_ClearUploadErrors = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAccessManager_ClearUploadErrors = R"doc(Clear all upload errors that have been retrieved)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateInterpolatingVolumeDataAccessor = R"doc()doc";
 
@@ -2770,8 +2760,7 @@ static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadW
 static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeData4DReadWriteAccessorU8_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataPageAccessor =
-R"doc(Create a volume data page accessor object for the VDS associated with
-the given VolumeDataLayout object.
+R"doc(Create a VolumeDataPageAccessor object for the VDS.
 
 Parameters:
 -----------
@@ -2805,8 +2794,7 @@ chunkMetadataPageSize :
 
 Returns:
 --------
-    A VolumeDataPageAccessor object for the VDS associated with the
-    given VolumeDataLayout object.)doc";
+    A VolumeDataPageAccessor object for the VDS.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_CreateVolumeDataReadAccessor = R"doc()doc";
 
@@ -2847,11 +2835,13 @@ writeUpdatedLayerStatus :
     Write the updated layer status (or only flush pending writes of
     chunks and chunk-metadata).)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_ForceClearAllUploadErrors = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAccessManager_ForceClearAllUploadErrors = R"doc(Clear all upload errors)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentDownloadError = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentDownloadError = R"doc(Get the download error from the most recent operation that failed)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentUploadError = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAccessManager_GetCurrentUploadError =
+R"doc(Get the next unretrieved upload error or an empty error if there are
+no more errors to retrieve)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetProjectedVolumeSubsetBufferSize =
 R"doc(Compute the buffer size (in bytes) for a projected volume subset
@@ -2884,7 +2874,7 @@ channel :
 
 Returns:
 --------
-    The buffer size needed)doc";
+    The buffer size needed.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetProjectedVolumeSubsetBufferSize_2 = R"doc()doc";
 
@@ -2931,7 +2921,7 @@ channel :
 
 Returns:
 --------
-    The buffer size needed)doc";
+    The buffer size needed.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeSubsetBufferSize =
 R"doc(Compute the buffer size (in bytes) for a volume subset request.
@@ -2958,7 +2948,7 @@ channel :
 
 Returns:
 --------
-    The buffer size needed)doc";
+    The buffer size needed.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_GetVolumeSubsetBufferSize_2 = R"doc()doc";
 
@@ -2982,7 +2972,7 @@ channel :
 
 Returns:
 --------
-    The buffer size needed)doc";
+    The buffer size needed.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_IsValid = R"doc()doc";
 
@@ -3543,7 +3533,7 @@ Returns:
     A VolumeDataRequest instance encapsulating the request status and
     buffer.)doc";
 
-static const char *__doc_OpenVDS_VolumeDataAccessManager_UploadErrorCount = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataAccessManager_UploadErrorCount = R"doc(Get the number of unretrieved upload errors)doc";
 
 static const char *__doc_OpenVDS_VolumeDataAccessManager_VolumeDataAccessManager = R"doc()doc";
 
@@ -4344,6 +4334,8 @@ static const char *__doc_OpenVDS_VolumeDataReadAccessor_GetValue = R"doc()doc";
 static const char *__doc_OpenVDS_VolumeDataReadAccessor_Region = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataReadAccessor_RegionCount = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataReadAccessor_RegionFromIndex = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataReadAccessor_VolumeDataReadAccessor = R"doc()doc";
 

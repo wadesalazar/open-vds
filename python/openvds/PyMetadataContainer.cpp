@@ -67,6 +67,7 @@ PyMetadataContainer::initModule(py::module& m)
   MetadataContainer_.def("setMetadataDoubleVector3"    , [](MetadataContainer* self, const char * category, const char * name, DoubleVector3Adapter::AdaptedType value) { return self->SetMetadataDoubleVector3(category, name, value); }, py::arg("category").none(false), py::arg("name").none(false), py::arg("value").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataDoubleVector3));
   MetadataContainer_.def("setMetadataDoubleVector4"    , [](MetadataContainer* self, const char * category, const char * name, DoubleVector4Adapter::AdaptedType value) { return self->SetMetadataDoubleVector4(category, name, value); }, py::arg("category").none(false), py::arg("name").none(false), py::arg("value").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataDoubleVector4));
   MetadataContainer_.def("setMetadataString"           , static_cast<void(MetadataContainer::*)(const char *, const char *, const char *)>(&MetadataContainer::SetMetadataString), py::arg("category").none(false), py::arg("name").none(false), py::arg("value").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataString));
+  MetadataContainer_.def("setMetadataBLOB"             , [](MetadataContainer* self, const char * category, const char * name, py::buffer data) { return self->SetMetadataBLOB(category, name, PyGetBufferPtr<const void, false>(data), PyGetBufferSize<size_t, false>(data)); }, py::arg("category").none(false), py::arg("name").none(false), py::arg("data").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataBLOB));
   MetadataContainer_.def("copyMetadata"                , static_cast<void(MetadataContainer::*)(const char *, const native::MetadataReadAccess *)>(&MetadataContainer::CopyMetadata), py::arg("category").none(false), py::arg("metadataReadAccess").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataContainer_CopyMetadata));
   MetadataContainer_.def("clearMetadata"               , static_cast<void(MetadataContainer::*)(const char *, const char *)>(&MetadataContainer::ClearMetadata), py::arg("category").none(false), py::arg("name").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataContainer_ClearMetadata));
   MetadataContainer_.def("clearMetadata"               , static_cast<void(MetadataContainer::*)(const char *)>(&MetadataContainer::ClearMetadata), py::arg("category").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataContainer_ClearMetadata_2));
@@ -75,23 +76,8 @@ PyMetadataContainer::initModule(py::module& m)
   MetadataContainer_.def_property_readonly("metadataKeys", &MetadataContainer::GetMetadataKeys, OPENVDS_DOCSTRING(MetadataContainer_GetMetadataKeys));
 
 //AUTOGEN-END
-  // IMPLEMENTED :   MetadataContainer_.def("setMetadataBLOB"             , [](MetadataContainer* self, const char * category, const char * name, py::buffer data) { return self->SetMetadataBLOB(category, name, PyGetBufferPtr<const void, false>(data), PyGetBufferSize<size_t, false>(data)); }, py::arg("category").none(false), py::arg("name").none(false), py::arg("data").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataBLOB));
-  MetadataContainer_.def("setMetadataBLOB", [](MetadataContainer* self, const char* category, const char* name, py::buffer data)
-    {
-      py::buffer_info buffer = data.request();
-      size_t size = buffer.size * buffer.itemsize;
-      self->SetMetadataBLOB(category, name, buffer.ptr, size);
-    },
-    py::arg("category").none(false), py::arg("name").none(false), py::arg("value").none(false), OPENVDS_DOCSTRING(MetadataContainer_SetMetadataBLOB));
-
-  // IMPLEMENTED :   MetadataContainer_.def("getMetadataBLOB"             , [](MetadataContainer* self, const char * category, const char * name, py::buffer data) { return self->GetMetadataBLOB(category, name, PyGetBufferPtr<const void, false>(data), PyGetBufferSize<size_t *, false>(data)); }, py::arg("category").none(false), py::arg("name").none(false), py::arg("data").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB));
-  MetadataContainer_.def("getMetadataBLOB", [](MetadataContainer* self, const char* category, const char* name) 
-    {
-      BLOB blob;
-      self->GetMetadataBLOB(category, name, (void const**)&blob.m_Data, &blob.m_Size);
-      return blob;
-    },
-    py::arg("category").none(false), py::arg("name").none(false), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB));
+  // IMPLEMENTED :   MetadataContainer_.def("getMetadataBLOB"             , static_cast<void(MetadataContainer::*)(const char *, const char *, const void **, size_t *) const>(&MetadataContainer::GetMetadataBLOB), py::arg("category").none(false), py::arg("name").none(false), py::arg("data").none(false), py::arg("size").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB));
+  // The public getMetadataBLOB method is implemented in the MetadataReadAccess class
 
   // Add a default constructor since the constructor of this class is implicit
   MetadataContainer_.def(py::init<>(), R"doc(Default constructor)doc");

@@ -74,7 +74,7 @@ public:
   virtual VDSProduceStatus GetVDSProduceStatus(DimensionsND dimensionsND, int LOD, int channel) = 0;
 
   /// <summary>
-  /// Create a volume data page accessor object for the VDS associated with the given VolumeDataLayout object.
+  /// Create a VolumeDataPageAccessor object for the VDS.
   /// </summary>
   /// <param name="dimensionsND">
   /// The dimensions group that the volume data page accessor will access.
@@ -97,7 +97,7 @@ public:
   /// of the number of chunks in some of the dimensions. Do not change this from the default (1024) unless you know exactly what you are doing.
   /// </param>
   /// <returns>
-  /// A VolumeDataPageAccessor object for the VDS associated with the given VolumeDataLayout object.
+  /// A VolumeDataPageAccessor object for the VDS.
   /// </returns>
   virtual VolumeDataPageAccessor *CreateVolumeDataPageAccessor(DimensionsND dimensionsND, int LOD, int channel, int maxPages, AccessMode accessMode, int chunkMetadataPageSize = 1024) = 0;
 
@@ -164,7 +164,7 @@ public:
   /// The channel index the requested data is read from.
   /// </param>
   /// <returns>
-  /// The buffer size needed
+  /// The buffer size needed.
   /// </returns>
   virtual int64_t GetVolumeSubsetBufferSize(const int (&minVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], const int (&maxVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], VolumeDataChannelDescriptor::Format format, int LOD = 0, int channel = 0) = 0;
 
@@ -199,7 +199,7 @@ public:
   /// If specified, this value is used to replace regions of the input VDS that has no data.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete.
   /// </returns>
   virtual int64_t RequestVolumeSubset(void *buffer, int64_t bufferByteSize, DimensionsND dimensionsND, int LOD, int channel, const int (&minVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], const int (&maxVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], VolumeDataChannelDescriptor::Format format, optional<float> replacementNoValue = optional<float>()) = 0;
 
@@ -225,7 +225,7 @@ public:
   /// The channel index the requested data is read from.
   /// </param>
   /// <returns>
-  /// The buffer size needed
+  /// The buffer size needed.
   /// </returns>
   virtual int64_t GetProjectedVolumeSubsetBufferSize(const int (&minVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], const int (&maxVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, int LOD = 0, int channel = 0) = 0;
 
@@ -269,7 +269,7 @@ public:
   /// If specified, this value is used to replace regions of the input VDS that has no data.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete.
   /// </returns>
   virtual int64_t RequestProjectedVolumeSubset(void *buffer, int64_t bufferByteSize, DimensionsND dimensionsND, int LOD, int channel, const int (&minVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], const int (&maxVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], FloatVector4 const &voxelPlane, DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, InterpolationMethod interpolationMethod, optional<float> replacementNoValue = optional<float>()) = 0;
 
@@ -283,7 +283,7 @@ public:
   /// The channel index the requested data is read from.
   /// </param>
   /// <returns>
-  /// The buffer size needed
+  /// The buffer size needed.
   /// </returns>
   virtual int64_t GetVolumeSamplesBufferSize(int sampleCount, int channel = 0) = 0;
 
@@ -318,7 +318,7 @@ public:
   /// If specified, this value is used to replace regions of the input VDS that has no data.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete.
   /// </returns>
   virtual int64_t RequestVolumeSamples(float *buffer, int64_t bufferByteSize, DimensionsND dimensionsND, int LOD, int channel, const float (*samplePositions)[VolumeDataLayout::Dimensionality_Max], int sampleCount, InterpolationMethod interpolationMethod, optional<float> replacementNoValue = optional<float>()) = 0;
 
@@ -338,7 +338,7 @@ public:
   /// The channel index the requested data is read from.
   /// </param>
   /// <returns>
-  /// The buffer size needed
+  /// The buffer size needed.
   /// </returns>
   virtual int64_t GetVolumeTracesBufferSize(int traceCount, int traceDimension, int LOD = 0, int channel = 0) = 0;
 
@@ -376,7 +376,7 @@ public:
   /// If specified, this value is used to replace regions of the input VDS that has no data.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete.
   /// </returns>
   virtual int64_t RequestVolumeTraces(float *buffer, int64_t bufferByteSize, DimensionsND dimensionsND, int LOD, int channel, const float(*tracePositions)[VolumeDataLayout::Dimensionality_Max], int traceCount, InterpolationMethod interpolationMethod, int traceDimension, optional<float> replacementNoValue = optional<float>()) = 0;
 
@@ -396,7 +396,7 @@ public:
   /// The index of the chunk to prefetch.
   /// </param>
   /// <returns>
-  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete
+  /// The RequestID which can be used to query the status of the request, cancel the request or wait for the request to complete.
   /// </returns>
   virtual int64_t PrefetchVolumeChunk(DimensionsND dimensionsND, int LOD, int channel, int64_t chunkIndex) = 0;
 
@@ -869,7 +869,7 @@ public:
   }
 
   /// <summary>
-  /// Create a volume data page accessor object for the VDS associated with the given VolumeDataLayout object.
+  /// Create a VolumeDataPageAccessor object for the VDS.
   /// </summary>
   /// <param name="dimensionsND">
   /// The dimensions group that the volume data page accessor will access.
@@ -892,7 +892,7 @@ public:
   /// of the number of chunks in some of the dimensions. Do not change this from the default (1024) unless you know exactly what you are doing.
   /// </param>
   /// <returns>
-  /// A VolumeDataPageAccessor object for the VDS associated with the given VolumeDataLayout object.
+  /// A VolumeDataPageAccessor object for the VDS.
   /// </returns>
   VolumeDataPageAccessor *CreateVolumeDataPageAccessor(DimensionsND dimensionsND, int LOD, int channel, int maxPages, AccessMode accessMode, int chunkMetadataPageSize = 1024)
   {
@@ -1550,7 +1550,7 @@ public:
   /// The channel index the requested data is read from.
   /// </param>
   /// <returns>
-  /// The buffer size needed
+  /// The buffer size needed.
   /// </returns>
   int64_t           
   GetVolumeSubsetBufferSize(const int (&minVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], const int (&maxVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], VolumeDataChannelDescriptor::Format format, int LOD = 0, int channel = 0)
@@ -1809,7 +1809,7 @@ public:
   /// The channel index the requested data is read from.
   /// </param>
   /// <returns>
-  /// The buffer size needed
+  /// The buffer size needed.
   /// </returns>
   int64_t           
   GetProjectedVolumeSubsetBufferSize(const int (&minVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], const int (&maxVoxelCoordinates)[VolumeDataLayout::Dimensionality_Max], DimensionsND projectedDimensions, VolumeDataChannelDescriptor::Format format, int LOD = 0, int channel = 0)
@@ -1976,7 +1976,7 @@ public:
   /// The channel index the requested data is read from.
   /// </param>
   /// <returns>
-  /// The buffer size needed
+  /// The buffer size needed.
   /// </returns>
   int64_t           
   GetVolumeSamplesBufferSize(int sampleCount, int channel = 0)
@@ -2078,7 +2078,7 @@ public:
   /// The channel index the requested data is read from.
   /// </param>
   /// <returns>
-  /// The buffer size needed
+  /// The buffer size needed.
   /// </returns>
   int64_t           
   GetVolumeTracesBufferSize(int traceCount, int traceDimension, int LOD = 0, int channel = 0)
@@ -2210,18 +2210,27 @@ public:
     return m_IVolumeDataAccessManager->FlushUploadQueue(writeUpdatedLayerStatus);
   }
 
+  /// <summary>
+  /// Clear all upload errors that have been retrieved
+  /// </summary>
   void ClearUploadErrors()
   {
     EnsureValid();
     return m_IVolumeDataAccessManager->ClearUploadErrors();
   }
 
+  /// <summary>
+  /// Clear all upload errors
+  /// </summary>
   void ForceClearAllUploadErrors()
   {
     EnsureValid();
     return m_IVolumeDataAccessManager->ForceClearAllUploadErrors();
   }
 
+  /// <summary>
+  /// Get the number of unretrieved upload errors
+  /// </summary>
   int32_t
   UploadErrorCount()
   {
@@ -2229,6 +2238,9 @@ public:
     return m_IVolumeDataAccessManager->UploadErrorCount();
   }
 
+  /// <summary>
+  /// Get the next unretrieved upload error or an empty error if there are no more errors to retrieve
+  /// </summary>
   void
   GetCurrentUploadError(const char **objectId, int32_t *errorCode, const char **errorString)
   {
@@ -2236,6 +2248,9 @@ public:
     return m_IVolumeDataAccessManager->GetCurrentUploadError(objectId, errorCode, errorString);
   }
 
+  /// <summary>
+  /// Get the download error from the most recent operation that failed
+  /// </summary>
   void
   GetCurrentDownloadError(int *code, const char** errorString)
   {

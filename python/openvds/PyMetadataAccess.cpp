@@ -264,23 +264,13 @@ PyMetadataAccess::initModule(py::module& m)
   MetadataWriteAccess_.def("clearMetadata"               , static_cast<void(MetadataWriteAccess::*)(const char *)>(&MetadataWriteAccess::ClearMetadata), py::arg("category").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(MetadataWriteAccess_ClearMetadata_2));
 
 //AUTOGEN-END
-  // IMPLEMENTED :   MetadataWriteAccess_.def("setMetadataBLOB"             , static_cast<void(MetadataWriteAccess::*)(const char *, const char *, const void *, size_t)>(&MetadataWriteAccess::SetMetadataBLOB), py::arg("category").none(false), py::arg("name").none(false), py::arg("data").none(false), py::arg("size").none(false), OPENVDS_DOCSTRING(MetadataWriteAccess_SetMetadataBLOB));
-  MetadataWriteAccess_.def("setMetadataBLOB", [](MetadataWriteAccess* self, const char * category, const char * name, py::buffer data)
-    {
-      py::buffer_info buffer = data.request();
-      size_t size = buffer.size * buffer.itemsize;
-      self->SetMetadataBLOB(category, name, buffer.ptr, size);
-    },
-    py::arg("category").none(false), py::arg("name").none(false), py::arg("value").none(false), OPENVDS_DOCSTRING(MetadataWriteAccess_SetMetadataBLOB));
-
-  // IMPLEMENTED :   MetadataContainer_.def("getMetadataBLOB"             , static_cast<void(MetadataContainer::*)(const char *, const char *, const void **, size_t *) const>(&MetadataContainer::GetMetadataBLOB), py::arg("category").none(false), py::arg("name").none(false), py::arg("data").none(false), py::arg("size").none(false), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB));
   MetadataReadAccess_.def("getMetadataBLOB", [](MetadataReadAccess* self, const char* category, const char* name) 
     {
       BLOB blob;
       self->GetMetadataBLOB(category, name, (void const**)&blob.m_Data, &blob.m_Size);
       return blob;
     },
-    py::arg("category").none(false), py::arg("name").none(false), OPENVDS_DOCSTRING(MetadataContainer_GetMetadataBLOB));
+    py::arg("category").none(false), py::arg("name").none(false), OPENVDS_DOCSTRING(MetadataReadAccess_GetMetadataBLOB));
 
   MetadataReadAccess_.def("getMetadata", [](MetadataReadAccess* self, native::MetadataKey const& key)
     {
@@ -291,4 +281,3 @@ PyMetadataAccess::initModule(py::module& m)
       return GetMetadata(self, category, name, type);
     }, py::arg("category").none(false), py::arg("name").none(false), py::arg("type").none(false));
 }
-
