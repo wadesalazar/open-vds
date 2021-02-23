@@ -43,6 +43,8 @@
 #include <json/json.h>
 #include <fmt/format.h>
 
+#include "../shared/tools_shared.h"
+
 #include <chrono>
 #include <numeric>
 
@@ -71,22 +73,6 @@ int64_t GetTotalSystemMemory()
     return int64_t(pages) * int64_t(page_size);
 }
 #endif
-
-static DataProvider CreateDataProviderFromFile(const std::string &filename, OpenVDS::Error &error)
-{
-  std::unique_ptr<OpenVDS::File> file(new OpenVDS::File());
-  if (!file->Open(filename, false, false, false, error))
-    return DataProvider((OpenVDS::File *)nullptr);
-  return DataProvider(file.release());
-}
-
-static DataProvider CreateDataProviderFromOpenOptions(const std::string &url, const std::string &connectionString, const std::string &objectId, OpenVDS::Error &error)
-{
-  std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(url, connectionString, OpenVDS::IOManager::AccessPattern::ReadOnly, error));
-  if (error.code)
-    return DataProvider((OpenVDS::IOManager *)nullptr, "", error);
-  return DataProvider(ioManager.release(), objectId, error);
-}
 
 Json::Value
 SerializeSEGYBinInfo(SEGYBinInfo const& binInfo)
@@ -1254,35 +1240,6 @@ findFirstTrace(TraceDataManager& traceDataManager, const SEGYSegmentInfo& segmen
   return findFirstTrace(traceDataManager, segment.m_primaryKey, secondaryKey, fileInfo, segment.m_traceStart, segment.m_traceStop, secondaryStart, secondaryStop, error);
 }
 
-static std::vector<DataProvider> CreateDataProviders(const std::vector<std::string> &fileNames,
-                                                     const std::string &url, const std::string &connection,
-                                                     OpenVDS::Error &error)
-{
-  std::vector<DataProvider>
-    dataProviders;
-
-  for (const auto& fileName : fileNames)
-  {
-    error = OpenVDS::Error();
-    if (url.empty())
-    {
-      dataProviders.push_back(CreateDataProviderFromFile(fileName, error));
-    }
-    else
-    {
-      dataProviders.push_back(CreateDataProviderFromOpenOptions(url, connection, fileName, error));
-    }
-
-    if (error.code != 0)
-    {
-      dataProviders.clear();
-      break;
-    }
-  }
-
-  return dataProviders;
-}
-
 int
 SecondaryKeyDimension(const SEGYFileInfo& fileInfo)
 {
@@ -1357,11 +1314,9 @@ main(int argc, char* argv[])
   options.add_option("", "b", "brick-size", "The brick size for the volume data store.", cxxopts::value<int>(brickSize)->default_value("64"), "<value>");
   options.add_option("", "f", "force", "Continue on upload error.", cxxopts::value<bool>(force), "");
   options.add_option("", "", "ignore-warnings", "Ignore warnings about import parameters.", cxxopts::value<bool>(ignoreWarnings), "");
-  options.add_option("", "", "url", "Url with cloud vendor scheme used for target location.", cxxopts::value<std::string>(url), "<string>");
-  options.add_option("", "", "connection", "Connection string used for additional parameters to the target connection", cxxopts::value<std::string>(connection), "<string>");
-  options.add_option("", "", "vdsfile", "File name of output VDS file.", cxxopts::value<std::string>(vdsFileName), "<string>");
-  options.add_option("", "", "source-url", "Url with cloud vendor scheme used for source location.", cxxopts::value<std::string>(sourceUrl), "<string>");
-  options.add_option("", "", "source-connection", "Connection string used for additional parameters to the source connection", cxxopts::value<std::string>(sourceConnection), "<string>");
+  options.add_option("", "", "url", "Url with cloud vendor scheme used for target location or file name of output VDS file.", cxxopts::value<std::string>(url), "<string>");
+  options.add_option("", "", "url-connection", "Connection string used for additional parameters to the url connection", cxxopts::value<std::string>(connection), "<string>");
+  options.add_option("", "", "input-connection", "Connection string used for additional parameters to the input connection", cxxopts::value<std::string>(sourceConnection), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
   options.add_option("", "", "uniqueID", "Generate a new globally unique ID when scanning the input SEG-Y file.", cxxopts::value<bool>(uniqueID), "");
   options.add_option("", "", "disable-persistentID", "Disable the persistentID usage, placing the VDS directly into the url location.", cxxopts::value<bool>(disablePersistentID), "");
@@ -1505,7 +1460,7 @@ main(int argc, char* argv[])
   OpenVDS::Error
     error;
 
-  auto dataProviders = CreateDataProviders(fileNames, sourceUrl, sourceConnection, error);
+  auto dataProviders = CreateDataProviders(fileNames, sourceConnection, error);
   if (error.code != 0)
   {
     // TODO need to name which file failed to open

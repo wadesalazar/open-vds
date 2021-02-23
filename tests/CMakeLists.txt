@@ -34,6 +34,7 @@ function(add_test_executable name)
   addSystemHeadersToTarget(${name} "${fmt_INCLUDE}")
   addSystemHeadersToTarget(${name} "${json_INCLUDE}")
   target_include_directories(${name} PRIVATE ${PROJECT_SOURCE_DIR}/src/OpenVDS)
+  target_include_directories(${name} PRIVATE ${PROJECT_SOURCE_DIR}/src/SEGYUtils)
   target_compile_definitions(${name} PRIVATE -DTEST_DATA_PATH="${PROJECT_SOURCE_DIR}/tests/VDS")
   target_compile_definitions(${name} PRIVATE -DTEST_URL="${TEST_URL}")
   target_compile_definitions(${name} PRIVATE -DTEST_CONNECTION="${TEST_CONNECTION_ESCAPED}")
@@ -117,7 +118,11 @@ add_test_executable(global_state
 
 add_test_executable(openvds_mixed_request
   OpenVDS/RequestVolumeSubsetAndPageAccessor.cpp
-  )
+)
+
+add_test_executable(tools_shared
+  tools_shared/tools_shared_test.cpp
+)
 
 if (TEST_SEGY_FILE AND TEST_URL)
   add_test(NAME "tools.SegyRoundtrip"
