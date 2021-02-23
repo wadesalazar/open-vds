@@ -1684,6 +1684,14 @@ static const char *__doc_OpenVDS_InvalidOperation_InvalidOperation = R"doc()doc"
 
 static const char *__doc_OpenVDS_InvalidOperation_m_errorMessage = R"doc()doc";
 
+static const char *__doc_OpenVDS_IsSupportedProtocol =
+R"doc(Verifies that the url is a supported protocol
+
+Returns:
+--------
+    Returnes True if the protocol specifier of the url is recognised
+    by OpenVDS, otherwise returns False)doc";
+
 static const char *__doc_OpenVDS_KnownAxisNames = R"doc()doc";
 
 static const char *__doc_OpenVDS_KnownAxisNames_Crossline =
@@ -2451,6 +2459,8 @@ static const char *__doc_OpenVDS_SimplexNoise = R"doc()doc";
 static const char *__doc_OpenVDS_StringWrapper = R"doc()doc";
 
 static const char *__doc_OpenVDS_StringWrapper_StringWrapper = R"doc()doc";
+
+static const char *__doc_OpenVDS_StringWrapper_StringWrapper_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_StringWrapper_data = R"doc()doc";
 
@@ -4365,35 +4375,86 @@ static const char *__doc_OpenVDS_VolumeDataReadWriteAccessor_VolumeDataReadWrite
 
 static const char *__doc_OpenVDS_VolumeDataRequest = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataRequest_Buffer = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataRequest_Buffer =
+R"doc(Get the pointer to the buffer the request is writing to.
 
-static const char *__doc_OpenVDS_VolumeDataRequest_BufferByteSize = R"doc()doc";
+Returns:
+--------
+    The pointer to the buffer the request is writing to.)doc";
 
-static const char *__doc_OpenVDS_VolumeDataRequest_BufferDataType = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataRequest_BufferByteSize =
+R"doc(Get the size of the buffer the request is writing to.
 
-static const char *__doc_OpenVDS_VolumeDataRequest_Cancel = R"doc()doc";
+Returns:
+--------
+    The size of the buffer the request is writing to.)doc";
 
-static const char *__doc_OpenVDS_VolumeDataRequest_CancelAndWaitForCompletion = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataRequest_BufferDataType =
+R"doc(Get the volume data format of the buffer the request is writing to.
+
+Returns:
+--------
+    The volume data format of the buffer the request is writing to.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_Cancel =
+R"doc(Try to cancel the request. You still have to call
+WaitForCompletion/IsCanceled to make sure the buffer is not being
+written to and to take the job out of the system. It is possible that
+the request has completed concurrently with the call to Cancel in
+which case WaitForCompletion will return True.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_CancelAndWaitForCompletion =
+R"doc(Cancel the request and wait for it to complete. This call will block
+until the request has completed so you can be sure the buffer is not
+being written to and the job is taken out of the system.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataRequest_CancelInternal = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataRequest_Deleter = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataRequest_GetCompletionFactor = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataRequest_GetCompletionFactor =
+R"doc(Get the completion factor (between 0 and 1) of the request.
 
-static const char *__doc_OpenVDS_VolumeDataRequest_IsCanceled = R"doc()doc";
+Returns:
+--------
+    A factor (between 0 and 1) indicating how much of the request has
+    been completed.)doc";
 
-static const char *__doc_OpenVDS_VolumeDataRequest_IsCompleted = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataRequest_IsCanceled =
+R"doc(Check if the request was canceled (e.g. the VDS was invalidated before
+the request was processed). If the request was canceled, the buffer
+does not contain valid data.
+
+Returns:
+--------
+    The request is active until either IsCompleted, IsCanceled or
+    WaitForCompletion returns True.)doc";
+
+static const char *__doc_OpenVDS_VolumeDataRequest_IsCompleted =
+R"doc(Check if the request completed successfully. If the request completed,
+the buffer now contains valid data.
+
+Returns:
+--------
+    The request is active until either IsCompleted, IsCanceled or
+    WaitForCompletion returns True.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataRequest_IsDataOwner = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataRequest_RequestFormat = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataRequest_RequestID = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataRequest_RequestID =
+R"doc(Get the ID of the request.
+
+Returns:
+--------
+    The ID of the request.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataRequest_SetJobID = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataRequest_ValidateRequest = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataRequest_ValidateRequest =
+R"doc(Check if the request object is valid. Throws an InvalidOperation
+exception if the request object is not valid.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataRequest_VolumeDataRequest = R"doc()doc";
 
@@ -4403,7 +4464,28 @@ static const char *__doc_OpenVDS_VolumeDataRequest_VolumeDataRequest_3 = R"doc()
 
 static const char *__doc_OpenVDS_VolumeDataRequest_VolumeDataRequest_4 = R"doc()doc";
 
-static const char *__doc_OpenVDS_VolumeDataRequest_WaitForCompletion = R"doc()doc";
+static const char *__doc_OpenVDS_VolumeDataRequest_WaitForCompletion =
+R"doc(Wait for the VolumeDataRequest to complete successfully. If the
+request completed, the buffer now contains valid data.
+
+Parameters:
+-----------
+
+millisecondsBeforeTimeout :
+    The number of milliseconds to wait before timing out (optional). A
+    value of 0 indicates there is no timeout and we will wait for
+    however long it takes. Note that the request is not automatically
+    canceled if the wait times out, you can also use this mechanism to
+    e.g. update a progress bar while waiting. If you want to cancel
+    the request you have to explicitly call CancelRequest() and then
+    wait for the request to stop writing to the buffer.
+
+Returns:
+--------
+    The request is active until either IsCompleted, IsCanceled or
+    WaitForCompletion returns True. Whenever WaitForCompletion returns
+    False you need to call IsCanceled() to know if that was because of
+    a timeout or if the request was canceled.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataRequest_m_Buffer = R"doc()doc";
 

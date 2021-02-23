@@ -568,6 +568,9 @@ public:
     }
   }
 
+  /// <summary>
+  /// Check if the request object is valid. Throws an InvalidOperation exception if the request object is not valid.
+  /// </summary>
   void
   ValidateRequest()
   {
@@ -577,13 +580,25 @@ public:
     }
   }
 
+  /// <summary>
+  /// Get the ID of the request.
+  /// </summary>
+  /// <returns>
+  /// The ID of the request.
+  /// </returns>
   int64_t
   RequestID() const
   {
     return m_JobID;
   }
 
-  bool 
+  /// <summary>
+  /// Check if the request completed successfully. If the request completed, the buffer now contains valid data.
+  /// </summary>
+  /// <returns>
+  /// The request is active until either IsCompleted, IsCanceled or WaitForCompletion returns true.
+  /// </returns>
+  bool
   IsCompleted()
   {
     ValidateRequest();
@@ -594,7 +609,13 @@ public:
     return m_IsCompleted;
   }
 
-  bool 
+  /// <summary>
+  /// Check if the request was canceled (e.g. the VDS was invalidated before the request was processed). If the request was canceled, the buffer does not contain valid data.
+  /// </summary>
+  /// <returns>
+  /// The request is active until either IsCompleted, IsCanceled or WaitForCompletion returns true.
+  /// </returns>
+  bool
   IsCanceled()
   {
     ValidateRequest();
@@ -605,6 +626,19 @@ public:
     return m_IsCanceled;
   }
 
+  /// <summary>
+  /// Wait for the VolumeDataRequest to complete successfully. If the request completed, the buffer now contains valid data.
+  /// </summary>
+  /// <param name="millisecondsBeforeTimeout">
+  /// The number of milliseconds to wait before timing out (optional). A value of 0 indicates there is no timeout and we will wait for
+  /// however long it takes. Note that the request is not automatically canceled if the wait times out, you can also use this mechanism
+  /// to e.g. update a progress bar while waiting. If you want to cancel the request you have to explicitly call CancelRequest() and
+  /// then wait for the request to stop writing to the buffer.
+  /// </param>
+  /// <returns>
+  /// The request is active until either IsCompleted, IsCanceled or WaitForCompletion returns true.
+  /// Whenever WaitForCompletion returns false you need to call IsCanceled() to know if that was because of a timeout or if the request was canceled.
+  /// </returns>
   bool
   WaitForCompletion(int millisecondsBeforeTimeout = 0)
   {
@@ -616,6 +650,10 @@ public:
     return m_IsCompleted;
   }
 
+  /// <summary>
+  /// Try to cancel the request. You still have to call WaitForCompletion/IsCanceled to make sure the buffer is not being written to and to take the job out of the system.
+  /// It is possible that the request has completed concurrently with the call to Cancel in which case WaitForCompletion will return true.
+  /// </summary>
   void
   Cancel()
   {
@@ -626,6 +664,9 @@ public:
     }
   }
 
+  /// <summary>
+  /// Cancel the request and wait for it to complete. This call will block until the request has completed so you can be sure the buffer is not being written to and the job is taken out of the system.
+  /// </summary>
   void
   CancelAndWaitForCompletion()
   {
@@ -637,6 +678,12 @@ public:
     }
   }
 
+  /// <summary>
+  /// Get the completion factor (between 0 and 1) of the request.
+  /// </summary>
+  /// <returns>
+  /// A factor (between 0 and 1) indicating how much of the request has been completed.
+  /// </returns>
   float
   GetCompletionFactor()
   {
@@ -648,18 +695,36 @@ public:
     return m_IsCompleted ? 1.0f : 0.0f;
   }
 
+  /// <summary>
+  /// Get the pointer to the buffer the request is writing to.
+  /// </summary>
+  /// <returns>
+  /// The pointer to the buffer the request is writing to.
+  /// </returns>
   void*
   Buffer() const
   {
     return m_Buffer;
   }
 
+  /// <summary>
+  /// Get the size of the buffer the request is writing to.
+  /// </summary>
+  /// <returns>
+  /// The size of the buffer the request is writing to.
+  /// </returns>
   int64_t
   BufferByteSize() const
   {
     return m_BufferByteSize;
   }
 
+  /// <summary>
+  /// Get the volume data format of the buffer the request is writing to.
+  /// </summary>
+  /// <returns>
+  /// The volume data format of the buffer the request is writing to.
+  /// </returns>
   VolumeDataChannelDescriptor::Format
   BufferDataType() const
   {
