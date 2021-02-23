@@ -112,8 +112,11 @@ class VolumeDataRequest(object):
         return self.data_out
     
   def cancel(self):
-    """Cancel request"""
-    self._request.Cancel()
+    """Try to cancel the request.
+
+    You still have to call waitForCompletion()/isCanceled() to make sure the buffer is not being written to and to take the job out of the system. It is possible that the request has completed concurrently with the call to cancel() in which case waitForCompletion() will return True.
+    """
+    self._request.cancel()
     
   def waitForCompletion(self, timeout=0.0):
     """Wait for request to complete, or time out after a specified amount of time.
@@ -129,7 +132,13 @@ class VolumeDataRequest(object):
         True if complete, False otherwise.
     """
     nMillisecondsBeforeTimeout = int(timeout * 1000)
-    return self._request.WaitForCompletion(nMillisecondsBeforeTimeout)
+    return self._request.waitForCompletion(nMillisecondsBeforeTimeout)
+
+  def cancelAndWaitForCompletion(self):
+    """Cancel the request and wait for it to complete.
+    This call will block until the request has completed so you can be sure the buffer is not being written to and the job is taken out of the system.
+    """
+    return self._request.cancelAndWaitForCompletion()
 
 class VolumeDataAccessManager(object):
   """Interface class for VDS data access.
