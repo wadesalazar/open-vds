@@ -41,14 +41,13 @@ main(int argc, char *argv[])
 
   std::string url;
   std::string connection;
-  std::string vdsFileName;
   std::string persistentID;
   std::string fileName;
   bool help = false;
 
-  options.add_option("", "", "url", "Url with vendor specific protocol.", cxxopts::value<std::string>(url), "<string>");
+  options.add_option("", "", "url", "Url with vendor specific protocol or VDS file name.", cxxopts::value<std::string>(url), "<string>");
   options.add_option("", "", "connection", "Vendor specific connection string.", cxxopts::value<std::string>(connection), "<string>");
-  options.add_option("", "", "vdsfile", "Input VDS file name.", cxxopts::value<std::string>(vdsFileName), "<string>");
+  options.add_option("", "", "vdsfile", "Input VDS file name.", cxxopts::value<std::string>(url), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
@@ -99,13 +98,13 @@ main(int argc, char *argv[])
 
   OpenVDS::VDSHandle handle;
   
-  if(vdsFileName.empty())
+  if(OpenVDS::IsSupportedProtocol(url))
   {
     handle = OpenVDS::Open(url, connection, openError);
   }
   else
   {
-    handle = OpenVDS::Open(OpenVDS::VDSFileOpenOptions(vdsFileName), openError);
+    handle = OpenVDS::Open(OpenVDS::VDSFileOpenOptions(url), openError);
   }
 
   if(openError.code != 0)

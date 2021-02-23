@@ -194,8 +194,6 @@ int main(int argc, char **argv)
 
   std::vector<std::string> urlarg;
   std::string connection;
-  std::string vdsFileName;
-  std::string persistentID;
   std::string metadataPrintName;
   std::string metadataPrintCategory;
 
@@ -212,7 +210,6 @@ int main(int argc, char **argv)
 //connection options
   options.add_option("", "", "urlpos", "Url with vendor specific protocol.", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
   options.add_option("", "", "connection", "Vendor specific connection string.", cxxopts::value<std::string>(connection), "<string>");
-  options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
 ///action
   options.add_option("", "", "axis", "Print axis descriptors.", cxxopts::value<bool>(axisDescriptors), "");
@@ -227,8 +224,7 @@ int main(int argc, char **argv)
   options.add_option("", "e", "metadata-autodecode", "Autodetect EBCDIC and decode to ASCII for blobs.", cxxopts::value<bool>(metadataAutoDecodeEBCDIC), "");
   options.add_option("", "w", "metadata-force-width", "Force output width.", cxxopts::value<int>(textDecodeWidth), "");
   
-  options.add_option("", "", "url", "Url with vendor specific protocol. (Available as positional argument as well).", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
-  options.add_option("", "", "vdsfile", "VDS file.", cxxopts::value<std::string>(vdsFileName), "<string>");
+  options.add_option("", "", "url", "Url with vendor specific protocol or VDS file. (Available as positional argument as well).", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
 
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
 
@@ -256,32 +252,15 @@ int main(int argc, char **argv)
     return EXIT_SUCCESS;
   }
 
-  if (urlarg.empty() && vdsFileName.empty())
+  if (urlarg.empty())
   {
     std::cout << "\nFailed - missing url/vdsfile argument\n\n";
     std::cout << options.help();
     return EXIT_FAILURE;
   }
   
-  if (urlarg.size() + vdsFileName.size() > 1)
-  {
-    std::cout << "\nFailed - can only specify one url/vdsfile argument\n\n";
-    std::cout << options.help();
-    return EXIT_FAILURE;
-  }
-
   std::string url;
   if(!urlarg.empty()) url = urlarg[0];
-
-  // Open the VDS
-  if (!persistentID.empty())
-  {
-    if (!url.empty() && url.back() != '/')
-    {
-      url.push_back('/');
-    }
-    url.insert(url.end(), persistentID.begin(), persistentID.end());
-  }
 
   if (!axisDescriptors && !channelDescriptors && !volumeDataLayout && !metaKeys && metadataPrintName.empty() && metadataPrintCategory.empty() && !metadataAll)
   {
@@ -295,13 +274,13 @@ int main(int argc, char **argv)
 
   OpenVDS::VDSHandle handle;
 
-  if(vdsFileName.empty())
+  if(OpenVDS::IsSupportedProtocol(url))
   {
     handle = OpenVDS::Open(url, connection, openError);
   }
   else
   {
-    handle = OpenVDS::Open(OpenVDS::VDSFileOpenOptions(vdsFileName), openError);
+    handle = OpenVDS::Open(OpenVDS::VDSFileOpenOptions(url), openError);
   }
 
   if(openError.code != 0)

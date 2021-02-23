@@ -33,6 +33,8 @@
 #include <OpenVDS/KnownMetadata.h>
 #include <OpenVDS/GlobalMetadataCommon.h>
 
+#include "IO/IOManager.h"
+
 #include <mutex>
 #include <cstdlib>
 #include <climits>
@@ -42,6 +44,8 @@
 #include "cxxopts.hpp"
 #include <json/json.h>
 #include <fmt/format.h>
+
+#include "SplitUrl.h"
 
 #include <chrono>
 #include <numeric>
@@ -72,7 +76,7 @@ int64_t GetTotalSystemMemory()
 }
 #endif
 
-static DataProvider CreateDataProviderFromFile(const std::string &filename, OpenVDS::Error &error)
+DataProvider CreateDataProviderFromFile(const std::string &filename, OpenVDS::Error &error)
 {
   std::unique_ptr<OpenVDS::File> file(new OpenVDS::File());
   if (!file->Open(filename, false, false, false, error))
@@ -80,12 +84,52 @@ static DataProvider CreateDataProviderFromFile(const std::string &filename, Open
   return DataProvider(file.release());
 }
 
-static DataProvider CreateDataProviderFromOpenOptions(const std::string &url, const std::string &connectionString, const std::string &objectId, OpenVDS::Error &error)
+DataProvider CreateDataProviderFromOpenOptions(const std::string &url, const std::string &connectionString, const std::string &objectId, OpenVDS::Error &error)
 {
   std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(url, connectionString, OpenVDS::IOManager::AccessPattern::ReadOnly, error));
   if (error.code)
     return DataProvider((OpenVDS::IOManager *)nullptr, "", error);
   return DataProvider(ioManager.release(), objectId, error);
+}
+
+DataProvider CreateDataProvider(const std::string& name, const std::string& connection, OpenVDS::Error& error)
+{
+  if (OpenVDS::IsSupportedProtocol(name))
+  {
+    std::string dirname;
+    std::string basename;
+    std::string parameters;
+    splitUrl(name, dirname, basename, parameters, error);
+    if (error.code)
+      return DataProvider(nullptr);
+
+    std::string url = dirname + parameters;
+    return CreateDataProviderFromOpenOptions(url, connection, basename, error);
+  }
+  else
+  {
+    return CreateDataProviderFromFile(name, error);
+  }
+  return DataProvider(nullptr);
+}
+
+std::vector<DataProvider> CreateDataProviders(const std::vector<std::string> &fileNames, const std::string &connection, OpenVDS::Error &error)
+{
+  std::vector<DataProvider>
+    dataProviders;
+
+  for (const auto& fileName : fileNames)
+  {
+    error = OpenVDS::Error();
+    dataProviders.push_back(CreateDataProvider(fileName, connection, error));
+
+    if (error.code != 0)
+    {
+      dataProviders.clear();
+      break;
+    }
+  }
+  return dataProviders;
 }
 
 Json::Value
@@ -303,24 +347,24 @@ HeaderFieldFromJson(Json::Value const& jsonHeaderField)
 }
 
 bool
-ParseHeaderFormatFile(OpenVDS::File const& file, std::map<std::string, SEGY::HeaderField>& traceHeaderFields, SEGY::Endianness& headerEndianness, OpenVDS::Error &error)
+ParseHeaderFormatFile(DataProvider &dataProvider, std::map<std::string, SEGY::HeaderField>& traceHeaderFields, SEGY::Endianness& headerEndianness, OpenVDS::Error &error)
 {
-  int64_t fileSize = file.Size(error);
+  int64_t dataSize = dataProvider.Size(error);
 
   if (error.code != 0)
   {
     return false;
   }
 
-  if (fileSize > INT_MAX)
+  if (dataSize > INT_MAX)
   {
     return false;
   }
 
   std::unique_ptr<char[]>
-    buffer(new char[fileSize]);
+    buffer(new char[dataSize]);
 
-  file.Read(buffer.get(), 0, (int32_t)fileSize, error);
+  dataProvider.Read(buffer.get(), 0, (int32_t)dataSize, error);
 
   if (error.code != 0)
   {
@@ -344,7 +388,7 @@ ParseHeaderFormatFile(OpenVDS::File const& file, std::map<std::string, SEGY::Hea
       root;
 
     bool
-      success = reader->parse(buffer.get(), buffer.get() + fileSize, &root, &errs);
+      success = reader->parse(buffer.get(), buffer.get() + dataSize, &root, &errs);
 
     if (!success)
     {
@@ -921,11 +965,11 @@ createImportInformationMetadata(const std::vector<DataProvider> &dataProviders, 
 }
 
 bool
-parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
+parseSEGYFileInfoFile(DataProvider &dataProvider, SEGYFileInfo& fileInfo)
 {
   OpenVDS::Error error;
 
-  int64_t fileSize = file.Size(error);
+  int64_t fileSize = dataProvider.Size(error);
 
   if (error.code != 0)
   {
@@ -940,7 +984,7 @@ parseSEGYFileInfoFile(OpenVDS::File const& file, SEGYFileInfo& fileInfo)
   std::unique_ptr<char[]>
     buffer(new char[fileSize]);
 
-  file.Read(buffer.get(), 0, (int32_t)fileSize, error);
+  dataProvider.Read(buffer.get(), 0, (int32_t)fileSize, error);
 
   if (error.code != 0)
   {
@@ -1254,35 +1298,6 @@ findFirstTrace(TraceDataManager& traceDataManager, const SEGYSegmentInfo& segmen
   return findFirstTrace(traceDataManager, segment.m_primaryKey, secondaryKey, fileInfo, segment.m_traceStart, segment.m_traceStop, secondaryStart, secondaryStop, error);
 }
 
-static std::vector<DataProvider> CreateDataProviders(const std::vector<std::string> &fileNames,
-                                                     const std::string &url, const std::string &connection,
-                                                     OpenVDS::Error &error)
-{
-  std::vector<DataProvider>
-    dataProviders;
-
-  for (const auto& fileName : fileNames)
-  {
-    error = OpenVDS::Error();
-    if (url.empty())
-    {
-      dataProviders.push_back(CreateDataProviderFromFile(fileName, error));
-    }
-    else
-    {
-      dataProviders.push_back(CreateDataProviderFromOpenOptions(url, connection, fileName, error));
-    }
-
-    if (error.code != 0)
-    {
-      dataProviders.clear();
-      break;
-    }
-  }
-
-  return dataProviders;
-}
-
 int
 SecondaryKeyDimension(const SEGYFileInfo& fileInfo)
 {
@@ -1330,10 +1345,8 @@ main(int argc, char* argv[])
   bool force = false;
   bool ignoreWarnings = false;
   std::string url;
-  std::string connection;
-  std::string vdsFileName;
-  std::string sourceUrl;
-  std::string sourceConnection;
+  std::string urlConnection;
+  std::string inputConnection;
   std::string persistentID;
   bool uniqueID = false;
   bool disablePersistentID = false;
@@ -1357,11 +1370,10 @@ main(int argc, char* argv[])
   options.add_option("", "b", "brick-size", "The brick size for the volume data store.", cxxopts::value<int>(brickSize)->default_value("64"), "<value>");
   options.add_option("", "f", "force", "Continue on upload error.", cxxopts::value<bool>(force), "");
   options.add_option("", "", "ignore-warnings", "Ignore warnings about import parameters.", cxxopts::value<bool>(ignoreWarnings), "");
-  options.add_option("", "", "url", "Url with cloud vendor scheme used for target location.", cxxopts::value<std::string>(url), "<string>");
-  options.add_option("", "", "connection", "Connection string used for additional parameters to the target connection", cxxopts::value<std::string>(connection), "<string>");
-  options.add_option("", "", "vdsfile", "File name of output VDS file.", cxxopts::value<std::string>(vdsFileName), "<string>");
-  options.add_option("", "", "source-url", "Url with cloud vendor scheme used for source location.", cxxopts::value<std::string>(sourceUrl), "<string>");
-  options.add_option("", "", "source-connection", "Connection string used for additional parameters to the source connection", cxxopts::value<std::string>(sourceConnection), "<string>");
+  options.add_option("", "", "url", "Url with cloud vendor scheme used for target location or file name of output VDS file.", cxxopts::value<std::string>(url), "<string>");
+  options.add_option("", "", "url-connection", "Connection string used for additional parameters to the url connection", cxxopts::value<std::string>(urlConnection), "<string>");
+  options.add_option("", "", "vdsfile", "File name of output VDS file.", cxxopts::value<std::string>(url), "<string>");
+  options.add_option("", "", "input-connection", "Connection string used for additional parameters to the input connection", cxxopts::value<std::string>(inputConnection), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
   options.add_option("", "", "uniqueID", "Generate a new globally unique ID when scanning the input SEG-Y file.", cxxopts::value<bool>(uniqueID), "");
   options.add_option("", "", "disable-persistentID", "Disable the persistentID usage, placing the VDS directly into the url location.", cxxopts::value<bool>(disablePersistentID), "");
@@ -1454,13 +1466,9 @@ main(int argc, char* argv[])
 
   if (!headerFormatFileName.empty())
   {
-    OpenVDS::File
-      headerFormatFile;
-
     OpenVDS::Error
       error;
-
-    headerFormatFile.Open(headerFormatFileName, false, false, false, error);
+    DataProvider headerFormatDataProvider = CreateDataProvider(headerFormatFileName, inputConnection, error);
 
     if (error.code != 0)
     {
@@ -1468,7 +1476,7 @@ main(int argc, char* argv[])
       return EXIT_FAILURE;
     }
 
-    ParseHeaderFormatFile(headerFormatFile, g_traceHeaderFields, headerEndianness, error);
+    ParseHeaderFormatFile(headerFormatDataProvider, g_traceHeaderFields, headerEndianness, error);
 
     if (error.code != 0)
     {
@@ -1505,7 +1513,7 @@ main(int argc, char* argv[])
   OpenVDS::Error
     error;
 
-  auto dataProviders = CreateDataProviders(fileNames, sourceUrl, sourceConnection, error);
+  auto dataProviders = CreateDataProviders(fileNames, inputConnection, error);
   if (error.code != 0)
   {
     // TODO need to name which file failed to open
@@ -1562,48 +1570,78 @@ main(int argc, char* argv[])
       }
       else
       {
-        OpenVDS::File
-          fileInfoFile;
-
         OpenVDS::Error
           error;
 
-        fileInfoFile.Open(fileInfoFileName.c_str(), true, false, true, error);
-
-        if (error.code != 0)
+        if (OpenVDS::IsSupportedProtocol(fileInfoFileName))
         {
-          std::cerr << std::string("Could not create file: ") << fileInfoFileName;
-          return EXIT_FAILURE;
+          std::string dirname;
+          std::string basename;
+          std::string parameters;
+          splitUrl(fileInfoFileName, dirname, basename, parameters, error);
+          if (error.code)
+          {
+            fmt::print(stderr, "Failed to creating IOManager for {}: {}\n", fileInfoFileName, error.string);
+            return EXIT_FAILURE;
+          }
+          std::string scanUrl = dirname + parameters;
+          std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(scanUrl, urlConnection, OpenVDS::IOManager::ReadWrite, error));
+          if (error.code)
+          {
+            fmt::print(stderr, "Failed to creating IOManager for {}: {}\n", fileInfoFileName, error.string);
+            return EXIT_FAILURE;
+          }
+          auto shared_data = std::make_shared<std::vector<uint8_t>>();
+          shared_data->insert(shared_data->end(), document.begin(), document.end());
+          auto req = ioManager->WriteObject(basename, "", "text/plain", {}, shared_data, {});
+          req->WaitForFinish();
+          req->IsSuccess(error);
+          if (error.code)
+          {
+            fmt::print(stderr, "Failed to write {}: {}\n", fileInfoFileName, error.string);
+            return EXIT_FAILURE;
+          }
+        }
+        else
+        {
+          OpenVDS::File
+            fileInfoFile;
+
+          fileInfoFile.Open(fileInfoFileName.c_str(), true, false, true, error);
+
+          if (error.code != 0)
+          {
+            std::cerr << std::string("Could not create file: ") << fileInfoFileName;
+            return EXIT_FAILURE;
+          }
+
+          fileInfoFile.Write(document.data(), 0, (int32_t)document.size(), error);
+
+          if (error.code != 0)
+          {
+            std::cerr << std::string("Could not write to file: ") << fileInfoFileName;
+            return EXIT_FAILURE;
+          }
         }
 
-        fileInfoFile.Write(document.data(), 0, (int32_t)document.size(), error);
-
-        if (error.code != 0)
-        {
-          std::cerr << std::string("Could not write to file: ") << fileInfoFileName;
-          return EXIT_FAILURE;
-        }
       }
       return EXIT_SUCCESS;
     }
   }
   else if (!fileInfoFileName.empty())
   {
-    OpenVDS::File
-      fileInfoFile;
-
     OpenVDS::Error
       error;
 
-    fileInfoFile.Open(fileInfoFileName.c_str(), false, false, false, error);
+    DataProvider fileInfoDataProvider = CreateDataProvider(fileInfoFileName, inputConnection, error);
 
     if (error.code != 0)
     {
-      std::cerr << std::string("Could not open file: ") << fileInfoFileName;
+      fmt::print(stderr, "Could not create data provider for {}: {}.\n", fileInfoFileName, error.string);
       return EXIT_FAILURE;
     }
 
-    bool success = parseSEGYFileInfoFile(fileInfoFile, fileInfo);
+    bool success = parseSEGYFileInfoFile(fileInfoDataProvider, fileInfo);
 
     if (!success)
     {
@@ -1779,24 +1817,27 @@ main(int argc, char* argv[])
 
   OpenVDS::Error createError;
 
-  if (!persistentID.empty())
-  {
-    if (!url.empty() && url.back() != '/')
-    {
-      url.push_back('/');
-    }
-    url.insert(url.end(), persistentID.begin(), persistentID.end());
-  }
-
   OpenVDS::VDSHandle handle;
 
-  if(vdsFileName.empty())
+  if(OpenVDS::IsSupportedProtocol(url))
   {
-    handle = OpenVDS::Create(url, connection, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
+    if (!persistentID.empty())
+    {
+      std::string baseUrl;
+      std::string parameters;
+      splitUrlOnParameters(url, baseUrl, parameters);
+      if (baseUrl.back() != '/')
+      {
+        baseUrl.push_back('/');
+      }
+      baseUrl.insert(baseUrl.end(), persistentID.begin(), persistentID.end());
+      url = baseUrl + parameters;
+    }
+    handle = OpenVDS::Create(url, urlConnection, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
   }
   else
   {
-    handle = OpenVDS::Create(OpenVDS::VDSFileOpenOptions(vdsFileName), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
+    handle = OpenVDS::Create(OpenVDS::VDSFileOpenOptions(url), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
   }
 
   if (createError.code != 0)

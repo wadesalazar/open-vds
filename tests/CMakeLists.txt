@@ -117,7 +117,11 @@ add_test_executable(global_state
 
 add_test_executable(openvds_mixed_request
   OpenVDS/RequestVolumeSubsetAndPageAccessor.cpp
-  )
+)
+
+add_test_executable(tools
+  tools/SplitUrlTest.cpp
+)
 
 if (TEST_SEGY_FILE AND TEST_URL)
   add_test(NAME "tools.SegyRoundtrip"
