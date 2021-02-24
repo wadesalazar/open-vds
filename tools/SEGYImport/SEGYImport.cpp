@@ -1344,6 +1344,8 @@ main(int argc, char* argv[])
   int brickSize;
   bool force = false;
   bool ignoreWarnings = false;
+  std::string compressionMethodString;
+  float compressionTolerance = 0;
   std::string url;
   std::string urlConnection;
   std::string inputConnection;
@@ -1353,6 +1355,14 @@ main(int argc, char* argv[])
   bool prestack = false;
   bool traceOrderByOffset = true;
   bool help = false;
+
+  std::string supportedCompressionMethods = "None";
+  if(OpenVDS::IsCompressionMethodSupported(OpenVDS::CompressionMethod::Wavelet)) supportedCompressionMethods += ", Wavelet";
+  if(OpenVDS::IsCompressionMethodSupported(OpenVDS::CompressionMethod::RLE)) supportedCompressionMethods += ", RLE";
+  if(OpenVDS::IsCompressionMethodSupported(OpenVDS::CompressionMethod::Zip)) supportedCompressionMethods += ", Zip";
+  if(OpenVDS::IsCompressionMethodSupported(OpenVDS::CompressionMethod::WaveletNormalizeBlock)) supportedCompressionMethods += ", WaveletNormalizeBlock";
+  if(OpenVDS::IsCompressionMethodSupported(OpenVDS::CompressionMethod::WaveletLossless)) supportedCompressionMethods += ", WaveletLossless";
+  if(OpenVDS::IsCompressionMethodSupported(OpenVDS::CompressionMethod::WaveletNormalizeBlockLossless)) supportedCompressionMethods += ", WaveletNormalizeBlockLossless";
 
   std::vector<std::string> fileNames;
 
@@ -1370,6 +1380,8 @@ main(int argc, char* argv[])
   options.add_option("", "b", "brick-size", "The brick size for the volume data store.", cxxopts::value<int>(brickSize)->default_value("64"), "<value>");
   options.add_option("", "f", "force", "Continue on upload error.", cxxopts::value<bool>(force), "");
   options.add_option("", "", "ignore-warnings", "Ignore warnings about import parameters.", cxxopts::value<bool>(ignoreWarnings), "");
+  options.add_option("", "", "compression-method", std::string("Compression method. Supported compression methods are: ") + supportedCompressionMethods + ".", cxxopts::value<std::string>(compressionMethodString), "<string>");
+  options.add_option("", "", "tolerance", "This parameter specifies the compression tolerance when using the wavelet compression method. This value is the maximum deviation from the original data value when the data is converted to 8-bit using the value range. A value of 1 means the maximum allowable loss is the same as quantizing to 8-bit (but the average loss will be much much lower than quantizing to 8-bit). It is not a good idea to directly relate the tolerance to the quality of the compressed data, as the average loss will in general be an order of magnitude lower than the allowable loss.", cxxopts::value<float>(compressionTolerance), "<value>");
   options.add_option("", "", "url", "Url with cloud vendor scheme used for target location or file name of output VDS file.", cxxopts::value<std::string>(url), "<string>");
   options.add_option("", "", "url-connection", "Connection string used for additional parameters to the url connection", cxxopts::value<std::string>(urlConnection), "<string>");
   options.add_option("", "", "vdsfile", "File name of output VDS file.", cxxopts::value<std::string>(url), "<string>");
@@ -1405,6 +1417,29 @@ main(int argc, char* argv[])
   {
     std::cout << options.help();
     return EXIT_SUCCESS;
+  }
+
+  // set up the compression method
+  OpenVDS::CompressionMethod compressionMethod = OpenVDS::CompressionMethod::None;
+
+  if(compressionMethodString.empty()) compressionMethod = OpenVDS::CompressionMethod::None;
+  else if(compressionMethodString == "None")                          compressionMethod = OpenVDS::CompressionMethod::None;
+  else if(compressionMethodString == "Wavelet")                       compressionMethod = OpenVDS::CompressionMethod::Wavelet;
+  else if(compressionMethodString == "RLE")                           compressionMethod = OpenVDS::CompressionMethod::RLE;
+  else if(compressionMethodString == "Zip")                           compressionMethod = OpenVDS::CompressionMethod::Zip;
+  else if(compressionMethodString == "WaveletNormalizeBlock")         compressionMethod = OpenVDS::CompressionMethod::WaveletNormalizeBlock;
+  else if(compressionMethodString == "WaveletLossless")               compressionMethod = OpenVDS::CompressionMethod::WaveletLossless;
+  else if(compressionMethodString == "WaveletNormalizeBlockLossless") compressionMethod = OpenVDS::CompressionMethod::WaveletNormalizeBlockLossless;
+  else
+  {
+    fmt::print(stderr, "Unknown compression method: {}", compressionMethod);
+    return EXIT_FAILURE;
+  }
+
+  if(!OpenVDS::IsCompressionMethodSupported(compressionMethod))
+  {
+    fmt::print(stderr, "Unsupported compression method: {}", compressionMethod);
+    return EXIT_FAILURE;
   }
 
   // get the canonical field name for the primary and secondary key
@@ -1833,11 +1868,11 @@ main(int argc, char* argv[])
       baseUrl.insert(baseUrl.end(), persistentID.begin(), persistentID.end());
       url = baseUrl + parameters;
     }
-    handle = OpenVDS::Create(url, urlConnection, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
+    handle = OpenVDS::Create(url, urlConnection, layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, compressionMethod, compressionTolerance, createError);
   }
   else
   {
-    handle = OpenVDS::Create(OpenVDS::VDSFileOpenOptions(url), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, createError);
+    handle = OpenVDS::Create(OpenVDS::VDSFileOpenOptions(url), layoutDescriptor, axisDescriptors, channelDescriptors, metadataContainer, compressionMethod, compressionTolerance, createError);
   }
 
   if (createError.code != 0)

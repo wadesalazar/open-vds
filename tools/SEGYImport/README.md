@@ -23,6 +23,8 @@ SEGYImport [OPTION...] <input file>
 | -b, --brick-size \<value>         | The brick size for the volume data store. (default: 64)
 | -f, --force                       | Continue on upload error.
 |     --ignore-warnings             | Ignore warnings about import parameters.
+|     --compression-method          | Compression method. Supported compression methods are None, RLE, Zip.|
+|     --tolerance                   | This parameter specifies the compression tolerance when using the wavelet compression method. This value is the maximum deviation from the original data value when the data is converted to 8-bit using the value range. A value of 1 means the maximum allowable loss is the same as quantizing to 8-bit (but the average loss will be much much lower than quantizing to 8-bit). It is not a good idea to directly relate the tolerance to the quality of the compressed data, as the average loss will in general be an order of magnitude lower than the allowable loss. |
 |     --url \<string>               | Url for the target destination for the VDS
 |     --connection \<string>        | Connection string for the target destination for the VDS
 |     --sourceUrl \<string>         | Url for the source input 
