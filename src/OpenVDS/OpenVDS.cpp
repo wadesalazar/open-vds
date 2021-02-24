@@ -36,6 +36,7 @@
 #include "VDS/VolumeDataStoreIOManager.h"
 #include "VDS/VolumeDataStoreVDSFile.h"
 #include "VDS/GlobalStateImpl.h"
+#include "VDS/WaveletTypes.h"
 
 #include "IO/IOManager.h"
 
@@ -580,6 +581,17 @@ void CreateVolumeDataLayout(VDS &vds, CompressionMethod compressionMethod, float
   {
     vds.volumeDataLayout.reset();
     return;
+  }
+
+  // Update compression settings if they are outside effectively valid ranges,
+  if (compressionTolerance < WAVELET_MIN_COMPRESSION_TOLERANCE)
+  {
+    compressionTolerance = WAVELET_MIN_COMPRESSION_TOLERANCE;
+  }
+
+  if (compressionMethod == CompressionMethod::WaveletLossless || compressionMethod == CompressionMethod::WaveletNormalizeBlockLossless)
+  {
+    compressionTolerance = WAVELET_MIN_COMPRESSION_TOLERANCE;
   }
 
   const int actualValueRangeChannel = -1;
