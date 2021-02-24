@@ -242,7 +242,46 @@ static const char *__doc_OpenVDS_ConvertValue_4 = R"doc()doc";
 static const char *__doc_OpenVDS_ConvertValue_5 = R"doc()doc";
 
 static const char *__doc_OpenVDS_Create =
-R"doc(Create a new VDS
+R"doc(Create a new VDS.
+
+Parameters:
+-----------
+
+url :
+    The url scheme specific to each cloud provider Available schemes
+    are s3:// azure://
+
+connectionString :
+    The cloud provider specific connection string Specifies additional
+    arguments for the cloud provider
+
+compressionMethod :
+    The overall compression method to be used for the VDS. The channel
+    descriptors can have additional options to control how a channel
+    is compressed.
+
+compressionTolerance :
+    This property specifies the compression tolerance [1..255] when
+    using the wavelet compression method. This value is the maximum
+    deviation from the original data value when the data is converted
+    to 8-bit using the value range. A value of 1 means the maximum
+    allowable loss is the same as quantizing to 8-bit (but the average
+    loss will be much much lower than quantizing to 8-bit). It is not
+    a good idea to directly relate the tolerance to the quality of the
+    compressed data, as the average loss will in general be an order
+    of magnitude lower than the allowable loss.
+
+error :
+    If an error occured, the error code and message will be written to
+    this output parameter
+
+Returns:
+--------
+    The VDS handle that can be used to get the VolumeDataLayout and
+    the VolumeDataAccessManager)doc";
+
+static const char *__doc_OpenVDS_Create_2 =
+R"doc(Create a new VDS.
 
 Parameters:
 -----------
@@ -264,8 +303,44 @@ Returns:
     The VDS handle that can be used to get the VolumeDataLayout and
     the VolumeDataAccessManager)doc";
 
-static const char *__doc_OpenVDS_Create_2 =
-R"doc(Create a new VDS This is a simple wrapper that uses an empty
+static const char *__doc_OpenVDS_Create_3 =
+R"doc(Create a new VDS. This is a simple wrapper that uses an empty
+connectionString
+
+Parameters:
+-----------
+
+url :
+    The url scheme specific to each cloud provider Available schemes
+    are s3:// azure://
+
+compressionMethod :
+    The overall compression method to be used for the VDS. The channel
+    descriptors can have additional options to control how a channel
+    is compressed.
+
+compressionTolerance :
+    This property specifies the compression tolerance [1..255] when
+    using the wavelet compression method. This value is the maximum
+    deviation from the original data value when the data is converted
+    to 8-bit using the value range. A value of 1 means the maximum
+    allowable loss is the same as quantizing to 8-bit (but the average
+    loss will be much much lower than quantizing to 8-bit). It is not
+    a good idea to directly relate the tolerance to the quality of the
+    compressed data, as the average loss will in general be an order
+    of magnitude lower than the allowable loss.
+
+error :
+    If an error occured, the error code and message will be written to
+    this output parameter
+
+Returns:
+--------
+    The VDS handle that can be used to get the VolumeDataLayout and
+    the VolumeDataAccessManager)doc";
+
+static const char *__doc_OpenVDS_Create_4 =
+R"doc(Create a new VDS. This is a simple wrapper that uses an empty
 connectionString
 
 Parameters:
@@ -284,8 +359,42 @@ Returns:
     The VDS handle that can be used to get the VolumeDataLayout and
     the VolumeDataAccessManager)doc";
 
-static const char *__doc_OpenVDS_Create_3 =
-R"doc(Create a new VDS
+static const char *__doc_OpenVDS_Create_5 =
+R"doc(Create a new VDS.
+
+Parameters:
+-----------
+
+options :
+    The options for the connection
+
+compressionMethod :
+    The overall compression method to be used for the VDS. The channel
+    descriptors can have additional options to control how a channel
+    is compressed.
+
+compressionTolerance :
+    This property specifies the compression tolerance [1..255] when
+    using the wavelet compression method. This value is the maximum
+    deviation from the original data value when the data is converted
+    to 8-bit using the value range. A value of 1 means the maximum
+    allowable loss is the same as quantizing to 8-bit (but the average
+    loss will be much much lower than quantizing to 8-bit). It is not
+    a good idea to directly relate the tolerance to the quality of the
+    compressed data, as the average loss will in general be an order
+    of magnitude lower than the allowable loss.
+
+error :
+    If an error occured, the error code and message will be written to
+    this output parameter
+
+Returns:
+--------
+    The VDS handle that can be used to get the VolumeDataLayout and
+    the VolumeDataAccessManager)doc";
+
+static const char *__doc_OpenVDS_Create_6 =
+R"doc(Create a new VDS.
 
 Parameters:
 -----------
@@ -302,15 +411,59 @@ Returns:
     The VDS handle that can be used to get the VolumeDataLayout and
     the VolumeDataAccessManager)doc";
 
-static const char *__doc_OpenVDS_Create_4 =
-R"doc(<summary> Create a new VDS
+static const char *__doc_OpenVDS_Create_7 =
+R"doc(Create a new VDS.
 
-</summary> <param name="ioManager"> The IOManager for the connection,
-it will be deleted automatically when the VDS handle is closed
-</param> <param name="error"> If an error occured, the error code and
-message will be written to this output parameter </param> <returns>
-The VDS handle that can be used to get the VolumeDataLayout and the
-VolumeDataAccessManager </returns>)doc";
+Parameters:
+-----------
+
+ioManager :
+    The IOManager for the connection, it will be deleted automatically
+    when the VDS handle is closed
+
+compressionMethod :
+    The overall compression method to be used for the VDS. The channel
+    descriptors can have additional options to control how a channel
+    is compressed.
+
+compressionTolerance :
+    This property specifies the compression tolerance [1..255] when
+    using the wavelet compression method. This value is the maximum
+    deviation from the original data value when the data is converted
+    to 8-bit using the value range. A value of 1 means the maximum
+    allowable loss is the same as quantizing to 8-bit (but the average
+    loss will be much much lower than quantizing to 8-bit). It is not
+    a good idea to directly relate the tolerance to the quality of the
+    compressed data, as the average loss will in general be an order
+    of magnitude lower than the allowable loss.
+
+error :
+    If an error occured, the error code and message will be written to
+    this output parameter
+
+Returns:
+--------
+    The VDS handle that can be used to get the VolumeDataLayout and
+    the VolumeDataAccessManager)doc";
+
+static const char *__doc_OpenVDS_Create_8 =
+R"doc(Create a new VDS.
+
+Parameters:
+-----------
+
+ioManager :
+    The IOManager for the connection, it will be deleted automatically
+    when the VDS handle is closed
+
+error :
+    If an error occured, the error code and message will be written to
+    this output parameter
+
+Returns:
+--------
+    The VDS handle that can be used to get the VolumeDataLayout and
+    the VolumeDataAccessManager)doc";
 
 static const char *__doc_OpenVDS_CreateInterpolatingVolumeDataAccessor = R"doc()doc";
 
@@ -1683,6 +1836,23 @@ static const char *__doc_OpenVDS_InvalidOperation_GetErrorMessage = R"doc()doc";
 static const char *__doc_OpenVDS_InvalidOperation_InvalidOperation = R"doc()doc";
 
 static const char *__doc_OpenVDS_InvalidOperation_m_errorMessage = R"doc()doc";
+
+static const char *__doc_OpenVDS_IsCompressionMethodSupported =
+R"doc(Check if a compression method is supported. Not all compression
+methods might be supported when creating VDSs, and this method checks
+if a particular compression methods is supported by this
+implementation.
+
+Parameters:
+-----------
+
+compressionMethod :
+    The compression method to check
+
+Returns:
+--------
+    True if the compression method is supported when creating VDSs
+    with this implementation.)doc";
 
 static const char *__doc_OpenVDS_IsSupportedProtocol =
 R"doc(Verifies that the url is a supported protocol
