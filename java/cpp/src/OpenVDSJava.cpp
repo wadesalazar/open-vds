@@ -279,7 +279,7 @@ getDescriptor(JNIEnv *env, jobject obj)
 
 static jlong
 createVDSOrThrowJavaIOException(JNIEnv* env, const OpenVDS::OpenOptions& options,
-                                jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+                                jobject ld, jobjectArray vda, jobjectArray vdc, jobject md, jint compressionMethod, jfloat compressionTolerance)
 {
   auto layoutDescriptor = getDescriptor(env, ld);
 
@@ -289,7 +289,7 @@ createVDSOrThrowJavaIOException(JNIEnv* env, const OpenVDS::OpenOptions& options
   auto* metadata = getMetadata(env, md);
 
   OpenVDS::Error error;
-  OpenVDS::VDS *pVds = OpenVDS::Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, *metadata, error);
+  OpenVDS::VDS *pVds = OpenVDS::Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, *metadata, OpenVDS::CompressionMethod(compressionMethod), compressionTolerance, error);
 
   if (pVds == nullptr) {
     throwJavaIOException(env, error);
@@ -302,7 +302,7 @@ createVDSOrThrowJavaIOException(JNIEnv* env, const OpenVDS::OpenOptions& options
 jlong JNICALL
 Java_org_opengroup_openvds_OpenVDS_cpCreateAzure(JNIEnv *env, jclass, jstring jConnectionString,
         jstring jContainer, jstring jBlob, jint jParallelismFactor, jint jMaxExecutionTime,
-        jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+        jobject ld, jobjectArray vda, jobjectArray vdc, jobject md, jint compressionMethod, jfloat compressionTolerance)
 {
   OpenVDS::AzureOpenOptions openOptions;
 
@@ -312,13 +312,13 @@ Java_org_opengroup_openvds_OpenVDS_cpCreateAzure(JNIEnv *env, jclass, jstring jC
   openOptions.parallelism_factor = jParallelismFactor;
   openOptions.max_execution_time = jMaxExecutionTime;
 
-  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md);
+  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md, compressionMethod, compressionTolerance);
 }
 
 jlong JNICALL
 Java_org_opengroup_openvds_OpenVDS_cpCreateAws(JNIEnv *env, jclass,
   jstring jbucket, jstring jkey, jstring jregion, jstring jendpointoverhide, jstring jaccessKeyId, jstring jsecretKey, jstring jsessionToken, jstring jexpiration,
-  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md, jint compressionMethod, jfloat compressionTolerance)
 {
   OpenVDS::AWSOpenOptions openOptions;
 
@@ -331,39 +331,39 @@ Java_org_opengroup_openvds_OpenVDS_cpCreateAws(JNIEnv *env, jclass,
   openOptions.sessionToken = JStringToString(env, jsessionToken);
   openOptions.expiration = JStringToString(env, jexpiration);
 
-  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md);
+  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md, compressionMethod, compressionTolerance);
 }
 
 jlong JNICALL
 Java_org_opengroup_openvds_OpenVDS_cpCreateGoogle(JNIEnv *env, jclass,
   jstring jbucket, jstring jpathPrefix,
-  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md, jint compressionMethod, jfloat compressionTolerance)
 {
   OpenVDS::GoogleOpenOptions openOptions;
 
   openOptions.bucket = JStringToString(env, jbucket);
   openOptions.pathPrefix  = JStringToString(env, jpathPrefix);
 
-  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md);
+  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md, compressionMethod, compressionTolerance);
 }
 
 jlong JNICALL
 Java_org_opengroup_openvds_OpenVDS_cpCreateAzurePresigned(JNIEnv* env, jclass,
   jstring jbaseUrl, jstring jurlSuffix,
-  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md, jint compressionMethod, jfloat compressionTolerance)
 {
   OpenVDS::AzurePresignedOpenOptions openOptions;
 
   openOptions.baseUrl = JStringToString(env, jbaseUrl);
   openOptions.urlSuffix = JStringToString(env, jurlSuffix);
 
-  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md);
+  return createVDSOrThrowJavaIOException(env, openOptions, ld, vda, vdc, md, compressionMethod, compressionTolerance);
 }
 
 jlong JNICALL
 Java_org_opengroup_openvds_OpenVDS_cpCreateConnection(JNIEnv* env, jclass,
   jstring jurl, jstring jconnectionString,
-  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md)
+  jobject ld, jobjectArray vda, jobjectArray vdc, jobject md, jint compressionMethod, jfloat compressionTolerance)
 {
  
   std::string url = JStringToString(env, jurl);
@@ -376,7 +376,7 @@ Java_org_opengroup_openvds_OpenVDS_cpCreateConnection(JNIEnv* env, jclass,
   auto* metadata = getMetadata(env, md);
 
   OpenVDS::Error error;
-  OpenVDS::VDS *pVds = OpenVDS::Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, *metadata, error);
+  OpenVDS::VDS *pVds = OpenVDS::Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, *metadata, OpenVDS::CompressionMethod(compressionMethod), compressionTolerance, error);
 
   if (pVds == nullptr) {
     throwJavaIOException(env, error);

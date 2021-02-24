@@ -645,7 +645,32 @@ OPENVDS_EXPORT VDSHandle Open(const OpenOptions& options, Error& error);
 OPENVDS_EXPORT VDSHandle Open(IOManager*ioManager, Error &error);
 
 /// <summary>
-/// Create a new VDS
+/// Create a new VDS.
+/// </summary>
+/// <param name="url">
+/// The url scheme specific to each cloud provider
+/// Available schemes are s3:// azure://
+/// </param>
+/// <param name="connectionString">
+/// The cloud provider specific connection string
+/// Specifies additional arguments for the cloud provider
+/// </param>
+/// <param name="compressionMethod">
+/// The overall compression method to be used for the VDS. The channel descriptors can have additional options to control how a channel is compressed.
+/// </param>
+/// <param name="compressionTolerance">
+/// This property specifies the compression tolerance [1..255] when using the wavelet compression method. This value is the maximum deviation from the original data value when the data is converted to 8-bit using the value range. A value of 1 means the maximum allowable loss is the same as quantizing to 8-bit (but the average loss will be much much lower than quantizing to 8-bit). It is not a good idea to directly relate the tolerance to the quality of the compressed data, as the average loss will in general be an order of magnitude lower than the allowable loss.
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle Create(StringWrapper url, StringWrapper connectionString, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, CompressionMethod compressionMethod, float compressionTolerance, Error& error);
+
+/// <summary>
+/// Create a new VDS.
 /// </summary>
 /// <param name="url">
 /// The url scheme specific to each cloud provider
@@ -661,10 +686,39 @@ OPENVDS_EXPORT VDSHandle Open(IOManager*ioManager, Error &error);
 /// <returns>
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
-OPENVDS_EXPORT VDSHandle Create(StringWrapper url, StringWrapper connectionString, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error);
+inline VDSHandle Create(StringWrapper url, StringWrapper connectionString, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
+{
+  return Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, CompressionMethod::None, 0, error);
+}
 
 /// <summary>
-/// Create a new VDS
+/// Create a new VDS.
+/// This is a simple wrapper that uses an empty connectionString
+/// </summary>
+/// <param name="url">
+/// The url scheme specific to each cloud provider
+/// Available schemes are s3:// azure://
+/// </param>
+/// <param name="compressionMethod">
+/// The overall compression method to be used for the VDS. The channel descriptors can have additional options to control how a channel is compressed.
+/// </param>
+/// <param name="compressionTolerance">
+/// This property specifies the compression tolerance [1..255] when using the wavelet compression method. This value is the maximum deviation from the original data value when the data is converted to 8-bit using the value range. A value of 1 means the maximum allowable loss is the same as quantizing to 8-bit (but the average loss will be much much lower than quantizing to 8-bit). It is not a good idea to directly relate the tolerance to the quality of the compressed data, as the average loss will in general be an order of magnitude lower than the allowable loss.
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+inline VDSHandle Create(StringWrapper url, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, CompressionMethod compressionMethod, float compressionTolerance, Error& error)
+{
+  std::string connectionString;
+  return Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, compressionMethod, compressionTolerance, error);
+}
+
+/// <summary>
+/// Create a new VDS.
 /// This is a simple wrapper that uses an empty connectionString
 /// </summary>
 /// <param name="url">
@@ -680,11 +734,31 @@ OPENVDS_EXPORT VDSHandle Create(StringWrapper url, StringWrapper connectionStrin
 inline VDSHandle Create(StringWrapper url, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
 {
   std::string connectionString;
-  return Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error);
+  return Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, CompressionMethod::None, 0, error);
 }
 
 /// <summary>
-/// Create a new VDS
+/// Create a new VDS.
+/// </summary>
+/// <param name="options">
+/// The options for the connection
+/// </param>
+/// <param name="compressionMethod">
+/// The overall compression method to be used for the VDS. The channel descriptors can have additional options to control how a channel is compressed.
+/// </param>
+/// <param name="compressionTolerance">
+/// This property specifies the compression tolerance [1..255] when using the wavelet compression method. This value is the maximum deviation from the original data value when the data is converted to 8-bit using the value range. A value of 1 means the maximum allowable loss is the same as quantizing to 8-bit (but the average loss will be much much lower than quantizing to 8-bit). It is not a good idea to directly relate the tolerance to the quality of the compressed data, as the average loss will in general be an order of magnitude lower than the allowable loss.
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, CompressionMethod compressionMethod, float compressionTolerance, Error& error);
+
+/// <summary>
+/// Create a new VDS.
 /// </summary>
 /// <param name="options">
 /// The options for the connection
@@ -695,11 +769,33 @@ inline VDSHandle Create(StringWrapper url, VolumeDataLayoutDescriptor const& lay
 /// <returns>
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
-OPENVDS_EXPORT VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error);
+inline VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, Error& error)
+{
+  return Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, CompressionMethod::None, 0, error);
+}
 
 /// <summary>
-/// Create a new VDS
+/// Create a new VDS.
+/// </summary>
+/// <param name="ioManager">
+/// The IOManager for the connection, it will be deleted automatically when the VDS handle is closed
+/// </param>
+/// <param name="compressionMethod">
+/// The overall compression method to be used for the VDS. The channel descriptors can have additional options to control how a channel is compressed.
+/// </param>
+/// <param name="compressionTolerance">
+/// This property specifies the compression tolerance [1..255] when using the wavelet compression method. This value is the maximum deviation from the original data value when the data is converted to 8-bit using the value range. A value of 1 means the maximum allowable loss is the same as quantizing to 8-bit (but the average loss will be much much lower than quantizing to 8-bit). It is not a good idea to directly relate the tolerance to the quality of the compressed data, as the average loss will in general be an order of magnitude lower than the allowable loss.
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, CompressionMethod compressionMethod, float compressionTolerance, Error &error);
 
+/// <summary>
+/// Create a new VDS.
 /// </summary>
 /// <param name="ioManager">
 /// The IOManager for the connection, it will be deleted automatically when the VDS handle is closed
@@ -710,7 +806,10 @@ OPENVDS_EXPORT VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDesc
 /// <returns>
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
-OPENVDS_EXPORT VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, Error &error);
+inline VDSHandle Create(IOManager* ioManager, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, Error &error)
+{
+  return Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, CompressionMethod::None, 0, error);
+}
 
 /// <summary>
 /// Get the VolumeDataLayout for a VDS

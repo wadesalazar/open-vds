@@ -34,24 +34,24 @@ public class OpenVDS extends VdsHandle{
     private static native long cpCreateAzure(String pConnectionString, String pContainer, String pBlob,
                                              int pParallelismFactor, int pMaxExecutionTime,
                                              VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
-                                             VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+                                             VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md, int compressionMethod, float compressionTolerance) throws IOException;
 
 
     private static native long cpCreateAws(String bucket, String key, String region, String endpointoverhide, String accessKeyId, String secretKey, String sessionToken, String expiration,
                                            VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
-                                           VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+                                           VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md, int compressionMethod, float compressionTolerance) throws IOException;
     
     private static native long cpCreateGoogle(String bucket, String key,
                                               VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
-                                              VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+                                              VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md, int compressionMethod, float compressionTolerance) throws IOException;
     
     private static native long cpCreateAzurePresigned(String baseUrl, String urlSuffix,
                                                       VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
-                                                      VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+                                                      VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md, int compressionMethod, float compressionTolerance) throws IOException;
 
     private static native long cpCreateConnection(String url, String connectionString,
                                                   VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
-                                                  VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md) throws IOException;
+                                                  VolumeDataChannelDescriptor[] vdc, MetadataReadAccess md, int compressionMethod, float compressionTolerance) throws IOException;
 
     private static native void cpWriteData_r64(JniPointer ptr, double[] src_data, String channel);
     private static native void cpWriteData_r32(JniPointer ptr, float[] src_data, String channel);
@@ -122,7 +122,17 @@ public class OpenVDS extends VdsHandle{
 
         return new OpenVDS(cpCreateAzure(o.connectionString, o.container, o.blob, 
                                          o.parallelism_factor, o.max_execution_time,
-                                         ld, vda, vdc, md), true);
+                                         ld, vda, vdc, md, 0, 0), true);
+    }
+
+    public static OpenVDS create(AzureOpenOptions o, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md, CompressionMethod compressionMethod, float compressionTolerance) throws IOException {
+        validateCreateArguments(o, ld, vda, vdc, md);
+
+        return new OpenVDS(cpCreateAzure(o.connectionString, o.container, o.blob, 
+                                         o.parallelism_factor, o.max_execution_time,
+                                         ld, vda, vdc, md, compressionMethod.ordinal(), compressionTolerance), true);
     }
 
     public static OpenVDS create(AWSOpenOptions o, VolumeDataLayoutDescriptor ld,
@@ -131,7 +141,16 @@ public class OpenVDS extends VdsHandle{
         validateCreateArguments(o, ld, vda, vdc, md);
 
         return new OpenVDS(cpCreateAws(o.bucket, o.key, o.region, o.endpointoverhide, o.accessKeyId, o.secretKey, o.sessionToken, o.expiration,
-                                         ld, vda, vdc, md), true);
+                                         ld, vda, vdc, md, 0, 0), true);
+    }
+
+    public static OpenVDS create(AWSOpenOptions o, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md, CompressionMethod compressionMethod, float compressionTolerance) throws IOException {
+        validateCreateArguments(o, ld, vda, vdc, md);
+
+        return new OpenVDS(cpCreateAws(o.bucket, o.key, o.region, o.endpointoverhide, o.accessKeyId, o.secretKey, o.sessionToken, o.expiration,
+                                         ld, vda, vdc, md, compressionMethod.ordinal(), compressionTolerance), true);
     }
 
     public static OpenVDS create(GoogleOpenOptions o, VolumeDataLayoutDescriptor ld,
@@ -140,7 +159,16 @@ public class OpenVDS extends VdsHandle{
         validateCreateArguments(o, ld, vda, vdc, md);
 
         return new OpenVDS(cpCreateGoogle(o.bucket, o.pathPrefix, 
-                                         ld, vda, vdc, md), true);
+                                         ld, vda, vdc, md, 0, 0), true);
+    }
+
+    public static OpenVDS create(GoogleOpenOptions o, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md, CompressionMethod compressionMethod, float compressionTolerance) throws IOException {
+        validateCreateArguments(o, ld, vda, vdc, md);
+
+        return new OpenVDS(cpCreateGoogle(o.bucket, o.pathPrefix, 
+                                         ld, vda, vdc, md, compressionMethod.ordinal(), compressionTolerance), true);
     }
 
     public static OpenVDS create(AzurePresignedOpenOptions o, VolumeDataLayoutDescriptor ld,
@@ -149,7 +177,16 @@ public class OpenVDS extends VdsHandle{
         validateCreateArguments(o, ld, vda, vdc, md);
 
         return new OpenVDS(cpCreateAzurePresigned(o.baseUrl, o.urlSuffix,
-                                         ld, vda, vdc, md), true);
+                                         ld, vda, vdc, md, 0, 0), true);
+    }
+
+    public static OpenVDS create(AzurePresignedOpenOptions o, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md, CompressionMethod compressionMethod, float compressionTolerance) throws IOException {
+        validateCreateArguments(o, ld, vda, vdc, md);
+
+        return new OpenVDS(cpCreateAzurePresigned(o.baseUrl, o.urlSuffix,
+                                         ld, vda, vdc, md, compressionMethod.ordinal(), compressionTolerance), true);
     }
 
     public static OpenVDS create(String url, String connectionString, VolumeDataLayoutDescriptor ld,
@@ -162,7 +199,20 @@ public class OpenVDS extends VdsHandle{
         validateCreateArguments(ld, vda, vdc, md);
 
         return new OpenVDS(cpCreateConnection(url, connectionString,
-                                         ld, vda, vdc, md), true);
+                                         ld, vda, vdc, md, 0, 0), true);
+    }
+
+    public static OpenVDS create(String url, String connectionString, VolumeDataLayoutDescriptor ld,
+                                 VolumeDataAxisDescriptor[] vda, VolumeDataChannelDescriptor[] vdc,
+                                 MetadataReadAccess md, CompressionMethod compressionMethod, float compressionTolerance) throws IOException {
+        if (url == null) {
+            throw new IllegalArgumentException("url can't be null");
+        }
+
+        validateCreateArguments(ld, vda, vdc, md);
+
+        return new OpenVDS(cpCreateConnection(url, connectionString,
+                                         ld, vda, vdc, md, compressionMethod.ordinal(), compressionTolerance), true);
     }
 
     public static void writeArray(VdsHandle handle, double[] src_data, String channel_name) {
