@@ -90,7 +90,7 @@ struct VDS
                     volumeDataStore;
 };
 
-void CreateVolumeDataLayout(VDS &handle);
+void CreateVolumeDataLayout(VDS &handle, CompressionMethod compressionMethod = CompressionMethod::None, float compressionTolerance = 0);
 
 std::string GetLayerName(VolumeDataLayer const &volumeDataLayer);
 

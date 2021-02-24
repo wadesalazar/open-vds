@@ -502,7 +502,7 @@ int64_t VolumeDataPageAccessorImpl::RequestWritePage(int64_t chunk, const DataBl
   std::vector<uint8_t> serializedData;
   uint64_t hash;
 
-  hash = VolumeDataStore::SerializeVolumeData({ m_layer, chunk }, dataBlock, data, m_layer->GetEffectiveCompressionMethod(), serializedData);
+  hash = VolumeDataStore::SerializeVolumeData({ m_layer, chunk }, dataBlock, data, m_layer->GetEffectiveCompressionMethod(), m_layer->GetEffectiveCompressionTolerance(), serializedData);
 
   if (hash == VolumeDataHash::UNKNOWN)
   {

@@ -571,7 +571,7 @@ std::string GetLayerName(VolumeDataLayer const &volumeDataLayer)
   }
 }
 
-void CreateVolumeDataLayout(VDS &vds)
+void CreateVolumeDataLayout(VDS &vds, CompressionMethod compressionMethod, float compressionTolerance)
 {
   int32_t dimensionality = int32_t(vds.axisDescriptors.size());
 
@@ -594,8 +594,8 @@ void CreateVolumeDataLayout(VDS &vds)
       actualValueRangeChannel,
       actualValueRange,
       VolumeDataHash::GetUniqueHash(),
-      CompressionMethod::None,
-      0,
+      compressionMethod,
+      compressionTolerance,
       false,
       0));
 
@@ -634,8 +634,15 @@ static void copyMetadataToContainer(MetadataContainer &container, const Metadata
   }
 }
 
-static bool Init(VDS *vds, VolumeDataStore* volumeDataStore, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, Error &error)
+static bool Init(VDS *vds, VolumeDataStore* volumeDataStore, VolumeDataLayoutDescriptor const &layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const &metadata, CompressionMethod compressionMethod, float compressionTolerance, Error &error)
 {
+  if(!VolumeDataStore::IsCompressionMethodSupported(compressionMethod))
+  {
+    error.code = -1;
+    error.string = "Unsupported compression method";
+    return false;
+  }
+
   vds->produceStatuses.clear();
   vds->produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
 
@@ -673,7 +680,7 @@ static bool Init(VDS *vds, VolumeDataStore* volumeDataStore, VolumeDataLayoutDes
 
   copyMetadataToContainer(vds->metadataContainer, metadata);
 
-  CreateVolumeDataLayout(*vds);
+  CreateVolumeDataLayout(*vds, compressionMethod, compressionTolerance);
 
   vds->produceStatuses.clear();
   vds->produceStatuses.resize(int(Dimensions_45) + 1, VolumeDataLayer::ProduceStatus_Unavailable);
@@ -685,12 +692,17 @@ static bool Init(VDS *vds, VolumeDataStore* volumeDataStore, VolumeDataLayoutDes
   return true;
 }
 
+bool IsCompressionMethodSupported(CompressionMethod compressionMethod)
+{
+  return VolumeDataStore::IsCompressionMethodSupported(compressionMethod);
+}
+
 VDSHandle Create(IOManager *ioManager, VolumeDataLayoutDescriptor const& layoutDescriptor, VectorWrapper<VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<VolumeDataChannelDescriptor> channelDescriptors, MetadataReadAccess const& metadata, CompressionMethod compressionMethod, float compressionTolerance, Error& error)
 {
   std::unique_ptr<VDS> ret(new VDS());
   error = Error();
 
-  if(Init(ret.get(), new VolumeDataStoreIOManager(*ret, ioManager), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error))
+  if(Init(ret.get(), new VolumeDataStoreIOManager(*ret, ioManager), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, compressionMethod, compressionTolerance, error))
   {
     return ret.release();
   }
@@ -731,7 +743,7 @@ VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& l
       return nullptr;
   }
 
-  if(Init(ret.get(), volumeDataStore.release(), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, error))
+  if(Init(ret.get(), volumeDataStore.release(), layoutDescriptor, axisDescriptors, channelDescriptors, metadata, compressionMethod, compressionTolerance, error))
   {
     return ret.release();
   }

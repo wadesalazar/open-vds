@@ -277,6 +277,12 @@ getDescriptor(JNIEnv *env, jobject obj)
                                                lodLevels, (OpenVDS::VolumeDataLayoutDescriptor::Options) options, fullResolutionDimension);
 }
 
+jboolean JNICALL
+Java_org_opengroup_openvds_OpenVDS_cpIsCompressionMethodSupported(JNIEnv* env, jclass, jint compressionMethod)
+{
+  return (jboolean)OpenVDS::IsCompressionMethodSupported(OpenVDS::CompressionMethod(compressionMethod));
+}
+
 static jlong
 createVDSOrThrowJavaIOException(JNIEnv* env, const OpenVDS::OpenOptions& options,
                                 jobject ld, jobjectArray vda, jobjectArray vdc, jobject md, jint compressionMethod, jfloat compressionTolerance)

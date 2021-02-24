@@ -562,7 +562,7 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk& volumeDataChu
 }
 
 uint64_t
-VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, std::vector<uint8_t>& destinationBuffer)
+VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, float, std::vector<uint8_t>& destinationBuffer)
 {
   DataBlockDescriptor dataBlockHeader;
   dataBlockHeader.Components = dataBlock.Components;
@@ -625,6 +625,12 @@ VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlo
     throw std::runtime_error("Invalid compression method specified when serializing a VolumeDataChunk");
   }
   return VolumeDataHash::UNKNOWN;
+}
+
+bool
+VolumeDataStore::IsCompressionMethodSupported(CompressionMethod compressionMethod)
+{
+  return !CompressionMethodIsWavelet(compressionMethod);
 }
 
 }

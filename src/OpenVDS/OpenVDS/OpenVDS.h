@@ -645,6 +645,18 @@ OPENVDS_EXPORT VDSHandle Open(const OpenOptions& options, Error& error);
 OPENVDS_EXPORT VDSHandle Open(IOManager*ioManager, Error &error);
 
 /// <summary>
+/// Check if a compression method is supported.
+/// Not all compression methods might be supported when creating VDSs, and this method checks if a particular compression methods is supported by this implementation.
+/// </summary>
+/// <param name="compressionMethod">
+/// The compression method to check
+/// </param>
+/// <returns>
+/// True if the compression method is supported when creating VDSs with this implementation.
+/// </returns>
+OPENVDS_EXPORT bool IsCompressionMethodSupported(CompressionMethod compressionMethod);
+
+/// <summary>
 /// Create a new VDS.
 /// </summary>
 /// <param name="url">

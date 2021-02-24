@@ -31,6 +31,8 @@ public class OpenVDS extends VdsHandle{
 
     private static native long cpOpenConnection(String url, String connectionString) throws IOException;
 
+    private static native boolean cpIsCompressionMethodSupported(int compressionMethod);
+
     private static native long cpCreateAzure(String pConnectionString, String pContainer, String pBlob,
                                              int pParallelismFactor, int pMaxExecutionTime,
                                              VolumeDataLayoutDescriptor ld, VolumeDataAxisDescriptor[] vda,
@@ -113,6 +115,10 @@ public class OpenVDS extends VdsHandle{
             throw new IllegalArgumentException("open option can't be null");
         }
         validateCreateArguments(ld, vda, vdc, md);
+    }
+
+    public static boolean isCompressionMethodSupported(CompressionMethod compressionMethod) {
+      return cpIsCompressionMethodSupported(compressionMethod.ordinal());
     }
 
     public static OpenVDS create(AzureOpenOptions o, VolumeDataLayoutDescriptor ld,
