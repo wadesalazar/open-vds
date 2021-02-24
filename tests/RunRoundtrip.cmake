@@ -10,7 +10,7 @@ check_variable(TEST_URL)
 check_variable(TEST_SEGY_FILE)
 
 if (TEST_CONNECTION)
-  set(CONNECTION "--connection")
+  set(CONNECTION "--url-connection")
 endif()
 
 if (TEST_SEGY_HEADER_FILE)
