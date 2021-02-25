@@ -459,6 +459,30 @@ VDSHandle Open(StringWrapper url, StringWrapper connectionString, Error& error)
   return Open(*(openOptions.get()), error);
 }
 
+VDSHandle OpenWithAdaptiveCompressionTolerance(StringWrapper url, StringWrapper connectionString, float waveletAdaptiveTolerance, Error& error)
+{
+  std::unique_ptr<OpenOptions> openOptions(CreateOpenOptions(url, connectionString, error));
+  if (error.code || !openOptions)
+    return nullptr;
+
+  openOptions->waveletAdaptiveMode = WaveletAdaptiveMode::Tolerance;
+  openOptions->waveletAdaptiveTolerance = waveletAdaptiveTolerance;
+
+  return Open(*(openOptions.get()), error);
+}
+
+VDSHandle OpenWithAdaptiveCompressionRatio(StringWrapper url, StringWrapper connectionString, float waveletAdaptiveRatio, Error& error)
+{
+  std::unique_ptr<OpenOptions> openOptions(CreateOpenOptions(url, connectionString, error));
+  if (error.code || !openOptions)
+    return nullptr;
+
+  openOptions->waveletAdaptiveMode = WaveletAdaptiveMode::Ratio;
+  openOptions->waveletAdaptiveRatio = waveletAdaptiveRatio;
+
+  return Open(*(openOptions.get()), error);
+}
+
 static bool Init(VDS *vds, VolumeDataStore *volumeDataStore, Error& error)
 {
   vds->produceStatuses.clear();

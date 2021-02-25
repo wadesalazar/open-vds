@@ -38,6 +38,13 @@ class GlobalState;
 class IOManager;
 class IVolumeDataAccessManager;
 
+enum class WaveletAdaptiveMode
+{
+  BestQuality = 0, ///< The best quality available data is loaded (this is the only setting which will load lossless data).
+  Tolerance = 1,   ///< An adaptive level closest to the global compression tolerance is selected when loading wavelet compressed data.
+  Ratio = 2        ///< An adaptive level closest to the global compression ratio is selected when loading wavelet compressed data.
+};
+
 struct OpenOptions
 {
   enum ConnectionType
@@ -57,8 +64,14 @@ struct OpenOptions
   ConnectionType connectionType;
 
 protected:
-  OpenOptions(ConnectionType connectionType) : connectionType(connectionType) {}
+  OpenOptions(ConnectionType connectionType) : connectionType(connectionType), waveletAdaptiveMode(WaveletAdaptiveMode::BestQuality), waveletAdaptiveTolerance(0.01f), waveletAdaptiveRatio(1.0f) {}
+  OpenOptions(ConnectionType connectionType, WaveletAdaptiveMode waveletAdaptiveMode, float waveletAdaptiveTolerance, float waveletAdaptiveRatio) : connectionType(connectionType), waveletAdaptiveMode(waveletAdaptiveMode), waveletAdaptiveTolerance(waveletAdaptiveTolerance), waveletAdaptiveRatio(waveletAdaptiveRatio) {}
+
 public:
+  WaveletAdaptiveMode waveletAdaptiveMode;      ///< This property (only relevant when using Wavelet compression) is used to control how the wavelet adaptive compression determines which level of wavelet compressed data to load. Depending on the setting, either the global or local WaveletAdaptiveTolerance or the WaveletAdaptiveRatio can be used.
+  float               waveletAdaptiveTolerance; ///< Wavelet adaptive tolerance, this setting will be used whenever the WavletAdaptiveMode is set to Tolerance.
+  float               waveletAdaptiveRatio;     ///< Wavelet adaptive ratio, this setting will be used whenever the WavletAdaptiveMode is set to Ratio. A compression ratio of 5.0 corresponds to compressed data which is 20% of the original.
+
   OPENVDS_EXPORT virtual ~OpenOptions();
 };
 
@@ -599,6 +612,53 @@ OPENVDS_EXPORT bool IsSupportedProtocol(StringWrapper url);
 /// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
 /// </returns>
 OPENVDS_EXPORT VDSHandle Open(StringWrapper url, StringWrapper connectionString, Error& error);
+
+/// <summary>
+/// Open an existing VDS with adaptive compression tolerance.
+/// </summary>
+/// <param name="url">
+/// The url scheme specific to each cloud provider
+/// Available schemes are s3:// azure://
+/// </param>
+/// <param name="connectionString">
+/// The cloud provider specific connection string
+/// Specifies additional arguments for the cloud provider
+/// </param>
+/// <param name="waveletAdaptiveTolerance">
+/// Wavelet adaptive tolerance.
+/// This will try to read the dataset as-if it was compressed with the given tolerance even if it was compressed with a lower tolerance or lossless.
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle OpenWithAdaptiveCompressionTolerance(StringWrapper url, StringWrapper connectionString, float waveletAdaptiveTolerance, Error& error);
+
+/// <summary>
+/// Open an existing VDS with adaptive compression ratio.
+/// </summary>
+/// <param name="url">
+/// The url scheme specific to each cloud provider
+/// Available schemes are s3:// azure://
+/// </param>
+/// <param name="connectionString">
+/// The cloud provider specific connection string
+/// Specifies additional arguments for the cloud provider
+/// </param>
+/// <param name="waveletAdaptiveRatio">
+/// Wavelet adaptive ratio.
+/// This will try to read the dataset as-if it was compressed with the given ratio even if it was compressed with a lower ratio or lossless.
+/// A compression ratio of 5.0 corresponds to compressed data which is 20% of the original.
+/// </param>
+/// <param name="error">
+/// If an error occured, the error code and message will be written to this output parameter
+/// </param>
+/// <returns>
+/// The VDS handle that can be used to get the VolumeDataLayout and the VolumeDataAccessManager
+/// </returns>
+OPENVDS_EXPORT VDSHandle OpenWithAdaptiveCompressionRatio(StringWrapper url, StringWrapper connectionString, float waveletAdaptiveRatio, Error& error);
 
 /// <summary>
 /// Open an existing VDS.
