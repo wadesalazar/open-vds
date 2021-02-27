@@ -135,3 +135,70 @@ Then install Sphinx and Breathe with pip:
 C:\> pip install -U sphinx breathe
 
 Add the -DBUILD_DOCS=ON to the cmake argument list
+
+#### Building OSDU Docker image
+The OSDU Docker image is built using `python3 build_osdu_image.py` in the root
+of this repository. It uses a multistage Dockerfile to build OpenVDS and tools
+from scratch, and then deploy them into a minimal size image on top of an
+up-to-date Ubuntu 20.04 LTS base.
+
+This single build will support all backends, which currently consists of
+- Azure Blob Storage (azure, azureSAS)
+- Google Cloud Storage (gs)
+- AWS S3 (s3)
+- OSDU/DELFI Seismic DMS (sd)
+
+OpenVDS' URL scheme follows `protocol://resource/sub_path`, where the protocol
+refers to the backend mentioned above. For `s3` and `gs` the resource will be
+the bucket, while for `azure` or `azureSAS` the resource will be the container,
+and for `sd` the resource will be the tenant name.
+
+OpenVDS relies on the storage libraries from the various Cloud Service Providers,
+and will support the environment variables these libraries themselves detect.
+
+Azure Blob Storage [Azure Storage Client Library for C++ (7.5.0)]:
+- None
+- See https://github.com/Azure/azure-storage-cpp for more
+
+Google Cloud Storage:
+- `GOOGLE_CLOUD_PROJECT`
+- `GOOGLE_CLOUD_CPP_ENABLE_CLOG`
+- `GOOGLE_APPLICATION_CREDENTIALS`
+- `GOOGLE_GCLOUD_ADC_PATH_OVERRIDE`
+- `GOOGLE_RUNNING_ON_GCE_CHECK_OVERRIDE`
+- `CLOUD_STORAGE_ENABLE_CLOG`
+- `CLOUD_STORAGE_ENABLE_TRACING`
+- `CLOUD_STORAGE_TESTBENCH_ENDPOINT`
+- See https://googleapis.github.io/google-cloud-cpp/0.8.0/storage/client__options_8h_source.html for more
+
+AWS S3:
+- `AWS_ACCESS_KEY_ID`
+- `AWS_CA_BUNDLE`
+- `AWS_DEFAULT_OUTPUT`
+- `AWS_CONFIG_FILE`
+- `AWS_DEFAULT_REGION`
+- `AWS_MAX_ATTEMPTS`
+- `AWS_METADATA_SERVICE_NUM_ATTEMPTS`
+- `AWS_METADATA_SERVICE_TIMEOUT`
+- `AWS_PROFILE`
+- `AWS_RETRY_MODE`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_SESSION_TOKEN`
+- `AWS_SHARED_CREDENTIALS_FILE`
+- `AWS_STS_REGIONAL_ENDPOINTS`
+- `CA_BUNDLE`
+- See https://docs.aws.amazon.com/credref/latest/refdocs/environment-variables.html for more
+
+OSDU/DELFI Seismic DMS:
+- `SD_IMP_AUTH_TOKEN`
+- `SD_SVC_API_KEY`
+- `SD_SVC_ENV`
+- `SD_SVC_URL`
+- `SD_CURL_VERBOSE_RANDOM`
+- `SD_SEISTORE_TELEMETRY`
+- `SD_TIMER_REPORT_IF_SIZE`
+- `SD_TIMER_REPORT_INTERVAL`
+- `SD_TIMER_REPORT_RANDOM`
+- `ENABLE_CURL_SIGNAL_HANDLERS`
+- `DISABLE_SSL_CERTIFICATE_VERIFICATION`
+- See https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/seismic/seismic-dms-suite/seismic-store-cpp-lib/-/tree/master#environemnt-control-variables for more
