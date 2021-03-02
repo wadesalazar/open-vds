@@ -29,13 +29,6 @@
 namespace OpenVDS
 {
 
-struct RLEHeader
-{
-  int32_t compressedSize;
-  int32_t originalSize;
-  int32_t rleUnitSize;
-};
-
 template<class T>
 static uint64_t RlePack(T value)
 {
