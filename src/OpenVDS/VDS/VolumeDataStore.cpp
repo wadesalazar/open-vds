@@ -573,6 +573,18 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk& volumeDataChu
   return ret;
 }
 
+struct ShrinkToSizeOnExit
+{
+  ShrinkToSizeOnExit(std::vector<uint8_t>& to_shrink)
+    : to_shrink(to_shrink)
+  {}
+  ~ShrinkToSizeOnExit()
+  {
+    to_shrink.shrink_to_fit();
+  }
+  std::vector<uint8_t> to_shrink;
+};
+
 uint64_t
 VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlock& dataBlock, const std::vector<uint8_t>& chunkData, CompressionMethod compressionMethod, float, std::vector<uint8_t>& destinationBuffer)
 {
@@ -585,6 +597,8 @@ VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlo
   dataBlockHeader.SizeZ = dataBlock.Size[2];
 
   destinationBuffer.resize(size_t(GetSerializationTargetBufferSize(int64_t(chunkData.size()), compressionMethod)));
+  ShrinkToSizeOnExit autoShrinker(destinationBuffer);
+
   switch (compressionMethod)
   {
   case CompressionMethod::None:
