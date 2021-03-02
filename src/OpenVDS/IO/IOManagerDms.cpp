@@ -94,7 +94,7 @@ namespace OpenVDS
 
       //no headers are exposed
 
-      request_ptr->m_done;
+      request_ptr->m_done = true;
       request_ptr->m_handler->Completed(*request_ptr, request_ptr->m_error);
     });
   }

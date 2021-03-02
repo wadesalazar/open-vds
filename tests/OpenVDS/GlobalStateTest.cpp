@@ -62,7 +62,6 @@ TEST(GlobalState, basic)
   
   SlowIOManager* slowIOManager = new SlowIOManager(requestDelayMs, inMemory.get());
   std::unique_ptr<OpenVDS::VDS, decltype(&OpenVDS::Close)> handle(OpenVDS::Open(slowIOManager, error), OpenVDS::Close);
-  OpenVDS::VolumeDataLayout *layout = OpenVDS::GetLayout(handle.get());
   OpenVDS::VolumeDataAccessManager accessManager = OpenVDS::GetAccessManager(handle.get());
 
   ThreadPool threadPool(threadCount);
@@ -101,7 +100,7 @@ TEST(GlobalState, basic)
       requestData.maxPos[2] = requestData.minPos[2] + width_dist(gen);
       requestData.voxelCount = (requestData.maxPos[0] - requestData.minPos[0]) * (requestData.maxPos[1] - requestData.minPos[1]) * (requestData.maxPos[2] - requestData.minPos[2]);
     }
-    auto threadedRequest = [&threadRequestData, accessManager, layout] () mutable
+    auto threadedRequest = [&threadRequestData, accessManager] () mutable
     {
       std::vector<bool> ret;
       ret.reserve(threadRequestData.size());
