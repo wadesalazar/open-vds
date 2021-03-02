@@ -253,6 +253,27 @@ static uint64_t GetConstantValueVolumeDataHash(const DataBlock  &dataBlock, cons
   }
 }
 
+static int64_t GetSerializationTargetBufferSize(int64_t sourceSize, CompressionMethod compressionMethod)
+{
+  if(CompressionMethod_IsWavelet(compressionMethod))
+  {
+    return std::max(int64_t(128*128*128*2), sourceSize) * 2 * 2;
+  }
+  else if(compressionMethod == CompressionMethod::RLE)
+  {
+    return sizeof(DataBlockDescriptor) + sizeof(RLEHeader) + sourceSize * 2;
+  }
+  else if(compressionMethod == CompressionMethod::Zip)
+  {
+    return sizeof(DataBlockDescriptor) + compressBound((uLong)sourceSize);
+  }
+  else
+  {
+    assert(compressionMethod == CompressionMethod::None);
+    return sizeof(DataBlockDescriptor) + sourceSize;
+  }
+}
+
 bool DeserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, DataBlock &dataBlock, std::vector<uint8_t> &destination, Error &error)
 {
   if(CompressionMethod_IsWavelet(compressionMethod))
@@ -563,19 +584,16 @@ VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlo
   dataBlockHeader.SizeY = dataBlock.Size[1];
   dataBlockHeader.SizeZ = dataBlock.Size[2];
 
+  destinationBuffer.resize(size_t(GetSerializationTargetBufferSize(int64_t(chunkData.size()), compressionMethod)));
   switch (compressionMethod)
   {
   case CompressionMethod::None:
   {
-    int32_t byteSize = GetByteSize(dataBlock) + sizeof(DataBlockDescriptor);
-
-    destinationBuffer.resize(byteSize);
-
     void *targetBuffer = destinationBuffer.data();
     memcpy(targetBuffer, &dataBlockHeader, sizeof(dataBlockHeader));
     targetBuffer = ((uint8_t *)targetBuffer) + sizeof(dataBlockHeader);
 
-    bool isConstant = CopyDataBlockIntoLinearBuffer(dataBlock, chunkData.data(), targetBuffer, byteSize - sizeof(dataBlockHeader));
+    bool isConstant = CopyDataBlockIntoLinearBuffer(dataBlock, chunkData.data(), targetBuffer, int32_t(destinationBuffer.size() - sizeof(dataBlockHeader)));
 
     if(isConstant)
     {
@@ -597,12 +615,10 @@ VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlo
       auto& layer = *chunk.layer;
       return GetConstantValueVolumeDataHash(dataBlock, tmpdata.get(), layer.GetValueRange(), layer.GetIntegerScale(), layer.GetIntegerOffset(), layer.IsUseNoValue(), layer.GetNoValue());
     }
-    unsigned long compressedMaxSize = compressBound(tmpbuffersize);
-    destinationBuffer.resize(compressedMaxSize + sizeof(dataBlockHeader));
     void *targetBuffer = destinationBuffer.data();
     memcpy(targetBuffer, &dataBlockHeader, sizeof(dataBlockHeader));
     targetBuffer = ((uint8_t *)targetBuffer) + sizeof(dataBlockHeader);
-    unsigned long compressedSize = compressedMaxSize;
+    unsigned long compressedSize = (unsigned long)destinationBuffer.size();
     int status = compress((uint8_t *)targetBuffer, &compressedSize, tmpdata.get(), tmpbuffersize);
     destinationBuffer.resize(compressedSize + sizeof(dataBlockHeader));
 
