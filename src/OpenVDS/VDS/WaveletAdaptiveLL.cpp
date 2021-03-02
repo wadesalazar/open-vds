@@ -204,7 +204,7 @@ static int32_t CompileTransformData(uint8_t* compiledTransformData, int32_t* fir
   return writePos;
 }
 
-WaveletAdaptiveLL_DecodeIterator WaveletAdaptiveLL_CreateDecodeIterator(uint8_t* stream, float* picture, int sizeX, int sizeY, int sizeZ,
+WaveletAdaptiveLL_DecodeIterator WaveletAdaptiveLL_CreateDecodeIterator(uint8_t* stream, float* picture, int dimensions, int sizeX, int sizeY, int sizeZ,
   const float threshold, const float startThreshold, int* transformMask, Wavelet_TransformData* transformData, int transformDataCount,
   Wavelet_PixelSetChildren* pixelSetChildren, int pixelSetChildrenCount, Wavelet_PixelSetPixel* pixelSetPixelInSignificant, int pixelSetPixelInsignificantCount,
   int maxSizeX, int maxSizeXY, uint8_t* tempBufferCPU, int maxChildren, int maxPixels, int decompressLevel, bool isInteger)
@@ -332,18 +332,6 @@ WaveletAdaptiveLL_DecodeIterator WaveletAdaptiveLL_CreateDecodeIterator(uint8_t*
 
   assert(decodeBits >= 0);
   assert(decodeBits < DECODEITERATOR_MAXDECODEBITS);
-
-  int dimensions = 3;
-
-  if (sizeZ == 1)
-  {
-    dimensions = 2;
-
-    if (sizeY == 1)
-    {
-      dimensions = 1;
-    }
-  }
 
   assert(decompressLevel < WAVELET_ADAPTIVE_LEVELS);
 
