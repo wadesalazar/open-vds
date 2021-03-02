@@ -833,7 +833,7 @@ bool Wavelet::DeCompress(bool isTransform, int32_t decompressInfo, float decompr
   cpuTempData.resize(cpuTempDecodeSizeNeeded);
 
   bool isInteger = m_integerInfo & WAVELET_INTEGERINFO_ISINTEGER;
-  WaveletAdaptiveLL_DecodeIterator decodeIterator = WaveletAdaptiveLL_CreateDecodeIterator((uint8_t*)m_readCompressedData, floatReadWriteData, m_allocatedSizeX, m_allocatedSizeY, m_allocatedSizeZ, *threshold, *startThreshold, m_transformMask, transformData, m_transformIterations,
+  WaveletAdaptiveLL_DecodeIterator decodeIterator = WaveletAdaptiveLL_CreateDecodeIterator((uint8_t*)m_readCompressedData, floatReadWriteData, m_dimensions, m_allocatedSizeX, m_allocatedSizeY, m_allocatedSizeZ, *threshold, *startThreshold, m_transformMask, transformData, m_transformIterations,
       m_pixelSetChildren.get(), m_pixelSetChildrenCount, m_pixelSetPixelInSignificant.get(), m_pixelSetPixelInSignificantCount,
       m_allocatedHalfSizeX, m_allocatedHalfSizeX * m_allocatedHalfSizeY, cpuTempData.data(), m_allocatedHalfSizeX * m_allocatedHalfSizeY * m_allocatedHalfSizeZ, m_allocatedSizeX * m_allocatedSizeY * m_allocatedSizeZ, decompressLevel, isInteger);
 

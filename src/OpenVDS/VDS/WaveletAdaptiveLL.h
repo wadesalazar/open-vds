@@ -82,7 +82,7 @@ struct WaveletAdaptiveLL_DecodeIterator
   int32_t pixelSetPixelInsignificantCount;
 };
 
-WaveletAdaptiveLL_DecodeIterator WaveletAdaptiveLL_CreateDecodeIterator(uint8_t *streamCPU, float *pictureCPU, int sizeX, int sizeY, int sizeZ,
+WaveletAdaptiveLL_DecodeIterator WaveletAdaptiveLL_CreateDecodeIterator(uint8_t *streamCPU, float *pictureCPU, int dimensions, int sizeX, int sizeY, int sizeZ,
                                                                         const float threshold, const float startThreshold, int *transformMask, Wavelet_TransformData *transformData, int transformDataCount,
                                                                         Wavelet_PixelSetChildren *pixelSetChildren, int pixelSetChildrenCount, Wavelet_PixelSetPixel *pixelSetPixelInSignificant, int pixelSetPixelInsignificantCount,
                                                                         int maxSizeX, int maxSizeXY, uint8_t *tempBufferCPU, int maxChildren, int maxPixels, int decompressLevel, bool isInteger);
