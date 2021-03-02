@@ -44,6 +44,14 @@
 namespace OpenVDS
 {
 
+inline bool CompressionMethod_IsWavelet(CompressionMethod compressionMethod)
+{
+  return compressionMethod == CompressionMethod::Wavelet ||
+         compressionMethod == CompressionMethod::WaveletNormalizeBlock ||
+         compressionMethod == CompressionMethod::WaveletLossless ||
+         compressionMethod == CompressionMethod::WaveletNormalizeBlockLossless;
+}
+
 enum Wavelet_IntegerInfo
 {
   WAVELET_INTEGERINFO_ISINTEGER = (1 << 0),

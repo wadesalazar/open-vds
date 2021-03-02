@@ -46,15 +46,6 @@ VolumeDataStore::VolumeDataStore(OpenOptions::ConnectionType connectionType)
 {
 }
 
-
-static bool CompressionMethodIsWavelet(CompressionMethod compressionMethod)
-{
-  return compressionMethod == CompressionMethod::Wavelet ||
-         compressionMethod == CompressionMethod::WaveletNormalizeBlock ||
-         compressionMethod == CompressionMethod::WaveletLossless ||
-         compressionMethod == CompressionMethod::WaveletNormalizeBlockLossless;
-}
-
 static uint32_t GetByteSize(const DataBlockDescriptor &descriptor)
 {
   int32_t size[DataBlock::Dimensionality_Max];
@@ -77,7 +68,7 @@ bool VolumeDataStore::Verify(const VolumeDataChunk &volumeDataChunk, const std::
   {
     isValid = true;
   }
-  else if(CompressionMethodIsWavelet(compressionMethod))
+  else if(CompressionMethod_IsWavelet(compressionMethod))
   {
     if(serializedData.size() >= sizeof(int32_t) * 6)
     {
@@ -264,7 +255,7 @@ static uint64_t GetConstantValueVolumeDataHash(const DataBlock  &dataBlock, cons
 
 bool DeserializeVolumeData(const std::vector<uint8_t> &serializedData, VolumeDataChannelDescriptor::Format format, CompressionMethod compressionMethod, const FloatRange &valueRange, float integerScale, float integerOffset, bool isUseNoValue, float noValue, int32_t adaptiveLevel, DataBlock &dataBlock, std::vector<uint8_t> &destination, Error &error)
 {
-  if(CompressionMethodIsWavelet(compressionMethod))
+  if(CompressionMethod_IsWavelet(compressionMethod))
   {
     const void *data = serializedData.data();
 
@@ -505,7 +496,7 @@ bool VolumeDataStore::DeserializeVolumeData(const VolumeDataChunk& volumeDataChu
 {
   uint64_t volumeDataHashValue = VolumeDataHash::UNKNOWN;
 
-  bool waveletAdaptive = CompressionMethodIsWavelet(compressionMethod) && metadata.size() == sizeof(uint64_t) + sizeof(uint8_t[WAVELET_ADAPTIVE_LEVELS]);
+  bool waveletAdaptive = CompressionMethod_IsWavelet(compressionMethod) && metadata.size() == sizeof(uint64_t) + sizeof(uint8_t[WAVELET_ADAPTIVE_LEVELS]);
   if (!waveletAdaptive && metadata.size() != sizeof(uint64_t))
   {
     error.code = -1;
@@ -630,7 +621,7 @@ VolumeDataStore::SerializeVolumeData(const VolumeDataChunk& chunk, const DataBlo
 bool
 VolumeDataStore::IsCompressionMethodSupported(CompressionMethod compressionMethod)
 {
-  return !CompressionMethodIsWavelet(compressionMethod);
+  return !CompressionMethod_IsWavelet(compressionMethod);
 }
 
 }

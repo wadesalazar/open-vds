@@ -236,14 +236,6 @@ float VolumeDataLayer::GetNoValue() const
   return m_volumeDataLayout->GetChannelNoValue(m_channel);
 }
 
-static bool CompressionMethod_IsWavelet(CompressionMethod compressionMethod)
-{
-  return compressionMethod == CompressionMethod::Wavelet ||
-         compressionMethod == CompressionMethod::WaveletNormalizeBlock ||
-         compressionMethod == CompressionMethod::WaveletLossless ||
-         compressionMethod == CompressionMethod::WaveletNormalizeBlockLossless;
-}
-
 CompressionMethod VolumeDataLayer::GetEffectiveCompressionMethod() const
 {
   auto &channelDescriptor = m_volumeDataLayout->GetVolumeDataChannelDescriptor(m_channel);
