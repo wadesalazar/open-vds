@@ -21,7 +21,7 @@
 
 #include "VDS.h"
 #include "ParseVDSJson.h"
-#include <OpenVDS/OpenVDS.h>
+#include "WaveletTypes.h"
 
 #include <fmt/format.h>
 
@@ -32,6 +32,37 @@
 
 namespace OpenVDS
 {
+
+int VolumeDataStoreVDSFile::GetEffectiveAdaptiveLevel(VolumeDataLayer* volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio)
+{
+  if(waveletAdaptiveMode == WaveletAdaptiveMode::BestQuality)
+  {
+    return -1;
+  }
+
+  int
+    level = 0;
+
+  LayerFile* layerFile = GetLayerFile(*volumeDataLayer);
+
+  if(layerFile && layerFile->layerChunksWaveletAdaptive)
+  {
+    if(waveletAdaptiveMode == WaveletAdaptiveMode::Tolerance)
+    {
+      level = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(tolerance, layerFile->layerMetadata.m_compressionTolerance);
+    }
+    else if(waveletAdaptiveMode == WaveletAdaptiveMode::Ratio)
+    {
+      level = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(ratio, layerFile->layerMetadata.m_adaptiveLevelSizes, layerFile->layerMetadata.m_uncompressedSize);
+    }
+    else
+    {
+      assert(0 && "Illegal WaveletAdaptiveMode");
+    }
+  }
+
+  return level;
+}
 
 VolumeDataStoreVDSFile::LayerFile *VolumeDataStoreVDSFile::GetLayerFile(std::string const &layerName) const
 {
@@ -382,7 +413,20 @@ bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer, int chun
     return true;
   }
 
-  HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile(layerName.c_str(), (int)volumeDataLayer->GetTotalChunkCount(), chunkMetadataPageSize, FILETYPE_VDS_LAYER, sizeof(VDSChunkMetadata), sizeof(VDSLayerMetadata), true);
+  int
+    chunkMetadataLength = int(sizeof(VDSChunkMetadata)),
+    fileMetadataLength  = int(sizeof(VDSLayerMetadata));
+
+  bool
+    layerChunksWaveletAdaptive = CompressionMethod_IsWavelet(volumeDataLayer->GetEffectiveCompressionMethod());
+
+  if(layerChunksWaveletAdaptive)
+  {
+    chunkMetadataLength = int(sizeof(VDSWaveletAdaptiveLevelsChunkMetadata));
+    fileMetadataLength  = int(sizeof(VDSLayerMetadataWaveletAdaptive));
+  }
+
+  HueBulkDataStore::FileInterface *fileInterface = m_dataStore->AddFile(layerName.c_str(), (int)volumeDataLayer->GetTotalChunkCount(), chunkMetadataPageSize, FILETYPE_VDS_LAYER, chunkMetadataLength, fileMetadataLength, true);
   assert(fileInterface);
 
   VDSLayerMetadataWaveletAdaptive layerMetadata = VDSLayerMetadataWaveletAdaptive();
@@ -391,7 +435,7 @@ bool VolumeDataStoreVDSFile::AddLayer(VolumeDataLayer* volumeDataLayer, int chun
   fileInterface->WriteFileMetadata(&layerMetadata);
   fileInterface->Commit();
 
-  m_layerFiles[layerName] = LayerFile(fileInterface, layerMetadata, true);
+  m_layerFiles[layerName] = LayerFile(fileInterface, layerMetadata, layerChunksWaveletAdaptive, true);
   return true;
 }
 
@@ -453,12 +497,15 @@ VolumeDataStoreVDSFile::VolumeDataStoreVDSFile(VDS &vds, const std::string &vdsF
       {
         HueBulkDataStore::FileInterface *
           fileInterface = m_dataStore->OpenFile(m_dataStore->GetFileName(fileIndex));
-
         assert(fileInterface);
+
+        bool layerChunksWaveletAdaptive = (fileInterface->GetFileMetadataLength() == sizeof(VDSLayerMetadataWaveletAdaptive) &&
+                                           fileInterface->GetChunkMetadataLength() == sizeof(VDSWaveletAdaptiveLevelsChunkMetadata));
+
         VDSLayerMetadataWaveletAdaptive layerMetadata = VDSLayerMetadataWaveletAdaptive();
         fileInterface->ReadFileMetadata(&layerMetadata);
 
-        m_layerFiles[fileName] = LayerFile(fileInterface, layerMetadata, false);
+        m_layerFiles[fileName] = LayerFile(fileInterface, layerMetadata, layerChunksWaveletAdaptive, false);
       }
       else if(fileType == FILETYPE_HUE_OBJECT)
       {

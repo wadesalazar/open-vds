@@ -505,6 +505,38 @@ static bool Init(VDS *vds, VolumeDataStore *volumeDataStore, Error& error)
   return true;
 }
 
+void InitWaveletAdaptiveLoadLevel(VDS &vds, OpenOptions const &options)
+{
+  assert(vds.volumeDataLayout.get());
+
+  DimensionGroup
+    dimensionGroup = (vds.volumeDataLayout->GetDimensionality() == 2) ? DimensionGroup::DimensionGroup_01 : DimensionGroup::DimensionGroup_012;
+
+  VolumeDataLayer *volumeDataLayer = vds.volumeDataLayout->GetBaseLayer(dimensionGroup, 0);
+
+  if(!volumeDataLayer || volumeDataLayer->GetProduceStatus() != VolumeDataLayer::ProduceStatus_Normal)
+  {
+    for (int i = DimensionGroup::DimensionGroup_01; i < DimensionGroup::DimensionGroup_3D_Max; i++)
+    {
+      dimensionGroup = DimensionGroup(i);
+      volumeDataLayer = vds.volumeDataLayout->GetBaseLayer(dimensionGroup, 0);
+      if(volumeDataLayer && volumeDataLayer->GetProduceStatus() == VolumeDataLayer::ProduceStatus_Normal)
+      {
+        break;
+      }
+    }
+  }
+
+  int adaptiveLevel = -1;
+
+  if(volumeDataLayer && volumeDataLayer->GetProduceStatus() == VolumeDataLayer::ProduceStatus_Normal)
+  {
+    adaptiveLevel = vds.volumeDataStore->GetEffectiveAdaptiveLevel(volumeDataLayer, options.waveletAdaptiveMode, options.waveletAdaptiveTolerance, options.waveletAdaptiveRatio);
+  }
+
+  vds.volumeDataLayout->SetWaveletAdaptiveLoadLevel(adaptiveLevel);
+}
+
 VDSHandle Open(IOManager *ioManager, Error& error)
 {
   std::unique_ptr<VDS> ret(new VDS());
@@ -544,6 +576,8 @@ VDS *Open(const OpenOptions &options, Error &error)
 
   if(Init(ret.get(), volumeDataStore.release(), error))
   {
+    assert(ret.get());
+    InitWaveletAdaptiveLoadLevel(*ret.get(), options);
     return ret.release();
   }
   else
@@ -618,6 +652,8 @@ void CreateVolumeDataLayout(VDS &vds, CompressionMethod compressionMethod, float
     compressionTolerance = WAVELET_MIN_COMPRESSION_TOLERANCE;
   }
 
+  const int waveletAdaptiveLoadLevel = -1;
+
   const int actualValueRangeChannel = -1;
   const FloatRange actualValueRange = FloatRange(1, 0);
 
@@ -633,7 +669,7 @@ void CreateVolumeDataLayout(VDS &vds, CompressionMethod compressionMethod, float
       compressionMethod,
       compressionTolerance,
       false,
-      0));
+      waveletAdaptiveLoadLevel));
 
   for(int32_t dimensionGroupIndex = 0; dimensionGroupIndex < DimensionGroup_3D_Max; dimensionGroupIndex++)
   {

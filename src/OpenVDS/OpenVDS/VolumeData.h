@@ -91,7 +91,15 @@ enum class CompressionMethod
   WaveletLossless,
   WaveletNormalizeBlockLossless
 };
- 
+
+inline bool CompressionMethod_IsWavelet(CompressionMethod compressionMethod)
+{
+  return compressionMethod == CompressionMethod::Wavelet ||
+         compressionMethod == CompressionMethod::WaveletNormalizeBlock ||
+         compressionMethod == CompressionMethod::WaveletLossless ||
+         compressionMethod == CompressionMethod::WaveletNormalizeBlockLossless;
+}
+
 class CompressionInfo
 {
   CompressionMethod   compressionMethod;

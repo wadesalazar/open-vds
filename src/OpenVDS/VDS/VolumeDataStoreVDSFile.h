@@ -36,11 +36,12 @@ class VolumeDataStoreVDSFile : public VolumeDataStore, public LayerMetadataConta
   {
     HueBulkDataStore::FileInterface *fileInterface;
     VDSLayerMetadataWaveletAdaptive layerMetadata;
+    bool layerChunksWaveletAdaptive;
     bool dirty;
 
     LayerFile() = default;
-    LayerFile(HueBulkDataStore::FileInterface *fileInterface, VDSLayerMetadataWaveletAdaptive const &layerMetadata, bool dirty)
-      : fileInterface(fileInterface), layerMetadata(layerMetadata), dirty(dirty)
+    LayerFile(HueBulkDataStore::FileInterface *fileInterface, VDSLayerMetadataWaveletAdaptive const &layerMetadata, bool layerChunksWaveletAdaptive, bool dirty)
+      : fileInterface(fileInterface), layerMetadata(layerMetadata), layerChunksWaveletAdaptive(layerChunksWaveletAdaptive), dirty(dirty)
     {}
   };
 
@@ -65,6 +66,7 @@ public:
     ReadWrite
   };
 
+  int           GetEffectiveAdaptiveLevel(VolumeDataLayer* volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio) override;
   CompressionInfo
                 GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error) override;
   bool          PrepareReadChunk(const VolumeDataChunk &volumeDataChunk, Error &error) override;

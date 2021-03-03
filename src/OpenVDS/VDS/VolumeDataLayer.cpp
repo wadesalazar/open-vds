@@ -287,16 +287,6 @@ float VolumeDataLayer::GetEffectiveCompressionTolerance() const
   return effectiveCompressionTolerance;
 }
 
-int32_t VolumeDataLayer::GetEffectiveWaveletAdaptiveLoadLevel(float rEffectiveCompressionTolerance, float rCompressionTolerance)
-{
-  assert(rEffectiveCompressionTolerance >= WAVELET_MIN_COMPRESSION_TOLERANCE);
-  assert(rCompressionTolerance >= WAVELET_MIN_COMPRESSION_TOLERANCE);
-
-  int32_t waveletAdaptiveLoadLevel = (int32_t)(log(rEffectiveCompressionTolerance / rCompressionTolerance) / M_LN2);
-
-  return std::max(0, waveletAdaptiveLoadLevel);
-}
-
 int32_t VolumeDataLayer::GetEffectiveWaveletAdaptiveLoadLevel() const
 {
   if(!CompressionMethod_IsWavelet(GetEffectiveCompressionMethod())) return -1;
@@ -310,7 +300,7 @@ int32_t VolumeDataLayer::GetEffectiveWaveletAdaptiveLoadLevel() const
 
     assert(effectiveCompressionTolerance >= m_volumeDataLayout->GetCompressionTolerance());
 
-    int lodAdaptiveDifference = GetEffectiveWaveletAdaptiveLoadLevel(effectiveCompressionTolerance, m_volumeDataLayout->GetCompressionTolerance());
+    int lodAdaptiveDifference = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(effectiveCompressionTolerance, m_volumeDataLayout->GetCompressionTolerance());
 
     int adaptiveLODLevel = (m_volumeDataLayout->GetWaveletAdaptiveLoadLevel() - lodAdaptiveDifference);
 

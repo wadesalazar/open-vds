@@ -23,6 +23,8 @@
 #include "ParseVDSJson.h"
 #include "ParsedMetadata.h"
 
+#include "WaveletTypes.h"
+
 #include <IO/IOManager.h>
 
 #include <fmt/format.h>
@@ -173,54 +175,6 @@ static bool IsConstantChunkHash(uint64_t chunkHash)
   return false;
 }
 
-static int GetEffectiveAdaptiveLoadLevel(float effectiveCompressionTolerance, float compressionTolerance)
-{
-//  assert(effectiveCompressionTolerance >= adaptiveToleranceMin);
-//  assert(compressionTolerance >= adaptiveToleranceMin);
-
-  int adaptiveLoadLevel = (int)(log(effectiveCompressionTolerance / compressionTolerance) / M_LN2);
-
-  return std::max(0, adaptiveLoadLevel);
-}
-
-static int GetEffectiveAdaptiveLevel(AdaptiveMode adaptiveMode, float desiredTolerance, float desiredRatio, float remoteTolerance, int64_t const adaptiveLevelSizes[WAVELET_ADAPTIVE_LEVELS], int64_t uncompressedSize)
-{
-  if (adaptiveMode == AdaptiveMode_BestQuality)
-  {
-    return -1;
-  }
-  else if (adaptiveMode == AdaptiveMode_Ratio && desiredRatio <= 1.0f)
-  {
-    return 0;
-  }
-
-  int level = 0;
-
-  if (adaptiveMode == AdaptiveMode_Tolerance)
-  {
-    level = GetEffectiveAdaptiveLoadLevel(desiredTolerance, remoteTolerance);
-  }
-  else if (adaptiveMode == AdaptiveMode_Ratio)
-  {
-    // Matches HueVolumeDataStoreVersion4_c::GetEffectiveAdaptiveLevel
-    while (level + 1 < WAVELET_ADAPTIVE_LEVELS)
-    {
-      if (adaptiveLevelSizes[level + 1] == 0 || ((float)uncompressedSize / (float)adaptiveLevelSizes[level + 1]) > desiredRatio)
-      {
-        break;
-      }
-
-      level++;
-    }
-  }
-  else
-  {
-    assert(0 && "Unknown compression mode");
-  }
-
-  return level;
-}
-
 static int WaveletAdaptiveLevelsMetadataDecode(uint64_t totalSize, int targetLevel, uint8_t const *levels)
 {
   assert(targetLevel >= -1 && targetLevel < WAVELET_ADAPTIVE_LEVELS);
@@ -345,24 +299,14 @@ VolumeDataStoreIOManager::AddLayer(VolumeDataLayer* volumeDataLayer, int chunkMe
   return true;
 }
 
-static IORange CalculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, const MetadataStatus &metadataStatus, int * const adaptiveLevel)
+static IORange CalculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, const MetadataStatus &metadataStatus, int adaptiveLevel)
 {
-  if (IsConstantChunkHash(parsedMetadata.m_chunkHash))
+  if (!IsConstantChunkHash(parsedMetadata.m_chunkHash) && !parsedMetadata.m_adaptiveLevels.empty())
   {
-    *adaptiveLevel = -1;
-  }
-  else if (parsedMetadata.m_adaptiveLevels.empty())
-  {
-    *adaptiveLevel = -1;
-  }
-  else
-  {
-    *adaptiveLevel = GetEffectiveAdaptiveLevel(AdaptiveMode_BestQuality, 0.01f, 1.0f , metadataStatus.m_compressionTolerance, metadataStatus.m_adaptiveLevelSizes, metadataStatus.m_uncompressedSize);
-
-    int range = WaveletAdaptiveLevelsMetadataDecode(parsedMetadata.m_chunkSize, *adaptiveLevel, parsedMetadata.m_adaptiveLevels.data());
+    int range = WaveletAdaptiveLevelsMetadataDecode(parsedMetadata.m_chunkSize, adaptiveLevel, parsedMetadata.m_adaptiveLevels.data());
     if (range && range != parsedMetadata.m_chunkSize)
     {
-    return { int64_t(0) , int64_t(range - 1 ) };
+      return { int64_t(0) , int64_t(range - 1 ) };
     }
   }
 
@@ -443,7 +387,9 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
     
     metadataManager->UnlockPage(metadataPage);
 
-    ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
+    const int adaptiveLevel = -1;
+
+    ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), -1);
 
     lock.lock();
   }
@@ -659,9 +605,9 @@ void VolumeDataStoreIOManager::PageTransferCompleted(MetadataPage* metadataPage,
         }
         else
         {
-          int adaptiveLevel;
+          const int adaptiveLevel = -1;
 
-          IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), &adaptiveLevel);
+          IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), adaptiveLevel);
 
           std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.index);
           auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, parsedMetadata.CreateChunkMetadata(), adaptiveLevel);
@@ -707,6 +653,38 @@ static int64_t CreateUploadJobId()
 {
   static std::atomic< std::int64_t > id(0);
   return --id;
+}
+
+int VolumeDataStoreIOManager::GetEffectiveAdaptiveLevel(VolumeDataLayer * volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio)
+{
+  if(waveletAdaptiveMode == WaveletAdaptiveMode::BestQuality)
+  {
+    return -1;
+  }
+
+  int
+    level = 0;
+
+  std::string layerName = GetLayerName(*volumeDataLayer);
+  auto metadataManager = GetMetadataMangerForLayer(layerName);
+
+  if(metadataManager)
+  {
+    if(waveletAdaptiveMode == WaveletAdaptiveMode::Tolerance)
+    {
+      level = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(tolerance, metadataManager->GetMetadataStatus().m_compressionTolerance);
+    }
+    else if(waveletAdaptiveMode == WaveletAdaptiveMode::Ratio)
+    {
+      level = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(ratio, metadataManager->GetMetadataStatus().m_adaptiveLevelSizes, metadataManager->GetMetadataStatus().m_uncompressedSize);
+    }
+    else
+    {
+      assert(0 && "Illegal WaveletAdaptiveMode");
+    }
+  }
+
+  return level;
 }
 
 CompressionInfo VolumeDataStoreIOManager::GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error)

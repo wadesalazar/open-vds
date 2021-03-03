@@ -211,8 +211,6 @@ public:
 
   float GetEffectiveCompressionTolerance() const;
 
-  static int32_t GetEffectiveWaveletAdaptiveLoadLevel(float effectiveCompressionTolerance, float compressionTolerance);
-
   int32_t GetEffectiveWaveletAdaptiveLoadLevel() const;
 
   float GetIntegerScale() const;

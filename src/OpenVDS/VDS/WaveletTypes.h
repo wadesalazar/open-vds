@@ -21,6 +21,8 @@
 #include <OpenVDS/Vector.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include "DataBlock.h"
+#include <math.h>
+#include <assert.h>
 
 #define WAVELET_MIN_COMPRESSION_TOLERANCE 0.01f
 
@@ -43,6 +45,33 @@
 
 namespace OpenVDS
 {
+
+inline int Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(float desiredTolerance, float compressionTolerance)
+{
+  assert(desiredTolerance >= WAVELET_MIN_COMPRESSION_TOLERANCE);
+  assert(compressionTolerance >= WAVELET_MIN_COMPRESSION_TOLERANCE);
+
+  int waveletAdaptiveLoadLevel = (int)log2(desiredTolerance / compressionTolerance);
+
+  return std::max(0, waveletAdaptiveLoadLevel);
+}
+
+inline int Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(float desiredRatio, int64_t const (&adaptiveLevelSizes)[WAVELET_ADAPTIVE_LEVELS], int64_t uncompressedSize)
+{
+  int level = 0;
+
+  while (level + 1 < WAVELET_ADAPTIVE_LEVELS)
+  {
+    if (adaptiveLevelSizes[level + 1] == 0 || ((float)uncompressedSize / (float)adaptiveLevelSizes[level + 1]) > desiredRatio)
+    {
+      break;
+    }
+
+    level++;
+  }
+
+  return level;
+}
 
 inline bool CompressionMethod_IsWavelet(CompressionMethod compressionMethod)
 {

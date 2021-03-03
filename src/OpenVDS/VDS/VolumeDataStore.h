@@ -42,6 +42,7 @@ public:
 
   virtual CompressionInfo
                         GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error) = 0;
+  virtual int           GetEffectiveAdaptiveLevel(VolumeDataLayer* volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio) = 0;
   virtual bool          PrepareReadChunk(const VolumeDataChunk &volumeDataChunk, Error &error) = 0;
   virtual bool          ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error) = 0;
   virtual bool          CancelReadChunk(const VolumeDataChunk& chunk, Error& error) = 0;
