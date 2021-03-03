@@ -426,6 +426,119 @@ ParseHeaderFormatFile(DataProvider &dataProvider, std::map<std::string, SEGY::He
   return true;
 }
 
+bool OnlyDigits(const std::string& str)
+{
+  for (auto a : str)
+  {
+    if (a < '0' || a > '9')
+      return false;
+  }
+  return true;
+}
+
+bool
+ParseHeaderFieldArgs(const std::vector<std::string> &header_fields_args, std::map<std::string, SEGY::HeaderField>& traceHeaderFields, SEGY::Endianness& headerEndianness, OpenVDS::Error& error)
+{
+  for (auto& header_field : header_fields_args)
+  {
+    if (header_field.empty())
+    {
+      error.code = -1;
+      error.string = "Cannot parse empty header-field";
+      return false;
+    }
+    auto it = std::find(header_field.begin(), header_field.end(), '=');
+    if (it == header_field.end())
+    {
+      error.code = -1;
+      error.string = fmt::format("Failed to parse header-field {}.", header_field);
+      return false;
+    }
+    std::string header_name(header_field.begin(), it);
+    if (it + 1 == header_field.end())
+    {
+      error.code = -1;
+      error.string = fmt::format("Can not find value for header-field {}.", header_name);
+      return false;
+    }
+    std::string header_value(it + 1, header_field.end());
+    auto min_delimiter = std::find(header_value.begin(), header_value.end(), '-');
+    int field_width = -1;
+    int offset = -1;
+    if (min_delimiter != header_value.end())
+    {
+      if (min_delimiter + 1 == header_value.end())
+      {
+        error.code = -1;
+        error.string = fmt::format("unable to parse value for header-field {} with value {}.", header_name, header_value);
+        return false;
+      }
+      std::string value_start(header_value.begin(), min_delimiter);
+      std::string value_end(min_delimiter + 1, header_value.end());
+      if (!OnlyDigits(value_start) || !OnlyDigits(value_end))
+      {
+        error.code = -1;
+        error.string = fmt::format("unable to parse header-field {} value range {}.", header_name, header_value);
+        return false;
+      }
+      int value_start_value = atoi(value_start.c_str());
+      int value_end_value = atoi(value_end.c_str());
+      offset = value_start_value;
+      field_width = value_end_value - value_start_value;
+    }
+    else
+    {
+      auto colon_delimiter = std::find(header_value.begin(), header_value.end(), ':');
+      std::string offset_str(header_value.begin(), colon_delimiter);
+      if (!OnlyDigits(offset_str))
+      {
+        error.code = -1;
+        error.string = fmt::format("unable to parse offset for header-field {}: {}.", header_name, header_value);
+        return false;
+      }
+      offset = atoi(offset_str.c_str());
+      if (colon_delimiter < header_value.end() && colon_delimiter + 1 < header_value.end())
+      {
+        std::string width_str(colon_delimiter + 1, header_value.end());
+        if (!OnlyDigits(width_str))
+        {
+          error.code = -1;
+          error.string = fmt::format("unable to parse width specifier for header-field {}: {}.", header_name, width_str);
+          return false;
+        }
+        field_width = atoi(width_str.c_str());
+      }
+    }
+    if (offset < 0)
+    {
+      error.code = -1;
+      error.string = fmt::format("unable to find offset for header-field {}: {}.", header_name, header_value);
+      return false;
+    }
+    ResolveAlias(header_name);
+    auto& traceHeaderField = traceHeaderFields[header_name];
+    traceHeaderField.byteLocation = offset;
+    if (field_width != -1)
+    {
+      if (field_width == 2)
+      {
+        traceHeaderField.fieldWidth = SEGY::FieldWidth::TwoByte;
+      }
+      else if (field_width == 4)
+      {
+        traceHeaderField.fieldWidth = SEGY::FieldWidth::FourByte;
+      }
+      else
+      {
+        error.code = -1;
+        error.string = fmt::format("header-field {} has illegal field width of {}. Only widths of 2 or 4 are accepted.", header_name, field_width);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 SEGYBinInfo
 binInfoFromJson(Json::Value const& jsonBinInfo)
 {
@@ -1337,6 +1450,7 @@ main(int argc, char* argv[])
   options.positional_help("<input file>");
 
   std::string headerFormatFileName;
+  std::vector<std::string> headerFields;
   std::string primaryKey = "InlineNumber";
   std::string secondaryKey = "CrosslineNumber";
   std::string sampleUnit;
@@ -1373,6 +1487,7 @@ main(int argc, char* argv[])
   std::vector<std::string> fileNames;
 
   options.add_option("", "", "header-format", "A JSON file defining the header format for the input SEG-Y file. The expected format is a dictonary of strings (field names) to pairs (byte position, field width) where field width can be \"TwoByte\" or \"FourByte\". Additionally, an \"Endianness\" key can be specified as \"BigEndian\" or \"LittleEndian\".", cxxopts::value<std::string>(headerFormatFileName), "<file>");
+  options.add_option("", "", "header-field", "A single definition of a header field. The expected format is a \"fieldname=offset:width\" where the \":width\" is optional. Its also possible to specify range: \"fieldname=begin-end\". Multiple header-fields is specified by providing multiple --header-field arguments.", cxxopts::value<std::vector<std::string>>(headerFields), "header_name=offset:width");
   options.add_option("", "p", "primary-key", "The name of the trace header field to use as the primary key.", cxxopts::value<std::string>(primaryKey)->default_value("Inline"), "<field>");
   options.add_option("", "s", "secondary-key", "The name of the trace header field to use as the secondary key.", cxxopts::value<std::string>(secondaryKey)->default_value("Crossline"), "<field>");
   options.add_option("", "", "prestack", "Import binned prestack data (PSTM/PSDM gathers).", cxxopts::value<bool>(prestack), "");
@@ -1522,6 +1637,15 @@ main(int argc, char* argv[])
     if (error.code != 0)
     {
       fmt::print(stderr, "Could not read header format file {}: {}\n", headerFormatFileName, error.string);
+      return EXIT_FAILURE;
+    }
+  }
+  if (headerFields.size())
+  {
+    OpenVDS::Error error;
+    if (!ParseHeaderFieldArgs(headerFields, g_traceHeaderFields, headerEndianness, error))
+    {
+      fmt::print(stderr, "Could not parse header-fields: {}\n", error.string);
       return EXIT_FAILURE;
     }
   }
