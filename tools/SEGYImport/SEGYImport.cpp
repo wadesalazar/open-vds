@@ -76,6 +76,12 @@ int64_t GetTotalSystemMemory()
 }
 #endif
 
+inline char asciitolower(char in) {
+  if (in <= 'Z' && in >= 'A')
+    return in - ('Z' - 'z');
+  return in;
+}
+
 DataProvider CreateDataProviderFromFile(const std::string &filename, OpenVDS::Error &error)
 {
   std::unique_ptr<OpenVDS::File> file(new OpenVDS::File());
@@ -231,62 +237,60 @@ SerializeSEGYFileInfo(SEGYFileInfo const& fileInfo, const int fileIndex)
 std::map<std::string, SEGY::HeaderField>
 g_traceHeaderFields =
 {
- { "TraceSequenceNumber",           SEGY::TraceHeader::TraceSequenceNumberHeaderField },
- { "TraceSequenceNumberWithinFile", SEGY::TraceHeader::TraceSequenceNumberWithinFileHeaderField },
- { "EnergySourcePointNumber",       SEGY::TraceHeader::EnergySourcePointNumberHeaderField },
- { "EnsembleNumber",                SEGY::TraceHeader::EnsembleNumberHeaderField },
- { "TraceNumberWithinEnsemble",     SEGY::TraceHeader::TraceNumberWithinEnsembleHeaderField },
- { "TraceIdentificationCode",       SEGY::TraceHeader::TraceIdentificationCodeHeaderField },
- { "CoordinateScale",               SEGY::TraceHeader::CoordinateScaleHeaderField },
- { "SourceXCoordinate",             SEGY::TraceHeader::SourceXCoordinateHeaderField },
- { "SourceYCoordinate",             SEGY::TraceHeader::SourceYCoordinateHeaderField },
- { "GroupXCoordinate",              SEGY::TraceHeader::GroupXCoordinateHeaderField },
- { "GroupYCoordinate",              SEGY::TraceHeader::GroupYCoordinateHeaderField },
- { "CoordinateUnits",               SEGY::TraceHeader::CoordinateUnitsHeaderField },
- { "StartTime",                     SEGY::TraceHeader::StartTimeHeaderField },
- { "NumSamples",                    SEGY::TraceHeader::NumSamplesHeaderField },
- { "SampleInterval",                SEGY::TraceHeader::SampleIntervalHeaderField },
- { "EnsembleXCoordinate",           SEGY::TraceHeader::EnsembleXCoordinateHeaderField },
- { "EnsembleYCoordinate",           SEGY::TraceHeader::EnsembleYCoordinateHeaderField },
- { "InlineNumber",                  SEGY::TraceHeader::InlineNumberHeaderField },
- { "CrosslineNumber",               SEGY::TraceHeader::CrosslineNumberHeaderField },
- { "Receiver",                      SEGY::TraceHeader::ReceiverHeaderField },
- { "Offset",                        SEGY::TraceHeader::OffsetHeaderField }
+ { "tracesequencenumber",           SEGY::TraceHeader::TraceSequenceNumberHeaderField },
+ { "tracesequencenumberwithinfile", SEGY::TraceHeader::TraceSequenceNumberWithinFileHeaderField },
+ { "energysourcepointnumber",       SEGY::TraceHeader::EnergySourcePointNumberHeaderField },
+ { "ensemblenumber",                SEGY::TraceHeader::EnsembleNumberHeaderField },
+ { "tracenumberwithinensemble",     SEGY::TraceHeader::TraceNumberWithinEnsembleHeaderField },
+ { "traceidentificationcode",       SEGY::TraceHeader::TraceIdentificationCodeHeaderField },
+ { "coordinatescale",               SEGY::TraceHeader::CoordinateScaleHeaderField },
+ { "sourcexcoordinate",             SEGY::TraceHeader::SourceXCoordinateHeaderField },
+ { "sourceycoordinate",             SEGY::TraceHeader::SourceYCoordinateHeaderField },
+ { "groupxcoordinate",              SEGY::TraceHeader::GroupXCoordinateHeaderField },
+ { "groupycoordinate",              SEGY::TraceHeader::GroupYCoordinateHeaderField },
+ { "coordinateunits",               SEGY::TraceHeader::CoordinateUnitsHeaderField },
+ { "starttime",                     SEGY::TraceHeader::StartTimeHeaderField },
+ { "numsamples",                    SEGY::TraceHeader::NumSamplesHeaderField },
+ { "sampleinterval",                SEGY::TraceHeader::SampleIntervalHeaderField },
+ { "ensemblexcoordinate",           SEGY::TraceHeader::EnsembleXCoordinateHeaderField },
+ { "ensembleycoordinate",           SEGY::TraceHeader::EnsembleYCoordinateHeaderField },
+ { "inlinenumber",                  SEGY::TraceHeader::InlineNumberHeaderField },
+ { "crosslinenumber",               SEGY::TraceHeader::CrosslineNumberHeaderField },
+ { "receiver",                      SEGY::TraceHeader::ReceiverHeaderField },
+ { "offset",                        SEGY::TraceHeader::OffsetHeaderField }
 };
 
 std::map<std::string, std::string>
 g_aliases =
 {
- { "Inline",              "InlineNumber" },
- { "InLine",              "InlineNumber" },
- { "InLineNumber",        "InlineNumber" },
- { "Crossline",           "CrosslineNumber" },
- { "CrossLine",           "CrosslineNumber" },
- { "CrossLineNumber",     "CrosslineNumber" },
- { "Shot",                "EnergySourcePointNumber" },
- { "SP",                  "EnergySourcePointNumber" },
- { "CDP",                 "EnsembleNumber" },
- { "CMP",                 "EnsembleNumber" },
- { "Easting",             "EnsembleXCoordinate" },
- { "Northing",            "EnsembleYCoordinate" },
- { "CDPXCoordinate",      "EnsembleXCoordinate" },
- { "CDPYCoordinate",      "EnsembleYCoordinate" },
- { "CDP-X",               "EnsembleXCoordinate" },
- { "CDP-Y",               "EnsembleYCoordinate" },
- { "Source-X",            "SourceXCoordinate" },
- { "Source-Y",            "SourceYCoordinate" },
- { "Group-X",             "GroupXCoordinate" },
- { "Group-Y",             "GroupYCoordinate" },
- { "ReceiverXCoordinate", "GroupXCoordinate" },
- { "ReceiverYCoordinate", "GroupYCoordinate" },
- { "Receiver-X",          "GroupXCoordinate" },
- { "Receiver-Y",          "GroupYCoordinate" },
- { "Scalar",              "CoordinateScale" }
+ { "inline",              "inlinenumber" },
+ { "crossline",           "crosslinenumber" },
+ { "shot",                "energysourcepointnumber" },
+ { "sp",                  "energysourcepointnumber" },
+ { "cdp",                 "ensemblenumber" },
+ { "cmp",                 "ensemblenumber" },
+ { "easting",             "ensemblexcoordinate" },
+ { "northing",            "ensembleycoordinate" },
+ { "cdpxcoordinate",      "ensemblexcoordinate" },
+ { "cdpycoordinate",      "ensembleycoordinate" },
+ { "cdp-x",               "ensemblexcoordinate" },
+ { "cdp-y",               "ensembleycoordinate" },
+ { "source-x",            "sourcexcoordinate" },
+ { "source-y",            "sourceycoordinate" },
+ { "group-x",             "groupxcoordinate" },
+ { "group-y",             "groupycoordinate" },
+ { "receiverxcoordinate", "groupxcoordinate" },
+ { "receiverycoordinate", "groupycoordinate" },
+ { "receiver-x",          "groupxcoordinate" },
+ { "receiver-y",          "groupycoordinate" },
+ { "scalar",              "coordinatescale" }
 };
 
 void
 ResolveAlias(std::string& fieldName)
 {
+
+  std::transform(fieldName.begin(), fieldName.end(), fieldName.begin(), asciitolower);
   if (g_aliases.find(fieldName) != g_aliases.end())
   {
     fieldName = g_aliases[fieldName];
@@ -299,11 +303,12 @@ EndiannessFromJson(Json::Value const& jsonEndianness)
   std::string
     endiannessString = jsonEndianness.asString();
 
-  if (endiannessString == "BigEndian")
+  std::transform(endiannessString.begin(), endiannessString.end(), endiannessString.begin(), asciitolower);
+  if (endiannessString == "bigendian")
   {
     return SEGY::Endianness::BigEndian;
   }
-  else if (endiannessString == "LittleEndian")
+  else if (endiannessString == "littleendian")
   {
     return SEGY::Endianness::LittleEndian;
   }
@@ -316,12 +321,13 @@ FieldWidthFromJson(Json::Value const& jsonFieldWidth)
 {
   std::string
     fieldWidthString = jsonFieldWidth.asString();
+  std::transform(fieldWidthString.begin(), fieldWidthString.end(), fieldWidthString.begin(), asciitolower);
 
-  if (fieldWidthString == "TwoByte")
+  if (fieldWidthString == "twobyte")
   {
     return SEGY::FieldWidth::TwoByte;
   }
-  else if (fieldWidthString == "FourByte")
+  else if (fieldWidthString == "fourbyte")
   {
     return SEGY::FieldWidth::FourByte;
   }
@@ -400,7 +406,7 @@ ParseHeaderFormatFile(DataProvider &dataProvider, std::map<std::string, SEGY::He
       std::string canonicalFieldName = fieldName;
       ResolveAlias(canonicalFieldName);
 
-      if (fieldName == "Endianness")
+      if (canonicalFieldName == "endianness")
       {
         headerEndianness = EndiannessFromJson(root[fieldName]);
       }
@@ -1448,7 +1454,7 @@ main(int argc, char* argv[])
 
   SEGY::SEGYType segyType = SEGY::SEGYType::Poststack;
 
-  if (primaryKey == "InlineNumber" || primaryKey == "CrosslineNumber" )
+  if (primaryKey == "inlinenumber" || primaryKey == "crosslinenumber" )
   {
     if(prestack)
     {
@@ -1459,11 +1465,11 @@ main(int argc, char* argv[])
       segyType = SEGY::SEGYType::Poststack;
     }
   }
-  else if (primaryKey == "Receiver")
+  else if (primaryKey == "receiver")
   {
     segyType = SEGY::SEGYType::ReceiverGathers;
   }
-  else if (primaryKey == "EnergySourcePointNumber")
+  else if (primaryKey == "energysourcepointnumber")
   {
     segyType = SEGY::SEGYType::ShotGathers;
   }
