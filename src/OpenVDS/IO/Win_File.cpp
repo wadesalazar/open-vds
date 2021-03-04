@@ -68,7 +68,7 @@ template<size_t N>
 void SetIoError(DWORD error, const char (&error_string_prefix)[N], Error &io_error)
 {
   io_error.code = error;
-  io_error.string = std::string(error_string_prefix, N) + ErrorToString(error);
+  io_error.string = std::string(error_string_prefix, N - 1) + ErrorToString(error);
 }
 
 bool FileView::SystemFileMappingObject::Open(SystemFileMappingObject** ppcFileMappingObject, File& file, Error& error)

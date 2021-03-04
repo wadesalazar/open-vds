@@ -470,6 +470,15 @@ VolumeDataStoreVDSFile::VolumeDataStoreVDSFile(VDS &vds, const std::string &vdsF
       }
     }
   }
+  else
+  {
+    auto errormsg = m_dataStore->GetErrorMessage();
+    if (strlen(errormsg))
+    {
+      error.string = errormsg;
+      error.code = -1;
+    }
+  }
 }
 
 VolumeDataStoreVDSFile::~VolumeDataStoreVDSFile()

@@ -10,6 +10,7 @@
 
 #include "HueBulkDataStore.h"
 #include "IO/File.h"
+#include <fmt/format.h>
 using OpenVDS::File;
 using OpenVDS::Error;
 
@@ -1443,7 +1444,7 @@ HueBulkDataStoreImpl::CreateNew(const char *fileName, bool overwriteExisting)
   Error error;
   if(!m_fileHandle.Open(fileName, true, overwriteExisting, true, error))
   {
-    SetErrorMessage("Open error: " + error.string);
+    SetErrorMessage(fmt::format("Open error for file \"{}\": {}", fileName, error.string));
     return false;
   }
 
