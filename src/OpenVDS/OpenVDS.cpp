@@ -527,14 +527,15 @@ void InitWaveletAdaptiveLoadLevel(VDS &vds, OpenOptions const &options)
     }
   }
 
-  int adaptiveLevel = -1;
-
   if(volumeDataLayer && volumeDataLayer->GetProduceStatus() == VolumeDataLayer::ProduceStatus_Normal)
   {
-    adaptiveLevel = vds.volumeDataStore->GetEffectiveAdaptiveLevel(volumeDataLayer, options.waveletAdaptiveMode, options.waveletAdaptiveTolerance, options.waveletAdaptiveRatio);
-  }
+    CompressionInfo
+      compressionInfo = vds.volumeDataStore->GetEffectiveAdaptiveLevel(volumeDataLayer, options.waveletAdaptiveMode, options.waveletAdaptiveTolerance, options.waveletAdaptiveRatio);
 
-  vds.volumeDataLayout->SetWaveletAdaptiveLoadLevel(adaptiveLevel);
+    vds.volumeDataLayout->SetCompressionMethod(compressionInfo.GetCompressionMethod());
+    vds.volumeDataLayout->SetCompressionTolerance(compressionInfo.GetTolerance());
+    vds.volumeDataLayout->SetWaveletAdaptiveLoadLevel(compressionInfo.GetAdaptiveLevel());
+  }
 }
 
 VDSHandle Open(IOManager *ioManager, Error& error)
@@ -652,10 +653,9 @@ void CreateVolumeDataLayout(VDS &vds, CompressionMethod compressionMethod, float
     compressionTolerance = WAVELET_MIN_COMPRESSION_TOLERANCE;
   }
 
-  const int waveletAdaptiveLoadLevel = -1;
-
   const int actualValueRangeChannel = -1;
   const FloatRange actualValueRange = FloatRange(1, 0);
+  const int waveletAdaptiveLoadLevel = -1;
 
   vds.volumeDataLayout.reset(
     new VolumeDataLayoutImpl(

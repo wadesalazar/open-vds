@@ -34,6 +34,20 @@
 namespace OpenVDS
 {
 
+class CompressionInfo
+{
+  CompressionMethod   compressionMethod;
+  float               tolerance;
+  int                 adaptiveLevel;
+public:
+  CompressionInfo() : compressionMethod(CompressionMethod::None), tolerance(0.0f), adaptiveLevel(0) {}
+  CompressionInfo(CompressionMethod compressionMethod, float tolerance, int adaptiveLevel) : compressionMethod(compressionMethod), tolerance(tolerance), adaptiveLevel(adaptiveLevel) {}
+
+  CompressionMethod   GetCompressionMethod() const { return compressionMethod; }
+  float               GetTolerance()         const { return tolerance; }
+  int                 GetAdaptiveLevel()     const { return adaptiveLevel; }
+};
+
 class VolumeDataStore
 {
 public:
@@ -41,8 +55,7 @@ public:
   virtual ~VolumeDataStore() {};
 
   virtual CompressionInfo
-                        GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error) = 0;
-  virtual int           GetEffectiveAdaptiveLevel(VolumeDataLayer* volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio) = 0;
+                        GetEffectiveAdaptiveLevel(VolumeDataLayer* volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio) = 0;
   virtual bool          PrepareReadChunk(const VolumeDataChunk &volumeDataChunk, int adaptiveLevel, Error &error) = 0;
   virtual bool          ReadChunk(const VolumeDataChunk& chunk, int adaptiveLevel, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error) = 0;
   virtual bool          CancelReadChunk(const VolumeDataChunk& chunk, Error& error) = 0;

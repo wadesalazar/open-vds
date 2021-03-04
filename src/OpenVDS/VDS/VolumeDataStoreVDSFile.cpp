@@ -33,35 +33,39 @@
 namespace OpenVDS
 {
 
-int VolumeDataStoreVDSFile::GetEffectiveAdaptiveLevel(VolumeDataLayer* volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio)
+CompressionInfo VolumeDataStoreVDSFile::GetEffectiveAdaptiveLevel(VolumeDataLayer* volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio)
 {
-  if(waveletAdaptiveMode == WaveletAdaptiveMode::BestQuality)
-  {
-    return -1;
-  }
+  CompressionMethod
+    compressionMethod = CompressionMethod::None;
+
+  float
+    compressionTolerance = 0.0f;
 
   int
-    level = 0;
+    adaptiveLevel = (waveletAdaptiveMode == WaveletAdaptiveMode::BestQuality) ? -1 : 0;
 
   LayerFile* layerFile = GetLayerFile(*volumeDataLayer);
 
-  if(layerFile && layerFile->layerChunksWaveletAdaptive)
+  if(layerFile)
   {
-    if(waveletAdaptiveMode == WaveletAdaptiveMode::Tolerance)
+    compressionMethod = CompressionMethod(layerFile->layerMetadata.m_compressionMethod);
+    compressionTolerance = layerFile->layerMetadata.m_compressionTolerance;
+
+    if(waveletAdaptiveMode == WaveletAdaptiveMode::Tolerance && layerFile->layerChunksWaveletAdaptive)
     {
-      level = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(tolerance, layerFile->layerMetadata.m_compressionTolerance);
+      adaptiveLevel = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(tolerance, layerFile->layerMetadata.m_compressionTolerance);
     }
-    else if(waveletAdaptiveMode == WaveletAdaptiveMode::Ratio)
+    else if(waveletAdaptiveMode == WaveletAdaptiveMode::Ratio && layerFile->layerChunksWaveletAdaptive)
     {
-      level = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(ratio, layerFile->layerMetadata.m_adaptiveLevelSizes, layerFile->layerMetadata.m_uncompressedSize);
+      adaptiveLevel = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(ratio, layerFile->layerMetadata.m_adaptiveLevelSizes, layerFile->layerMetadata.m_uncompressedSize);
     }
     else
     {
-      assert(0 && "Illegal WaveletAdaptiveMode");
+      assert(waveletAdaptiveMode == WaveletAdaptiveMode::BestQuality && "Illegal WaveletAdaptiveMode");
     }
   }
 
-  return level;
+  return CompressionInfo(compressionMethod, compressionTolerance, adaptiveLevel);
 }
 
 VolumeDataStoreVDSFile::LayerFile *VolumeDataStoreVDSFile::GetLayerFile(std::string const &layerName) const
@@ -70,35 +74,6 @@ VolumeDataStoreVDSFile::LayerFile *VolumeDataStoreVDSFile::GetLayerFile(std::str
 
   auto layerFileIterator = m_layerFiles.find(layerName);
   return (layerFileIterator != m_layerFiles.end()) ? const_cast<VolumeDataStoreVDSFile::LayerFile *>(&layerFileIterator->second) : nullptr;
-}
-
-CompressionInfo VolumeDataStoreVDSFile::GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error)
-{
-  error = Error();
-
-  assert(volumeDataChunk.layer);
-  LayerFile* layerFile = GetLayerFile(*volumeDataChunk.layer);
-
-  if(!layerFile)
-  {
-    metadata.clear();
-    return CompressionInfo();
-  }
-
-  std::unique_lock<std::mutex> lock(m_mutex); // This should be removed once the BulkDataStore uses a file implementation that doesn't seek (using pread/pwrite or equivalent)
-  HueBulkDataStore::FileInterface *fileInterface = layerFile->fileInterface;
-  metadata.resize(fileInterface->GetChunkMetadataLength());
-  IndexEntry indexEntry;
-  bool success = fileInterface->ReadIndexEntry((int)volumeDataChunk.index, &indexEntry, metadata.data());
-
-  if(!success)
-  {
-    metadata.clear();
-    return CompressionInfo();
-  }
-
-  const int adaptiveLevel = 0;
-  return CompressionInfo(CompressionMethod(layerFile->layerMetadata.m_compressionMethod), adaptiveLevel);
 }
 
 bool VolumeDataStoreVDSFile::PrepareReadChunk(const VolumeDataChunk &volumeDataChunk, int adaptiveLevel, Error &error)
@@ -165,8 +140,7 @@ bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, int adaptiv
   }
   else
   {
-    const int adaptiveLevel = 0;
-    compressionInfo = CompressionInfo(CompressionMethod(layerFile->layerMetadata.m_compressionMethod), adaptiveLevel);
+    compressionInfo = CompressionInfo(CompressionMethod(layerFile->layerMetadata.m_compressionMethod), layerFile->layerMetadata.m_compressionTolerance, adaptiveLevel);
   }
 
   return success;

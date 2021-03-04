@@ -30,11 +30,21 @@ PyGlobal::initModule(py::module& m)
   py::class_<IOManager, std::unique_ptr<IOManager, py::nodelete>>(m, "IOManager");
 
 //AUTOGEN-BEGIN
+  py::enum_<WaveletAdaptiveMode> 
+    WaveletAdaptiveMode_(m,"WaveletAdaptiveMode", OPENVDS_DOCSTRING(WaveletAdaptiveMode));
+
+  WaveletAdaptiveMode_.value("BestQuality"                 , WaveletAdaptiveMode::BestQuality        , OPENVDS_DOCSTRING(WaveletAdaptiveMode_BestQuality));
+  WaveletAdaptiveMode_.value("Tolerance"                   , WaveletAdaptiveMode::Tolerance          , OPENVDS_DOCSTRING(WaveletAdaptiveMode_Tolerance));
+  WaveletAdaptiveMode_.value("Ratio"                       , WaveletAdaptiveMode::Ratio              , OPENVDS_DOCSTRING(WaveletAdaptiveMode_Ratio));
+
   // OpenOptions
   py::class_<OpenOptions> 
     OpenOptions_(m,"OpenOptions", OPENVDS_DOCSTRING(OpenOptions));
 
   OpenOptions_.def_readwrite("connectionType"              , &OpenOptions::connectionType   , OPENVDS_DOCSTRING(OpenOptions_connectionType));
+  OpenOptions_.def_readwrite("waveletAdaptiveMode"         , &OpenOptions::waveletAdaptiveMode, OPENVDS_DOCSTRING(OpenOptions_waveletAdaptiveMode));
+  OpenOptions_.def_readwrite("waveletAdaptiveTolerance"    , &OpenOptions::waveletAdaptiveTolerance, OPENVDS_DOCSTRING(OpenOptions_waveletAdaptiveTolerance));
+  OpenOptions_.def_readwrite("waveletAdaptiveRatio"        , &OpenOptions::waveletAdaptiveRatio, OPENVDS_DOCSTRING(OpenOptions_waveletAdaptiveRatio));
 
   py::enum_<OpenOptions::ConnectionType> 
     OpenOptions_ConnectionType_(OpenOptions_,"ConnectionType", OPENVDS_DOCSTRING(OpenOptions_ConnectionType));
@@ -226,6 +236,8 @@ PyGlobal::initModule(py::module& m)
   m.def("createOpenOptions"           , static_cast<native::OpenOptions *(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&CreateOpenOptions), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(CreateOpenOptions));
   m.def("isSupportedProtocol"         , static_cast<bool(*)(native::StringWrapper)>(&IsSupportedProtocol), py::arg("url").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IsSupportedProtocol));
   m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&Open), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open));
+  m.def("openWithAdaptiveCompressionTolerance", static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, float, native::Error &)>(&OpenWithAdaptiveCompressionTolerance), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("waveletAdaptiveTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
+  m.def("openWithAdaptiveCompressionRatio", static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, float, native::Error &)>(&OpenWithAdaptiveCompressionRatio), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("waveletAdaptiveRatio").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
   m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::Error &)>(&Open), py::arg("url").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open_2));
   m.def("open"                        , static_cast<native::VDSHandle(*)(const native::OpenOptions &, native::Error &)>(&Open), py::arg("options").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open_3));
   m.def("open"                        , static_cast<native::VDSHandle(*)(native::IOManager *, native::Error &)>(&Open), py::arg("ioManager").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open_4));

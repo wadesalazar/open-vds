@@ -185,21 +185,9 @@ Parameters:
 handle :
     The handle of the VDS)doc";
 
-static const char *__doc_OpenVDS_CompressionInfo = R"doc()doc";
-
-static const char *__doc_OpenVDS_CompressionInfo_CompressionInfo = R"doc()doc";
-
-static const char *__doc_OpenVDS_CompressionInfo_CompressionInfo_2 = R"doc()doc";
-
-static const char *__doc_OpenVDS_CompressionInfo_GetAdaptiveLevel = R"doc()doc";
-
-static const char *__doc_OpenVDS_CompressionInfo_GetCompressionMethod = R"doc()doc";
-
-static const char *__doc_OpenVDS_CompressionInfo_adaptiveLevel = R"doc()doc";
-
-static const char *__doc_OpenVDS_CompressionInfo_compressionMethod = R"doc()doc";
-
 static const char *__doc_OpenVDS_CompressionMethod = R"doc()doc";
+
+static const char *__doc_OpenVDS_CompressionMethod_IsWavelet = R"doc()doc";
 
 static const char *__doc_OpenVDS_CompressionMethod_None = R"doc()doc";
 
@@ -2529,7 +2517,82 @@ static const char *__doc_OpenVDS_OpenOptions_ConnectionType_VDSFile = R"doc()doc
 
 static const char *__doc_OpenVDS_OpenOptions_OpenOptions = R"doc()doc";
 
+static const char *__doc_OpenVDS_OpenOptions_OpenOptions_2 = R"doc()doc";
+
 static const char *__doc_OpenVDS_OpenOptions_connectionType = R"doc()doc";
+
+static const char *__doc_OpenVDS_OpenOptions_waveletAdaptiveMode =
+R"doc(< This property (only relevant when using Wavelet compression) is used
+to control how the wavelet adaptive compression determines which level
+of wavelet compressed data to load. Depending on the setting, either
+the global or local WaveletAdaptiveTolerance or the
+WaveletAdaptiveRatio can be used.)doc";
+
+static const char *__doc_OpenVDS_OpenOptions_waveletAdaptiveRatio =
+R"doc(< Wavelet adaptive ratio, this setting will be used whenever the
+WavletAdaptiveMode is set to Ratio. A compression ratio of 5.0
+corresponds to compressed data which is 20% of the original.)doc";
+
+static const char *__doc_OpenVDS_OpenOptions_waveletAdaptiveTolerance =
+R"doc(< Wavelet adaptive tolerance, this setting will be used whenever the
+WavletAdaptiveMode is set to Tolerance.)doc";
+
+static const char *__doc_OpenVDS_OpenWithAdaptiveCompressionRatio =
+R"doc(Open an existing VDS with adaptive compression ratio.
+
+Parameters:
+-----------
+
+url :
+    The url scheme specific to each cloud provider Available schemes
+    are s3:// azure://
+
+connectionString :
+    The cloud provider specific connection string Specifies additional
+    arguments for the cloud provider
+
+waveletAdaptiveRatio :
+    Wavelet adaptive ratio. This will try to read the dataset as-if it
+    was compressed with the given ratio even if it was compressed with
+    a lower ratio or lossless. A compression ratio of 5.0 corresponds
+    to compressed data which is 20% of the original.
+
+error :
+    If an error occured, the error code and message will be written to
+    this output parameter
+
+Returns:
+--------
+    The VDS handle that can be used to get the VolumeDataLayout and
+    the VolumeDataAccessManager)doc";
+
+static const char *__doc_OpenVDS_OpenWithAdaptiveCompressionTolerance =
+R"doc(Open an existing VDS with adaptive compression tolerance.
+
+Parameters:
+-----------
+
+url :
+    The url scheme specific to each cloud provider Available schemes
+    are s3:// azure://
+
+connectionString :
+    The cloud provider specific connection string Specifies additional
+    arguments for the cloud provider
+
+waveletAdaptiveTolerance :
+    Wavelet adaptive tolerance. This will try to read the dataset as-
+    if it was compressed with the given tolerance even if it was
+    compressed with a lower tolerance or lossless.
+
+error :
+    If an error occured, the error code and message will be written to
+    this output parameter
+
+Returns:
+--------
+    The VDS handle that can be used to get the VolumeDataLayout and
+    the VolumeDataAccessManager)doc";
 
 static const char *__doc_OpenVDS_PitchScale =
 R"doc(Template function to get the scalar for the pitch value (which is in
@@ -5111,6 +5174,20 @@ static const char *__doc_OpenVDS_VolumeSampler_m_sizeX = R"doc()doc";
 static const char *__doc_OpenVDS_VolumeSampler_m_sizeY = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeSampler_m_sizeZ = R"doc()doc";
+
+static const char *__doc_OpenVDS_WaveletAdaptiveMode = R"doc()doc";
+
+static const char *__doc_OpenVDS_WaveletAdaptiveMode_BestQuality =
+R"doc(< The best quality available data is loaded (this is the only setting
+which will load lossless data).)doc";
+
+static const char *__doc_OpenVDS_WaveletAdaptiveMode_Ratio =
+R"doc(< An adaptive level closest to the global compression ratio is
+selected when loading wavelet compressed data.)doc";
+
+static const char *__doc_OpenVDS_WaveletAdaptiveMode_Tolerance =
+R"doc(< An adaptive level closest to the global compression tolerance is
+selected when loading wavelet compressed data.)doc";
 
 static const char *__doc_OpenVDS_WriteElement =
 R"doc(Write element into buffer. This function has a template specialisation

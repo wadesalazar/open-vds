@@ -71,9 +71,8 @@ public:
 class ReadChunkTransfer : public TransferDownloadHandler
 {
 public:
-  ReadChunkTransfer(CompressionMethod compressionMethod, std::vector<uint8_t> const &metadataFromPage, int adaptiveLevel)
-    : m_compressionMethod(compressionMethod)
-    , m_adaptiveLevel(adaptiveLevel)
+  ReadChunkTransfer(CompressionInfo compressionInfo, std::vector<uint8_t> const &metadataFromPage)
+    : m_compressionInfo(compressionInfo)
     , m_metadataFromPage(metadataFromPage)
   {}
 
@@ -152,8 +151,7 @@ public:
     m_error = error;
   }
   
-  CompressionMethod m_compressionMethod;
-  int m_adaptiveLevel;
+  CompressionInfo m_compressionInfo;
 
   Error m_error;
 
@@ -320,7 +318,7 @@ static inline std::string CreateUrlForChunk(const std::string &layerName, uint64
 
 bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, int adaptiveLevel, Error &error)
 {
-  CompressionMethod compressionMethod = CompressionMethod::Wavelet;
+  CompressionInfo compressionInfo;
   ParsedMetadata parsedMetadata;
   unsigned char const* metadataPageEntry;
 
@@ -333,8 +331,11 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, in
 
   if (metadataManager)
   {
-    int pageIndex  = (int)(chunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
-    int entryIndex = (int)(chunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+    MetadataStatus const &metadataStatus = metadataManager->GetMetadataStatus();
+    compressionInfo = CompressionInfo(metadataStatus.m_compressionMethod, metadataStatus.m_compressionTolerance, adaptiveLevel);
+
+    int pageIndex  = (int)(chunk.index / metadataStatus.m_chunkMetadataPageSize);
+    int entryIndex = (int)(chunk.index % metadataStatus.m_chunkMetadataPageSize);
 
     bool initiateTransfer;
 
@@ -374,11 +375,9 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, in
 
     lock.unlock();
 
-    compressionMethod = metadataManager->GetMetadataStatus().m_compressionMethod;
-
     metadataPageEntry = metadataManager->GetPageEntry(metadataPage, entryIndex);
 
-    parsedMetadata = ParseMetadata(metadataPageEntry, metadataManager->GetMetadataStatus().m_chunkMetadataByteSize, error);
+    parsedMetadata = ParseMetadata(metadataPageEntry, metadataStatus.m_chunkMetadataByteSize, error);
     if (error.code)
     {
       return false;
@@ -386,7 +385,7 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, in
     
     metadataManager->UnlockPage(metadataPage);
 
-    ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), adaptiveLevel);
+    ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataStatus, adaptiveLevel);
 
     lock.lock();
   }
@@ -394,7 +393,7 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, in
   if (m_pendingDownloadRequests.find(chunk) == m_pendingDownloadRequests.end())
   {
     std::string url = CreateUrlForChunk(layerName, chunk.index);
-    auto transferHandler = std::make_shared<ReadChunkTransfer>(compressionMethod, (metadataManager != nullptr) ? parsedMetadata.CreateChunkMetadata() : std::vector<uint8_t>(), adaptiveLevel);
+    auto transferHandler = std::make_shared<ReadChunkTransfer>(compressionInfo, (metadataManager != nullptr) ? parsedMetadata.CreateChunkMetadata() : std::vector<uint8_t>());
     m_pendingDownloadRequests[chunk] = PendingDownloadRequest(m_ioManager->ReadObject(url, transferHandler, ioRange), transferHandler);
   }
   else
@@ -527,7 +526,7 @@ bool VolumeDataStoreIOManager::ReadChunk(const VolumeDataChunk &chunk, int adapt
     return false;
   }
 
-  compressionInfo = CompressionInfo(transferHandler->m_compressionMethod, transferHandler->m_adaptiveLevel);
+  compressionInfo = transferHandler->m_compressionInfo;
   return true;
 }
 
@@ -581,8 +580,11 @@ void VolumeDataStoreIOManager::PageTransferCompleted(MetadataPage* metadataPage,
     {
       MetadataManager *metadataManager = metadataPage->GetManager();
 
-      int32_t pageIndex = (int)(volumeDataChunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
-      int32_t entryIndex = (int)(volumeDataChunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+      MetadataStatus const &metadataStatus = metadataManager->GetMetadataStatus();
+      CompressionInfo compressionInfo = CompressionInfo(metadataStatus.m_compressionMethod, metadataStatus.m_compressionTolerance, pendingRequest.m_adaptiveLevelToRequest);
+
+      int pageIndex  = (int)(volumeDataChunk.index / metadataStatus.m_chunkMetadataPageSize);
+      int entryIndex = (int)(volumeDataChunk.index % metadataStatus.m_chunkMetadataPageSize);
 
       (void)pageIndex; // Silence gcc warning in release builds
       assert(pageIndex == metadataPage->PageIndex());
@@ -605,7 +607,7 @@ void VolumeDataStoreIOManager::PageTransferCompleted(MetadataPage* metadataPage,
           IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), pendingRequest.m_adaptiveLevelToRequest);
 
           std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.index);
-          auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, parsedMetadata.CreateChunkMetadata(), pendingRequest.m_adaptiveLevelToRequest);
+          auto transferHandler = std::make_shared<ReadChunkTransfer>(compressionInfo, parsedMetadata.CreateChunkMetadata());
           pendingRequest.m_activeTransfer = m_ioManager->ReadObject(url, transferHandler, ioRange);
           pendingRequest.m_transferHandle = transferHandler;
         }
@@ -650,41 +652,42 @@ static int64_t CreateUploadJobId()
   return --id;
 }
 
-int VolumeDataStoreIOManager::GetEffectiveAdaptiveLevel(VolumeDataLayer * volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio)
+CompressionInfo VolumeDataStoreIOManager::GetEffectiveAdaptiveLevel(VolumeDataLayer * volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio)
 {
-  if(waveletAdaptiveMode == WaveletAdaptiveMode::BestQuality)
-  {
-    return -1;
-  }
+  CompressionMethod
+    compressionMethod = CompressionMethod::None;
+
+  float
+    compressionTolerance = 0.0f;
 
   int
-    level = 0;
+    adaptiveLevel = (waveletAdaptiveMode == WaveletAdaptiveMode::BestQuality) ? -1 : 0;
 
   std::string layerName = GetLayerName(*volumeDataLayer);
   auto metadataManager = GetMetadataMangerForLayer(layerName);
 
   if(metadataManager)
   {
+    MetadataStatus const &metadataStatus = metadataManager->GetMetadataStatus();
+
+    compressionMethod = metadataStatus.m_compressionMethod;
+    compressionTolerance = metadataStatus.m_compressionTolerance;
+
     if(waveletAdaptiveMode == WaveletAdaptiveMode::Tolerance)
     {
-      level = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(tolerance, metadataManager->GetMetadataStatus().m_compressionTolerance);
+      adaptiveLevel = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(tolerance, metadataStatus.m_compressionTolerance);
     }
     else if(waveletAdaptiveMode == WaveletAdaptiveMode::Ratio)
     {
-      level = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(ratio, metadataManager->GetMetadataStatus().m_adaptiveLevelSizes, metadataManager->GetMetadataStatus().m_uncompressedSize);
+      adaptiveLevel = Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(ratio, metadataStatus.m_adaptiveLevelSizes, metadataStatus.m_uncompressedSize);
     }
     else
     {
-      assert(0 && "Illegal WaveletAdaptiveMode");
+      assert(waveletAdaptiveMode == WaveletAdaptiveMode::BestQuality && "Illegal WaveletAdaptiveMode");
     }
   }
 
-  return level;
-}
-
-CompressionInfo VolumeDataStoreIOManager::GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error)
-{
-  return CompressionInfo();
+  return CompressionInfo(compressionMethod, compressionTolerance, adaptiveLevel);
 }
 
 bool VolumeDataStoreIOManager::WriteChunk(const VolumeDataChunk& chunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata)

@@ -173,6 +173,8 @@ public:
 // Mutators
   void SetContentsHash(VolumeDataHash const &contentsHash);
   void SetActualValueRange(int32_t actualValueRangeChannel, FloatRange const &actualValueRange); // This should probably be implemented with VDSMetadata
+  void SetCompressionMethod(CompressionMethod compressionMethod) { m_compressionMethod = compressionMethod; }
+  void SetCompressionTolerance(float compressionTolerance) { m_compressionTolerance = compressionTolerance; }
   void SetWaveletAdaptiveLoadLevel(int waveletAdaptiveLoadLevel) { m_waveletAdaptiveLoadLevel = waveletAdaptiveLoadLevel; }
 
   void CreateLayers(DimensionGroup dimensionGroup, int32_t brickSize, int32_t physicalLODLevels, VolumeDataLayer::ProduceStatus produceStatus);

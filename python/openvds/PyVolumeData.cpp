@@ -88,17 +88,7 @@ PyVolumeData::initModule(py::module& m)
   CompressionMethod_.value("WaveletLossless"             , CompressionMethod::WaveletLossless      , OPENVDS_DOCSTRING(CompressionMethod_WaveletLossless));
   CompressionMethod_.value("WaveletNormalizeBlockLossless", CompressionMethod::WaveletNormalizeBlockLossless, OPENVDS_DOCSTRING(CompressionMethod_WaveletNormalizeBlockLossless));
 
-  // CompressionInfo
-  py::class_<CompressionInfo> 
-    CompressionInfo_(m,"CompressionInfo", OPENVDS_DOCSTRING(CompressionInfo));
-
-  CompressionInfo_.def(py::init<                              >(), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo));
-  CompressionInfo_.def(py::init<native::CompressionMethod, int>(), py::arg("compressionMethod").none(false), py::arg("adaptiveLevel").none(false), OPENVDS_DOCSTRING(CompressionInfo_CompressionInfo_2));
-  CompressionInfo_.def("getCompressionMethod"        , static_cast<native::CompressionMethod(CompressionInfo::*)() const>(&CompressionInfo::GetCompressionMethod), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(CompressionInfo_GetCompressionMethod));
-  CompressionInfo_.def_property_readonly("compressionMethod", &CompressionInfo::GetCompressionMethod, OPENVDS_DOCSTRING(CompressionInfo_GetCompressionMethod));
-  CompressionInfo_.def("getAdaptiveLevel"            , static_cast<int(CompressionInfo::*)() const>(&CompressionInfo::GetAdaptiveLevel), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(CompressionInfo_GetAdaptiveLevel));
-  CompressionInfo_.def_property_readonly("adaptiveLevel", &CompressionInfo::GetAdaptiveLevel, OPENVDS_DOCSTRING(CompressionInfo_GetAdaptiveLevel));
-
+  m.def("compressionMethod_IsWavelet" , static_cast<bool(*)(native::CompressionMethod)>(&CompressionMethod_IsWavelet), py::arg("compressionMethod").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(CompressionMethod_IsWavelet));
   m.def("getLODSize"                  , static_cast<int(*)(int, int, int, bool)>(&GetLODSize), py::arg("voxelMin").none(false), py::arg("voxelMax").none(false), py::arg("lod").none(false), py::arg("includePartialUpperVoxel") = true, py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GetLODSize));
 //AUTOGEN-END
 }

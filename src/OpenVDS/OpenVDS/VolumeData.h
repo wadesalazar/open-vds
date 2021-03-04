@@ -100,28 +100,6 @@ inline bool CompressionMethod_IsWavelet(CompressionMethod compressionMethod)
          compressionMethod == CompressionMethod::WaveletNormalizeBlockLossless;
 }
 
-class CompressionInfo
-{
-  CompressionMethod   compressionMethod;
-  int                 adaptiveLevel;
-public:
-  CompressionInfo() : compressionMethod(CompressionMethod::None), adaptiveLevel(0)
-  {
-  }
-  CompressionInfo(CompressionMethod compressionMethod, int adaptiveLevel) : compressionMethod(compressionMethod), adaptiveLevel(adaptiveLevel)
-  {
-  }
-
-  CompressionMethod   GetCompressionMethod() const
-  {
-    return compressionMethod;
-  }
-  int                 GetAdaptiveLevel()     const
-  {
-    return adaptiveLevel;
-  }
-};
-
 constexpr int Dimensionality_Max = 6;
 
 /// <summary>
