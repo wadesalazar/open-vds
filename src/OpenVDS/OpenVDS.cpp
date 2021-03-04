@@ -406,7 +406,7 @@ static const std::vector<UrlToOpenOptions> urlToOpenOptions = {
   {std::string("sd://"), nullptr, &createDMSOpenOptions },
   {std::string("http://"), nullptr, &createHttpOpenOptions },
   {std::string("https://"), nullptr, &createHttpOpenOptions },
-  {std::string("file://"), nullptr, &createVDSFileOpenOptions },
+  {std::string("file://"), &removeProtocol, &createVDSFileOpenOptions },
   {std::string("inmemory://"), &removeProtocol, &createInMemoryOpenOptions}
 };
 
