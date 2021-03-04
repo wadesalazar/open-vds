@@ -266,7 +266,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk, Error
   assert(page->IsPinned());
 
   VolumeDataChunk volumeDataChunk = m_layer->GetChunkFromIndex(chunk);
-  if (!m_accessManager->GetVolumeDataStore()->PrepareReadChunk(volumeDataChunk, error))
+  if (!m_accessManager->GetVolumeDataStore()->PrepareReadChunk(volumeDataChunk, m_layer->GetEffectiveWaveletAdaptiveLoadLevel(), error))
   {
     page->SetError(error);
     page->UnPin();
@@ -298,7 +298,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
     std::vector<uint8_t> metadata;
     CompressionInfo compressionInfo;
 
-    if (!m_accessManager->GetVolumeDataStore()->ReadChunk(volumeDataChunk, serialized_data, metadata, compressionInfo, error))
+    if (!m_accessManager->GetVolumeDataStore()->ReadChunk(volumeDataChunk, m_layer->GetEffectiveWaveletAdaptiveLoadLevel(), serialized_data, metadata, compressionInfo, error))
     {
       pageListMutexLock.lock();
       pageImpl->SetError(error);

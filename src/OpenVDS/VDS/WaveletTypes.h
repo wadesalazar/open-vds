@@ -73,12 +73,22 @@ inline int Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(float desiredRatio, int6
   return level;
 }
 
-inline bool CompressionMethod_IsWavelet(CompressionMethod compressionMethod)
+inline int Wavelet_DecodeAdaptiveLevelsMetadata(uint64_t totalSize, int targetLevel, uint8_t const *levels)
 {
-  return compressionMethod == CompressionMethod::Wavelet ||
-         compressionMethod == CompressionMethod::WaveletNormalizeBlock ||
-         compressionMethod == CompressionMethod::WaveletLossless ||
-         compressionMethod == CompressionMethod::WaveletNormalizeBlockLossless;
+  assert(targetLevel >= -1 && targetLevel < WAVELET_ADAPTIVE_LEVELS);
+
+  int remainingSize = (int)totalSize;
+
+  for (int level = 0; level <= targetLevel; level++)
+  {
+    if (levels[level] == 0)
+    {
+      break;
+    }
+    remainingSize = (int)((uint64_t)remainingSize * levels[level] / 255);
+  }
+
+  return remainingSize;
 }
 
 enum Wavelet_IntegerInfo

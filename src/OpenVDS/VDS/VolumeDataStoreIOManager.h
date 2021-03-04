@@ -36,6 +36,7 @@ class ReadChunkTransfer;
 struct PendingDownloadRequest
 {
   MetadataPage* m_lockedMetadataPage;
+  int           m_adaptiveLevelToRequest;
   Error m_metadataPageRequestError;
 
   std::shared_ptr<Request> m_activeTransfer;
@@ -46,10 +47,10 @@ struct PendingDownloadRequest
   {
   }
 
-  explicit PendingDownloadRequest(MetadataPage* lockedMetadataPage) : m_lockedMetadataPage(lockedMetadataPage), m_activeTransfer(nullptr), m_ref(1), m_canMove(true)
+  explicit PendingDownloadRequest(MetadataPage* lockedMetadataPage, int adaptiveLevelToRequest) : m_lockedMetadataPage(lockedMetadataPage), m_adaptiveLevelToRequest(adaptiveLevelToRequest), m_activeTransfer(nullptr), m_ref(1), m_canMove(true)
   {
   }
-  explicit PendingDownloadRequest(std::shared_ptr<Request> activeTransfer, std::shared_ptr<ReadChunkTransfer> handler) : m_lockedMetadataPage(nullptr), m_activeTransfer(activeTransfer), m_transferHandle(handler), m_ref(1), m_canMove(true)
+  explicit PendingDownloadRequest(std::shared_ptr<Request> activeTransfer, std::shared_ptr<ReadChunkTransfer> handler) : m_lockedMetadataPage(nullptr), m_adaptiveLevelToRequest(-1), m_activeTransfer(activeTransfer), m_transferHandle(handler), m_ref(1), m_canMove(true)
   {
   }
 };
@@ -119,8 +120,8 @@ public:
   int           GetEffectiveAdaptiveLevel(VolumeDataLayer* volumeDataLayer, WaveletAdaptiveMode waveletAdaptiveMode, float tolerance, float ratio) override;
   CompressionInfo
                 GetCompressionInfoForChunk(std::vector<uint8_t>& metadata, const VolumeDataChunk &volumeDataChunk, Error &error) override;
-  bool          PrepareReadChunk(const VolumeDataChunk &volumeDataChunk, Error &error) override;
-  bool          ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error) override;
+  bool          PrepareReadChunk(const VolumeDataChunk &volumeDataChunk, int adaptiveLevel, Error &error) override;
+  bool          ReadChunk(const VolumeDataChunk& chunk, int adaptiveLevel, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error) override;
   bool          CancelReadChunk(const VolumeDataChunk& chunk, Error& error) override;
   bool          WriteChunk(const VolumeDataChunk& chunk, const std::vector<uint8_t>& serializedData, const std::vector<uint8_t>& metadata) override;
   bool          Flush(bool writeUpdatedLayerStatus) override;

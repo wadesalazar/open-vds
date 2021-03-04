@@ -101,12 +101,12 @@ CompressionInfo VolumeDataStoreVDSFile::GetCompressionInfoForChunk(std::vector<u
   return CompressionInfo(CompressionMethod(layerFile->layerMetadata.m_compressionMethod), adaptiveLevel);
 }
 
-bool VolumeDataStoreVDSFile::PrepareReadChunk(const VolumeDataChunk &volumeDataChunk, Error &error)
+bool VolumeDataStoreVDSFile::PrepareReadChunk(const VolumeDataChunk &volumeDataChunk, int adaptiveLevel, Error &error)
 {
   return true;
 }
 
-bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error)
+bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, int adaptiveLevel, std::vector<uint8_t>& serializedData, std::vector<uint8_t>& metadata, CompressionInfo& compressionInfo, Error& error)
 {
   error = Error();
 
@@ -134,6 +134,13 @@ bool VolumeDataStoreVDSFile::ReadChunk(const VolumeDataChunk& chunk, std::vector
   {
     if(indexEntry.m_length > 0)
     {
+      if(layerFile->layerChunksWaveletAdaptive)
+      {
+        assert(metadata.size() == sizeof(VDSWaveletAdaptiveLevelsChunkMetadata));
+        auto waveletAdaptiveLevelsChunkMetadata = reinterpret_cast<VDSWaveletAdaptiveLevelsChunkMetadata *>(metadata.data());
+        indexEntry.m_length = Wavelet_DecodeAdaptiveLevelsMetadata(indexEntry.m_length, adaptiveLevel, waveletAdaptiveLevelsChunkMetadata->m_levels);
+      }
+
       HueBulkDataStore::Buffer *buffer = m_dataStore->ReadChunkData(indexEntry);
 
       if(buffer)

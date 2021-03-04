@@ -303,7 +303,7 @@ static IORange CalculateRangeHeaderImpl(const ParsedMetadata& parsedMetadata, co
 {
   if (!IsConstantChunkHash(parsedMetadata.m_chunkHash) && !parsedMetadata.m_adaptiveLevels.empty())
   {
-    int range = WaveletAdaptiveLevelsMetadataDecode(parsedMetadata.m_chunkSize, adaptiveLevel, parsedMetadata.m_adaptiveLevels.data());
+    int range = Wavelet_DecodeAdaptiveLevelsMetadata(parsedMetadata.m_chunkSize, adaptiveLevel, parsedMetadata.m_adaptiveLevels.data());
     if (range && range != parsedMetadata.m_chunkSize)
     {
       return { int64_t(0) , int64_t(range - 1 ) };
@@ -318,12 +318,11 @@ static inline std::string CreateUrlForChunk(const std::string &layerName, uint64
   return fmt::format("{}/{}", layerName, chunk);
 }
 
-bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Error &error)
+bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, int adaptiveLevel, Error &error)
 {
   CompressionMethod compressionMethod = CompressionMethod::Wavelet;
   ParsedMetadata parsedMetadata;
   unsigned char const* metadataPageEntry;
-  int adaptiveLevel = -1;
 
   IORange ioRange = IORange();
 
@@ -363,7 +362,7 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
       auto it = m_pendingDownloadRequests.find(chunk);
       if (it == m_pendingDownloadRequests.end())
       {
-        it = m_pendingDownloadRequests.emplace(chunk, PendingDownloadRequest(metadataPage)).first;
+        it = m_pendingDownloadRequests.emplace(chunk, PendingDownloadRequest(metadataPage, adaptiveLevel)).first;
       }
       else
       {
@@ -387,9 +386,7 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
     
     metadataManager->UnlockPage(metadataPage);
 
-    const int adaptiveLevel = -1;
-
-    ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), -1);
+    ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), adaptiveLevel);
 
     lock.lock();
   }
@@ -409,7 +406,7 @@ bool VolumeDataStoreIOManager::PrepareReadChunk(const VolumeDataChunk &chunk, Er
   return true;
 }
 
-bool VolumeDataStoreIOManager::ReadChunk(const VolumeDataChunk &chunk, std::vector<uint8_t> &serializedData, std::vector<uint8_t> &metadata, CompressionInfo &compressionInfo, Error &error)
+bool VolumeDataStoreIOManager::ReadChunk(const VolumeDataChunk &chunk, int adaptiveLevel, std::vector<uint8_t> &serializedData, std::vector<uint8_t> &metadata, CompressionInfo &compressionInfo, Error &error)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -605,12 +602,10 @@ void VolumeDataStoreIOManager::PageTransferCompleted(MetadataPage* metadataPage,
         }
         else
         {
-          const int adaptiveLevel = -1;
-
-          IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), adaptiveLevel);
+          IORange ioRange = CalculateRangeHeaderImpl(parsedMetadata, metadataManager->GetMetadataStatus(), pendingRequest.m_adaptiveLevelToRequest);
 
           std::string url = CreateUrlForChunk(metadataManager->LayerUrlStr(), volumeDataChunk.index);
-          auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, parsedMetadata.CreateChunkMetadata(), adaptiveLevel);
+          auto transferHandler = std::make_shared<ReadChunkTransfer>(metadataManager->GetMetadataStatus().m_compressionMethod, parsedMetadata.CreateChunkMetadata(), pendingRequest.m_adaptiveLevelToRequest);
           pendingRequest.m_activeTransfer = m_ioManager->ReadObject(url, transferHandler, ioRange);
           pendingRequest.m_transferHandle = transferHandler;
         }
