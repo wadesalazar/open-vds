@@ -1,5 +1,5 @@
 set(CMAKE_DEBUG_POSTFIX "")
-pybind11_add_module(core MODULE SYSTEM
+pybind11_add_module(core MODULE
     core.cpp
     PyGlobal.cpp
     PyGlobal.h
@@ -33,6 +33,12 @@ pybind11_add_module(core MODULE SYSTEM
 
 if (MSVC AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
   target_compile_options(core BEFORE PRIVATE "SHELL:/imsvc\ \"${PYBIND11_INCLUDE_DIR}\" /imsvc\ \"${PYTHON_INCLUDE_DIRS}\"")
+endif()
+
+if(WIN32)
+  # In case we have the Python debug library installed it will try to pragma-link with the non-debug library. 
+  # We therefore need to add the library dir to the LIBPATH.
+  target_link_options(core PRIVATE "/LIBPATH:${Python3_LIBRARY_DIRS}")
 endif()
 
 set_target_properties(core
