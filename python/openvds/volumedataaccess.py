@@ -230,7 +230,7 @@ class VolumeDataAccessManager(object):
     --------
         A VolumeDataPageAccessor object for the VDS.
     """
-    return self._manager.createVolumeDataPageAccessor(lod, channel, maxPages, accessMode, chunkMetadataPageSize)
+    return self._manager.createVolumeDataPageAccessor(dimensionsND, lod, channel, maxPages, accessMode, chunkMetadataPageSize)
 
   def destroyVolumeDataPageAccessor(self, volumeDataPageAccessor):
     """Destroy a volume data page accessor object.
