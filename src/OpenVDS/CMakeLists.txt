@@ -93,29 +93,7 @@ set (PRIVATE_HEADER_FILES
   VDS/GlobalStateImpl.h
   )
 
-set (EXPORTED_HEADER_FILES
-  OpenVDS/GlobalMetadataCommon.h
-  OpenVDS/MetadataKey.h
-  OpenVDS/KnownMetadata.h
-  OpenVDS/MetadataAccess.h
-  OpenVDS/MetadataContainer.h
-  OpenVDS/OpenVDS.h
-  OpenVDS/openvds_export.h
-  OpenVDS/Range.h
-  OpenVDS/ValueConversion.h
-  OpenVDS/Vector.h
-  OpenVDS/VolumeData.h
-  OpenVDS/VolumeDataAccess.h
-  OpenVDS/VolumeDataAxisDescriptor.h
-  OpenVDS/VolumeDataChannelDescriptor.h
-  OpenVDS/VolumeDataLayout.h
-  OpenVDS/VolumeDataLayoutDescriptor.h
-  OpenVDS/VolumeSampler.h
-  OpenVDS/CoordinateTransformer.h
-  OpenVDS/VolumeIndexer.h
-  OpenVDS/SimplexNoiseKernel.h
-  OpenVDS/GlobalState.h
-  )
+file(GLOB EXPORTED_HEADER_FILES OpenVDS/*.h)
 
 if (MSVC)
   set(DISABLE_WARNING_FLAG "/W0 /WX-")

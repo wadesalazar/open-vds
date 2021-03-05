@@ -18,7 +18,7 @@ except ImportError:
 python_root_path = "-DPython3_ROOT_DIR={}".format(Path(sys.executable).parent.absolute().as_posix())
 setup(
     name="openvds",
-    version="1.0",
+    version="2.0.0",
     description="Open-source implementation of the Volume Data Store (VDS) standard for fast random access to multi-dimensional volumetric data",
     author='The Open Group / Bluware, Inc.',
     license="Apache License, Version 2.0",

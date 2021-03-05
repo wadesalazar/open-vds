@@ -2,7 +2,7 @@ FROM docker.io/centos:7
 
 RUN yum install -y centos-release-scl epel-release
 
-RUN yum install -y rh-python36-scldevel rh-python36-numpy rh-python36-python-pip devtoolset-7
+RUN yum install -y rh-python36-python-devel rh-python36-numpy rh-python36-python-pip devtoolset-7
 
 SHELL [ "/usr/bin/scl", "enable", "devtoolset-7", "rh-python36" ]
 
