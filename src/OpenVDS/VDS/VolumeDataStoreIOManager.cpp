@@ -173,24 +173,6 @@ static bool IsConstantChunkHash(uint64_t chunkHash)
   return false;
 }
 
-static int WaveletAdaptiveLevelsMetadataDecode(uint64_t totalSize, int targetLevel, uint8_t const *levels)
-{
-  assert(targetLevel >= -1 && targetLevel < WAVELET_ADAPTIVE_LEVELS);
-
-  int remainingSize = (int)totalSize;
-
-  for (int level = 0; level <= targetLevel; level++)
-  {
-    if (levels[level] == 0)
-    {
-      break;
-    }
-    remainingSize = (int)((uint64_t)remainingSize * levels[level] / 255);
-  }
-
-  return remainingSize;
-}
-
 VolumeDataStoreIOManager:: VolumeDataStoreIOManager(VDS &vds, IOManager *ioManager)
   : VolumeDataStore(ioManager->connectionType())
   , m_vds(vds)
