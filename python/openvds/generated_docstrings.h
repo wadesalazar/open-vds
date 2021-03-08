@@ -3999,10 +3999,10 @@ format :
 components :
     the vector count for this channel
 
-pName :
+name :
     the name of this channel
 
-pUnit :
+unit :
     the unit of this channel
 
 valueRangeMin :
@@ -4034,10 +4034,10 @@ format :
 components :
     the vector count for this channel
 
-pName :
+name :
     the name of this channel
 
-pUnit :
+unit :
     the unit of this channel
 
 valueRangeMin :
@@ -4075,10 +4075,10 @@ format :
 components :
     the vector count for this channel
 
-pName :
+name :
     the name of this channel
 
-pUnit :
+unit :
     the unit of this channel
 
 valueRangeMin :
@@ -4097,10 +4097,10 @@ format :
 components :
     the vector count for this channel
 
-pName :
+name :
     the name of this channel
 
-pUnit :
+unit :
     the unit of this channel
 
 valueRangeMin :
@@ -4122,10 +4122,10 @@ format :
 components :
     the vector count for this channel
 
-pName :
+name :
     the name of this channel
 
-pUnit :
+unit :
     the unit of this channel
 
 valueRangeMin :
@@ -4147,10 +4147,10 @@ format :
 components :
     the vector count for this channel
 
-pName :
+name :
     the name of this channel
 
-pUnit :
+unit :
     the unit of this channel
 
 valueRangeMin :
@@ -4175,10 +4175,10 @@ format :
 components :
     the vector count for this channel
 
-pName :
+name :
     the name of this channel
 
-pUnit :
+unit :
     the unit of this channel
 
 valueRangeMin :
@@ -4213,10 +4213,10 @@ format :
 components :
     the vector count for this channel
 
-pName :
+name :
     the name of this channel
 
-pUnit :
+unit :
     the unit of this channel
 
 valueRangeMin :
@@ -4238,10 +4238,10 @@ format :
 components :
     the vector count for this channel
 
-pName :
+name :
     the name of this channel
 
-pUnit :
+unit :
     the unit of this channel
 
 valueRangeMin :
@@ -4269,10 +4269,10 @@ format :
 components :
     the vector count for this channel
 
-pName :
+name :
     the name of this channel
 
-pUnit :
+unit :
     the unit of this channel
 
 valueRangeMin :

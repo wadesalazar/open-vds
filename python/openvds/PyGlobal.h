@@ -32,6 +32,7 @@
 #include "generated_docstrings.h"
 
 #include <stdexcept>
+#include <mutex>
 
 #define OPENVDS_DOCSTRING(name) __doc_OpenVDS_ ## name
 
@@ -304,6 +305,18 @@ class PyGlobal
 {
 public:
   static void initModule(py::module& m);
+};
+
+class PyDescriptorStringContainer
+{
+public:
+  static const char *Add(std::string const &descriptorString)
+  {
+    static std::set<std::string> s_descriptorStrings;
+    static std::mutex s_mutex;
+    std::unique_lock<std::mutex> lock(s_mutex);
+    return s_descriptorStrings.insert(descriptorString).first->c_str();
+  }
 };
 
 #endif
