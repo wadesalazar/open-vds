@@ -65,10 +65,13 @@ public:
     virtual bool      ReadChunkMetadata(int chunk, void *metadata) = 0;
     virtual bool      ReadIndexEntry(int chunk, struct IndexEntry *indexEntry, void *metadata) = 0;
 
-    virtual bool WriteChunk(int chunk, const void *data, int size, const void *metadata, void *oldMetadata = NULL) = 0;
+    virtual bool WriteChunk(int chunk, const void *data, int size, const void *metadata, int *oldSize, void *oldMetadata) = 0;
+    inline  bool WriteChunk(int chunk, const void *data, int size, const void *metadata) { return WriteChunk(chunk, data, size, metadata, NULL, NULL); }
     virtual bool WriteChunkData(int chunk, const void *data, int size) = 0;
-    virtual bool WriteChunkMetadata(int chunk, const void *metadata, void *oldMetadata = NULL) = 0;
-    virtual bool WriteIndexEntry(int chunk, const struct IndexEntry &indexEntry, const void *metadata, void *oldMetadata = NULL) = 0;
+    virtual bool WriteChunkMetadata(int chunk, const void *metadata, int *oldSize, void *oldMetadata) = 0;
+    inline  bool WriteChunkMetadata(int chunk, const void *metadata) { return WriteChunkMetadata(chunk, metadata, NULL, NULL); }
+    virtual bool WriteIndexEntry(int chunk, const struct IndexEntry &indexEntry, const void *metadata, int *oldSize, void *oldMetadata) = 0;
+    inline  bool WriteIndexEntry(int chunk, const struct IndexEntry &indexEntry, const void *metadata) { return WriteIndexEntry(chunk, indexEntry, metadata, NULL, NULL); }
 
     virtual int  GetRevision() = 0;
     virtual int  GetChunkCount() = 0;

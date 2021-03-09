@@ -187,7 +187,9 @@ bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std:
     lock.lock();
   }
 
-  bool success = fileInterface->WriteIndexEntry((int)chunk.index, indexEntry, metadata.data(), &oldMetadata);
+  int oldSize;
+
+  bool success = fileInterface->WriteIndexEntry((int)chunk.index, indexEntry, metadata.data(), &oldSize, &oldMetadata);
 
   if(!success)
   {

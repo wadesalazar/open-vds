@@ -118,10 +118,10 @@ public:
   virtual bool ReadChunkMetadata(int chunk, void *metadata);
   virtual bool ReadIndexEntry(int chunk, IndexEntry *indexEntry, void *metadata);
 
-  virtual bool WriteChunk(int chunk, const void *data, int size, const void *metadata, void *oldMetadata);
+  virtual bool WriteChunk(int chunk, const void *data, int size, const void *metadata, int *oldSize, void *oldMetadata);
   virtual bool WriteChunkData(int chunk, const void *data, int size);
-  virtual bool WriteChunkMetadata(int chunk, const void *metadata, void *oldMetadata);
-  virtual bool WriteIndexEntry(int chunk, const IndexEntry &indexEntry, const void *metadata, void *oldMetadata);
+  virtual bool WriteChunkMetadata(int chunk, const void *metadata, int *oldSize, void *oldMetadata);
+  virtual bool WriteIndexEntry(int chunk, const IndexEntry &indexEntry, const void *metadata, int *oldSize, void *oldMetadata);
 
   virtual int  GetRevision();
   virtual int  GetChunkCount();
@@ -418,7 +418,7 @@ FileInterfaceImpl::ReadIndexEntry(int chunk, IndexEntry *indexEntry, void *metad
 }
 
 bool
-FileInterfaceImpl::WriteIndexEntry(int chunk, const IndexEntry &indexEntry, const void *metadata, void *oldMetadata)
+FileInterfaceImpl::WriteIndexEntry(int chunk, const IndexEntry &indexEntry, const void *metadata, int *oldSize, void *oldMetadata)
 {
   assert(chunk >= 0 && chunk < m_chunkCount);
 
@@ -443,6 +443,11 @@ FileInterfaceImpl::WriteIndexEntry(int chunk, const IndexEntry &indexEntry, cons
 
   IndexEntry
     *indexPageEntry = reinterpret_cast<IndexEntry *>(static_cast<char *>(indexPageBuffer->WritableData()) + entryIndex * indexEntrySize);
+
+  if(oldSize)
+  {
+    *oldSize = indexPageEntry->m_length;
+  }
 
   *indexPageEntry = indexEntry;
 
@@ -546,7 +551,7 @@ FileInterfaceImpl::ReadChunkMetadata(int chunk, void *metadata)
 }
 
 bool
-FileInterfaceImpl::WriteChunk(int chunk, const void *data, int size, const void *metadata, void *oldMetadata)
+FileInterfaceImpl::WriteChunk(int chunk, const void *data, int size, const void *metadata, int *oldSize, void *oldMetadata)
 {
   assert(data || size == 0);
   assert((m_fileDescriptor.m_fileHeader.m_chunkMetadataLength > 0 && metadata) ||
@@ -568,7 +573,7 @@ FileInterfaceImpl::WriteChunk(int chunk, const void *data, int size, const void 
     }
   }
 
-  return WriteIndexEntry(chunk, indexEntry, metadata, oldMetadata);
+  return WriteIndexEntry(chunk, indexEntry, metadata, oldSize, oldMetadata);
 }
 
 bool
@@ -576,14 +581,14 @@ FileInterfaceImpl::WriteChunkData(int chunk, const void *data, int size)
 {
   assert(data && size > 0);
   std::vector<char> metadata(m_fileDescriptor.m_fileHeader.m_chunkMetadataLength);
-  return WriteChunk(chunk, data, size, metadata.data(), NULL);
+  return WriteChunk(chunk, data, size, metadata.data(), NULL, NULL);
 }
 
 bool
-FileInterfaceImpl::WriteChunkMetadata(int chunk, const void *metadata, void *oldMetadata)
+FileInterfaceImpl::WriteChunkMetadata(int chunk, const void *metadata, int *oldSize, void *oldMetadata)
 {
   assert(m_fileDescriptor.m_fileHeader.m_chunkMetadataLength > 0 && metadata);
-  return WriteChunk(chunk, NULL, 0, metadata, oldMetadata);
+  return WriteChunk(chunk, NULL, 0, metadata, oldSize, oldMetadata);
 }
 
 int
