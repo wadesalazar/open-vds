@@ -301,7 +301,7 @@ PyVolumeDataAccessManager::initModule(py::module& m)
       {
         return py::cast(Py_None);
       }
-    }, py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IVolumeDataAccessManager_GetCurrentUploadError));
+    }, OPENVDS_DOCSTRING(IVolumeDataAccessManager_GetCurrentUploadError));
 
 // IMPLEMENTED :   IVolumeDataAccessManager_.def("getCurrentDownloadError"     , static_cast<void(IVolumeDataAccessManager::*)(int *, const char **)>(&IVolumeDataAccessManager::GetCurrentDownloadError), py::arg("code").none(false), py::arg("errorString").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IVolumeDataAccessManager_GetCurrentDownloadError));
   IVolumeDataAccessManager_.def("getCurrentDownloadError"       , [](IVolumeDataAccessManager* self)
@@ -321,7 +321,7 @@ PyVolumeDataAccessManager::initModule(py::module& m)
       {
         return py::cast(Py_None);
       }
-    }, py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IVolumeDataAccessManager_GetCurrentDownloadError));
+    }, OPENVDS_DOCSTRING(IVolumeDataAccessManager_GetCurrentDownloadError));
 
 // IMPLEMENTED :   VolumeDataAccessManager_.def("getCurrentUploadError"       , static_cast<void(VolumeDataAccessManager::*)(const char **, int32_t *, const char **)>(&VolumeDataAccessManager::GetCurrentUploadError), py::arg("objectId").none(false), py::arg("errorCode").none(false), py::arg("errorString").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentUploadError));
   VolumeDataAccessManager_.def("getCurrentUploadError"       , [](VolumeDataAccessManager* self)
@@ -342,7 +342,7 @@ PyVolumeDataAccessManager::initModule(py::module& m)
       {
         return py::cast(Py_None);
       }
-    }, py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentUploadError));
+    }, OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentUploadError));
 
 // IMPLEMENTED :   VolumeDataAccessManager_.def("getCurrentDownloadError"     , static_cast<void(VolumeDataAccessManager::*)(int *, const char **)>(&VolumeDataAccessManager::GetCurrentDownloadError), py::arg("code").none(false), py::arg("errorString").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentDownloadError));
   VolumeDataAccessManager_.def("getCurrentDownloadError"       , [](VolumeDataAccessManager* self)
@@ -362,7 +362,7 @@ PyVolumeDataAccessManager::initModule(py::module& m)
       {
         return py::cast(Py_None);
       }
-    }, py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentDownloadError));
+    }, OPENVDS_DOCSTRING(VolumeDataAccessManager_GetCurrentDownloadError));
 
   IVolumeDataAccessManager_.attr("Dimensionality_Max") = py::int_(VolumeDataAccessManager::Dimensionality_Max);
   VolumeDataAccessManager_.attr("Dimensionality_Max") = py::int_(VolumeDataAccessManager::Dimensionality_Max);
