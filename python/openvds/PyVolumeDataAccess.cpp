@@ -23,6 +23,8 @@ static uint32_t GetItemSize(VolumeDataChannelDescriptor::Format format, VolumeDa
 {
   switch(format)
   {
+  default:
+    throw std::runtime_error("Illegal format");
   case VolumeDataChannelDescriptor::Format_1Bit:
     return 1;
   case VolumeDataChannelDescriptor::Format_U8:
@@ -36,7 +38,6 @@ static uint32_t GetItemSize(VolumeDataChannelDescriptor::Format format, VolumeDa
   case VolumeDataChannelDescriptor::Format_R64:
     return 8 * components;
   }
-  throw std::runtime_error("Illegal format");
 }
 
 static const char *
@@ -44,6 +45,8 @@ GetPythonFormatString(VolumeDataChannelDescriptor::Format format, VolumeDataChan
 {
   switch(format)
   {
+  default:
+    throw std::runtime_error("Unknown format");
   case VolumeDataChannelDescriptor::Format_U8:
     return "BBBB" + (4 - components);
   case VolumeDataChannelDescriptor::Format_U16:
@@ -57,7 +60,6 @@ GetPythonFormatString(VolumeDataChannelDescriptor::Format format, VolumeDataChan
   case VolumeDataChannelDescriptor::Format_U64:
     return "QQQQ" + (4 - components);
   }
-  throw std::runtime_error("Unknown format");
 }
 
 template<typename INDEX_TYPE, typename T>
