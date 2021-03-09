@@ -2048,6 +2048,8 @@ static const char *__doc_OpenVDS_KnownUnitNames_USSurveyFeetPerSecond = R"doc(St
 
 static const char *__doc_OpenVDS_KnownUnitNames_USSurveyFoot = R"doc(String representing the US survey foot unit)doc";
 
+static const char *__doc_OpenVDS_KnownUnitNames_Unitless = R"doc(String representing unitless)doc";
+
 static const char *__doc_OpenVDS_M4 = R"doc()doc";
 
 static const char *__doc_OpenVDS_M4_data = R"doc()doc";

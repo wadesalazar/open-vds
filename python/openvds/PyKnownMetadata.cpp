@@ -51,6 +51,7 @@ PyKnownMetadata::initModule(py::module& m)
   KnownUnitNames_.def_static("metersPerSecond"             , static_cast<const char *(*)()>(&KnownUnitNames::MetersPerSecond), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(KnownUnitNames_MetersPerSecond));
   KnownUnitNames_.def_static("feetPerSecond"               , static_cast<const char *(*)()>(&KnownUnitNames::FeetPerSecond), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(KnownUnitNames_FeetPerSecond));
   KnownUnitNames_.def_static("USSurveyFeetPerSecond"       , static_cast<const char *(*)()>(&KnownUnitNames::USSurveyFeetPerSecond), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(KnownUnitNames_USSurveyFeetPerSecond));
+  KnownUnitNames_.def_static("unitless"                    , static_cast<const char *(*)()>(&KnownUnitNames::Unitless), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(KnownUnitNames_Unitless));
 
   // KnownMetadata
   py::class_<KnownMetadata> 

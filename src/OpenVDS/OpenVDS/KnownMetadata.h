@@ -537,6 +537,11 @@ public:
   /// String representing the US survey feet per second unit
   /// </summary>
   static const char *USSurveyFeetPerSecond() { return KNOWNMETADATA_UNIT_US_SURVEY_FEET_PER_SECOND; }
+
+  /// <summary>
+  /// String representing unitless
+  /// </summary>
+  static const char *Unitless() { return KNOWNMETADATA_UNIT_UNITLESS; }
 };
 
 class KnownMetadata
