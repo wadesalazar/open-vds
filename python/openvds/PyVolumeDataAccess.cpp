@@ -19,6 +19,47 @@
 
 using namespace native;
 
+static uint32_t GetItemSize(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components)
+{
+  switch(format)
+  {
+  case VolumeDataChannelDescriptor::Format_1Bit:
+    return 1;
+  case VolumeDataChannelDescriptor::Format_U8:
+    return 1 * components;
+  case VolumeDataChannelDescriptor::Format_U16:
+    return 2 * components;
+  case VolumeDataChannelDescriptor::Format_R32:
+  case VolumeDataChannelDescriptor::Format_U32:
+    return 4 * components;
+  case VolumeDataChannelDescriptor::Format_U64:
+  case VolumeDataChannelDescriptor::Format_R64:
+    return 8 * components;
+  }
+  throw std::runtime_error("Illegal format");
+}
+
+static const char *
+GetPythonFormatString(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components)
+{
+  switch(format)
+  {
+  case VolumeDataChannelDescriptor::Format_U8:
+    return "BBBB" + (4 - components);
+  case VolumeDataChannelDescriptor::Format_U16:
+    return "HHHH" + (4 - components);
+  case VolumeDataChannelDescriptor::Format_R32:
+    return "ffff" + (4 - components);
+  case VolumeDataChannelDescriptor::Format_U32:
+    return "IIII" + (4 - components);
+  case VolumeDataChannelDescriptor::Format_R64:
+    return "dddd" + (4 - components);
+  case VolumeDataChannelDescriptor::Format_U64:
+    return "QQQQ" + (4 - components);
+  }
+  throw std::runtime_error("Unknown format");
+}
+
 template<typename INDEX_TYPE, typename T>
 static void
 RegisterVolumeDataReadAccessor(py::module& m, const char* name)
@@ -150,6 +191,86 @@ PyVolumeDataAccess::initModule(py::module& m)
   VolumeDataPageAccessor_.def("commit"                      , static_cast<void(VolumeDataPageAccessor::*)()>(&VolumeDataPageAccessor::Commit), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPageAccessor_Commit));
 
 //AUTOGEN-END
+#if 0
+    /** \rst
+        Creates ``memoryview`` from static buffer.
+
+        This method is meant for providing a ``memoryview`` for C/C++ buffer not
+        managed by Python. The caller is responsible for managing the lifetime
+        of ``ptr`` and ``format``, which MUST outlive the memoryview constructed
+        here.
+
+        See also: Python C API documentation for `PyMemoryView_FromBuffer`_.
+
+        .. _PyMemoryView_FromBuffer: https://docs.python.org/c-api/memoryview.html#c.PyMemoryView_FromBuffer
+
+        :param ptr: Pointer to the buffer.
+        :param itemsize: Byte size of an element.
+        :param format: Pointer to the null-terminated format string. For
+            homogeneous Buffers, this should be set to
+            ``format_descriptor<T>::value``.
+        :param shape: Shape of the tensor (1 entry per dimension).
+        :param strides: Number of bytes between adjacent entries (for each
+            per dimension).
+        :param readonly: Flag to indicate if the underlying storage may be
+            written to.
+     \endrst */
+    static memoryview from_buffer(
+        void *ptr, ssize_t itemsize, const char *format,
+        detail::any_container<ssize_t> shape,
+        detail::any_container<ssize_t> strides, bool readonly = false);
+#endif|
+// IMPLEMENTED :     VolumeDataPage_.def("getBuffer"                   , [](VolumeDataPage* self, py::array_t<int>& pitch) { return self->GetBuffer(PyArrayAdapter<int, 6, true>::getArrayChecked(pitch)); }, py::arg("pitch").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_GetBuffer));
+     VolumeDataPage_.def("getBuffer"                   , [](VolumeDataPage* self)
+       {
+         int voxelMin[VolumeDataLayout::Dimensionality_Max];
+         int voxelMax[VolumeDataLayout::Dimensionality_Max];
+         self->GetMinMax(voxelMin, voxelMax);
+
+         int pitch[VolumeDataLayout::Dimensionality_Max];
+         const void *buffer = self->GetBuffer(pitch);
+
+         auto channelDescriptor = self->GetVolumeDataPageAccessor().GetChannelDescriptor();
+         int itemsize = GetItemSize(channelDescriptor.GetFormat(), channelDescriptor.GetComponents());
+         const char *format = GetPythonFormatString(channelDescriptor.GetFormat(), channelDescriptor.GetComponents());
+
+         int dimensionality = self->GetVolumeDataPageAccessor().GetLayout()->GetDimensionality();
+         std::vector<int> shape(dimensionality);
+         std::vector<int> strides(dimensionality);
+         for(int dimension = 0; dimension < dimensionality; dimension++)
+         {
+           shape[dimensionality - 1 - dimension] = voxelMax[dimension] - voxelMin[dimension];
+           strides[dimensionality - 1 - dimension] = pitch[dimension] * itemsize;
+         }
+
+         return py::memoryview::from_buffer(buffer, itemsize, format, shape, strides);
+       }, OPENVDS_DOCSTRING(VolumeDataPage_GetBuffer));
+
+// IMPLEMENTED :     VolumeDataPage_.def("getWritableBuffer"           , [](VolumeDataPage* self, py::array_t<int>& pitch) { return self->GetWritableBuffer(PyArrayAdapter<int, 6, true>::getArrayChecked(pitch)); }, py::arg("pitch").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_GetWritableBuffer));
+     VolumeDataPage_.def("getWritableBuffer"           , [](VolumeDataPage* self)
+       {
+         int voxelMin[VolumeDataLayout::Dimensionality_Max];
+         int voxelMax[VolumeDataLayout::Dimensionality_Max];
+         self->GetMinMax(voxelMin, voxelMax);
+
+         int pitch[VolumeDataLayout::Dimensionality_Max];
+         void *buffer = self->GetWritableBuffer(pitch);
+
+         auto channelDescriptor = self->GetVolumeDataPageAccessor().GetChannelDescriptor();
+         int itemsize = GetItemSize(channelDescriptor.GetFormat(), channelDescriptor.GetComponents());
+         const char *format = GetPythonFormatString(channelDescriptor.GetFormat(), channelDescriptor.GetComponents());
+
+         int dimensionality = self->GetVolumeDataPageAccessor().GetLayout()->GetDimensionality();
+         std::vector<int> shape(dimensionality);
+         std::vector<int> strides(dimensionality);
+         for(int dimension = 0; dimension < dimensionality; dimension++)
+         {
+           shape[dimensionality - 1 - dimension] = voxelMax[dimension] - voxelMin[dimension];
+           strides[dimensionality - 1 - dimension] = pitch[dimension] * itemsize;
+         }
+
+         return py::memoryview::from_buffer(buffer, itemsize, format, shape, strides);
+       }, OPENVDS_DOCSTRING(VolumeDataPage_GetWritableBuffer));
 
   // Register accessor types
   RegisterVolumeDataReadAccessor<native::IntVector2, bool>          (m, "VolumeData2DReadAccessor1Bit");
