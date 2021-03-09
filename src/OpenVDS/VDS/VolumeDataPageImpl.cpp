@@ -328,6 +328,10 @@ void VolumeDataPageImpl::CopyMargin(VolumeDataPageImpl* targetPage)
 }
 
 // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)
+VolumeDataPageAccessor &VolumeDataPageImpl::GetVolumeDataPageAccessor() const
+{
+  return *m_volumeDataPageAccessor;
+}
 void  VolumeDataPageImpl::GetMinMax(int(&min)[Dimensionality_Max], int(&max)[Dimensionality_Max]) const
 {
   m_volumeDataPageAccessor->GetLayer()->GetChunkMinMax(m_chunk, min, max, true);
@@ -338,7 +342,7 @@ void  VolumeDataPageImpl::GetMinMaxExcludingMargin(int(&minExcludingMargin)[Dime
 }
 const void* VolumeDataPageImpl::GetBuffer(int(&pitch)[Dimensionality_Max])
 {
- std::unique_lock<std::mutex>  pageListMutexLock(const_cast<VolumeDataPageAccessorImpl *>(m_volumeDataPageAccessor)->m_pagesMutex);
+  std::unique_lock<std::mutex>  pageListMutexLock(const_cast<VolumeDataPageAccessorImpl *>(m_volumeDataPageAccessor)->m_pagesMutex);
 
   return GetBufferInternal(pitch, m_volumeDataPageAccessor->IsReadWrite());
 }

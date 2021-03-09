@@ -151,7 +151,7 @@ VolumeDataPage* VolumeDataPageAccessorImpl::CreatePage(int64_t chunk)
   auto page_it = std::find_if(m_pages.begin(), m_pages.end(), [chunk](VolumeDataPageImpl *page)->bool { return page->GetChunkIndex() == chunk; });
   if(page_it != m_pages.end())
   {
-    throw std::runtime_error("Cannot create a page that already exists");
+    throw InvalidOperation("Cannot create a page that already exists");
   }
 
   // Wait for commit to finish before inserting a new page

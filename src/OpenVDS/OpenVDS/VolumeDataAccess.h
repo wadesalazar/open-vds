@@ -124,6 +124,8 @@ protected:
                 VolumeDataPage() {}
   virtual      ~VolumeDataPage() {}
 public:
+  virtual VolumeDataPageAccessor &
+                GetVolumeDataPageAccessor() const = 0;
   virtual void  GetMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const = 0;
   virtual void  GetMinMaxExcludingMargin(int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const = 0;
   virtual const void * GetBuffer(int (&pitch)[Dimensionality_Max]) = 0;
