@@ -67,7 +67,7 @@ function(BuildExternal name version depends source_dir install_libs_release runt
   if (CCACHE_PROGRAM)
     set(cmake_arg_complete "${cmake_arg_complete}-DCMAKE_C_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER_LAUNCHER=ccache;")
   endif()
-  set(cmake_arg_complete "${cmake_arg_complete}-DCMAKE_INSTALL_PREFIX=${INSTALL_INT_CONFIG};-DCMAKE_INSTALL_MESSAGE=LAZY")
+  set(cmake_arg_complete "${cmake_arg_complete}-DCMAKE_INSTALL_PREFIX=${INSTALL_INT_CONFIG};-DCMAKE_INSTALL_MESSAGE=LAZY;-Wno-dev")
   include(ExternalProject)
   ExternalProject_Add(${name}
     PREFIX ${PROJECT_BINARY_DIR}/${name}_${version}
