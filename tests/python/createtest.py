@@ -3,7 +3,7 @@ import numpy as np
 
 opt = openvds.InMemoryOpenOptions()
 
-layoutDescriptor = openvds.VolumeDataLayoutDescriptor(openvds.VolumeDataLayoutDescriptor.BrickSize.BrickSize_256,
+layoutDescriptor = openvds.VolumeDataLayoutDescriptor(openvds.VolumeDataLayoutDescriptor.BrickSize.BrickSize_64,
                                                       0, 0, 4,
                                                       openvds.VolumeDataLayoutDescriptor.LODLevels.LODLevels_None,
                                                       openvds.VolumeDataLayoutDescriptor.Options.Options_None)
@@ -30,8 +30,8 @@ def writePages(accessor, data):
         page = accessor.createPage(c)
         buf = np.array(page.getWritableBuffer(), copy = False)
 #        print("shape {} strides {}".format(buf.shape, buf.strides))
-        min = np.empty(6, dtype = np.int)
-        max = np.empty(6, dtype = np.int)
+        min = np.empty(6, dtype = np.int32)
+        max = np.empty(6, dtype = np.int32)
         page.getMinMax(min, max)
 #        print("min {} max {}".format(min, max))
         buf[:max[2],:max[1],:max[0]] = data[min[2]:max[2],min[1]:max[1],min[0]:max[0]]
