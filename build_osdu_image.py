@@ -80,8 +80,12 @@ def main(argv):
                                   '-t', containerregistry + containername + ':' + repotag,
                                   '-f', dockerfile, '.'])
     print('build status:', return_code)
-    print('push new image with:')
+    runBuildProcess(['docker', 'tag',
+                    containerregistry + containername + ':' + repotag,
+                    containerregistry + containername + ':latest'])
+    print('\npush new image with:')
     print('  docker push ' + containerregistry + containername + ':' + repotag)
+    print('  docker push ' + containerregistry + containername + ':latest')
 
 if __name__ == "__main__":
     main(sys.argv[1:])
