@@ -73,6 +73,52 @@ inline int Wavelet_GetEffectiveWaveletAdaptiveLoadLevel(float desiredRatio, int6
   return level;
 }
 
+inline void Wavelet_AccumulateAdaptiveLevelSizes(int32_t totalSize, int64_t (&adaptiveLevelSizes)[WAVELET_ADAPTIVE_LEVELS], bool subtract, const uint8_t (&targetLevels)[WAVELET_ADAPTIVE_LEVELS])
+{
+  int32_t remainingSize = totalSize;
+
+  for(int level = 0; level < WAVELET_ADAPTIVE_LEVELS; level++)
+  {
+    if(targetLevels[level] == 0)
+    {
+      break;
+    }
+    assert(remainingSize >= 0);
+
+    remainingSize = (int32_t)((uint64_t)remainingSize * targetLevels[level] / 255);
+
+    if(!subtract)
+    {
+      adaptiveLevelSizes[level] += remainingSize;
+    }
+    else
+    {
+      adaptiveLevelSizes[level] -= remainingSize;
+    }
+    assert(adaptiveLevelSizes[level] >= 0);
+  }
+}
+
+inline void Wavelet_EncodeAdaptiveLevelsMetadata(int32_t totalSize, int const (&adaptiveLevels)[WAVELET_ADAPTIVE_LEVELS], uint8_t (&targetLevels)[WAVELET_ADAPTIVE_LEVELS])
+{
+  int32_t remainingSize = totalSize;
+
+  for(int level = 0; level < WAVELET_ADAPTIVE_LEVELS; level++)
+  {
+    assert(adaptiveLevels[level] <= remainingSize);
+
+    if(remainingSize == 0)
+    {
+      targetLevels[level] = 0;
+      continue;
+    }
+
+    targetLevels[level] = (uint8_t)(((uint64_t)adaptiveLevels[level] * 255 + (remainingSize - 1)) / remainingSize);
+
+    remainingSize = (int)((uint64_t)remainingSize * targetLevels[level] / 255);
+  }
+}
+
 inline int Wavelet_DecodeAdaptiveLevelsMetadata(uint64_t totalSize, int targetLevel, uint8_t const *levels)
 {
   assert(targetLevel >= -1 && targetLevel < WAVELET_ADAPTIVE_LEVELS);

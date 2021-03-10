@@ -127,11 +127,12 @@ namespace OpenVDS
     void UploadDirtyPages(VolumeDataStoreIOManager* accessManager);
 
     uint8_t const *GetPageEntry(MetadataPage *page, int entry) const;
-    void SetPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength);
+    void SetPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength, uint8_t *oldMetadata = nullptr);
 
     void UnlockPage(MetadataPage *page);
 
     MetadataStatus const &GetMetadataStatus() const { return m_metadataStatus; }
+    void UpdateMetadataStatus(int64_t uncompressedSize, int serializedSize, bool subtract, const uint8_t (&targetLevels)[WAVELET_ADAPTIVE_LEVELS]);
   };
 }
 

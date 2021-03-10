@@ -19,6 +19,7 @@
 
 #include <IO/IOManager.h>
 #include "VolumeDataStoreIOManager.h"
+#include "WaveletTypes.h"
 #include <assert.h>
 #include <algorithm>
 #include <fmt/format.h>
@@ -202,7 +203,7 @@ uint8_t const *MetadataManager::GetPageEntry(MetadataPage *page, int entryIndex)
   return &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize];
 }
 
-void MetadataManager::SetPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength)
+void MetadataManager::SetPageEntry(MetadataPage *page, int entryIndex, uint8_t const *metadata, int metadataLength, uint8_t *oldMetadata)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -216,6 +217,10 @@ void MetadataManager::SetPageEntry(MetadataPage *page, int entryIndex, uint8_t c
     MetadataPageMap::iterator pageMapIterator = m_pageMap.find(page->m_pageIndex);
 
     m_dirtyPageList.splice(m_dirtyPageList.end(), m_pageList, pageMapIterator->second);
+  }
+  if(oldMetadata)
+  {
+    memcpy(oldMetadata, &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize], metadataLength);
   }
   //std::copy(metadata, metadata + metadataLength, &page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize]);
   memcpy(&page->m_data[entryIndex * m_metadataStatus.m_chunkMetadataByteSize], metadata, metadataLength);
@@ -252,4 +257,20 @@ void MetadataManager::UnlockPage(MetadataPage *page)
   LimitPages();
 }
 
-} 
+void MetadataManager::UpdateMetadataStatus(int64_t uncompressedSize, int serializedSize, bool subtract, const uint8_t (&targetLevels)[WAVELET_ADAPTIVE_LEVELS])
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  if(subtract)
+  {
+    m_metadataStatus.m_uncompressedSize -= uncompressedSize;
+  }
+  else
+  {
+    m_metadataStatus.m_uncompressedSize += uncompressedSize;
+  }
+
+  Wavelet_AccumulateAdaptiveLevelSizes(serializedSize, m_metadataStatus.m_adaptiveLevelSizes, subtract, targetLevels);
+}
+
+}

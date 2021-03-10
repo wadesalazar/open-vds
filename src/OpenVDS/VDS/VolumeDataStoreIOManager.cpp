@@ -17,6 +17,8 @@
 
 #define _USE_MATH_DEFINES
 
+#include <BulkDataStore/HueBulkDataStoreFileTypes.h>
+
 #include "VolumeDataStoreIOManager.h"
 
 #include "VDS.h"
@@ -267,9 +269,18 @@ VolumeDataStoreIOManager::AddLayer(VolumeDataLayer* volumeDataLayer, int chunkMe
 {
   assert(chunkMetadataPageSize > 0);
   MetadataStatus metadataStatus = {};
+
+  int
+    chunkMetadataByteSize = int(sizeof(VDSChunkMetadata));
+
+  if(CompressionMethod_IsWavelet(volumeDataLayer->GetEffectiveCompressionMethod()))
+  {
+    chunkMetadataByteSize = int(sizeof(uint32_t) + sizeof(VDSWaveletAdaptiveLevelsChunkMetadata));
+  }
+
   metadataStatus.m_chunkIndexCount = (int)volumeDataLayer->GetTotalChunkCount();
   metadataStatus.m_chunkMetadataPageSize = chunkMetadataPageSize;
-  metadataStatus.m_chunkMetadataByteSize = sizeof(int64_t);
+  metadataStatus.m_chunkMetadataByteSize = chunkMetadataByteSize;
   metadataStatus.m_compressionMethod = volumeDataLayer->GetEffectiveCompressionMethod();
   metadataStatus.m_compressionTolerance = volumeDataLayer->GetEffectiveCompressionTolerance();
 
@@ -641,6 +652,7 @@ CompressionInfo VolumeDataStoreIOManager::GetEffectiveAdaptiveLevel(VolumeDataLa
 
   float
     compressionTolerance = 0.0f;
+    compressionTolerance = 0.0f;
 
   int
     adaptiveLevel = (waveletAdaptiveMode == WaveletAdaptiveMode::BestQuality) ? -1 : 0;
@@ -681,9 +693,28 @@ bool VolumeDataStoreIOManager::WriteChunk(const VolumeDataChunk& chunk, const st
   std::shared_ptr<std::vector<uint8_t>> to_write = std::make_shared<std::vector<uint8_t>>(serializedData);
 
   auto metadataManager = GetMetadataMangerForLayer(layerName);
+  MetadataStatus metadataStatus = metadataManager->GetMetadataStatus();
 
-  int pageIndex  = (int)(chunk.index / metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
-  int entryIndex = (int)(chunk.index % metadataManager->GetMetadataStatus().m_chunkMetadataPageSize);
+  int pageIndex  = (int)(chunk.index / metadataStatus.m_chunkMetadataPageSize);
+  int entryIndex = (int)(chunk.index % metadataStatus.m_chunkMetadataPageSize);
+
+  std::vector<uint8_t> indexEntry(metadataStatus.m_chunkMetadataByteSize);
+
+  // If adaptive wavelet, we store the size of the serialized chunk in front of the chunk metadata
+  if(metadataStatus.m_chunkMetadataByteSize == sizeof(uint32_t) + sizeof(VDSWaveletAdaptiveLevelsChunkMetadata))
+  {
+    uint32_t
+      serializedSize = (uint32_t)serializedData.size();
+    indexEntry[0] = (serializedSize >>  0) & 0xff;
+    indexEntry[1] = (serializedSize >>  8) & 0xff;
+    indexEntry[2] = (serializedSize >> 16) & 0xff;
+    indexEntry[3] = (serializedSize >> 24) & 0xff;
+    std::copy(metadata.begin(), metadata.end(), indexEntry.begin() + 4);
+  }
+  else
+  {
+    indexEntry = metadata;
+  }
 
   bool initiateTransfer;
 
@@ -697,7 +728,7 @@ bool VolumeDataStoreIOManager::WriteChunk(const VolumeDataChunk& chunk, const st
 
   int64_t jobId = CreateUploadJobId();
 
-  auto completedCallback = [this, metadata, metadataManager, lockedMetadataPage, entryIndex, jobId](const Request &request, const Error &error)
+  auto completedCallback = [this, chunk, indexEntry, metadataManager, lockedMetadataPage, entryIndex, jobId](const Request &request, const Error &error)
   {
     std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -716,7 +747,35 @@ bool VolumeDataStoreIOManager::WriteChunk(const VolumeDataChunk& chunk, const st
     }
     else
     {
-      metadataManager->SetPageEntry(lockedMetadataPage, entryIndex, metadata.data(), (int)metadata.size());
+      //Update MetadataStatus
+      MetadataStatus metadataStatus = metadataManager->GetMetadataStatus();
+
+      std::vector<uint8_t> oldIndexEntry(metadataStatus.m_chunkMetadataByteSize);
+      metadataManager->SetPageEntry(lockedMetadataPage, entryIndex, indexEntry.data(), (int)indexEntry.size(), oldIndexEntry.data());
+
+      if(metadataStatus.m_chunkMetadataByteSize == sizeof(uint32_t) + sizeof(VDSWaveletAdaptiveLevelsChunkMetadata))
+      {
+        int size[DataBlock::Dimensionality_Max];
+        chunk.layer->GetChunkVoxelSize(chunk.index, size);
+        int64_t uncompressedSize = GetByteSize(size, chunk.layer->GetFormat(), chunk.layer->GetComponents());
+
+        // If adaptive wavelet, we store the size of the serialized chunk in front of the chunk metadata
+        uint32_t const &newSize = *reinterpret_cast<const uint32_t *>(indexEntry.data());
+        VDSWaveletAdaptiveLevelsChunkMetadata const &newMetadata = *reinterpret_cast<const VDSWaveletAdaptiveLevelsChunkMetadata *>(indexEntry.data() + sizeof(uint32_t));
+        uint32_t const &oldSize = *reinterpret_cast<const uint32_t *>(oldIndexEntry.data());
+        VDSWaveletAdaptiveLevelsChunkMetadata const &oldMetadata = *reinterpret_cast<const VDSWaveletAdaptiveLevelsChunkMetadata *>(oldIndexEntry.data() + sizeof(uint32_t));
+
+        if (newMetadata.m_hash != VolumeDataHash::UNKNOWN && !VolumeDataHash(newMetadata.m_hash).IsConstant())
+        {
+          metadataManager->UpdateMetadataStatus(uncompressedSize, newSize, false, newMetadata.m_levels);
+        }
+
+        if (oldMetadata.m_hash != VolumeDataHash::UNKNOWN && !VolumeDataHash(oldMetadata.m_hash).IsConstant())
+        {
+          metadataManager->UpdateMetadataStatus(uncompressedSize, oldSize, true, oldMetadata.m_levels);
+        }
+      }
+
     }
     m_vds.volumeDataLayout->ChangePendingWriteRequestCount(-1);
 

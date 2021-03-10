@@ -211,6 +211,31 @@ bool VolumeDataStoreVDSFile::WriteChunk(const VolumeDataChunk& chunk, const std:
     layerFile->layerMetadata.m_validChunkCount--;
   }
 
+  if(layerFile->layerChunksWaveletAdaptive)
+  {
+    int size[DataBlock::Dimensionality_Max];
+    chunk.layer->GetChunkVoxelSize(chunk.index, size);
+    int64_t uncompressedSize = GetByteSize(size, chunk.layer->GetFormat(), chunk.layer->GetComponents());
+
+    if (newMetadata.m_hash != VolumeDataHash::UNKNOWN && !VolumeDataHash(newMetadata.m_hash).IsConstant())
+    {
+      if(layerFile->layerChunksWaveletAdaptive)
+      {
+        layerFile->layerMetadata.m_uncompressedSize += uncompressedSize;
+        Wavelet_AccumulateAdaptiveLevelSizes(indexEntry.m_length, layerFile->layerMetadata.m_adaptiveLevelSizes, false, newMetadata.m_levels);
+      }
+    }
+
+    if (oldMetadata.m_hash != VolumeDataHash::UNKNOWN && !VolumeDataHash(oldMetadata.m_hash).IsConstant())
+    {
+      if(layerFile->layerChunksWaveletAdaptive)
+      {
+        layerFile->layerMetadata.m_uncompressedSize -= uncompressedSize;
+        Wavelet_AccumulateAdaptiveLevelSizes(oldSize, layerFile->layerMetadata.m_adaptiveLevelSizes, true, oldMetadata.m_levels);
+      }
+    }
+  }
+
   assert(layerFile->layerMetadata.m_validChunkCount <= layerFile->fileInterface->GetChunkCount());
   return true;
 }
