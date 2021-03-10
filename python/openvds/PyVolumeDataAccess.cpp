@@ -19,6 +19,8 @@
 
 using namespace native;
 
+template<typename T, size_t N> inline T (&PODArrayReference(std::array<T,N> &a))[N] { return *reinterpret_cast<T (*)[N]>(a.data()); }
+
 static uint32_t GetItemSize(VolumeDataChannelDescriptor::Format format, VolumeDataChannelDescriptor::Components components)
 {
   switch(format)
@@ -242,6 +244,41 @@ PyVolumeDataAccess::initModule(py::module& m)
 
          return py::memoryview::from_buffer(buffer, itemsize, format, shape, strides);
        }, OPENVDS_DOCSTRING(VolumeDataPage_GetWritableBuffer));
+
+  VolumeDataPage_.def("getMinMax"                   , [](VolumeDataPage* self)
+    {
+      std::array<int, VolumeDataLayout::Dimensionality_Max> voxelMin, voxelMax;
+      self->GetMinMax(PODArrayReference(voxelMin), PODArrayReference(voxelMax));
+      return std::make_pair(voxelMin, voxelMax);
+    }, py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_GetMinMax));
+
+  VolumeDataPage_.def("getMinMaxExcludingMargin"    , [](VolumeDataPage* self)
+    {
+      std::array<int, VolumeDataLayout::Dimensionality_Max> voxelMin, voxelMax;
+      self->GetMinMaxExcludingMargin(PODArrayReference(voxelMin), PODArrayReference(voxelMax));
+      return std::make_pair(voxelMin, voxelMax);
+    }, py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_GetMinMaxExcludingMargin));
+
+  VolumeDataPageAccessor_.def("getNumSamples"               , [](VolumeDataPageAccessor* self)
+    {
+      std::array<int, VolumeDataLayout::Dimensionality_Max> numSamples;
+      self->GetNumSamples(PODArrayReference(numSamples));
+      return numSamples;
+    }, py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPageAccessor_GetNumSamples));
+
+  VolumeDataPageAccessor_.def("getChunkMinMax"              , [](VolumeDataPageAccessor* self, int64_t chunk)
+    {
+      std::array<int, VolumeDataLayout::Dimensionality_Max> voxelMin, voxelMax;
+      self->GetChunkMinMax(chunk, PODArrayReference(voxelMin), PODArrayReference(voxelMax));
+      return std::make_pair(voxelMin, voxelMax);
+    }, py::arg("chunk").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPageAccessor_GetChunkMinMax));
+
+  VolumeDataPageAccessor_.def("getChunkMinMaxExcludingMargin", [](VolumeDataPageAccessor* self, int64_t chunk)
+    {
+      std::array<int, VolumeDataLayout::Dimensionality_Max> voxelMin, voxelMax;
+      self->GetChunkMinMaxExcludingMargin(chunk, PODArrayReference(voxelMin), PODArrayReference(voxelMax));
+      return std::make_pair(voxelMin, voxelMax);
+    }, py::arg("chunk").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPageAccessor_GetChunkMinMaxExcludingMargin));
 
   // Register accessor types
   RegisterVolumeDataReadAccessor<native::IntVector2, bool>          (m, "VolumeData2DReadAccessor1Bit");

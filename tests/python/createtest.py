@@ -30,9 +30,7 @@ def writePages(accessor, data):
         page = accessor.createPage(c)
         buf = np.array(page.getWritableBuffer(), copy = False)
 #        print("shape {} strides {}".format(buf.shape, buf.strides))
-        min = np.empty(6, dtype = np.int32)
-        max = np.empty(6, dtype = np.int32)
-        page.getMinMax(min, max)
+        (min, max) = page.getMinMax()
 #        print("min {} max {}".format(min, max))
         buf[:max[2],:max[1],:max[0]] = data[min[2]:max[2],min[1]:max[1],min[0]:max[0]]
         page.release()
