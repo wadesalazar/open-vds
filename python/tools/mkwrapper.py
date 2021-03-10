@@ -454,9 +454,10 @@ def try_generate_trampoline_function(node, all_, restype, arglist, params):
 #                    print("HEPP! {}".format(arg))
                     raise UnsupportedFunctionSignatureError()
                 else:
-                    newarg = "{}py::array_t<{}>&".format(
+                    newarg = "{}py::array_t<{},{}>&".format(
                         const,
-                        typ
+                        typ,
+                        "py::array::c_style" if is_mutable else "py::array::forcecast"
                     )
                     array_function = 'getArrayPtrChecked' if ref == '*' else 'getArrayChecked'
                     callarg = "PyArrayAdapter<{}, {}, {}>::{}({})".format(

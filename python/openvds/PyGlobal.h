@@ -130,7 +130,7 @@ template<typename T, int LEN>
 struct PyArrayAdapter<T, LEN, true>
 {
   static T*
-  getArrayBufferChecked(py::array_t<T>& arr, int* arrayCount = nullptr)
+  getArrayBufferChecked(py::array_t<T, py::array::c_style>& arr, int* arrayCount = nullptr)
   {
     py::gil_scoped_acquire
       acquire;
@@ -161,7 +161,7 @@ struct PyArrayAdapter<T, LEN, true>
     }
   }
 
-  static T (&getArrayChecked(py::array_t<T> & arr, int* arrayCount = nullptr))[LEN]
+  static T (&getArrayChecked(py::array_t<T, py::array::c_style> & arr, int* arrayCount = nullptr))[LEN]
   {
     T* tmp = getArrayBufferChecked(arr, arrayCount);
     return *reinterpret_cast<T (*)[LEN]>(tmp);
@@ -204,13 +204,13 @@ struct PyArrayAdapter<T, LEN, false>
     }
   }
 
-  static const T (&getArrayChecked(py::array_t<T> const& arr, int* arrayCount = nullptr))[LEN]
+  static const T (&getArrayChecked(py::array_t<T, py::array::forcecast> const& arr, int* arrayCount = nullptr))[LEN]
   {
     const T* tmp = getArrayBufferChecked(arr, arrayCount);
     return *reinterpret_cast<const T (*)[LEN]>(tmp);
   }
 
-  static const T (*getArrayPtrChecked(py::array_t<T> const& arr, int* arrayCount = nullptr))[LEN]
+  static const T (*getArrayPtrChecked(py::array_t<T, py::array::forcecast> const& arr, int* arrayCount = nullptr))[LEN]
   {
     const T* tmp = getArrayBufferChecked(arr, arrayCount);
     return reinterpret_cast<const T (*)[LEN]>(tmp);
