@@ -219,7 +219,7 @@ PyVolumeDataAccess::initModule(py::module& m)
         void *ptr, ssize_t itemsize, const char *format,
         detail::any_container<ssize_t> shape,
         detail::any_container<ssize_t> strides, bool readonly = false);
-#endif|
+#endif
 // IMPLEMENTED :     VolumeDataPage_.def("getBuffer"                   , [](VolumeDataPage* self, py::array_t<int>& pitch) { return self->GetBuffer(PyArrayAdapter<int, 6, true>::getArrayChecked(pitch)); }, py::arg("pitch").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_GetBuffer));
      VolumeDataPage_.def("getBuffer"                   , [](VolumeDataPage* self)
        {
