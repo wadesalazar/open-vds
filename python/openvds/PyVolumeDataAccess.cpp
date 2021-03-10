@@ -191,35 +191,6 @@ PyVolumeDataAccess::initModule(py::module& m)
   VolumeDataPageAccessor_.def("commit"                      , static_cast<void(VolumeDataPageAccessor::*)()>(&VolumeDataPageAccessor::Commit), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPageAccessor_Commit));
 
 //AUTOGEN-END
-#if 0
-    /** \rst
-        Creates ``memoryview`` from static buffer.
-
-        This method is meant for providing a ``memoryview`` for C/C++ buffer not
-        managed by Python. The caller is responsible for managing the lifetime
-        of ``ptr`` and ``format``, which MUST outlive the memoryview constructed
-        here.
-
-        See also: Python C API documentation for `PyMemoryView_FromBuffer`_.
-
-        .. _PyMemoryView_FromBuffer: https://docs.python.org/c-api/memoryview.html#c.PyMemoryView_FromBuffer
-
-        :param ptr: Pointer to the buffer.
-        :param itemsize: Byte size of an element.
-        :param format: Pointer to the null-terminated format string. For
-            homogeneous Buffers, this should be set to
-            ``format_descriptor<T>::value``.
-        :param shape: Shape of the tensor (1 entry per dimension).
-        :param strides: Number of bytes between adjacent entries (for each
-            per dimension).
-        :param readonly: Flag to indicate if the underlying storage may be
-            written to.
-     \endrst */
-    static memoryview from_buffer(
-        void *ptr, ssize_t itemsize, const char *format,
-        detail::any_container<ssize_t> shape,
-        detail::any_container<ssize_t> strides, bool readonly = false);
-#endif
 // IMPLEMENTED :     VolumeDataPage_.def("getBuffer"                   , [](VolumeDataPage* self, py::array_t<int>& pitch) { return self->GetBuffer(PyArrayAdapter<int, 6, true>::getArrayChecked(pitch)); }, py::arg("pitch").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_GetBuffer));
      VolumeDataPage_.def("getBuffer"                   , [](VolumeDataPage* self)
        {
