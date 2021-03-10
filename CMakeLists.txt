@@ -105,6 +105,11 @@ cmake_dependent_option(
     ON "DISABLE_AZURE_PRESIGNED_IOMANAGER;DISABLE_GCP_IOMANAGER" OFF)
 mark_as_advanced(DISABLE_CURL_IOMANAGER)
 
+if ((${CMAKE_MAJOR_VERSION} EQUAL 3) AND (${CMAKE_MINOR_VERSION} EQUAL 19) AND (NOT ${DISABLE_AWS_IOMANAGER}))
+  message(FATAL_ERROR "A bug in CMake 3.19 series makes it is makes it not possible to build the AWS backend code.\n Please upgrade og downgrade. Its possible to use custom version of cmake in Visual Studio under CMake Settings.\n Disable AWS IO Manager by defining -DDISABLE_AWS_IOMANAGER=ON as a cmake parameter")
+endif()
+
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
