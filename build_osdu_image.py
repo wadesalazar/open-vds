@@ -84,6 +84,7 @@ def main(argv):
                     containerregistry + containername + ':' + repotag,
                     containerregistry + containername + ':latest'])
     print('\npush new image with:')
+    print('  docker login community.opengroup.org:5555')
     print('  docker push ' + containerregistry + containername + ':' + repotag)
     print('  docker push ' + containerregistry + containername + ':latest')
 
