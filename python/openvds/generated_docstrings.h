@@ -4538,9 +4538,47 @@ static const char *__doc_OpenVDS_VolumeDataPageAccessor_GetLOD = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataPageAccessor_GetLayout = R"doc()doc";
 
+static const char *__doc_OpenVDS_VolumeDataPageAccessor_GetMappedChunkIndex =
+R"doc(Get the chunk index for this VolumeDataPageAccessor corresponding to
+the given chunk index in the primary channel. Because some channels
+can have mappings (e.g. one value per trace), the number of chunks can
+be less than in the primary channel and we need to have a mapping to
+figure out the chunk index in each channel that is produced together.
+
+Parameters:
+-----------
+
+primaryChannelChunkIndex :
+    The index of the chunk in the primary channel (channel 0) that we
+    want to map to a chunk index for this VolumeDataPageAccessor.
+
+Returns:
+--------
+    The chunk index for this VolumeDataPageAccessor corresponding to
+    the given chunk index in the primary channel.)doc";
+
 static const char *__doc_OpenVDS_VolumeDataPageAccessor_GetMaxPages = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataPageAccessor_GetNumSamples = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataPageAccessor_GetPrimaryChannelChunkIndex =
+R"doc(Get the primary channel chunk index corresponding to the given chunk
+index of this VolumeDataPageAccessor. In order to avoid creating
+duplicates requests when a channel is mapped, we need to know which
+primary channel chunk index is representative of a particular mapped
+chunk index.
+
+Parameters:
+-----------
+
+chunkIndex :
+    The chunk index for this VolumeDataPageAccessor that we want the
+    representative primary channel chunk index of.
+
+Returns:
+--------
+    The primary channel chunk index corresponding to the given chunk
+    index for this VolumeDataPageAccessor.)doc";
 
 static const char *__doc_OpenVDS_VolumeDataPageAccessor_ReadPage = R"doc()doc";
 

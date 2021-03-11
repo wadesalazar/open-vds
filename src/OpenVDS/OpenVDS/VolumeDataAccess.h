@@ -152,6 +152,32 @@ public:
   virtual void  GetChunkMinMaxExcludingMargin(int64_t chunk, int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const = 0;
   virtual int64_t GetChunkIndex(const int (&position)[Dimensionality_Max]) const = 0;
 
+  /// <summary>
+  /// Get the chunk index for this VolumeDataPageAccessor corresponding to the given chunk index in the primary channel.
+  /// Because some channels can have mappings (e.g. one value per trace), the number of chunks can be less than in the primary
+  /// channel and we need to have a mapping to figure out the chunk index in each channel that is produced together.
+  /// </summary>
+  /// <param name="primaryChannelChunkIndex">
+  /// The index of the chunk in the primary channel (channel 0) that we want to map to a chunk index for this VolumeDataPageAccessor.
+  /// </param>
+  /// <returns>
+  /// The chunk index for this VolumeDataPageAccessor corresponding to the given chunk index in the primary channel.
+  /// </returns>
+  virtual int64_t GetMappedChunkIndex(int64_t primaryChannelChunkIndex) const = 0;
+
+  /// <summary>
+  /// Get the primary channel chunk index corresponding to the given chunk index of this VolumeDataPageAccessor.
+  /// In order to avoid creating duplicates requests when a channel is mapped, we need to know which primary channel chunk index is representative of
+  /// a particular mapped chunk index.
+  /// </summary>
+  /// <param name="chunkIndex">
+  /// The chunk index for this VolumeDataPageAccessor that we want the representative primary channel chunk index of.
+  /// </param>
+  /// <returns>
+  /// The primary channel chunk index corresponding to the given chunk index for this VolumeDataPageAccessor.
+  /// </returns>
+  virtual int64_t GetPrimaryChannelChunkIndex(int64_t chunkIndex) const = 0;
+
   virtual int   AddReference() = 0;
   virtual int   RemoveReference() = 0;
 

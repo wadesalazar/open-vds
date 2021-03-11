@@ -17,6 +17,7 @@
 
 #include "VolumeDataPageAccessorImpl.h"
 #include "VolumeDataLayoutImpl.h"
+#include "VolumeDataChannelMapping.h"
 #include "VolumeDataAccessManagerImpl.h"
 #include "VolumeDataLayer.h"
 #include "VolumeDataPageImpl.h"
@@ -108,6 +109,33 @@ int64_t VolumeDataPageAccessorImpl::GetChunkIndex(const int(&position)[Dimension
     index_array[i] = m_layer->VoxelToIndex(position[i], i);
   }
   return m_layer->IndexArrayToChunkIndex(index_array);
+}
+
+int64_t VolumeDataPageAccessorImpl::GetMappedChunkIndex(int64_t primaryChannelChunkIndex) const
+{
+  auto volumeDataChannelMapping = m_layer->GetVolumeDataChannelMapping();
+  if(volumeDataChannelMapping)
+  {
+    return volumeDataChannelMapping->GetMappedChunkIndex(m_layer->GetPrimaryChannelLayer(), primaryChannelChunkIndex);
+  }
+  else
+  {
+    return primaryChannelChunkIndex;
+  }
+}
+
+int64_t VolumeDataPageAccessorImpl::GetPrimaryChannelChunkIndex(int64_t chunkIndex) const
+{
+  auto volumeDataChannelMapping = m_layer->GetVolumeDataChannelMapping();
+
+  if(volumeDataChannelMapping)
+  {
+    return volumeDataChannelMapping->GetPrimaryChunkIndex(m_layer->GetPrimaryChannelLayer(), chunkIndex);
+  }
+  else
+  {
+    return chunkIndex;
+  }
 }
 
 int VolumeDataPageAccessorImpl::AddReference()

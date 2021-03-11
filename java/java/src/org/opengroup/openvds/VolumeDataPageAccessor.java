@@ -39,6 +39,8 @@ public class VolumeDataPageAccessor extends JniPointerWithoutDeletion {
   virtual void  GetChunkMinMax(int64_t chunk, int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const = 0;
   virtual void  GetChunkMinMaxExcludingMargin(int64_t chunk, int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const = 0;
   virtual int64_t GetChunkIndex(const int (&position)[Dimensionality_Max]) const = 0;
+  virtual int64_t GetMappedChunkIndex(int64_t primaryChannelChunkIndex) const = 0;
+  virtual int64_t GetPrimaryChannelChunkIndex(int64_t chunkIndex) const = 0;
 
   virtual int   AddReference() = 0;
   virtual int   RemoveReference() = 0;
