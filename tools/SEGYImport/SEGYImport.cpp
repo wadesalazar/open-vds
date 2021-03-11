@@ -2211,11 +2211,11 @@ main(int argc, char* argv[])
 
     if (chunkInfo.min[0] == 0)
     {
-      traceFlagPage = traceFlagAccessor->CreatePage(traceFlagAccessor->GetChunkIndex(chunkInfo.min));
-      segyTraceHeaderPage = segyTraceHeaderAccessor->CreatePage(segyTraceHeaderAccessor->GetChunkIndex(chunkInfo.min));
+      traceFlagPage = traceFlagAccessor->CreatePage(traceFlagAccessor->GetMappedChunkIndex(chunk));
+      segyTraceHeaderPage = segyTraceHeaderAccessor->CreatePage(segyTraceHeaderAccessor->GetMappedChunkIndex(chunk));
       if (offsetAccessor != nullptr)
       {
-        offsetPage = offsetAccessor->CreatePage(offsetAccessor->GetChunkIndex(chunkInfo.min));
+        offsetPage = offsetAccessor->CreatePage(offsetAccessor->GetMappedChunkIndex(chunk));
       }
     }
 
