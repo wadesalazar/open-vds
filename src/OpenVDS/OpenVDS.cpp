@@ -810,7 +810,7 @@ VDSHandle Create(const OpenOptions& options, VolumeDataLayoutDescriptor const& l
   else
   {
     const VDSFileOpenOptions &fileOptions = static_cast<const VDSFileOpenOptions &>(options);
-    volumeDataStore.reset(new VolumeDataStoreVDSFile(*ret, fileOptions.fileName, VolumeDataStoreVDSFile::ReadWrite, error));
+    volumeDataStore.reset(new VolumeDataStoreVDSFile(*ret, fileOptions.fileName, VolumeDataStoreVDSFile::Create, error));
     if (error.code)
       return nullptr;
   }

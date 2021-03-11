@@ -63,7 +63,8 @@ public:
   enum Mode
   {
     ReadOnly,
-    ReadWrite
+    ReadWrite,
+    Create,
   };
 
   CompressionInfo

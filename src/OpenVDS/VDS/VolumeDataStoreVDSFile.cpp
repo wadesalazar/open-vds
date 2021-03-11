@@ -479,17 +479,25 @@ VolumeDataStoreVDSFile::VolumeDataStoreVDSFile(VDS &vds, const std::string &vdsF
   , m_vds(vds)
   , m_isVDSObjectFilePresent(false)
   , m_isVolumeDataLayoutFilePresent(false)
-  , m_dataStore(HueBulkDataStore::Open(vdsFileName.c_str()), &HueBulkDataStore::Close)
+  , m_dataStore(nullptr, &HueBulkDataStore::Close)
 {
-  if(mode == ReadWrite)
+  if (mode == Mode::Create)
   {
-    if(!m_dataStore->IsOpen())
+    m_dataStore.reset(HueBulkDataStore::CreateNew(vdsFileName.c_str(), true));
+  }
+  else
+  {
+    m_dataStore.reset(HueBulkDataStore::Open(vdsFileName.c_str()));
+    if (mode == ReadWrite)
     {
-      m_dataStore.reset(HueBulkDataStore::CreateNew(vdsFileName.c_str(), false));
-    }
-    else
-    {
-      m_dataStore->EnableWriting();
+      if (!m_dataStore->IsOpen())
+      {
+        m_dataStore.reset(HueBulkDataStore::CreateNew(vdsFileName.c_str(), false));
+      }
+      else
+      {
+        m_dataStore->EnableWriting();
+      }
     }
   }
 
