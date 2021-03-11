@@ -58,9 +58,6 @@ namespace OpenVDS
     DownloadRequestDms(seismicdrive::SDGenericDataset &dataset, const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler);
 
     void run(const std::string& requestName, const IORange& range, std::weak_ptr<DownloadRequestDms> request, ThreadPool &threadPool);
-
-    IORange m_requestedRange;
-    std::vector<uint8_t> m_data;
   };
 
   class UploadRequestDms : public Request

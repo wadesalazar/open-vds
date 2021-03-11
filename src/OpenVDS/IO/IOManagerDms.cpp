@@ -78,71 +78,84 @@ namespace OpenVDS
     }
     std::condition_variable& conditional_variable;
   };
-  void ReadObjectInfoRequestDms::run(const std::string& requestName, std::weak_ptr<ReadObjectInfoRequestDms> request, ThreadPool &threadPool)
-  {
-    m_job = threadPool.Enqueue([requestName, request]() {
-      (void)requestName; //silence warning
-      auto request_ptr = request.lock();
-      if (!request_ptr)
-        return;
-      std::unique_lock<std::mutex> lock(request_ptr->m_mutex);
-
-      Notifier notifier(request_ptr->m_waitForFinish);
-
-      if (request_ptr->m_cancelled)
-        return;
-
-      //no headers are exposed
-
-      request_ptr->m_done = true;
-      request_ptr->m_handler->Completed(*request_ptr, request_ptr->m_error);
-    });
-  }
 
   DownloadRequestDms::DownloadRequestDms(seismicdrive::SDGenericDataset &dataset, const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
     : GetHeadRequestDms(dataset, id, handler)
   {
   }
 
-  void DownloadRequestDms::run(const std::string& requestName, const IORange& range, std::weak_ptr<DownloadRequestDms> request, ThreadPool &threadPool)
+  template<typename T>
+  static void run_request(const std::string& requestName, std::weak_ptr <T> request, const IORange &range, std::vector<uint8_t>* data)
+  {
+    auto request_ptr = request.lock();
+    if (!request_ptr)
+      return;
+    std::unique_lock<std::mutex> lock(request_ptr->m_mutex);
+    Notifier notifier(request_ptr->m_waitForFinish);
+    if (request_ptr->m_cancelled)
+      return;
+
+    uint64_t size;
+    std::string created_date;
+    lock.unlock();
+    try
+    {
+      size = request_ptr->m_dataset.getBlockSize(requestName);
+      created_date = request_ptr->m_dataset.getCreatedDate();
+
+      if (data && size)
+      {
+        uint64_t offset;
+        if (range.end)
+        {
+          data->resize(range.end - range.start);
+          offset = range.start;
+        }
+        else
+        {
+          offset = 0;
+          data->resize(size);
+        }
+        request_ptr->m_dataset.readBlock(requestName, (char*)data->data(), offset, data->size());
+      }
+      lock.lock();
+    }
+    catch (const seismicdrive::SDException& ex)
+    {
+      lock.lock();
+      request_ptr->m_error.code = -1;
+      request_ptr->m_error.string = ex.what();
+    }
+    catch (...)
+    {
+      lock.lock();
+      request_ptr->m_error.code = -1;
+      request_ptr->m_error.string = "Unknown exception in DMS upload";
+    }
+
+    if (request_ptr->m_error.code == 0)
+    {
+      request_ptr->m_handler->HandleObjectSize(size);
+      request_ptr->m_handler->HandleObjectLastWriteTime(created_date);
+      if (data)
+        request_ptr->m_handler->HandleData(std::move(*data));
+    }
+
+    request_ptr->m_done = true;
+    request_ptr->m_handler->Completed(*request_ptr, request_ptr->m_error);
+  }
+
+  void ReadObjectInfoRequestDms::run(const std::string& requestName, std::weak_ptr<ReadObjectInfoRequestDms> request, ThreadPool &threadPool)
   {
     m_job = threadPool.Enqueue([requestName, request]() {
-      auto request_ptr = request.lock();
-      if (!request_ptr)
-        return;
-      std::unique_lock<std::mutex> lock(request_ptr->m_mutex);
-      Notifier notifier(request_ptr->m_waitForFinish);
-      if (request_ptr->m_cancelled)
-        return;
-
-      lock.unlock();
-      try
-      {
-        auto size = request_ptr->m_dataset.getBlockSize(requestName);
-        request_ptr->m_data.resize(size);
-
-        if (size)
-        {
-          request_ptr->m_dataset.readBlock(requestName, (char*)request_ptr->m_data.data(), 0, request_ptr->m_data.size());
-        }
-        lock.lock();
-      }
-      catch (const seismicdrive::SDException& ex)
-      {
-        lock.lock();
-        request_ptr->m_error.code = -1;
-        request_ptr->m_error.string = ex.what();
-      }
-      catch (...)
-      {
-        lock.lock();
-        request_ptr->m_error.code = -1;
-        request_ptr->m_error.string = "Unknown exception in DMS upload";
-      }
-      request_ptr->m_handler->HandleData(std::move(request_ptr->m_data));
-
-      request_ptr->m_done = true;
-      request_ptr->m_handler->Completed(*request_ptr, request_ptr->m_error);
+      run_request<ReadObjectInfoRequestDms>(requestName, request, IORange(), nullptr);
+    });
+  }
+  void DownloadRequestDms::run(const std::string& requestName, const IORange& range, std::weak_ptr<DownloadRequestDms> request, ThreadPool &threadPool)
+  {
+    m_job = threadPool.Enqueue([requestName, request, range]() {
+      std::vector<uint8_t> data;
+      run_request<DownloadRequestDms>(requestName, request, range, &data);
     });
   }
 
