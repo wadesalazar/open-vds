@@ -5,6 +5,10 @@ Python API
 
 .. autofunction:: openvds.open
 
+.. autofunction:: openvds.openWithAdaptiveCompressionTolerance
+
+.. autofunction:: openvds.openWithAdaptiveCompressionRatio
+
 .. autofunction:: openvds.create
 
 .. autofunction:: openvds.close
@@ -15,11 +19,18 @@ Python API
 
 .. autoclass:: openvds.GoogleOpenOptions
 
+.. autoclass:: openvds.DMSOpenOptions
+
+.. autoclass:: openvds.VDSFileOpenOptions
+
 .. autofunction:: openvds.getAccessManager
 
 .. autofunction:: openvds.getLayout
 
 .. autoclass:: openvds.VolumeDataAccessManager
+  :members:
+
+.. autoclass:: openvds.VolumeDataRequest
   :members:
 
 .. autoclass:: openvds.VolumeDataLayout
@@ -41,4 +52,10 @@ Python API
   :members:
 
 .. autoclass:: openvds.MetadataWriteAccess
+  :members:
+
+.. autoclass:: openvds.VolumeDataPageAccessor
+  :members:
+
+.. autoclass:: openvds.VolumeDataPage
   :members:
