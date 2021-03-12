@@ -32,7 +32,7 @@ def writePages(accessor, data):
 #        print("shape {} strides {}".format(buf.shape, buf.strides))
         (min, max) = page.getMinMax()
 #        print("min {} max {}".format(min, max))
-        buf[:max[2],:max[1],:max[0]] = data[min[2]:max[2],min[1]:max[1],min[0]:max[0]]
+        buf[:,:,:] = data[min[2]:max[2],min[1]:max[1],min[0]:max[0]]
         page.release()
     accessor.commit()
 
