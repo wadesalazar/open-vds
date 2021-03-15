@@ -327,6 +327,62 @@ PyGlobal::initModule(py::module& m)
       }
       return handle;
     }, py::arg("ioManager").none(false), OPENVDS_DOCSTRING(Open_4));
+  m.def("openWithAdaptiveCompressionTolerance", [](const std::string &url, const std::string &connection, float compressionTolerance, native::Error &error)
+    {
+      return native::OpenWithAdaptiveCompressionTolerance(url, connection, compressionTolerance, error);
+    }, py::arg("url").none(false), py::arg("connection").none(false), py::arg("waveletAdaptiveTolerance").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
+  m.def("openWithAdaptiveCompressionTolerance", [](const std::string &url, float compressionTolerance, native::Error &error)
+    {
+      return native::OpenWithAdaptiveCompressionTolerance(url, "", compressionTolerance, error);
+    }, py::arg("url").none(false), py::arg("waveletAdaptiveTolerance").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
+  m.def("openWithAdaptiveCompressionTolerance", [](const std::string &url, const std::string &connection, float compressionTolerance)
+    {
+      native::Error err;
+      auto handle = native::OpenWithAdaptiveCompressionTolerance(url, "", compressionTolerance, err);
+      if (err.code) 
+      {
+        throw std::runtime_error(err.string);
+      }
+      return handle;
+    }, py::arg("url").none(false), py::arg("connection").none(false), py::arg("waveletAdaptiveTolerance").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
+  m.def("openWithAdaptiveCompressionTolerance", [](const std::string &url, float compressionTolerance)
+    {
+      native::Error err;
+      auto handle = native::OpenWithAdaptiveCompressionTolerance(url, "", compressionTolerance, err);
+      if (err.code) 
+      {
+        throw std::runtime_error(err.string);
+      }
+      return handle;
+    }, py::arg("url").none(false), py::arg("waveletAdaptiveTolerance").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
+  m.def("openWithAdaptiveCompressionRatio", [](const std::string &url, const std::string &connection, float compressionRatio, native::Error &error)
+      {
+        return native::OpenWithAdaptiveCompressionRatio(url, connection, compressionRatio, error);
+      }, py::arg("url").none(false), py::arg("connection").none(false), py::arg("waveletAdaptiveRatio").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
+  m.def("openWithAdaptiveCompressionRatio", [](const std::string &url, float compressionRatio, native::Error &error)
+      {
+        return native::OpenWithAdaptiveCompressionRatio(url, "", compressionRatio, error);
+      }, py::arg("url").none(false), py::arg("waveletAdaptiveRatio").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
+  m.def("openWithAdaptiveCompressionRatio", [](const std::string &url, const std::string &connection, float compressionRatio)
+      {
+      native::Error err;
+      auto handle = native::OpenWithAdaptiveCompressionRatio(url, connection, compressionRatio, err);
+      if (err.code)
+      {
+        throw std::runtime_error(err.string);
+      }
+      return handle;
+      }, py::arg("url").none(false), py::arg("connection").none(false), py::arg("waveletAdaptiveRatio").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
+  m.def("openWithAdaptiveCompressionRatio", [](const std::string &url, float compressionRatio)
+      {
+      native::Error err;
+      auto handle = native::OpenWithAdaptiveCompressionRatio(url, "", compressionRatio, err);
+      if (err.code)
+      {
+        throw std::runtime_error(err.string);
+      }
+      return handle;
+      }, py::arg("url").none(false), py::arg("waveletAdaptiveRatio").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
   m.def("create"                      , [](const std::string &url, const std::string &connectionString, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata, native::Error &error)
     {
       return native::Create(url, connectionString, layout , axisdesc, channeldesc, metadata, error);
