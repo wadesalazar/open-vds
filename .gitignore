@@ -24,3 +24,4 @@ cmake-build*
 /docs/tools/SEGYImport/README.md
 /docs/tools/VDSInfo/README.md
 /**/CMakeFiles
+binpackage

@@ -38,5 +38,7 @@ setup(
     license="Apache License, Version 2.0",
     packages=['openvds'],
     package_dir={'': 'python'},
-    cmake_args=[python_root_path]
+    cmake_args=[python_root_path],
+    install_requires=['numpy']
+
 )
