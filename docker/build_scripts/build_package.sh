@@ -2,11 +2,36 @@ set -e -u
 base_dir=$(dirname $BASH_SOURCE)
 
 skbuild_platform=""
-python_executable="python"
+python_executable=""
 openvds_path="$base_dir/../.."
 cmake_args="-DBUILD_TESTS=OFF"
 openvds_version=""
+name="openvds"
 
+cmake_generator=""
+platform_name=""
+skplat_name=""
+distribution=""
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  cmake_generator="Ninja"
+  platform_name="linux"
+  skplat_name="linux-x86_64"
+  toolset=""
+  python_executable="python"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  cmake_generator="Ninja"
+  platform_name="mac"
+  skplat_name="maxosx-10.6-x86_64"
+  toolset=""
+  python_executable="python"
+elif [[ "$OSTYPE" == "msys" ]]; then
+  cmake_generator="Visual Studio 16 2019"
+  platform_name="win"
+  skplat_name="win-amd64"
+  toolset="-Tv140"
+  python_executable="python.exe"
+fi
+  
 while [[ $# -gt 0 ]]
 do
 key="$1"
@@ -32,6 +57,16 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    -d|--distribution)
+    distribution="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -n|--name)
+    name="$2"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown option
     openvds_path="$1" # save it in an array for later
     shift # past argument
@@ -47,41 +82,48 @@ if [[ "$openvds_version" == "" ]]; then
   exit 1
 fi
 
-cmake_generator=""
-platform_name=""
-skplat_name=""
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  cmake_generator="Ninja"
-  platform_name="linux"
-  skplat_name="linux-x86_64"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-  cmake_generator="Ninja"
-  platform_name="mac"
-  skplat_name="maxosx-10.6-x86_64"
-elif [[ "$OSTYPE" == "msys" ]]; then
-  cmake_generator="Visual Studio 14 2015 Win64"
-  platform_name="win"
-  skplat_name="win-amd64"
+if [[ "$distribution" == "" ]]; then
+    distribution="$platform_name"
 fi
-python_ver=$($python_executable -c "import sys;  print('.'.join(map(str, sys.version_info[:2])))")
+
+python_ver=$("$python_executable" -c "import sys;  print('.'.join(map(str, sys.version_info[:2])))")
+python_root_dir=$("$python_executable" -c "import sys; import os; print(os.path.dirname(sys.executable))")
+
+openvds_path=$(realpath $openvds_path)
 
 if [[ "$skbuild_platform" == "" ]]; then
   skbuild_platform="$skplat_name-$python_ver"
 fi
 
-skbuild_dir="_skbuild/$skbuild_platform"
+skbuild_dir="$openvds_path/_skbuild/$skbuild_platform"
+[[ -d $skbuild_dir ]] || mkdir -p $skbuild_dir
+skbuild_dir=$(realpath $skbuild_dir)
+
+cd "$skbuild_dir"
+
+[[ -d cmake-build ]] || mkdir cmake-build
+cd cmake-build
+
+if [[ "$platform_name" == "win" ]]; then
+  cmake -DPython3_ROOT_DIR="$python_root_dir" -DCMAKE_INSTALL_PREFIX=$skbuild_dir/cmake-install $cmake_args -G"$cmake_generator" $toolset $openvds_path
+  cmake --build . --config Debug --target install
+  cmake --build . --config Release --target install
+else
+  cmake -DPython3_ROOT_DIR="$python_root_dir" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$skbuild_dir/cmake-install $cmake_args -G"$cmake_generator" $toolset $openvds_path
+  cmake --build . --config Release --target install
+fi
 
 cd "$openvds_path"
 
-$python_executable setup.py bdist_wheel --build-type Release -G"$cmake_generator" $cmake_args
-
-if [[ "$platform_name" == "win" ]]; then
-  cmake --build $skbuild_dir/cmake-build --config Debug --target install
-fi
+"$python_executable" setup.py --skip-cmake bdist_wheel 
 
 [[ -d binpackage ]] || mkdir binpackage
-cp -r $skbuild_dir/cmake-install binpackage/openvds-$openvds_version
-cp dist/* binpackage/openvds-$openvds_version/python/
+cp -r $skbuild_dir/cmake-install binpackage/$name-$openvds_version
+cp dist/* binpackage/$name-$openvds_version/
 cd binpackage
-zip -r openvds-$openvds_version-$platform_name.zip openvds-$openvds_version
-rm -rf openvds-$openvds_version
+if [[ "$platform_name" == "win" ]]; then
+  zip -r $name-$openvds_version-$distribution.zip $name-$openvds_version
+else
+  tar -zcvf $name-$openvds_version-$distribution.tar.gz $name-$openvds_version
+fi
+rm -rf $name-$openvds_version

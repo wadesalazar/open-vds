@@ -43,16 +43,6 @@ if(WIN32)
   target_link_options(core PRIVATE "/LIBPATH:${Python3_LIBRARY_DIRS}")
 endif()
 
-set_target_properties(core
-  PROPERTIES
-  VERSION ${CMAKE_PROJECT_VERSION}
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/..
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/..
-  VS_DEBUGGER_COMMAND "${Python3_EXECUTABLE}"
-  VS_DEBUGGER_ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/..;$ENV{PYTHONPATH}"
-  )
-
-
 SET(pythonsources
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     ${CMAKE_CURRENT_SOURCE_DIR}/api.py
@@ -74,16 +64,30 @@ if (OpenMP_CXX_FOUND)
     target_link_libraries(core PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-set_target_properties(core PROPERTIES INSTALL_RPATH "$ORIGIN/../../lib${LIBSUFFIX}")
+set_target_properties(core PROPERTIES INSTALL_RPATH "$ORIGIN")
 
-set(INSTALL_DIR "python$<$<NOT:$<CONFIG:Release>>:/$<CONFIG>>/openvds")
-install(TARGETS core LIBRARY DESTINATION ${INSTALL_DIR})
-install(FILES ${pythonsources} DESTINATION ${INSTALL_DIR})
+install(TARGETS core LIBRARY CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION python/openvds)
+install(TARGETS core LIBRARY CONFIGURATIONS Debug DESTINATION python/Debug/openvds)
+install(FILES ${pythonsources} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION python/openvds)
+install(FILES ${pythonsources} CONFIGURATIONS Debug DESTINATION python/Debug/openvds)
 
 if (WIN32)
-  get_property(runtime_3rdparty_release GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_RELEASE)
-  get_property(runtime_3rdparty_debug   GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_DEBUG)
-  install(FILES ${runtime_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION ${INSTALL_DIR})
-  install(FILES ${runtime_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${INSTALL_DIR})
-  install(FILES $<TARGET_FILE:openvds> $<TARGET_FILE:segyutils> $<TARGET_FILE:sdapi> DESTINATION ${INSTALL_DIR})
+  set(INSTALL_TYPE RUNTIME)
+else()
+  set(INSTALL_TYPE LIBRARY)
 endif()
+
+get_property(runtime_3rdparty_release GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_RELEASE)
+get_property(runtime_3rdparty_debug   GLOBAL PROPERTY OPENVDS_RUNTIME_LIBS_DEBUG)
+install(FILES ${runtime_3rdparty_release} CONFIGURATIONS Release RelWithDebInfo MinSizeRel DESTINATION python/openvds)
+install(FILES ${runtime_3rdparty_debug} CONFIGURATIONS Debug DESTINATION python/Debug/openvds)
+install(TARGETS openvds sdapi CONFIGURATIONS Release RelWithDebInfo MinSizeRel
+  RUNTIME DESTINATION python/openvds
+  LIBRARY DESTINATION python/openvds
+  PUBLIC_HEADER DESTINATION include)
+install(TARGETS openvds sdapi CONFIGURATIONS Debug
+  RUNTIME DESTINATION python/Debug/openvds
+  LIBRARY DESTINATION python/Debug/openvds
+  PUBLIC_HEADER DESTINATION include)
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION python/openvds)
+include (InstallRequiredSystemLibraries)

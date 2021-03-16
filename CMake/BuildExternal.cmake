@@ -77,6 +77,7 @@ function(BuildExternal name version depends source_dir install_libs_release runt
     USES_TERMINAL_BUILD ON
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
+    CMAKE_GENERATOR_TOOLSET ${CMAKE_GENERATOR_TOOLSET}
     CMAKE_ARGS ${cmake_arg_complete}
     BUILD_BYPRODUCTS ${BUILDBYPRODUCTS}
     DEPENDS ${depends})

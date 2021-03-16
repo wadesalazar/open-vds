@@ -156,7 +156,7 @@ include(CMake/Build3rdParty.cmake)
 build3rdparty()
 
 
-#this is disabled in Java and Python since they match dl open with a string
+#this is disabled in Java and Python since they match dlopen with a string
 set(CMAKE_DEBUG_POSTFIX d)
 
 add_subdirectory(src)
@@ -188,6 +188,9 @@ configure_file(CMake/InstalledPaths.cmake.in ${CMAKE_BINARY_DIR}/CMake/Installed
 install(FILES CMake/CopyDllForTarget.cmake CMake/SetWarnings.cmake ${CMAKE_BINARY_DIR}/CMake/InstalledPaths.cmake
   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openvds/examples/modules)
 install(DIRECTORY examples DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openvds)
+
+configure_file(docker/build_scripts/README.txt.in ${CMAKE_BINARY_DIR}/README.txt)
+install(FILES ${CMAKE_BINARY_DIR}/README.txt DESTINATION ${CMAKE_INSTALL_PREFIX}/)
 
 if (NOT DEFINED CPACK_GENERATOR)
   if (UNIX)

@@ -1,0 +1,38 @@
+This is a binary distribution of ${CMAKE_PROJECT_NAME}.
+
+Python:
+Install the python wheel like so:
+python3 -m pip install openvds-[version_dependent].whl
+
+Now its possible to start python3 and do
+>>> import openvds
+Please look in share/openvds/examples/SliceServer for an example of how to use the Python API.
+
+Linux:
+The shared objects are installed into the lib folder, and the tools
+into the bin folder. To quickly test out ${CMAKE_PROJECT_NAME} add the lib
+folder to the LD_LIBRARY_PATH environment variable and test the commands. For example if current working directory is in the bin folder:
+
+$ LD_LIBRARY_PATH=../lib ./SEGYImport
+
+to execute the SEGYImport command.
+
+
+To build the examples create a build folder inside share/openvds/examples and run cmake. For example:
+
+$ mkdir share/openvds/examples/build
+$ cd share/openvds/examples/build
+$ cmake -DCMAKE_BUILD_TYPE=Debug ..
+$ cmake --build .
+
+Then you can run the getting started example by doing:
+$ ./GettingStarted/getting-started
+
+Windows:
+The dll files are installed in the bin folder together with the tools.
+
+To compile the examples use the "Open Folder" functionality in Visual Studio
+and open the share/openvds/examples folder. Its also possible to generate a
+Visual Studio solution with cmake using the examples folder as the top level
+cmake folder.
+
