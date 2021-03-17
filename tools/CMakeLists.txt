@@ -9,6 +9,8 @@ function(setCompilerFlagsForTools target)
     RUNTIME
     DESTINATION ${CMAKE_INSTALL_BINDIR}${LIB_TOOLSET_DIR}
     )
+
+  set_target_properties(${target} PROPERTIES INSTALL_RPATH "$ORIGIN/../lib${LIBSUFFIX}")
 endfunction()
 
 add_subdirectory(SEGYImport)

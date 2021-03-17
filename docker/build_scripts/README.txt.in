@@ -1,24 +1,40 @@
 This is a binary distribution of ${CMAKE_PROJECT_NAME}.
 
+Documentation is available at:
+http://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/
+
+On Ubuntu 20.04 the following packages are required as runtime dependencies:
+python3-pip libcurl4 libuv1 libboost-log1.71.0 libxml2 
+
+On RedHat 7 the following packages are required as runtime depencencies:
+epel-release
+boost169-log boost169-random boost169-locale libuv libgomp python36
+
 Python:
+================================================================================
 Install the python wheel like so:
 python3 -m pip install openvds-[version_dependent].whl
 
 Now its possible to start python3 and do
 >>> import openvds
-Please look in share/openvds/examples/SliceServer for an example of how to use the Python API.
+>>> openvds.isCompressionMethodSupported(openvds.CompressionMethod.Wavelet)
+
+Please look in share/openvds/examples/SliceServer for an example of how to use
+the Python API.
 
 Linux:
-The shared objects are installed into the lib folder, and the tools
-into the bin folder. To quickly test out ${CMAKE_PROJECT_NAME} add the lib
-folder to the LD_LIBRARY_PATH environment variable and test the commands. For example if current working directory is in the bin folder:
+================================================================================
+The shared objects are installed into the lib folder, and the tools into the
+bin folder. To quickly test out ${CMAKE_PROJECT_NAME} execute the following
+command:
 
-$ LD_LIBRARY_PATH=../lib ./SEGYImport
+$ ./bin/SEGYImport
 
-to execute the SEGYImport command.
+Wavlet should then be listed in the list of available compression methods under
+the --compression-method argument documentation.
 
-
-To build the examples create a build folder inside share/openvds/examples and run cmake. For example:
+To build the examples create a build folder inside share/openvds/examples and
+run cmake. For example:
 
 $ mkdir share/openvds/examples/build
 $ cd share/openvds/examples/build
@@ -29,6 +45,7 @@ Then you can run the getting started example by doing:
 $ ./GettingStarted/getting-started
 
 Windows:
+================================================================================
 The dll files are installed in the bin folder together with the tools.
 
 To compile the examples use the "Open Folder" functionality in Visual Studio
