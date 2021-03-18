@@ -3,34 +3,44 @@ This is a binary distribution of ${CMAKE_PROJECT_NAME}.
 Documentation is available at:
 http://osdu.pages.community.opengroup.org/platform/domain-data-mgmt-services/seismic/open-vds/
 
-On Ubuntu 20.04 the following packages are required as runtime dependencies:
-python3-pip libcurl4 libuv1 libboost-log1.71.0 libxml2 
-
-On RedHat 7 the following packages are required as runtime depencencies:
-epel-release
-boost169-log boost169-random boost169-locale libuv libgomp python36
+Questions, Issues and Bugs can be reported to the OpenVDS issue system:
+https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/seismic/open-vds/-/issues
 
 Python:
 ================================================================================
 Install the python wheel like so:
 python3 -m pip install openvds-[version_dependent].whl
 
-Now its possible to start python3 and do
+Now its possible to start python3 and do:
 >>> import openvds
 >>> openvds.isCompressionMethodSupported(openvds.CompressionMethod.Wavelet)
+
+The last line is suppose to return True.
 
 Please look in share/openvds/examples/SliceServer for an example of how to use
 the Python API.
 
 Linux:
 ================================================================================
+Linux runtime dependencies:
+
+On Ubuntu 20.04 the following packages are required as runtime dependencies:
+  python3-pip libcurl4 libuv1 libboost-log1.71.0 libxml2
+
+On RedHat 7 the following packages are required as runtime dependencies:
+epel-release is needed for boost and python36:
+  epel-release
+
+Once epel-release is installed the following packages are needed:
+  boost169-log boost169-random boost169-locale libuv libgomp python36
+
 The shared objects are installed into the lib folder, and the tools into the
 bin folder. To quickly test out ${CMAKE_PROJECT_NAME} execute the following
 command:
 
 $ ./bin/SEGYImport
 
-Wavlet should then be listed in the list of available compression methods under
+Wavelet should then be listed in the list of available compression methods under
 the --compression-method argument documentation.
 
 To build the examples create a build folder inside share/openvds/examples and
