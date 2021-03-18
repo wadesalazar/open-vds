@@ -206,6 +206,7 @@ int main(int argc, char **argv)
   bool metadataAll = false;
   int  textDecodeWidth = std::numeric_limits<int>::max();
   bool help = false;
+  bool version = false;
 
 //connection options
   options.add_option("", "", "urlpos", "Url with vendor specific protocol.", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
@@ -227,6 +228,7 @@ int main(int argc, char **argv)
   options.add_option("", "", "url", "Url with vendor specific protocol or VDS file. (Available as positional argument as well).", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
 
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
+  options.add_option("", "", "version", "Print version information.", cxxopts::value<bool>(version), "");
 
   options.parse_positional("urlpos");
 
@@ -249,6 +251,12 @@ int main(int argc, char **argv)
   if(help)
   {
     std::cout << options.help();
+    return EXIT_SUCCESS;
+  }
+
+  if (version)
+  {
+    fmt::print(stdout, "{} - {} {}\n", "VDSInfo", PROJECT_NAME, PROJECT_VERSION);
     return EXIT_SUCCESS;
   }
 
