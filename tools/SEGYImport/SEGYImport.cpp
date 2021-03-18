@@ -1549,14 +1549,16 @@ main(int argc, char* argv[])
   // set up the compression method
   OpenVDS::CompressionMethod compressionMethod = OpenVDS::CompressionMethod::None;
 
+  std::transform(compressionMethodString.begin(), compressionMethodString.end(), compressionMethodString.begin(), asciitolower);
+
   if(compressionMethodString.empty()) compressionMethod = OpenVDS::CompressionMethod::None;
-  else if(compressionMethodString == "None")                          compressionMethod = OpenVDS::CompressionMethod::None;
-  else if(compressionMethodString == "Wavelet")                       compressionMethod = OpenVDS::CompressionMethod::Wavelet;
-  else if(compressionMethodString == "RLE")                           compressionMethod = OpenVDS::CompressionMethod::RLE;
-  else if(compressionMethodString == "Zip")                           compressionMethod = OpenVDS::CompressionMethod::Zip;
-  else if(compressionMethodString == "WaveletNormalizeBlock")         compressionMethod = OpenVDS::CompressionMethod::WaveletNormalizeBlock;
-  else if(compressionMethodString == "WaveletLossless")               compressionMethod = OpenVDS::CompressionMethod::WaveletLossless;
-  else if(compressionMethodString == "WaveletNormalizeBlockLossless") compressionMethod = OpenVDS::CompressionMethod::WaveletNormalizeBlockLossless;
+  else if(compressionMethodString == "none")                          compressionMethod = OpenVDS::CompressionMethod::None;
+  else if(compressionMethodString == "wavelet")                       compressionMethod = OpenVDS::CompressionMethod::Wavelet;
+  else if(compressionMethodString == "rle")                           compressionMethod = OpenVDS::CompressionMethod::RLE;
+  else if(compressionMethodString == "zip")                           compressionMethod = OpenVDS::CompressionMethod::Zip;
+  else if(compressionMethodString == "waveletnormalizeblock")         compressionMethod = OpenVDS::CompressionMethod::WaveletNormalizeBlock;
+  else if(compressionMethodString == "waveletlossless")               compressionMethod = OpenVDS::CompressionMethod::WaveletLossless;
+  else if(compressionMethodString == "waveletnormalizeblocklossless") compressionMethod = OpenVDS::CompressionMethod::WaveletNormalizeBlockLossless;
   else
   {
     fmt::print(stderr, "Unknown compression method: {}", compressionMethod);
