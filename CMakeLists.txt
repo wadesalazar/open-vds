@@ -190,7 +190,7 @@ install(FILES CMake/CopyDllForTarget.cmake CMake/SetWarnings.cmake ${CMAKE_BINAR
 install(DIRECTORY examples DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openvds)
 
 configure_file(docker/build_scripts/README.txt.in ${CMAKE_BINARY_DIR}/README.txt)
-install(FILES ${CMAKE_SOURCE_DIR}/Attributions.md ${CMAKE_BINARY_DIR}/README.txt DESTINATION ${CMAKE_INSTALL_PREFIX}/)
+install(FILES ${CMAKE_SOURCE_DIR}/Attributions.md ${CMAKE_BINARY_DIR}/README.txt ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION ${CMAKE_INSTALL_PREFIX}/)
 
 if (NOT DEFINED CPACK_GENERATOR)
   if (UNIX)
