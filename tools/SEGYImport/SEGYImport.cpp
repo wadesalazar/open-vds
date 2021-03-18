@@ -1478,6 +1478,7 @@ main(int argc, char* argv[])
   bool prestack = false;
   bool traceOrderByOffset = true;
   bool help = false;
+  bool version = false;
 
   std::string supportedCompressionMethods = "None";
   if(OpenVDS::IsCompressionMethodSupported(OpenVDS::CompressionMethod::Wavelet)) supportedCompressionMethods += ", Wavelet";
@@ -1517,6 +1518,7 @@ main(int argc, char* argv[])
   // TODO add option for turning off traceOrderByOffset
 
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
+  options.add_option("", "", "version", "Print version information.", cxxopts::value<bool>(version), "");
 
   options.add_option("", "", "input", "", cxxopts::value<std::vector<std::string>>(fileNames), "");
   options.parse_positional("input");
@@ -1543,6 +1545,12 @@ main(int argc, char* argv[])
   if (help)
   {
     std::cout << options.help();
+    return EXIT_SUCCESS;
+  }
+
+  if (version)
+  {
+    fmt::print(stdout, "{} - {} {}\n", "SEGYImport", PROJECT_NAME, PROJECT_VERSION);
     return EXIT_SUCCESS;
   }
 

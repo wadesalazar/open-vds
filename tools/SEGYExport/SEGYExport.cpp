@@ -44,6 +44,7 @@ main(int argc, char *argv[])
   std::string persistentID;
   std::string fileName;
   bool help = false;
+  bool version = false;
 
   options.add_option("", "", "url", "Url with vendor specific protocol or VDS file name.", cxxopts::value<std::string>(url), "<string>");
   options.add_option("", "", "connection", "Vendor specific connection string.", cxxopts::value<std::string>(connection), "<string>");
@@ -51,6 +52,7 @@ main(int argc, char *argv[])
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
+  options.add_option("", "", "version", "Print version information.", cxxopts::value<bool>(version), "");
 
   options.add_option("", "", "output", "", cxxopts::value<std::string>(fileName), "");
 
@@ -75,6 +77,12 @@ main(int argc, char *argv[])
   if (help)
   {
     std::cout << options.help();
+    return EXIT_SUCCESS;
+  }
+
+  if (version)
+  {
+    fmt::print(stdout, "{} - {} {}\n", "SEGYExport", PROJECT_NAME, PROJECT_VERSION);
     return EXIT_SUCCESS;
   }
 
