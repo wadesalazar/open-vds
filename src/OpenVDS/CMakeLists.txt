@@ -226,7 +226,7 @@ else()
     find_package(OpenSSL REQUIRED)
     target_link_libraries(openvds_objects PRIVATE OpenSSL::SSL OpenSSL::Crypto)
   endif()
-  addGoogleCloudToTarget(openvds_objects)
+  target_link_libraries(openvds_objects PRIVATE google_cloud_ovds)
 endif()
 
 if (DISABLE_DMS_IOMANAGER)
@@ -306,7 +306,7 @@ target_include_directories(openvds
         $<INSTALL_INTERFACE:include>
 )
 
-install(TARGETS openvds openvds_objects
+install(TARGETS openvds
   EXPORT openvds-export
   ARCHIVE
     DESTINATION ${CMAKE_INSTALL_LIBDIR}${LIB_TOOLSET_DIR}
@@ -335,7 +335,6 @@ install(FILES ${runtime_3rdparty_debug} CONFIGURATIONS Debug DESTINATION ${RUNTI
 export(
     TARGETS
         openvds
-        openvds_objects
     NAMESPACE
         openvds::
     FILE
