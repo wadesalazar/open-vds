@@ -229,13 +229,43 @@ PyGlobal::initModule(py::module& m)
   py::class_<StringWrapper> 
     StringWrapper_(m,"StringWrapper", OPENVDS_DOCSTRING(StringWrapper));
 
-  StringWrapper_.def(py::init<const std::string &           >(), py::arg("toWrap").none(false), OPENVDS_DOCSTRING(StringWrapper_StringWrapper));
+  StringWrapper_.def(py::init<                              >(), OPENVDS_DOCSTRING(StringWrapper_StringWrapper));
+  StringWrapper_.def(py::init<const std::string &           >(), py::arg("toWrap").none(false), OPENVDS_DOCSTRING(StringWrapper_StringWrapper_2));
   StringWrapper_.def_readwrite("data"                        , &StringWrapper::data           , OPENVDS_DOCSTRING(StringWrapper_data));
   StringWrapper_.def_readwrite("size"                        , &StringWrapper::size           , OPENVDS_DOCSTRING(StringWrapper_size));
 
-  m.def("isCompressionMethodSupported", static_cast<bool(*)(native::CompressionMethod)>(&IsCompressionMethodSupported), py::arg("compressionMethod").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IsCompressionMethodSupported));
+  m.def("createOpenOptions"           , static_cast<native::OpenOptions *(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&CreateOpenOptions), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(CreateOpenOptions));
+  m.def("createOpenOptions"           , [](OpenVDS::StringWrapper url, OpenVDS::StringWrapper connectionString) { native::Error err; auto ret = CreateOpenOptions(url, connectionString, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("url").none(false), py::arg("connectionString").none(false));
+  m.def("isSupportedProtocol"         , static_cast<bool(*)(native::StringWrapper)>(&IsSupportedProtocol), py::arg("url").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IsSupportedProtocol));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&Open), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open));
+  m.def("open"                        , [](OpenVDS::StringWrapper url, OpenVDS::StringWrapper connectionString) { native::Error err; auto ret = Open(url, connectionString, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("url").none(false), py::arg("connectionString").none(false));
+  m.def("openWithAdaptiveCompressionTolerance", static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, float, native::Error &)>(&OpenWithAdaptiveCompressionTolerance), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("waveletAdaptiveTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
+  m.def("openWithAdaptiveCompressionTolerance", [](OpenVDS::StringWrapper url, OpenVDS::StringWrapper connectionString, float waveletAdaptiveTolerance) { native::Error err; auto ret = OpenWithAdaptiveCompressionTolerance(url, connectionString, waveletAdaptiveTolerance, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("waveletAdaptiveTolerance").none(false));
+  m.def("openWithAdaptiveCompressionRatio", static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, float, native::Error &)>(&OpenWithAdaptiveCompressionRatio), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("waveletAdaptiveRatio").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
+  m.def("openWithAdaptiveCompressionRatio", [](OpenVDS::StringWrapper url, OpenVDS::StringWrapper connectionString, float waveletAdaptiveRatio) { native::Error err; auto ret = OpenWithAdaptiveCompressionRatio(url, connectionString, waveletAdaptiveRatio, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("waveletAdaptiveRatio").none(false));
+  m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::Error &)>(&Open), py::arg("url").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open_2));
+  m.def("open"                        , [](OpenVDS::StringWrapper url) { native::Error err; auto ret = Open(url, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("url").none(false));
   m.def("open"                        , static_cast<native::VDSHandle(*)(const native::OpenOptions &, native::Error &)>(&Open), py::arg("options").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open_3));
+  m.def("open"                        , [](const OpenVDS::OpenOptions & options) { native::Error err; auto ret = Open(options, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("options").none(false));
   m.def("open"                        , static_cast<native::VDSHandle(*)(native::IOManager *, native::Error &)>(&Open), py::arg("ioManager").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open_4));
+  m.def("open"                        , [](OpenVDS::IOManager * ioManager) { native::Error err; auto ret = Open(ioManager, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("ioManager").none(false));
+  m.def("isCompressionMethodSupported", static_cast<bool(*)(native::CompressionMethod)>(&IsCompressionMethodSupported), py::arg("compressionMethod").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IsCompressionMethodSupported));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::CompressionMethod, float, native::Error &)>(&Create), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create));
+  m.def("create"                      , [](OpenVDS::StringWrapper url, OpenVDS::StringWrapper connectionString, const OpenVDS::VolumeDataLayoutDescriptor & layoutDescriptor, VectorWrapper<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors, const OpenVDS::MetadataReadAccess & metadata, OpenVDS::CompressionMethod compressionMethod, float compressionTolerance) { native::Error err; auto ret = Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, compressionMethod, compressionTolerance, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_2));
+  m.def("create"                      , [](OpenVDS::StringWrapper url, OpenVDS::StringWrapper connectionString, const OpenVDS::VolumeDataLayoutDescriptor & layoutDescriptor, VectorWrapper<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors, const OpenVDS::MetadataReadAccess & metadata) { native::Error err; auto ret = Create(url, connectionString, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::CompressionMethod, float, native::Error &)>(&Create), py::arg("url").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_3));
+  m.def("create"                      , [](OpenVDS::StringWrapper url, const OpenVDS::VolumeDataLayoutDescriptor & layoutDescriptor, VectorWrapper<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors, const OpenVDS::MetadataReadAccess & metadata, OpenVDS::CompressionMethod compressionMethod, float compressionTolerance) { native::Error err; auto ret = Create(url, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, compressionMethod, compressionTolerance, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("url").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("url").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_4));
+  m.def("create"                      , [](OpenVDS::StringWrapper url, const OpenVDS::VolumeDataLayoutDescriptor & layoutDescriptor, VectorWrapper<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors, const OpenVDS::MetadataReadAccess & metadata) { native::Error err; auto ret = Create(url, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("url").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(const native::OpenOptions &, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::CompressionMethod, float, native::Error &)>(&Create), py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_5));
+  m.def("create"                      , [](const OpenVDS::OpenOptions & options, const OpenVDS::VolumeDataLayoutDescriptor & layoutDescriptor, VectorWrapper<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors, const OpenVDS::MetadataReadAccess & metadata, OpenVDS::CompressionMethod compressionMethod, float compressionTolerance) { native::Error err; auto ret = Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, compressionMethod, compressionTolerance, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(const native::OpenOptions &, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_6));
+  m.def("create"                      , [](const OpenVDS::OpenOptions & options, const OpenVDS::VolumeDataLayoutDescriptor & layoutDescriptor, VectorWrapper<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors, const OpenVDS::MetadataReadAccess & metadata) { native::Error err; auto ret = Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::IOManager *, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::CompressionMethod, float, native::Error &)>(&Create), py::arg("ioManager").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_7));
+  m.def("create"                      , [](OpenVDS::IOManager * ioManager, const OpenVDS::VolumeDataLayoutDescriptor & layoutDescriptor, VectorWrapper<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors, const OpenVDS::MetadataReadAccess & metadata, OpenVDS::CompressionMethod compressionMethod, float compressionTolerance) { native::Error err; auto ret = Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, compressionMethod, compressionTolerance, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("ioManager").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false));
+  m.def("create"                      , static_cast<native::VDSHandle(*)(native::IOManager *, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("ioManager").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_8));
+  m.def("create"                      , [](OpenVDS::IOManager * ioManager, const OpenVDS::VolumeDataLayoutDescriptor & layoutDescriptor, VectorWrapper<OpenVDS::VolumeDataAxisDescriptor> axisDescriptors, VectorWrapper<OpenVDS::VolumeDataChannelDescriptor> channelDescriptors, const OpenVDS::MetadataReadAccess & metadata) { native::Error err; auto ret = Create(ioManager, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, err); if (err.code) throw std::runtime_error(err.string); return ret; }, py::call_guard<py::gil_scoped_release>(), py::arg("ioManager").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false));
   m.def("getLayout"                   , static_cast<native::VolumeDataLayout *(*)(native::VDSHandle)>(&GetLayout), py::arg("handle").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GetLayout));
   m.def("getAccessManagerInterface"   , static_cast<native::IVolumeDataAccessManager *(*)(native::VDSHandle)>(&GetAccessManagerInterface), py::arg("handle").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GetAccessManagerInterface));
   m.def("getAccessManager"            , static_cast<native::VolumeDataAccessManager(*)(native::VDSHandle)>(&GetAccessManager), py::arg("handle").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(GetAccessManager));
@@ -264,216 +294,6 @@ PyGlobal::initModule(py::module& m)
       return std::string("OpenOptions(connectionType='" + conn + "')");
     });
 
-  // IMPLEMENTED : m.def("createOpenOptions"           , static_cast<native::OpenOptions *(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&CreateOpenOptions), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(CreateOpenOptions));
-  // IMPLEMENTED : m.def("isSupportedProtocol"         , static_cast<bool(*)(native::StringWrapper)>(&IsSupportedProtocol), py::arg("url").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IsSupportedProtocol));
-  // IMPLEMENTED : m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, native::Error &)>(&Open), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open));
-  // IMPLEMENTED : m.def("openWithAdaptiveCompressionTolerance", static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, float, native::Error &)>(&OpenWithAdaptiveCompressionTolerance), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("waveletAdaptiveTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
-  // IMPLEMENTED : m.def("openWithAdaptiveCompressionRatio", static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, float, native::Error &)>(&OpenWithAdaptiveCompressionRatio), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("waveletAdaptiveRatio").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
-  // IMPLEMENTED : m.def("open"                        , static_cast<native::VDSHandle(*)(native::StringWrapper, native::Error &)>(&Open), py::arg("url").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Open_2));
-  // IMPLEMENTED : m.def("create"                      , static_cast<native::VDSHandle(*)(const native::OpenOptions &, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::CompressionMethod, float, native::Error &)>(&Create), py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_5));
-  // IMPLEMENTED : m.def("create"                      , static_cast<native::VDSHandle(*)(const native::OpenOptions &, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_6));
-  // IMPLEMENTED : m.def("create"                      , static_cast<native::VDSHandle(*)(native::IOManager *, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::CompressionMethod, float, native::Error &)>(&Create), py::arg("ioManager").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_7));
-  // IMPLEMENTED : m.def("create"                      , static_cast<native::VDSHandle(*)(native::IOManager *, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("ioManager").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_8));
-  // IMPLEMENTED : m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::CompressionMethod, float, native::Error &)>(&Create), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create));
-  // IMPLEMENTED : m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_2));
-  // IMPLEMENTED : m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::CompressionMethod, float, native::Error &)>(&Create), py::arg("url").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_3));
-  // IMPLEMENTED : m.def("create"                      , static_cast<native::VDSHandle(*)(native::StringWrapper, const native::VolumeDataLayoutDescriptor &, VectorWrapper<native::VolumeDataAxisDescriptor>, VectorWrapper<native::VolumeDataChannelDescriptor>, const native::MetadataReadAccess &, native::Error &)>(&Create), py::arg("url").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_4));
-
-  m.def("createOpenOptions", [](const std::string& url, const std::string& connectionString, native::Error&error)
-  {
-    return native::CreateOpenOptions(url, connectionString, error);
-  }, py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(CreateOpenOptions));
-  m.def("isSupportedProtocol", [](const std::string& url)
-  {
-    return native::IsSupportedProtocol(url);
-  }, py::arg("url").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IsSupportedProtocol));
-
-  // Overloads for "open" and "create" that raise an exception when an error occurs
-  m.def("open"                        , [](const std::string &url, const std::string &connection, Error &error)
-    {
-      return native::Open(url, connection, error);
-    }, py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Open));
-  m.def("open"                        , [](const std::string &url, const std::string &connection)
-    {
-      native::Error err;
-      auto handle = native::Open(url, connection, err);
-      if (err.code)
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-    }, py::arg("url").none(false), py::arg("connectionString").none(false), OPENVDS_DOCSTRING(Open));
-  m.def("open"                        , [](const std::string &url, Error &error)
-    {
-      return native::Open(url, error);
-    }, py::arg("url").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Open_2));
-  m.def("open"                        , [](const std::string &url)
-    {
-      native::Error err;
-      auto handle = native::Open(url, err);
-      if (err.code)
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-    }, py::arg("url").none(false), OPENVDS_DOCSTRING(Open_2));
-  m.def("open"                        , [](const native::OpenOptions &opt)
-    {
-      native::Error err;
-      auto handle = native::Open(opt, err);
-      if (err.code) 
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-    }, py::arg("options").none(false), OPENVDS_DOCSTRING(Open_3));
-  m.def("open"                        , [](native::IOManager *mgr)
-    {
-      native::Error err;
-      auto handle = native::Open(mgr, err);
-      if (err.code) 
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-    }, py::arg("ioManager").none(false), OPENVDS_DOCSTRING(Open_4));
-  m.def("openWithAdaptiveCompressionTolerance", [](const std::string &url, const std::string &connection, float compressionTolerance, native::Error &error)
-    {
-      return native::OpenWithAdaptiveCompressionTolerance(url, connection, compressionTolerance, error);
-    }, py::arg("url").none(false), py::arg("connection").none(false), py::arg("waveletAdaptiveTolerance").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
-  m.def("openWithAdaptiveCompressionTolerance", [](const std::string &url, float compressionTolerance, native::Error &error)
-    {
-      return native::OpenWithAdaptiveCompressionTolerance(url, "", compressionTolerance, error);
-    }, py::arg("url").none(false), py::arg("waveletAdaptiveTolerance").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
-  m.def("openWithAdaptiveCompressionTolerance", [](const std::string &url, const std::string &connection, float compressionTolerance)
-    {
-      native::Error err;
-      auto handle = native::OpenWithAdaptiveCompressionTolerance(url, "", compressionTolerance, err);
-      if (err.code) 
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-    }, py::arg("url").none(false), py::arg("connection").none(false), py::arg("waveletAdaptiveTolerance").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
-  m.def("openWithAdaptiveCompressionTolerance", [](const std::string &url, float compressionTolerance)
-    {
-      native::Error err;
-      auto handle = native::OpenWithAdaptiveCompressionTolerance(url, "", compressionTolerance, err);
-      if (err.code) 
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-    }, py::arg("url").none(false), py::arg("waveletAdaptiveTolerance").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionTolerance));
-  m.def("openWithAdaptiveCompressionRatio", [](const std::string &url, const std::string &connection, float compressionRatio, native::Error &error)
-      {
-        return native::OpenWithAdaptiveCompressionRatio(url, connection, compressionRatio, error);
-      }, py::arg("url").none(false), py::arg("connection").none(false), py::arg("waveletAdaptiveRatio").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
-  m.def("openWithAdaptiveCompressionRatio", [](const std::string &url, float compressionRatio, native::Error &error)
-      {
-        return native::OpenWithAdaptiveCompressionRatio(url, "", compressionRatio, error);
-      }, py::arg("url").none(false), py::arg("waveletAdaptiveRatio").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
-  m.def("openWithAdaptiveCompressionRatio", [](const std::string &url, const std::string &connection, float compressionRatio)
-      {
-      native::Error err;
-      auto handle = native::OpenWithAdaptiveCompressionRatio(url, connection, compressionRatio, err);
-      if (err.code)
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-      }, py::arg("url").none(false), py::arg("connection").none(false), py::arg("waveletAdaptiveRatio").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
-  m.def("openWithAdaptiveCompressionRatio", [](const std::string &url, float compressionRatio)
-      {
-      native::Error err;
-      auto handle = native::OpenWithAdaptiveCompressionRatio(url, "", compressionRatio, err);
-      if (err.code)
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-      }, py::arg("url").none(false), py::arg("waveletAdaptiveRatio").none(false), OPENVDS_DOCSTRING(OpenWithAdaptiveCompressionRatio));
-  m.def("create"                      , [](const native::OpenOptions &options, const native::VolumeDataLayoutDescriptor &layoutDescriptor, const std::vector<native::VolumeDataAxisDescriptor> &axisDescriptors, const std::vector<native::VolumeDataChannelDescriptor> &channelDescriptors, const native::MetadataReadAccess &metadata, native::CompressionMethod compressionMethod, float tolerance, native::Error &error)
-      {
-      return native::Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, compressionMethod, tolerance, error);
-
-      }, py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_5));
-  m.def("create"                      , [](const native::OpenOptions &options, const native::VolumeDataLayoutDescriptor &layoutDescriptor, const std::vector<native::VolumeDataAxisDescriptor> &axisDescriptors, const std::vector<native::VolumeDataChannelDescriptor> &channelDescriptors, const native::MetadataReadAccess &metadata, native::CompressionMethod compressionMethod, float tolerance)
-      {
-      native::Error err;
-      auto handle = native::Create(options, layoutDescriptor, axisDescriptors, channelDescriptors, metadata, compressionMethod, tolerance, err);
-      if (err.code)
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-      }, py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_5));
-  m.def("create"                      , [](const std::string &url, const std::string &connectionString, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata, native::Error &error)
-    {
-      return native::Create(url, connectionString, layout , axisdesc, channeldesc, metadata, error);
-    }, py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Create));
-  m.def("create"                      , [](const std::string &url, const std::string &connectionString, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
-    {
-      native::Error err;
-      auto handle = native::Create(url, connectionString, layout , axisdesc, channeldesc, metadata, err);
-      if (err.code) 
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-    }, py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), OPENVDS_DOCSTRING(Create));
-  m.def("create"                      , [](const std::string &url, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata, native::Error &error)
-    {
-      return native::Create(url, layout , axisdesc, channeldesc, metadata, error);
-    }, py::arg("url").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), OPENVDS_DOCSTRING(Create_2));
-  m.def("create"                      , [](const std::string &url, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
-    {
-      native::Error err;
-      auto handle = native::Create(url, layout , axisdesc, channeldesc, metadata, err);
-      if (err.code)
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-    }, py::arg("url").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), OPENVDS_DOCSTRING(Create_2));
-  m.def("create", [](const native::OpenOptions& opt, const native::VolumeDataLayoutDescriptor& layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess& metadata, native::Error& error)
-  {
-      return native::Create(opt, layout , axisdesc, channeldesc, metadata, error);
-  }, py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create_6));
-  m.def("create"                      , [](const native::OpenOptions &opt, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
-    {
-      native::Error err;
-      auto handle = native::Create(opt, layout , axisdesc, channeldesc, metadata, err);
-      if (err.code) 
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-    }, py::arg("options").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), OPENVDS_DOCSTRING(Create_3));
-  m.def("create"                      , [](native::IOManager *mgr, const native::VolumeDataLayoutDescriptor &layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channeldesc, const native::MetadataReadAccess &metadata)
-    {
-      native::Error err;
-      auto handle = native::Create(mgr, layout , axisdesc, channeldesc, metadata, err);
-      if (err.code) 
-      {
-        throw std::runtime_error(err.string);
-      }
-      return handle;
-    }, py::arg("ioManager").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), OPENVDS_DOCSTRING(Create_4));
-  m.def("create", [](const std::string& url, const std::string connectionString, const native::VolumeDataLayoutDescriptor& layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channel, const native::MetadataReadAccess& metadata, native::CompressionMethod compression, float tolerance, native::Error& error)
-  {
-    return native::Create(url, connectionString, layout, axisdesc, channel, metadata, compression, tolerance, error);
-  }, py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::arg("error").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create));
-  m.def("create", [](const std::string& url, const std::string connectionString, const native::VolumeDataLayoutDescriptor& layout, std::vector<native::VolumeDataAxisDescriptor> axisdesc, std::vector<native::VolumeDataChannelDescriptor> channel, const native::MetadataReadAccess& metadata, native::CompressionMethod compression, float tolerance)
-  {
-    native::Error error;
-    auto handle = native::Create(url, connectionString, layout, axisdesc, channel, metadata, compression, tolerance, error);
-    if (error.code)
-    {
-      throw std::runtime_error(error.string);
-    }
-    return handle;
-  }, py::arg("url").none(false), py::arg("connectionString").none(false), py::arg("layoutDescriptor").none(false), py::arg("axisDescriptors").none(false), py::arg("channelDescriptors").none(false), py::arg("metadata").none(false), py::arg("compressionMethod").none(false), py::arg("compressionTolerance").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(Create));
 
 // IMPLEMENTED : AWSOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &, const std::string &>(), py::arg("bucket").none(false), py::arg("key").none(false), py::arg("region").none(false), py::arg("endpointOverride").none(false), OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions_2));
   AWSOpenOptions_.def(py::init<const std::string &, const std::string &, const std::string &, const std::string &>(), py::arg("bucket").none(false), py::arg("key").none(false), py::arg("region").none(false) = "", py::arg("endpointOverride").none(false) = "", OPENVDS_DOCSTRING(AWSOpenOptions_AWSOpenOptions_2));

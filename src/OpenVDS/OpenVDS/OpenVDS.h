@@ -533,6 +533,10 @@ struct Error
 template<typename T>
 struct VectorWrapper
 {
+  VectorWrapper()
+    : data(nullptr)
+    , size(0)
+  {}
   VectorWrapper(const std::vector<T> &toWrap)
     : data(toWrap.data())
     , size(toWrap.size())
@@ -544,6 +548,11 @@ struct VectorWrapper
 
 struct StringWrapper
 {
+  StringWrapper()
+    : data(nullptr)
+    , size(0)
+  {}
+
   StringWrapper(const std::string& toWrap)
     : data(toWrap.c_str())
     , size(toWrap.size())
@@ -553,8 +562,7 @@ struct StringWrapper
   StringWrapper(const char(&toWrap)[SIZE])
     : data(toWrap)
     , size(SIZE - 1)
-  {
-  }
+  {}
 
   const char* data;
   size_t size;
