@@ -346,8 +346,7 @@ def get_args(node, all_):
     params = [(n.type.spelling, n.spelling, get_default_paramvalue(n)) for n in paramnodes]
     return params
 
-def get_argnames(node, all_):
-    params = get_args(node, all_)
+def get_argnames_params(params):
     argnames = ''
     if params:   
         for p in params:
@@ -355,6 +354,10 @@ def get_argnames(node, all_):
             typ.strip()
             argnames += ', ' + format_parameter_decl(typ, name, defaultValue)
     return argnames
+
+def get_argnames(node, all_):
+    params = get_args(node, all_)
+    return get_argnames_params(params)
 
 def generate_constructor(node, all_, output, indent, parent_prefix, context):
     overload_name = resolve_overload_name(node, all_)
@@ -510,6 +513,25 @@ relational_operators = {
     "operator_ne": ".def(py::self != py::self);",
 }
 
+def create_lambda_arguments(params, call_error_name):
+    decl_params = "("
+    call_params = "("
+    first = True
+    for (t, n, _) in params:
+        if not first:
+            decl_params += ", "
+            call_params += ", "
+        else:
+            first = False
+        decl_params += "{} {}".format(t, n)
+        call_params += n
+    if not first:
+        call_params += ", "
+    call_params += call_error_name
+    decl_params += ")"
+    call_params += ")"
+    return (decl_params, call_params)
+
 def generate_function(node, all_, output, indent, parent_prefix, context):
 #    if 'RequestSerializedVolumeDataChunk' in node.displayname:
 #        a = 1000
@@ -546,7 +568,9 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
        argnames
     )
     line = ''
+    generate_exception_lambda = True
     if not can_generate_function(restype, arglist):
+        generate_exception_lambda = False
         try:
             code = """.def({0:30}, {1}, py::call_guard<py::gil_scoped_release>(), {2});""".format(
                q(fnname),
@@ -561,6 +585,17 @@ def generate_function(node, all_, output, indent, parent_prefix, context):
         code = code.replace('.def(', '.def_static(')
     line = line + indent + parent_prefix + code
     output.append(line)
+    if generate_exception_lambda and len(params):
+        (is_error_param_type, is_error_param_name, _)  = params[len(params)-1]
+        if is_error_param_type == "OpenVDS::Error &":
+            lambda_params = params[:-1]
+            (decl_params, call_params) = create_lambda_arguments(lambda_params, "err")
+            argnames_lambda = get_argnames_params(lambda_params)
+            lamcode = """.def({:30}, []{} {{ {}::Error err; auto ret = {}{}; if (err.code) throw std::runtime_error(err.string); return ret; }}, py::call_guard<py::gil_scoped_release>(){});""".format(q(fnname), decl_params, "native",  getnativename(node, all_), call_params, argnames_lambda)
+            if node.is_static_method():
+                lamcode = lamcode.replace('.def(', '.def_static(')
+            lamline = indent + parent_prefix + lamcode
+            output.append(lamline)
     if len(argnames) == 0 and (fnname.startswith("get") or fnname.startswith("is")) and not fnname.isdigit() and not fnname == "getGlobalState" and not fnname == "getLODLevels":
         if fnname.startswith("get"):
             pname = fnname[3:]

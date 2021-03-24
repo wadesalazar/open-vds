@@ -83,6 +83,52 @@ struct type_caster<native::optional<T>> : optional_caster<native::optional<T>>
 {
 };
 
+template<>
+struct type_caster<native::StringWrapper>
+{
+  std::string str;
+  static handle cast(native::StringWrapper &&src, return_value_policy policy, handle parent) {
+    std::string tmp(src.data, src.size);
+    return type_caster<std::string>::cast(tmp, policy, parent);
+  }
+
+  bool load(handle src, bool convert) {
+    type_caster<std::string> caster;
+    bool casted = caster.load(src, convert);
+    if (!casted)
+      return false;
+    str = static_cast<std::string>(caster);
+    value.data = str.data();
+    value.size = str.size();
+    return true;
+  }
+  PYBIND11_TYPE_CASTER(native::StringWrapper, _("str"));
+};
+
+template<typename T>
+struct type_caster<native::VectorWrapper<T>>
+{
+  using value_conv = make_caster<T>;
+  std::vector<T> vector;
+
+  static handle cast(native::VectorWrapper<T> &&src, return_value_policy policy, handle parent) {
+    std::vector<T> tmp;
+    tmp.insert(tmp.end(), src.data, src.data + src.size);
+    return type_caster<std::vector<T>>::cast(tmp, policy, parent);
+  }
+
+  bool load(handle src, bool convert) {
+    type_caster<std::vector<T>> caster;
+    bool casted = caster.load(src, convert);
+    if (!casted)
+      return false;
+    vector = static_cast<std::vector<T>>(caster);
+    value.data = vector.data();
+    value.size = vector.size();
+    return true;
+  }
+  PYBIND11_TYPE_CASTER(native::VectorWrapper<T>, _("List[") + value_conv::name + _("]"));
+};
 }}
 
 // Helpers for methods that take buffer pointers
