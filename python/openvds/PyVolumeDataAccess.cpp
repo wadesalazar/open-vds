@@ -50,17 +50,17 @@ GetPythonFormatString(VolumeDataChannelDescriptor::Format format, VolumeDataChan
   default:
     throw std::runtime_error("Unknown format");
   case VolumeDataChannelDescriptor::Format_U8:
-    return "BBBB" + (4 - components);
+    return &"BBBB"[4 - components];
   case VolumeDataChannelDescriptor::Format_U16:
-    return "HHHH" + (4 - components);
+    return &"HHHH"[4 - components];
   case VolumeDataChannelDescriptor::Format_R32:
-    return "ffff" + (4 - components);
+    return &"ffff"[4 - components];
   case VolumeDataChannelDescriptor::Format_U32:
-    return "IIII" + (4 - components);
+    return &"IIII"[4 - components];
   case VolumeDataChannelDescriptor::Format_R64:
-    return "dddd" + (4 - components);
+    return &"dddd"[4 - components];
   case VolumeDataChannelDescriptor::Format_U64:
-    return "QQQQ" + (4 - components);
+    return &"QQQQ"[4 - components];
   }
 }
 
