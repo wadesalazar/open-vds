@@ -14,8 +14,8 @@ from PIL import Image
 VDSs = {}
 
 parser = argparse.ArgumentParser(description="Starts a service that creates png images of the slices of a VDS.")
-parser.add_argument("--url", help="The AWS bucket of the VDSs to start serving")
-parser.add_argument("--connection", help="The Azure Blob Storage connection string.");
+parser.add_argument("--url", help="The url of the VDSs to start serving")
+parser.add_argument("--connection", help="The connection string for the url.")
 parser.add_argument("--key", help="The key of the VDSs to start serving")
 parser.add_argument("--allow-remote", action='store_true', help="Allow remote connections to server.")
 
