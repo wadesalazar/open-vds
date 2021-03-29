@@ -12,7 +12,12 @@ backend to be used. Currently this can be:
   - s3
   - azure
   - gs
+  - sd
   - azureSAS
+  - file
+
+If the file protocol scheme is used the rest of the path will be decoded according to url encoding, however
+if OpenVDS fails to recognise the protocol of a url it will treat the url as a local file.
 
 For ``s3`` and ``gs`` the ``resource`` will be the bucket while for ``azure`` the ``resource``
 will be the container. ``azureSAS`` will treat ``resource/sub_path`` as the baseURL
@@ -54,6 +59,13 @@ https://docs.microsoft.com/en-us/azure/storage/common/storage-configure-connecti
   - SignedUrl (Possible values: True, Yes, On, False, No, Off. Default value: False, No, Off)
 The Token is the OAuth2 token.
 
+``sd`` will accept the following keys
+
+  - sdauthorityurl
+  - sdapikey
+  - sdtoken
+  - loglevel
+
 ``azureSAS`` will accept the following keys
 
   - Suffix
@@ -75,7 +87,12 @@ Azure::
 GS::
 
   url = "gs://my_bucket/somepath"
-  connection = "Token=ya29.c.Ko8B3wcAmfbKdqtd9OeEA4pod000u-KFdpFOiXx3S3wQK2WV-DL7oO3dAdCVTGyldJClv-4JIvUtdgFdzeYzzeNv1tG8aGXn_jjZLZkMAThV_0gYGnO2HBUwaqYeNMPlBa9RX4yEPRe4RZiAHk3Btkb29yfLyEJBkx321ntr00lhmAJksqli7igD1xBPlpeK3F0"
+  connection = "Token=some_token"
+
+SD::
+
+  url = "sd://tenent/subprojet/subfolder"
+  connection = "sdauthorityurl=https://some_osdu.instance.com/seistore-svc/api/v3;sdapikey=ABC;sdtoken=some_token"
 
 AzureSAS::
 

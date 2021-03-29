@@ -432,9 +432,7 @@ OpenOptions* CreateOpenOptions(StringWrapper url, StringWrapper connectionString
 
   if (!openOptions)
   {
-    error.code = -1;
-    error.string = fmt::format("Unknown url scheme for {}.", std::string(url.data, url.data + url.size));
-    return nullptr;
+    openOptions.reset(new VDSFileOpenOptions(std::string(url.data, url.size)));
   }
 
   return openOptions.release();
