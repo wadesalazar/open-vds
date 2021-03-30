@@ -12,12 +12,12 @@ openvds_version=""
 dir_path = os.path.dirname(os.path.realpath(__file__))
 with open(dir_path + "/CMakeLists.txt", "r") as file:
     for line in file:
-         if re.search("project.*VERSION", line):
+         if re.search("set\(OpenVDSVersion", line):
              openvds_version = re.sub("[^0-9|.]*", "", line)
              break
 
 if not openvds_version:
-    eprint("Fatal error: Failed to parse version from CMakeLists.txt")
+    print("Fatal error: Failed to parse version from CMakeLists.txt")
     exit(1)
 
 try:
