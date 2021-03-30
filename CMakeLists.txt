@@ -5,7 +5,9 @@ if(CCACHE_PROGRAM)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
 endif()
 
-project(OpenVDS VERSION 2.0.3)
+set(OpenVDSVersion 2.0.3)
+
+project(OpenVDS VERSION ${OpenVDSVersion})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
