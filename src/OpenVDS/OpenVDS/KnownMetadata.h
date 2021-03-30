@@ -84,7 +84,7 @@
    The Inline/Crossline system has flexibility for only two dimensions. In order to have more freedom, the 3DIJK metadata is defined.
    A DoubleVector3 is used to represent the origin (\ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_ORIGIN3D) and three step vectors 
    (\ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_I_STEPVECTOR, \ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_J_STEPVECTOR and 
-   \ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR) that corresponding to the dimensions named "I", "J" and "K" respectively.
+   \ref KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_K_STEPVECTOR) corresponding to the dimensions named "I", "J" and "K" respectively.
    
    <li>The default system:
    
