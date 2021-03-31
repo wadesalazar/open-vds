@@ -22,3 +22,5 @@ layout = openvds.getLayout(vds)
 origin = layout.getMetadata(openvds.KnownMetadata.surveyCoordinateSystemOrigin())
 if origin != (1234.0, 4321.0):
     raise "Origin not set correctly"
+
+openvds.close(vds)
