@@ -297,8 +297,6 @@ VolumeDataPage* VolumeDataPageAccessorImpl::PrepareReadPage(int64_t chunk, Error
   if (!m_accessManager->GetVolumeDataStore()->PrepareReadChunk(volumeDataChunk, m_layer->GetEffectiveWaveletAdaptiveLoadLevel(), error))
   {
     page->SetError(error);
-    page->UnPin();
-    return nullptr;
   }
 
   return page;
@@ -311,7 +309,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
   VolumeDataPageImpl *pageImpl = static_cast<VolumeDataPageImpl *>(page);
 
   if (!pageImpl->RequestPrepared())
-    return pageImpl->GetError().code == 0;
+    return pageImpl->GetError().errorCode == 0;
 
   if (pageImpl->EnterSettingData())
   {
@@ -374,7 +372,7 @@ bool VolumeDataPageAccessorImpl::ReadPreparedPaged(VolumeDataPage* page)
     m_pageReadCondition.wait(pageListMutexLock, [pageImpl]{return !pageImpl->SettingData();});
   }
 
-  if (pageImpl->GetError().code)
+  if (pageImpl->GetError().errorCode)
     return false;
 
   if(!m_layer)
@@ -421,19 +419,23 @@ VolumeDataPage* VolumeDataPageAccessorImpl::ReadPage(int64_t chunk)
 {
   Error error;
   VolumeDataPage *page = PrepareReadPage(chunk, error);
-  if (!page)
-    return nullptr;
-  if (error.code)
+  if (page)
   {
-    page->Release();
-    return nullptr;
-  }
-  if (!ReadPreparedPaged(page))
-  {
-    page->Release();
-    return nullptr;
+    (void)ReadPreparedPaged(page);
   }
   return page;
+}
+
+VolumeDataPage* VolumeDataPageAccessorImpl::ReadPageAtPosition(const int (&position)[Dimensionality_Max])
+{
+  for (int i = 0; i < Dimensionality_Max; i++)
+  {
+    if(position[i] < 0 || position[i] >= m_layer->GetDimensionNumSamples(i))
+    {
+      return nullptr;
+    }
+  }
+  return ReadPage(GetChunkIndex(position));
 }
 
 void VolumeDataPageAccessorImpl::LimitPageListSize(int maxPages, std::unique_lock<std::mutex>& pageListMutexLock)

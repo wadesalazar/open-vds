@@ -92,6 +92,7 @@ public:
 
   VolumeDataPage *CreatePage(int64_t chunk) override;
   VolumeDataPage *ReadPage(int64_t chunk) override;
+  VolumeDataPage *ReadPageAtPosition(const int (&position)[Dimensionality_Max]) override;
  
   int64_t RequestWritePage(int64_t chunk, const DataBlock &dataBlock, const std::vector<uint8_t> &data);
 

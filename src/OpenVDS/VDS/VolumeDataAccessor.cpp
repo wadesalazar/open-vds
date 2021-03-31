@@ -130,6 +130,11 @@ void VolumeDataAccessorBase::ReadPageAtPosition(IntVector4 index, bool enableWri
     UpdateWrittenRegion();
     m_currentPage->Release();
     m_currentPage = nullptr;
+    m_buffer = nullptr;
+    m_min = {0, 0, 0, 0};
+    m_max = {0, 0, 0, 0};
+    m_pitch = {0, 0, 0, 0};
+    m_writable = enableWriting;
   }
 
   assert(m_writtenRegion.Max[0] == 0);
@@ -151,16 +156,29 @@ void VolumeDataAccessorBase::ReadPageAtPosition(IntVector4 index, bool enableWri
     }
     else
     {
-      m_buffer = nullptr;
-      m_min = {0, 0, 0, 0};
-      m_max = {0, 0, 0, 0};
-      m_pitch = {0, 0, 0, 0};
-      m_writable = enableWriting;
       return;
     }
   }
+  else
+  {
+    VolumeDataPage::Error
+      error = page->GetError();
 
-  m_currentPage = page;
+    if(error.errorCode == 0)
+    {
+      m_currentPage = page;
+    }
+    else
+    {
+      page->Release();
+      m_validRegion = AccessorRegion({0, 0, 0, 0}, {0, 0, 0, 0});
+
+      IVolumeDataAccessor::ReadErrorException
+        exception = { error.message, error.errorCode };
+
+      throw exception;
+    }
+  }
 
   int32_t min[Dimensionality_Max];
   int32_t max[Dimensionality_Max];

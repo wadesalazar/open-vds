@@ -1779,33 +1779,32 @@ struct MarkJobAsDoneOnExit
 static Error ProcessPageInJob(Job *job, int pageIndex, VolumeDataPageAccessorImpl *pageAccessor, std::function<bool(VolumeDataPageImpl *page, const VolumeDataChunk &chunk, Error &error)> processor)
 {
   MarkJobAsDoneOnExit jobDone(job, pageIndex);
-  Error error;
   JobPage& jobPage = job->pages[pageIndex];
 
   if (!jobPage.page)
     return Error();
 
-  if (jobPage.page && jobPage.page->GetError().code)
+  Error error;
+  if (jobPage.page->GetError(error))
   {
     job->cancelled = true;
-    return jobPage.page->GetError();
   }
+
   if (job->cancelled)
   {
     auto page = jobPage.page;
     jobPage.page = nullptr;
     pageAccessor->CancelPreparedReadPage(page);
-    error.code = -4;
-    error.string = fmt::format("Request with id {} has been cancelled.", job->jobId);
-    return error;
   }
-  if (!pageAccessor->ReadPreparedPaged(jobPage.page))
+  else if (pageAccessor->ReadPreparedPaged(jobPage.page))
   {
-    job->cancelled = true;
-    error = jobPage.page->GetError();
-    return error;
+    processor(jobPage.page, jobPage.chunk, error);
   }
-  processor(jobPage.page, jobPage.chunk, error);
+  else
+  {
+    jobPage.page->GetError(error);
+    job->cancelled = true;
+  }
 
   return error;
 }

@@ -52,7 +52,8 @@ private:
   mutable std::mutex
           m_mutex;
 
-  Error   m_error;
+  OpenVDS::Error
+          m_error;
 
   int32_t m_writtenMin[Dimensionality_Max];
   int32_t m_writtenMax[Dimensionality_Max];
@@ -91,14 +92,15 @@ public:
   bool          EnterSettingData() { std::unique_lock<std::mutex> lock(m_mutex); m_settingData++; return m_settingData == 1; }
   void          LeaveSettingData() { std::unique_lock<std::mutex> lock(m_mutex); m_settingData--; }
   bool          SettingData() const { std::unique_lock<std::mutex> lock(m_mutex); return m_settingData > 0; }
-  const Error & GetError() const { return m_error; }
-  void          SetError(const Error &error) { m_error = error; }
+  void          SetError(const OpenVDS::Error &error) { m_error = error; }
+  bool          GetError(OpenVDS::Error &error) { error = m_error; return error.code != 0; }
 
   // Implementation of Hue::HueSpaceLib::VolumeDataPage interface, these methods aquire a lock (except the GetMinMax methods which don't need to)
   VolumeDataPageAccessor &
         GetVolumeDataPageAccessor() const override;
   void  GetMinMax(int (&min)[Dimensionality_Max], int (&max)[Dimensionality_Max]) const override;
   void  GetMinMaxExcludingMargin(int (&minExcludingMargin)[Dimensionality_Max], int (&maxExcludingMargin)[Dimensionality_Max]) const override;
+  Error GetError() const override;
   const void *GetBuffer(int (&pitch)[Dimensionality_Max]) override; // Getting the buffer will block if the page is currently being read from the VolumeDataCache
   void *GetWritableBuffer(int (&pitch)[Dimensionality_Max]) override;
   void  UpdateWrittenRegion(const int (&writtenMin)[Dimensionality_Max], const int (&writtenMax)[Dimensionality_Max]) override;
