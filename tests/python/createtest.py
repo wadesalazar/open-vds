@@ -46,3 +46,5 @@ writePages(accessor, data)
 req = manager.requestVolumeSubset(min=(0,0,0), max=(shape[2], shape[1], shape[0]))
 result = req.data.reshape(shape)
 assert np.array_equal(data, result)
+
+openvds.close(vds)
