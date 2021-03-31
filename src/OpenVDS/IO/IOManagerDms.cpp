@@ -90,10 +90,16 @@ namespace OpenVDS
     auto request_ptr = request.lock();
     if (!request_ptr)
       return;
+
     std::unique_lock<std::mutex> lock(request_ptr->m_mutex);
-    Notifier notifier(request_ptr->m_waitForFinish);
+    
     if (request_ptr->m_cancelled)
+    {
+      request_ptr->m_done = true;
       return;
+    }
+
+    Notifier notifier(request_ptr->m_waitForFinish);
 
     uint64_t size;
     std::string created_date;
