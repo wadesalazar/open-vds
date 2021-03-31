@@ -73,8 +73,7 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeError)
     std::string objectName = fmt::format("Dimensions_012LOD0/{}", i);
     auto syncTransfer = std::make_shared<SyncTransfer>();
     auto req = iomanager->ReadObject(objectName, syncTransfer);
-    req->WaitForFinish();
-    if (req->IsSuccess(error))
+    if (req->WaitForFinish(error))
     {
       auto& object = facadeIOManager->m_data[objectName];
       object.data = std::move(syncTransfer->data);

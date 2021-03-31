@@ -22,6 +22,7 @@
 
 //#include "IOManagerAzure.h"
 #include "IOManager.h"
+#include "IOManagerRequestImpl.h"
 
 #include <vector>
 #include <string>
@@ -34,23 +35,15 @@
 
 namespace OpenVDS
 {
-    class GetHeadRequestAzure : public Request
+    class GetHeadRequestAzure : public RequestImpl
     {
     public:
         GetHeadRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler);
         ~GetHeadRequestAzure() override;
 
-        void WaitForFinish() override;
-        bool IsDone() const override;
-        bool IsSuccess(Error& error) const override;
         void Cancel() override;
 
         std::shared_ptr<TransferDownloadHandler> m_handler;
-        std::atomic_bool m_cancelled;
-        bool m_done;
-        Error m_error;
-        std::condition_variable m_waitForFinish;
-        mutable std::mutex m_mutex;
         azure::storage::cloud_block_blob  m_blob;
         pplx::cancellation_token_source m_cancelTokenSrc;
         pplx::task<void> m_task;
@@ -77,23 +70,15 @@ namespace OpenVDS
         IORange m_requestedRange;
     };
 
-    class UploadRequestAzure : public Request
+    class UploadRequestAzure : public RequestImpl
     {
     public:
         UploadRequestAzure(const std::string& id, std::function<void(const Request & request, const Error & error)> completedCallback);
         void run(azure::storage::cloud_blob_container& container, azure::storage::blob_request_options options, const std::string& requestName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::weak_ptr<UploadRequestAzure> uploadRequest);
-        void WaitForFinish() override;
-        bool IsDone() const override;
-        bool IsSuccess(Error& error) const override;
         void Cancel() override;
 
         std::function<void(const Request & request, const Error & error)> m_completedCallback;
         std::shared_ptr<std::vector<uint8_t>> m_data;
-        std::atomic_bool m_cancelled;
-        bool m_done;
-        Error m_error;
-        std::condition_variable m_waitForFinish;
-        mutable std::mutex m_mutex;
         azure::storage::cloud_block_blob  m_blob;
         azure::storage::operation_context m_context;
         pplx::cancellation_token_source m_cancelTokenSrc;

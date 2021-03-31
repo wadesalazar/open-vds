@@ -34,6 +34,8 @@ inline bool operator==(VolumeDataChunk const &lhs, VolumeDataChunk const &rhs)
 {
   return lhs.index == rhs.index && lhs.layer == rhs.layer;
 }
+
+bool operator<(VolumeDataChunk const& lhs, VolumeDataChunk const& rhs);
 }
 
 namespace std {

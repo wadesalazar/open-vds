@@ -35,20 +35,14 @@ public:
   {
 
   }
-  void WaitForFinish() override
+  bool WaitForFinish(OpenVDS::Error &error) override
   {
     while(!m_done)
       ;
-  }
-  bool IsDone() const override
-  {
-    return m_done;
-  }
-  bool IsSuccess(OpenVDS::Error &error) const override
-  {
     error = m_error;
     return m_error.code == 0;
   }
+
   void Cancel() override
   {
     m_done = true;

@@ -211,7 +211,7 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingMissingMetadataTag)
   std::string objectName = "Dimensions_012LOD0/1";
   auto syncTransfer = std::make_shared<SyncTransfer>();
   auto req = IOErrorHandlingFixture::inMemoryIOManager->ReadObject(objectName, syncTransfer);
-  req->WaitForFinish();
+  ASSERT_TRUE(req->WaitForFinish(error));
   auto& object = facadeIoManager->m_data[objectName];
   object.data = std::move(syncTransfer->data);
   object.metaHeader = std::move(syncTransfer->headers);
@@ -241,7 +241,7 @@ TEST_F(IOErrorHandlingFixture, ErrorHandlingChangedMetadataTag)
   std::string objectName = "Dimensions_012LOD0/1";
   auto syncTransfer = std::make_shared<SyncTransfer>();
   auto req = IOErrorHandlingFixture::inMemoryIOManager->ReadObject(objectName, syncTransfer);
-  req->WaitForFinish();
+  ASSERT_TRUE(req->WaitForFinish(error));
   auto& object = facadeIoManager->m_data[objectName];
   object.data = std::move(syncTransfer->data);
   object.metaHeader = std::move(syncTransfer->headers);

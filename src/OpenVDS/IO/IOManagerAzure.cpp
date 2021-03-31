@@ -71,51 +71,19 @@ static std::string convertFromUtilString(const utility::string_t& str)
 #endif
 
 GetHeadRequestAzure::GetHeadRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
-  : Request(id)
+  : RequestImpl(id)
   , m_handler(handler)
-  , m_cancelled(false)
-  , m_done(false)
 {
 }
 
 GetHeadRequestAzure::~GetHeadRequestAzure()
 {
-  GetHeadRequestAzure::Cancel();
-}
-
-void GetHeadRequestAzure::WaitForFinish()
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  m_waitForFinish.wait(lock, [this]
-    {
-      return m_done;
-    });
-
-}
-
-bool GetHeadRequestAzure::IsDone() const
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  return m_done;
-}
-
-bool GetHeadRequestAzure::IsSuccess(Error& error) const
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  if (!m_done)
-  {
-    error.code = -1;
-    error.string = "GetHead not done.";
-    return false;
-  }
-  error = m_error;
-  return m_error.code == 0;
 }
 
 void GetHeadRequestAzure::Cancel()
 {
-  //m_cancelTokenSrc.cancel();
-  m_cancelled = true;
+  m_cancelTokenSrc.cancel();
+  RequestImpl::Cancel();
 }
 
 ReadObjectInfoRequestAzure::ReadObjectInfoRequestAzure(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
@@ -142,30 +110,25 @@ void ReadObjectInfoRequestAzure::run(azure::storage::cloud_blob_container& conta
       auto readObjectRequest = request.lock();
       if (!readObjectRequest)
         return;
+      RequestStateHandler requestStateHandler(*readObjectRequest);
+      if (requestStateHandler.isCancelledRequested())
+      {
+        return;
+      }
+
       try
       {
         // when the task is completed
         task.get();
+        m_handler->HandleObjectSize(m_blob.properties().size());
 
-        if (auto tmp = request.lock())
+        m_handler->HandleObjectLastWriteTime(convertFromUtilString(m_blob.properties().last_modified().to_string(utility::datetime::ISO_8601)));
+
+        // send metadata one at a time to the metadata handler
+        for (auto it : m_blob.metadata())
         {
-          m_handler->HandleObjectSize(m_blob.properties().size());
-
-          m_handler->HandleObjectLastWriteTime(convertFromUtilString(m_blob.properties().last_modified().to_string(utility::datetime::ISO_8601)));
-
-          // send metadata one at a time to the metadata handler
-          for (auto it : m_blob.metadata())
-          {
-            m_handler->HandleMetadata(convertFromUtilString(it.first), convertFromUtilString(it.second));
-          }
-
-          // declare success and set completion status
-          m_error.code = 0;
-          m_done = true;
-          m_waitForFinish.notify_all();
-          m_handler->Completed(*this, m_error);
+          m_handler->HandleMetadata(convertFromUtilString(it.first), convertFromUtilString(it.second));
         }
-
       }
       catch (const azure::storage::storage_exception & e)
       {
@@ -173,10 +136,8 @@ void ReadObjectInfoRequestAzure::run(azure::storage::cloud_blob_container& conta
         ucout << _XPLATSTR("Error message is: ") << e.what() << std::endl;
         m_error.code = -1;
         m_error.string = e.what();
-        m_done = true;
-        m_waitForFinish.notify_all();
-        m_handler->Completed(*this, m_error);
       }
+      m_handler->Completed(*this, m_error);
     });
 }
 
@@ -211,6 +172,11 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
       auto downloadRequest = request.lock();
       if (!downloadRequest)
         return;
+      RequestStateHandler requestStateHandler(*downloadRequest);
+      if (requestStateHandler.isCancelledRequested())
+      {
+        return;
+      }
       try
       {
         // when the task is completed
@@ -222,27 +188,17 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
         if (m_context.request_results().size() == 2 && m_context.request_results()[0].http_status_code() == 416 && m_requestedRange.start == 0 && m_requestedRange.end == 0)
           data.clear();
 
-        if (auto tmp = request.lock())
+        m_handler->HandleObjectSize(m_blob.properties().size());
+
+        m_handler->HandleObjectLastWriteTime(convertFromUtilString(m_blob.properties().last_modified().to_string(utility::datetime::ISO_8601)));
+
+        // send metadata one at a time to the metadata handler
+        for (auto it : m_blob.metadata())
         {
-          m_handler->HandleObjectSize(m_blob.properties().size());
-
-          m_handler->HandleObjectLastWriteTime(convertFromUtilString(m_blob.properties().last_modified().to_string(utility::datetime::ISO_8601)));
-
-          // send metadata one at a time to the metadata handler
-          for (auto it : m_blob.metadata())
-          {
-            m_handler->HandleMetadata(convertFromUtilString(it.first), convertFromUtilString(it.second));
-          }
-          // send data to the data handler
-          m_handler->HandleData(std::move(data));
-
-          // declare success and set completion status
-          m_error.code = 0;
-          m_done = true;
-          m_waitForFinish.notify_all();
-          m_handler->Completed(*this, m_error);
+          m_handler->HandleMetadata(convertFromUtilString(it.first), convertFromUtilString(it.second));
         }
-
+        // send data to the data handler
+        m_handler->HandleData(std::move(data));
       }
       catch (const azure::storage::storage_exception & e)
       {
@@ -250,18 +206,14 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
         ucout << _XPLATSTR("Error message is: ") << e.what() << std::endl;
         m_error.code = -1;
         m_error.string = e.what();
-        m_done = true;
-        m_waitForFinish.notify_all();
-        m_handler->Completed(*this, m_error);
       }
+      m_handler->Completed(*this, m_error);
     });
 }
 
 UploadRequestAzure::UploadRequestAzure(const std::string& id, std::function<void(const Request & request, const Error & error)> completedCallback)
-  : Request(id)
+  : RequestImpl(id)
   , m_completedCallback(completedCallback)
-  , m_cancelled(false)
-  , m_done(false)
 {
 }
 
@@ -293,16 +245,15 @@ void UploadRequestAzure::run(azure::storage::cloud_blob_container& container, az
       auto request = uploadRequest.lock();
       if (!request)
         return;
-
+      RequestStateHandler requestStateHandler(*request);
+      if (requestStateHandler.isCancelledRequested())
+      {
+        return;
+      }
       try
       {
         uploadTask.get();
         m_data.reset();
-
-        m_error.code = 0;
-        m_done = true;
-        m_waitForFinish.notify_all();
-        if (m_completedCallback) m_completedCallback(*this, m_error);
       }
       catch (azure::storage::storage_exception & e)
       {
@@ -311,45 +262,16 @@ void UploadRequestAzure::run(azure::storage::cloud_blob_container& container, az
         ex_msg = std::string(e.what());
         m_error.code = -1;
         m_error.string = ex_msg;
-        m_done = true;
-        m_waitForFinish.notify_all();
-        if (m_completedCallback) m_completedCallback(*this, m_error);
       }
+
+      if (m_completedCallback)
+        m_completedCallback(*this, m_error);
     });
-}
-
-void UploadRequestAzure::WaitForFinish()
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-
-  m_waitForFinish.wait(lock, [this]
-    {
-      return this->m_done;
-    });
-}
-
-bool UploadRequestAzure::IsDone() const
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  return m_done;
-}
-
-bool UploadRequestAzure::IsSuccess(Error& error) const
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  if (!m_done)
-  {
-    error.code = -1;
-    error.string = "Upload not done.";
-    return false;
-  }
-  error = m_error;
-  return m_error.code == 0;
 }
 
 void UploadRequestAzure::Cancel()
 {
-  m_cancelled = true;
+  RequestImpl::Cancel();
   m_cancelTokenSrc.cancel();
 }
 

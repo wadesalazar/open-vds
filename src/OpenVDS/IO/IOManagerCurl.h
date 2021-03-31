@@ -19,6 +19,7 @@
 #define IOMANAGERCURL_H
 
 #include "IOManager.h"
+#include "IOManagerRequestImpl.h"
 
 #include <cctype>
 #include <vector>
@@ -73,26 +74,16 @@ struct SocketContext
 };
 
 struct CurlDownloadHandler;
-class DownloadRequestCurl : public Request
+class DownloadRequestCurl : public RequestImpl
 {
 public:
   DownloadRequestCurl(const std::string& id, const std::shared_ptr<TransferDownloadHandler> &handler);
   ~DownloadRequestCurl() override;
 
-  void WaitForFinish() override;
-  bool IsDone() const override;
-  bool IsSuccess(Error& error) const override;
   void Cancel() override;
 
   std::shared_ptr<CurlDownloadHandler> m_downloadHandler;
-
-  std::string m_requestName;
   std::shared_ptr<TransferDownloadHandler> m_handler;
-  bool m_cancelled;
-  bool m_done;
-  Error m_error;
-  std::condition_variable m_waitForFinish;
-  mutable std::mutex m_mutex;
 };
 
 struct CurlDownloadHandler : public CurlEasyHandler
@@ -127,23 +118,13 @@ struct CurlDownloadHandler : public CurlEasyHandler
 };
 
 struct CurlUploadHandler;
-class UploadRequestCurl : public Request
+class UploadRequestCurl : public RequestImpl
 {
 public:
   UploadRequestCurl(const std::string& id, std::function<void(const Request & request, const Error & error)> completedCallback);
-  void WaitForFinish() override;
-  bool IsDone() const override;
-  bool IsSuccess(Error& error) const override;
   void Cancel() override;
-  
   std::shared_ptr<CurlUploadHandler> m_uploadHandler;
-
   std::function<void(const Request & request, const Error & error)> m_completedCallback;
-  bool m_cancelled;
-  bool m_done;
-  Error m_error;
-  std::condition_variable m_waitForFinish;
-  mutable std::mutex m_mutex;
 };
 
 struct CurlUploadHandler : public CurlEasyHandler

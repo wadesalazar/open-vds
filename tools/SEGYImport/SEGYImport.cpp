@@ -1787,8 +1787,7 @@ main(int argc, char* argv[])
           auto shared_data = std::make_shared<std::vector<uint8_t>>();
           shared_data->insert(shared_data->end(), document.begin(), document.end());
           auto req = ioManager->WriteObject(basename, "", "text/plain", {}, shared_data, {});
-          req->WaitForFinish();
-          req->IsSuccess(error);
+          req->WaitForFinish(error);
           if (error.code)
           {
             fmt::print(stderr, "Failed to write {}: {}\n", fileInfoFileName, error.string);

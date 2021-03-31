@@ -69,6 +69,7 @@ add_test_executable(io_vds_roundtrip_test
 
 add_test_executable(io_error_handling_tests
   io/IoErrorHandling.cpp
+  io/IoManagerProtocol.cpp
   )
 
 add_test_executable(jsoncpp_tests

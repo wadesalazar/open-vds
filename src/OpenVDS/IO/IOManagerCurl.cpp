@@ -236,6 +236,11 @@ static void cancelledDownloadCB(uv_async_t *handle)
       }
     }
     curl_easy_cleanup(cancelled->curlEasy);
+    auto req = cancelled->request.lock();
+    if (req)
+    {
+      RequestStateHandler handler(*req);
+    }
   }
 }
 
@@ -319,6 +324,7 @@ static void cancelledUploadCB(uv_async_t *handle)
   for (auto &cancelled : cancelledUploads)
   {
     auto it_queued = std::find(eventLoopData->queuedRequests.begin(), eventLoopData->queuedRequests.end(), cancelled);
+
     if (it_queued != eventLoopData->queuedRequests.end())
     {
       eventLoopData->queuedRequests.erase(it_queued);
@@ -333,6 +339,11 @@ static void cancelledUploadCB(uv_async_t *handle)
       }
     }
     curl_easy_cleanup(cancelled->curlEasy);
+    auto req = cancelled->request.lock();
+    if (req)
+    {
+      RequestStateHandler handler(*req);
+    }
   }
 
 }
@@ -683,74 +694,32 @@ size_t CurlDownloadHandler::handleReadRequest(char* buffer, size_t size)
 
 
 DownloadRequestCurl::DownloadRequestCurl(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
-  : Request(id)
+  : RequestImpl(id)
   , m_handler(handler)
-  , m_cancelled(false)
-  , m_done(false)
 {
 }
 
 DownloadRequestCurl::~DownloadRequestCurl()
 {
 }
-void DownloadRequestCurl::WaitForFinish()
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  if (m_done)
-    return;
-  m_waitForFinish.wait(lock);
-}
-bool DownloadRequestCurl::IsDone() const
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  return m_done;
-}
-bool DownloadRequestCurl::IsSuccess(Error& error) const
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  if (!m_done)
-    return false;
-  error = m_error;
-  return m_error.code == 0;
-}
+
 void DownloadRequestCurl::Cancel()
 {
+  RequestImpl::Cancel();
   std::unique_lock<std::mutex> lock(m_downloadHandler->eventLoopData->mutex);
   m_downloadHandler->eventLoopData->cancelledDownloads.push_back(m_downloadHandler);
   uv_async_send(&m_downloadHandler->eventLoopData->asyncCancelledDownload);
 }
 
 UploadRequestCurl::UploadRequestCurl(const std::string& id, std::function<void(const Request & request, const Error & error)> completedCallback)
-  : Request(id)
+  : RequestImpl(id)
   , m_completedCallback(completedCallback)
-  , m_cancelled(false)
-  , m_done(false)
 {
-}
-
-void UploadRequestCurl::WaitForFinish()
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  if (m_done)
-    return;
-  m_waitForFinish.wait(lock);
-}
-bool UploadRequestCurl::IsDone() const
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  return m_done;
-}
-bool UploadRequestCurl::IsSuccess(Error& error) const
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  if (!m_done)
-    return false;
-  error = m_error;
-  return m_error.code == 0;
 }
 
 void UploadRequestCurl::Cancel()
 {
+  RequestImpl::Cancel();
   std::unique_lock<std::mutex> lock(m_uploadHandler->eventLoopData->mutex);
   m_uploadHandler->eventLoopData->cancelledUploads.push_back(m_uploadHandler);
   uv_async_send(&m_uploadHandler->eventLoopData->asyncCancelledUpload);

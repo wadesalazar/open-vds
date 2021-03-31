@@ -59,27 +59,13 @@ public:
   {
   }
 
-  void WaitForFinish() override
+  bool WaitForFinish(OpenVDS::Error &error) override
   {
     assert(m_target);
     m_blockUntil->block();
-    m_target->WaitForFinish();
+    return m_target->WaitForFinish(error);
   }
-
-  bool IsDone() const override
-  {
-    assert(m_target);
-    m_blockUntil->block();
-    return m_target->IsDone();
-  }
-
-  bool IsSuccess(OpenVDS::Error& error) const override
-  {
-    assert(m_target);
-    m_blockUntil->block();
-    return m_target->IsSuccess(error);
-  }
-
+  
   void Cancel() override
   {
     assert(m_target);

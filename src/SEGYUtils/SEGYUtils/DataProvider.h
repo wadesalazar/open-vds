@@ -54,14 +54,14 @@ struct DataTransfer : public OpenVDS::TransferDownloadHandler
 
   void Completed(const OpenVDS::Request &request, const OpenVDS::Error &error) override
   {
-    this->error = error;
+    (void)request;
+    (void)error;
   }
 
   int64_t offset;
   int64_t size;
   std::string lastWriteTime;
   std::vector<uint8_t> data;
-  OpenVDS::Error error;
 };
 
 struct DataProvider
@@ -81,8 +81,7 @@ struct DataProvider
     {
       auto syncTransfer = std::make_shared<DataTransfer>();
       auto syncRequest = m_ioManager->ReadObjectInfo(objectName, syncTransfer);
-      syncRequest->WaitForFinish();
-      if (syncRequest->IsSuccess(error))
+      if (syncRequest->WaitForFinish(error))
       {
         m_size = syncTransfer->size;
         m_lastWriteTime = syncTransfer->lastWriteTime;
@@ -101,10 +100,8 @@ struct DataProvider
     {
       auto dataTransfer = std::make_shared<DataTransfer>();
       auto request = m_ioManager->ReadObject(m_objectName, dataTransfer, { offset, offset + length});
-      request->WaitForFinish();
-      if (dataTransfer->error.code)
+      if (!request->WaitForFinish(error))
       {
-        error = dataTransfer->error;
         return false;
       }
       memcpy(data, dataTransfer->data.data(), std::min(size_t(length), dataTransfer->data.size()));
@@ -200,8 +197,7 @@ struct DataView
     {
       if (m_requests.size() == 1)
       {
-        m_requests[0]->WaitForFinish();
-        if (m_requests[0]->IsSuccess(m_error))
+        if (m_requests[0]->WaitForFinish(m_error))
           m_data = std::move(m_transfers[0]->data);
       }
       else
@@ -210,8 +206,7 @@ struct DataView
         OpenVDS::Error reqError;
         for (int i = 0; i < int(m_requests.size()); i++)
         {
-          m_requests[i]->WaitForFinish();
-          if (!m_requests[i]->IsSuccess(reqError))
+          if (!m_requests[i]->WaitForFinish(reqError))
           {
             m_error = reqError;
             break;

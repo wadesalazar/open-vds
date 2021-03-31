@@ -13,71 +13,21 @@
 namespace OpenVDS
 {
   GetHeadRequestDms::GetHeadRequestDms(seismicdrive::SDGenericDataset &dataset, const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
-    : Request(id)
+    : RequestImpl(id)
     , m_dataset(dataset)
     , m_handler(handler)
-    , m_cancelled(false)
-    , m_done(false)
   {
   }
 
   GetHeadRequestDms::~GetHeadRequestDms()
   {
-    GetHeadRequestDms::Cancel();
   }
 
-  void GetHeadRequestDms::WaitForFinish()
-  {
-    m_job.get();
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_waitForFinish.wait(lock, [this]
-    {
-      return m_done;
-    });
-
-  }
-
-  bool GetHeadRequestDms::IsDone() const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    return m_done;
-  }
-
-  bool GetHeadRequestDms::IsSuccess(Error& error) const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    if (!m_done)
-    {
-      error.code = -1;
-      error.string = "GetHead not done.";
-      return false;
-    }
-    error = m_error;
-    return m_error.code == 0;
-  }
-
-  void GetHeadRequestDms::Cancel()
-  {
-    m_cancelled = true;
-  }
 
   ReadObjectInfoRequestDms::ReadObjectInfoRequestDms(seismicdrive::SDGenericDataset &dataset, const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
     : GetHeadRequestDms(dataset, id, handler)
   {
   }
-
-  struct Notifier
-  {
-    Notifier(std::condition_variable& conditional_variable)
-      : conditional_variable(conditional_variable)
-    {
-    }
-    ~Notifier()
-    {
-      conditional_variable.notify_all();
-    }
-    std::condition_variable& conditional_variable;
-  };
 
   DownloadRequestDms::DownloadRequestDms(seismicdrive::SDGenericDataset &dataset, const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
     : GetHeadRequestDms(dataset, id, handler)
@@ -90,14 +40,16 @@ namespace OpenVDS
     auto request_ptr = request.lock();
     if (!request_ptr)
       return;
-    std::unique_lock<std::mutex> lock(request_ptr->m_mutex);
-    Notifier notifier(request_ptr->m_waitForFinish);
-    if (request_ptr->m_cancelled)
+
+    RequestStateHandler requestHandler(*request_ptr);
+    
+    if (requestHandler.isCancelledRequested())
+    {
       return;
+    }
 
     uint64_t size;
     std::string created_date;
-    lock.unlock();
     try
     {
       size = request_ptr->m_dataset.getBlockSize(requestName);
@@ -118,17 +70,14 @@ namespace OpenVDS
         }
         request_ptr->m_dataset.readBlock(requestName, (char*)data->data(), offset, data->size());
       }
-      lock.lock();
     }
     catch (const seismicdrive::SDException& ex)
     {
-      lock.lock();
       request_ptr->m_error.code = -1;
       request_ptr->m_error.string = ex.what();
     }
     catch (...)
     {
-      lock.lock();
       request_ptr->m_error.code = -1;
       request_ptr->m_error.string = "Unknown exception in DMS upload";
     }
@@ -140,8 +89,6 @@ namespace OpenVDS
       if (data)
         request_ptr->m_handler->HandleData(std::move(*data));
     }
-
-    request_ptr->m_done = true;
     request_ptr->m_handler->Completed(*request_ptr, request_ptr->m_error);
   }
 
@@ -160,11 +107,9 @@ namespace OpenVDS
   }
 
   UploadRequestDms::UploadRequestDms(seismicdrive::SDGenericDataset &dataset, const std::string& id, std::function<void(const Request& request, const Error& error)> completedCallback)
-    : Request(id)
+    : RequestImpl(id)
     , m_dataset(dataset)
     , m_completedCallback(completedCallback)
-    , m_cancelled(false)
-    , m_done(false)
   {
   }
 
@@ -175,71 +120,30 @@ namespace OpenVDS
       if (!request_ptr)
         return;
 
-      std::unique_lock<std::mutex> lock(request_ptr->m_mutex);
-
-      Notifier notifier(request_ptr->m_waitForFinish);
-
-      if (request_ptr->m_cancelled)
+      RequestStateHandler requestHandler(*request_ptr);
+      if (requestHandler.isCancelledRequested())
+      {
         return;
+      }
 
-      lock.unlock();
       try
       {
         request_ptr->m_dataset.writeBlock(requestName, (const char*)data->data(), data->size(), false);
-        lock.lock();
       }
       catch (const seismicdrive::SDException& ex)
       {
-        lock.lock();
         request_ptr->m_error.code = -1;
         request_ptr->m_error.string = ex.what();
       }
       catch (...)
       {
-        lock.lock();
         request_ptr->m_error.code = -1;
         request_ptr->m_error.string = "Unknown exception in DMS upload";
       }
 
-      request_ptr->m_done = true;
       if (request_ptr->m_completedCallback)
         request_ptr->m_completedCallback(*request_ptr, request_ptr->m_error);
     });
-  }
-
-  void UploadRequestDms::WaitForFinish()
-  {
-    m_job.get();
-    std::unique_lock<std::mutex> lock(m_mutex);
-
-    m_waitForFinish.wait(lock, [this]
-    {
-      return this->m_done;
-    });
-  }
-
-  bool UploadRequestDms::IsDone() const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    return m_done;
-  }
-
-  bool UploadRequestDms::IsSuccess(Error& error) const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    if (!m_done)
-    {
-      error.code = -1;
-      error.string = "Upload not done.";
-      return false;
-    }
-    error = m_error;
-    return m_error.code == 0;
-  }
-
-  void UploadRequestDms::Cancel()
-  {
-    m_cancelled = true;
   }
 
   IOManagerDms::IOManagerDms(const DMSOpenOptions& openOptions, IOManager::AccessPattern accessPatttern, Error& error)

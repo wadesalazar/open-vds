@@ -136,55 +136,28 @@ namespace OpenVDS
   };
 
   GetOrHeadRequestAWS::GetOrHeadRequestAWS(const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler)
-    : Request(id)
+    : RequestImpl(id)
     , m_handler(handler)
-    , m_cancelled(false)
-    , m_done(false)
   {
   }
 
   GetOrHeadRequestAWS::~GetOrHeadRequestAWS()
   {
-    GetOrHeadRequestAWS::Cancel();
-  }
-
-  void GetOrHeadRequestAWS::WaitForFinish()
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_waitForFinish.wait(lock, [this]{ return m_done; });
-  }
-  bool GetOrHeadRequestAWS::IsDone() const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    return m_done;
-  }
-
-  bool GetOrHeadRequestAWS::IsSuccess(Error& error) const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    if (!m_done)
-    {
-      error.code = -1;
-      error.string = "Download not done.";
-      return false;
-    }
-    error = m_error;
-    return m_error.code == 0;
-  }
-
-  void GetOrHeadRequestAWS::Cancel()
-  {
-    m_cancelled = true;
   }
 
   static void readobjectinfo_callback(const Aws::S3::S3Client *client, const Aws::S3::Model::HeadObjectRequest& objreq, const Aws::S3::Model::HeadObjectOutcome &getObjectOutcome, std::weak_ptr<ReadObjectInfoRequestAWS> weak_request)
   {
     auto objReq =  weak_request.lock();
 
-    if (!objReq || objReq->m_cancelled)
+    if (!objReq)
       return;
 
-    std::unique_lock<std::mutex> lock(objReq->m_mutex, std::defer_lock);
+    RequestStateHandler requestStateHandler(*objReq);
+    if (requestStateHandler.isCancelledRequested())
+    {
+      return;
+    }
+
     if (getObjectOutcome.IsSuccess())
     {
       Aws::S3::Model::HeadObjectResult result = const_cast<Aws::S3::Model::HeadObjectOutcome&>(getObjectOutcome).GetResultWithOwnership();
@@ -199,20 +172,14 @@ namespace OpenVDS
       {
         objReq->m_handler->HandleMetadata(convertAwsString(it.first), convertAwsString(it.second));
       }
-
-      lock.lock();
     }
     else
     {
-      lock.lock();
       auto s3error = getObjectOutcome.GetError();
       objReq->m_error.code = int(s3error.GetResponseCode());
       objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
     }
 
-    objReq->m_done = true;
-    objReq->m_waitForFinish.notify_all();
-    lock.unlock();
     objReq->m_handler->Completed(*objReq, objReq->m_error);
   }
 
@@ -238,10 +205,15 @@ namespace OpenVDS
   {
     auto objReq =  weak_request.lock();
 
-    if (!objReq || objReq->m_cancelled)
+    if (!objReq)
       return;
 
-    std::unique_lock<std::mutex> lock(objReq->m_mutex, std::defer_lock);
+    RequestStateHandler requestStateHandler(*objReq);
+    if (requestStateHandler.isCancelledRequested())
+    {
+      return;
+    }
+
     if (getObjectOutcome.IsSuccess())
     {
       Aws::S3::Model::GetObjectResult result = const_cast<Aws::S3::Model::GetObjectOutcome&>(getObjectOutcome).GetResultWithOwnership();
@@ -266,19 +238,14 @@ namespace OpenVDS
         retrieved_object.read((char*)&data[0], content_length);
         objReq->m_handler->HandleData(std::move(data));
       }
-      lock.lock();
     }
     else
     {
-      lock.lock();
       auto s3error = getObjectOutcome.GetError();
       objReq->m_error.code = int(s3error.GetResponseCode());
       objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
     }
 
-    objReq->m_done = true;
-    objReq->m_waitForFinish.notify_all();
-    lock.unlock();
     objReq->m_handler->Completed(*objReq, objReq->m_error);
   }
 
@@ -309,7 +276,11 @@ namespace OpenVDS
     if (!objReq || objReq->m_cancelled)
       return;
 
-    std::unique_lock<std::mutex> lock(objReq->m_mutex);
+    RequestStateHandler requestStateHandler(*objReq);
+    if (requestStateHandler.isCancelledRequested())
+    {
+      return;
+    }
     if (!outcome.IsSuccess())
     {
       auto s3error = outcome.GetError();
@@ -317,19 +288,13 @@ namespace OpenVDS
       objReq->m_error.string = (s3error.GetExceptionName() + " : " + s3error.GetMessage()).c_str();
     }
 
-    objReq->m_done = true;
-    objReq->m_waitForFinish.notify_all();
-    Error error = objReq->m_error;
-    lock.unlock();
     if (objReq->m_completedCallback)
-      objReq->m_completedCallback(*objReq, error);
+      objReq->m_completedCallback(*objReq, objReq->m_error);
   }
 
   UploadRequestAWS::UploadRequestAWS(const std::string& id, std::function<void(const Request & request, const Error & error)> completedCallback)
-    : Request(id)
+    : RequestImpl(id)
     , m_completedCallback(completedCallback)
-    , m_cancelled(false)
-    , m_done(false)
   {
   }
  
@@ -353,33 +318,6 @@ namespace OpenVDS
     Aws::S3::PutObjectResponseReceivedHandler bounded_callback = [uploadRequest] (const Aws::S3::S3Client* client, const Aws::S3::Model::PutObjectRequest&putRequest, const Aws::S3::Model::PutObjectOutcome &outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) { upload_callback(client, putRequest, outcome, uploadRequest);};
     client.PutObjectAsync(put, bounded_callback);
 
-  }
-
-  void UploadRequestAWS::WaitForFinish()
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_waitForFinish.wait(lock, [this]{ return this->m_done; });
-  }
-  bool UploadRequestAWS::IsDone() const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    return m_done;
-  }
-  bool UploadRequestAWS::IsSuccess(Error& error) const
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    if (!m_done)
-    {
-      error.code = -1;
-      error.string = "Download not done.";
-      return false;
-    }
-    error = m_error;
-    return m_error.code == 0;
-  }
-  void UploadRequestAWS::Cancel()
-  {
-    m_cancelled = true;
   }
 
   IOManagerAWS::IOManagerAWS(const AWSOpenOptions& openOptions, Error &error)

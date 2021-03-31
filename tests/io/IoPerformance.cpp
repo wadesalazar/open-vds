@@ -106,20 +106,16 @@ TEST(IOTests, performance)
 
   for (int i = 0; i < chunkCount; i++)
   {
-    uploadRequests[i]->WaitForFinish();
-  }
-  auto upload_end_time = std::chrono::high_resolution_clock::now();
-
-  double upload_time = std::chrono::duration_cast<std::chrono::milliseconds>(upload_end_time - upload_start_time).count() / 1000.0;
-  fmt::print("Done uploading data in {} seconds\n", upload_time);
-  for (int i = 0; i < chunkCount; i++)
-  {
-    if (!uploadRequests[i]->IsSuccess(error))
+    if (!uploadRequests[i]->WaitForFinish(error))
     {
       fmt::print(stderr, "Failed to upload {} with error code {} : {}\n", uploadRequests[i]->GetObjectName(), error.code, error.string);
       ASSERT_TRUE(false);
     }
   }
+  auto upload_end_time = std::chrono::high_resolution_clock::now();
+
+  double upload_time = std::chrono::duration_cast<std::chrono::milliseconds>(upload_end_time - upload_start_time).count() / 1000.0;
+  fmt::print("Done uploading data in {} seconds\n", upload_time);
 
   std::vector<std::shared_ptr<Transfer>> downloadTransfers;
   downloadTransfers.reserve(chunkCount);
@@ -133,22 +129,17 @@ TEST(IOTests, performance)
     downloadRequests.push_back(ioManager->ReadObject(std::to_string(i), downloadTransfers.back()));
   }
 
-  for (int i = 0; i < chunkCount; i++)
-  {
-    downloadRequests[i]->WaitForFinish();
-  }
-  auto download_end_time = std::chrono::high_resolution_clock::now();
-
   int64_t bytes = 0;
   for (int i = 0; i < chunkCount; i++)
   {
-    if (!downloadRequests[i]->IsSuccess(error))
+    if (!downloadRequests[i]->WaitForFinish(error))
     {
       fmt::print(stderr, "Failed to download {} with error code {} : {}\n", downloadRequests[i]->GetObjectName(), error.code, error.string);
       ASSERT_TRUE(false);
     }
     bytes += downloadTransfers[i]->m_data.size();
   }
+  auto download_end_time = std::chrono::high_resolution_clock::now();
 
   double download_time = std::chrono::duration_cast<std::chrono::milliseconds>(download_end_time - download_start_time).count() / 1000.0;
   int64_t bits = bytes * 8;

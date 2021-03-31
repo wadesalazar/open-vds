@@ -86,12 +86,7 @@ TEST(IOTests, basicIOTest)
   // Test that we can upload and download some data
   {
     std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->WriteObject("basicIOtest1", "NA", "Text", meta_map, to_write, completedCallback);
-    while (!uploadRequest->IsDone())
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-    }
-
-    bool uploadStatus = uploadRequest->IsSuccess(ioManagerError);
+    bool uploadStatus = uploadRequest->WaitForFinish(ioManagerError);
     ASSERT_TRUE(uploadStatus);
   }
 
@@ -100,10 +95,7 @@ TEST(IOTests, basicIOTest)
 
     std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("basicIOtest1", transferHandler);
 
-    downloadRequest->WaitForFinish();
-    ASSERT_TRUE(downloadRequest->IsDone());
-
-    bool downloadStatus = downloadRequest->IsSuccess(ioManagerError);
+    bool downloadStatus = downloadRequest->WaitForFinish(ioManagerError);
     ASSERT_TRUE(downloadStatus);
   }
 
@@ -112,10 +104,7 @@ TEST(IOTests, basicIOTest)
     to_write->clear();
     std::shared_ptr<OpenVDS::Request> uploadRequest = m_ioManager->WriteObject("basicIOtest2", "", "Text", meta_map, to_write, completedCallback);
 
-    uploadRequest->WaitForFinish();
-    ASSERT_TRUE(uploadRequest->IsDone());
-
-    bool uploadStatus = uploadRequest->IsSuccess(ioManagerError);
+    bool uploadStatus = uploadRequest->WaitForFinish(ioManagerError);
     ASSERT_TRUE(uploadStatus);
   }
 
@@ -124,10 +113,7 @@ TEST(IOTests, basicIOTest)
 
     std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("basicIOtest2", transferHandler);
 
-    downloadRequest->WaitForFinish();
-    ASSERT_TRUE(downloadRequest->IsDone());
-
-    bool downloadStatus = downloadRequest->IsSuccess(ioManagerError);
+    bool downloadStatus = downloadRequest->WaitForFinish(ioManagerError);
     ASSERT_TRUE(downloadStatus);
   }
 
@@ -137,10 +123,7 @@ TEST(IOTests, basicIOTest)
 
     std::shared_ptr<OpenVDS::Request> downloadRequest = m_ioManager->ReadObject("basicIOtest_not_existing_blob", transferHandler);
 
-    downloadRequest->WaitForFinish();
-    ASSERT_TRUE(downloadRequest->IsDone());
-
-    bool downloadStatus = downloadRequest->IsSuccess(ioManagerError);
+    bool downloadStatus = downloadRequest->WaitForFinish(ioManagerError);
     ASSERT_FALSE(downloadStatus);
   }
 }

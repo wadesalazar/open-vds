@@ -19,6 +19,7 @@
 #define IOMANAGERAWS_H
 
 #include "IOManager.h"
+#include "IOManagerRequestImpl.h"
 
 #include <vector>
 #include <string>
@@ -31,24 +32,13 @@ namespace OpenVDS
   using AsyncDownloadContext = AsyncContext<DownloadRequestAWS>;
   using AsyncUploadContext = AsyncContext<UploadRequestAWS>;
 
-  class GetOrHeadRequestAWS : public Request
+  class GetOrHeadRequestAWS : public RequestImpl
   {
   public:
     GetOrHeadRequestAWS(const std::string &id, const std::shared_ptr<TransferDownloadHandler>& handler);
     ~GetOrHeadRequestAWS() override;
 
-
-    void WaitForFinish() override;
-    bool IsDone() const override;
-    bool IsSuccess(Error &error) const override;
-    void Cancel() override;
-
     std::shared_ptr<TransferDownloadHandler> m_handler;
-    std::atomic_bool m_cancelled;
-    bool m_done;
-    Error m_error;
-    std::condition_variable m_waitForFinish;
-    mutable std::mutex m_mutex;
   };
 
   class ReadObjectInfoRequestAWS : public GetOrHeadRequestAWS
@@ -86,23 +76,14 @@ namespace OpenVDS
     VectorBuf m_buffer;
   };
 
-  class UploadRequestAWS : public Request
+  class UploadRequestAWS : public RequestImpl
   {
   public:
     UploadRequestAWS(const std::string &id, std::function<void(const Request & request, const Error & error)> completedCallback);
     void run(Aws::S3::S3Client& client, const std::string& bucket, const std::string& contentDispostionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::weak_ptr<UploadRequestAWS> uploadRequest);
-    void WaitForFinish() override;
-    bool IsDone() const override;
-    bool IsSuccess(Error &error) const override;
-    void Cancel() override;
 
     std::function<void(const Request &request, const Error &error)> m_completedCallback;
     std::shared_ptr<IOStream> m_stream;
-    std::atomic_bool m_cancelled;
-    bool m_done;
-    Error m_error;
-    std::condition_variable m_waitForFinish;
-    mutable std::mutex m_mutex;
   };
 
   class IOManagerAWS : public IOManager

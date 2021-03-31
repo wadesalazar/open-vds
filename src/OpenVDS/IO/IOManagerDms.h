@@ -20,26 +20,18 @@
 
 #include "ThreadPool.h"
 
+#include "IOManagerRequestImpl.h"
+
 namespace OpenVDS
 {
-  class GetHeadRequestDms : public Request
+  class GetHeadRequestDms : public RequestImpl
   {
   public:
     GetHeadRequestDms(seismicdrive::SDGenericDataset &dataset, const std::string& id, const std::shared_ptr<TransferDownloadHandler>& handler);
     ~GetHeadRequestDms() override;
 
-    void WaitForFinish() override;
-    bool IsDone() const override;
-    bool IsSuccess(Error& error) const override;
-    void Cancel() override;
-
     seismicdrive::SDGenericDataset & m_dataset;
     std::shared_ptr<TransferDownloadHandler> m_handler;
-    std::atomic_bool m_cancelled;
-    bool m_done;
-    Error m_error;
-    std::condition_variable m_waitForFinish;
-    mutable std::mutex m_mutex;
     std::future<void> m_job;
   };
 
@@ -60,24 +52,15 @@ namespace OpenVDS
     void run(const std::string& requestName, const IORange& range, std::weak_ptr<DownloadRequestDms> request, ThreadPool &threadPool);
   };
 
-  class UploadRequestDms : public Request
+  class UploadRequestDms : public RequestImpl
   {
   public:
     UploadRequestDms(seismicdrive::SDGenericDataset &dataset, const std::string& id, std::function<void(const Request& request, const Error& error)> completedCallback);
     void run(const std::string& requestName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::weak_ptr<UploadRequestDms> uploadRequest, ThreadPool &threadPool);
-    void WaitForFinish() override;
-    bool IsDone() const override;
-    bool IsSuccess(Error& error) const override;
-    void Cancel() override;
 
     seismicdrive::SDGenericDataset & m_dataset;
     std::function<void(const Request& request, const Error& error)> m_completedCallback;
     std::shared_ptr<std::vector<uint8_t>> m_data;
-    std::atomic_bool m_cancelled;
-    bool m_done;
-    Error m_error;
-    std::condition_variable m_waitForFinish;
-    mutable std::mutex m_mutex;
     std::future<void> m_job;
   };
 

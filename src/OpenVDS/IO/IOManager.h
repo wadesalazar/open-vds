@@ -42,9 +42,7 @@ namespace OpenVDS
   public:
     Request(const std::string &objectName);
     virtual ~Request();
-    virtual void WaitForFinish() = 0;
-    virtual bool IsDone() const = 0;
-    virtual bool IsSuccess(Error &error) const = 0;
+    virtual bool WaitForFinish(Error &error) = 0;
     virtual void Cancel() = 0;
     const std::string &GetObjectName() const { return m_objectName; }
 

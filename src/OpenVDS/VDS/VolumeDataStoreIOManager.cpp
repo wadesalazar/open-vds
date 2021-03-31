@@ -197,8 +197,7 @@ VolumeDataStoreIOManager::ReadSerializedVolumeDataLayout(std::vector<uint8_t>& s
   syncTransferHandler->error = &error;
   syncTransferHandler->data = &serializedVolumeDataLayout;
   auto request = m_ioManager->ReadObject("VolumeDataLayout", syncTransferHandler);
-  request->WaitForFinish();
-  if (!request->IsSuccess(error))
+  if (!request->WaitForFinish(error))
   {
     error.string = "Error on downloading VolumeDataLayout object: " + error.string;
     return false;
@@ -213,8 +212,7 @@ VolumeDataStoreIOManager::ReadSerializedVolumeDataLayout(std::vector<uint8_t>& s
   std::vector<uint8_t> serializedLayerStatus;
   syncTransferHandler->data = &serializedLayerStatus;
   request = m_ioManager->ReadObject("LayerStatus", syncTransferHandler);
-  request->WaitForFinish();
-  if (!request->IsSuccess(error))
+  if (!request->WaitForFinish(error))
   {
     error.string = "Error on downloading LayerStatus object: " + error.string;
     return false;
@@ -236,9 +234,7 @@ VolumeDataStoreIOManager::WriteSerializedVolumeDataLayout(const std::vector<uint
 {
   auto request = m_ioManager->UploadJson("VolumeDataLayout", std::make_shared<std::vector<uint8_t>>(serializedVolumeDataLayout));
 
-  request->WaitForFinish();
-
-  if (!request->IsSuccess(error))
+  if (!request->WaitForFinish(error))
   {
     error.string = "Error on uploading VolumeDataLayout object: " + error.string;
     return false;
@@ -253,9 +249,7 @@ bool VolumeDataStoreIOManager::SerializeAndUploadLayerStatus(VDS& vds, Error& er
 
   auto request = m_ioManager->UploadJson("LayerStatus", serializedLayerStatus);
 
-  request->WaitForFinish();
-
-  if (!request->IsSuccess(error))
+  if (!request->WaitForFinish(error))
   {
     error.string = "Error on uploading LayerStatus object: " + error.string;
     return false;
@@ -444,21 +438,12 @@ bool VolumeDataStoreIOManager::ReadChunk(const VolumeDataChunk &chunk, int adapt
     return false;
   }
 
-  if (!activeTransfer->IsDone())
-  {
-    lock.unlock();
+  lock.unlock();
 
-    activeTransfer->WaitForFinish();
+  if (!activeTransfer->WaitForFinish(error))
+    return false;
 
-    lock.lock();
-    pendingRequestIterator = m_pendingDownloadRequests.find(chunk);
-    if (pendingRequestIterator == m_pendingDownloadRequests.end())
-    {
-      error.code = -1;
-      error.string = fmt::format("Request removed while processing: {}\n", chunk.index);
-      return false;
-    }
-  }
+  lock.lock();
 
   bool moveData = pendingRequestIterator->second.m_canMove;
   if (--pendingRequestIterator->second.m_ref == 0)
@@ -628,10 +613,9 @@ bool VolumeDataStoreIOManager::WriteMetadataPage(MetadataPage* metadataPage, con
 
   auto req = m_ioManager->UploadBinary(url, contentDispositionName, std::vector<std::pair<std::string, std::string>>(), std::make_shared<std::vector<uint8_t>>(data));
 
-  req->WaitForFinish();
-  bool success = req->IsSuccess(error);
+  bool success = req->WaitForFinish(error);
 
-  if(error.code != 0)
+  if(!success)
   {
     m_vds.accessManager->AddUploadError(error, url);
   }
@@ -803,7 +787,11 @@ bool VolumeDataStoreIOManager::Flush(bool writeUpdatedLayerStatus)
     if(m_pendingUploadRequests.empty()) break;
     std::shared_ptr<Request> request = m_pendingUploadRequests.begin()->second.request;
     lock.unlock();
-    request->WaitForFinish();
+    Error error;
+    if (!request->WaitForFinish(error))
+    {
+      m_vds.accessManager->AddUploadError(error, request->GetObjectName());
+    }
   }
 
   for(auto it = m_metadataManagers.begin(); it != m_metadataManagers.end(); ++it)
