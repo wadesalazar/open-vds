@@ -185,10 +185,26 @@ VolumeDataStoreIOManager:: VolumeDataStoreIOManager(VDS &vds, IOManager *ioManag
 
 VolumeDataStoreIOManager::~VolumeDataStoreIOManager()
 {
-  assert(m_pendingDownloadRequests.empty());
-  assert(m_pendingUploadRequests.empty());
+  Error error;
+  for (auto& downloadRequest : m_pendingDownloadRequests)
+  {
+    if (downloadRequest.second.m_activeTransfer)
+    {
+      downloadRequest.second.m_activeTransfer->Cancel();
+      downloadRequest.second.m_activeTransfer->WaitForFinish(error);
+    }
+  }
+  for (auto& uploadRequest : m_pendingUploadRequests)
+  {
+    if (uploadRequest.second.request)
+    {
+      if (!uploadRequest.second.request->WaitForFinish(error))
+      {
+        m_vds.accessManager->AddUploadError(error, uploadRequest.second.request->GetObjectName());
+      }
+    }
+  }
 }
-
 
 bool
 VolumeDataStoreIOManager::ReadSerializedVolumeDataLayout(std::vector<uint8_t>& serializedVolumeDataLayout, Error &error)

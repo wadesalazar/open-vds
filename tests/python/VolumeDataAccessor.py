@@ -8,7 +8,6 @@ if not TEST_URL:
 handle = openvds.open(TEST_URL, TEST_CONNECTION)
 acc = openvds.VolumeDataAccessManager(handle)
 r = acc.requestVolumeSubset((0,0,0),(100,100,100))
-r.waitForCompletion()
 
 accessor = acc.createVolumeData3DReadAccessorR32(openvds.DimensionsND.Dimensions_012)
 v = accessor.getValue((100,100,100))
