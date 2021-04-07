@@ -272,7 +272,7 @@ namespace OpenVDS
     }
     catch (...)
     {
-      error.string = "Unknwon DMS exception.";
+      error.string = "Unknown DMS exception.";
       error.code = -1;
     }
   }
