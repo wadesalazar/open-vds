@@ -82,7 +82,7 @@ GTEST_TEST(OpenVDS_integration, SimpleRequestVolumeSamples)
 
   float buffer[100];
   auto request = accessManager.RequestVolumeSamples(buffer, sizeof(buffer) * sizeof(float), OpenVDS::Dimensions_012, 0, 0, positions, 100, OpenVDS::InterpolationMethod::Linear);
-  bool success = request->WaitForCompletion(10000);
+  bool success = request->WaitForCompletion();
   if(!success)
   {
     if(request->IsCanceled())
