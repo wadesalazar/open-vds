@@ -876,7 +876,6 @@ public:
 
   VolumeDataAccessManager(IVolumeDataAccessManager* manager) : m_IVolumeDataAccessManager(manager)
   {
-    manager->AddRef();
   }
 
   VolumeDataAccessManager(VolumeDataAccessManager const& rhs) : m_IVolumeDataAccessManager(nullptr)

@@ -924,7 +924,9 @@ OPENVDS_EXPORT IVolumeDataAccessManager *GetAccessManagerInterface(VDSHandle han
 /// </returns>
 inline VolumeDataAccessManager GetAccessManager(VDSHandle handle)
 {
-  return VolumeDataAccessManager(OpenVDS::GetAccessManagerInterface(handle));
+  auto volumeDataAccessManagerInterface = OpenVDS::GetAccessManagerInterface(handle);
+  volumeDataAccessManagerInterface->AddRef();
+  return VolumeDataAccessManager(volumeDataAccessManagerInterface);
 }
 
 /// <summary>
