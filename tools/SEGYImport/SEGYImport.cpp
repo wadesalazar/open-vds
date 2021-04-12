@@ -76,6 +76,274 @@ int64_t GetTotalSystemMemory()
 }
 #endif
 
+void
+print_info(bool jsonOutput, const std::string title, const std::string &str)
+{
+  if (jsonOutput)
+  {
+    Json::Value valueObj;
+    valueObj["message"] = str;
+    valueObj["title"] = title;
+    Json::Value info;
+    info["info"] = valueObj;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = "  ";
+    std::string document = Json::writeString(wbuilder, info);
+    fmt::print(stdout, "{}", document);
+  }
+  else
+  {
+    fmt::print(stdout, "{}", str);
+  }
+}
+
+void
+print_info(bool jsonOutput, const std::string title, const std::string &str, const std::string &value)
+{
+  if (jsonOutput)
+  {
+    Json::Value valueObj;
+    valueObj["value"] = value;
+    valueObj["message"] = str;
+    valueObj["title"] = title;
+    Json::Value info;
+    info["info"] = valueObj;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = "  ";
+    std::string document = Json::writeString(wbuilder, info);
+    fmt::print(stdout, "{}\n", document);
+  }
+  else
+  {
+    fmt::print(stdout, "{}: {}\n", str, value);
+  }
+}
+
+void
+print_version(bool jsonOutput)
+{
+  if (jsonOutput)
+  {
+    Json::Value version;
+    version["name"] = "SEGYImport";
+    version["project"] = PROJECT_NAME;
+    version["version"] = PROJECT_VERSION;
+    Json::Value info;
+    info["version"] = version;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = "  ";
+    std::string document = Json::writeString(wbuilder, info);
+    fmt::print(stdout, "{}\n", document);
+  }
+  else
+  {
+    fmt::print(stdout, "{} - {} {}\n", "SEGYImport", PROJECT_NAME, PROJECT_VERSION);
+  }
+}
+
+void
+print_warning(bool jsonOutput, const std::string &title, const std::string& str)
+{
+  if (jsonOutput)
+  {
+    Json::Value valueObj;
+    valueObj["message"] = str;
+    valueObj["title"] = title;
+    Json::Value warning;
+    warning["warning"] = valueObj;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = "  ";
+    std::string document = Json::writeString(wbuilder, warning);
+    fmt::print(stdout, "{}\n", document);
+  }
+  else
+  {
+    fmt::print(stderr, "[{}]\n", str);
+  }
+}
+void
+print_warning(bool jsonOutput, const std::string& title, const std::string& message, const std::string& value, const std::string &systemError)
+{
+  if (jsonOutput)
+  {
+    Json::Value valueObj;
+    valueObj["message"] = message;
+    valueObj["title"] = title;
+    valueObj["value"] = value;
+    valueObj["error"] = systemError;
+    Json::Value warning;
+    warning["warning"] = valueObj;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = "  ";
+    std::string document = Json::writeString(wbuilder, warning);
+    fmt::print(stdout, "{}\n", document);
+  }
+  else
+  {
+    fmt::print(stderr, "[{}] {}: {}\n", message, value, systemError);
+  }
+}
+
+void
+print_error(bool jsonOutput, const std::string &title, const std::string& str)
+{
+  if (jsonOutput)
+  {
+    Json::Value valueObj;
+    valueObj["message"] = str;
+    valueObj["title"] = title;
+    Json::Value error;
+    error["error"] = valueObj;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = "  ";
+    std::string document = Json::writeString(wbuilder, error);
+    fmt::print(stdout, "{}\n", document);
+  }
+  else
+  {
+    fmt::print(stderr, "[{}]\n", str);
+  }
+}
+
+void
+print_error(bool jsonOutput, const std::string& title, const std::string& message, const std::string& value)
+{
+  if (jsonOutput)
+  {
+    Json::Value valueObj;
+    valueObj["message"] = message;
+    valueObj["title"] = title;
+    valueObj["value"] = value;
+    Json::Value error;
+    error["error"] = valueObj;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = "  ";
+    std::string document = Json::writeString(wbuilder, error);
+    fmt::print(stdout, "{}\n", document);
+  }
+  else
+  {
+    fmt::print(stderr, "[{}] {}\n", message, value);
+  }
+}
+
+void
+print_error(bool jsonOutput, const std::string& title, const std::string& message, const std::string& value, const std::string &systemError)
+{
+  if (jsonOutput)
+  {
+    Json::Value valueObj;
+    valueObj["message"] = message;
+    valueObj["title"] = title;
+    valueObj["value"] = value;
+    valueObj["error"] = systemError;
+    Json::Value error;
+    error["error"] = valueObj;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = "  ";
+    std::string document = Json::writeString(wbuilder, error);
+    fmt::print(stdout, "{}\n", document);
+  }
+  else
+  {
+    fmt::print(stderr, "[{}] {}: {}\n", message, value, systemError);
+  }
+}
+
+void
+print_warning_with_condition_fatal(bool jsonOutput, bool fatal, const std::string title, const std::string& value, const std::string& fatal_value)
+{
+  if (jsonOutput)
+  {
+    Json::Value valueObj;
+    valueObj["message"] = value;
+    valueObj["title"] = title;
+    if (fatal)
+      valueObj["info"] = fatal_value;
+    Json::Value root;
+    if (fatal)
+      root["error"] = valueObj;
+    else
+      root["warning"] = valueObj;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = "  ";
+    std::string document = Json::writeString(wbuilder, root);
+    fmt::print(stdout, "{}\n", document);
+  }
+  else
+  {
+    print_warning(jsonOutput, title, value);
+    if(fatal)
+    {
+      print_error(jsonOutput, title, fatal_value);
+    }
+  }
+  if (fatal)
+    exit(1);
+}
+
+struct PrintWarningContext
+{
+  Json::Value arrayAcc;
+  std::string title;
+  std::string fatalMsg;
+  bool jsonOutput;
+  bool fatal;
+  PrintWarningContext(bool jsonOutput, const std::string& title, bool fatal, const std::string fatalMsg)
+    : title(title)
+    , jsonOutput(jsonOutput)
+    , fatal(fatal)
+  {
+
+  }
+  ~PrintWarningContext()
+  {
+    if (jsonOutput)
+    {
+      Json::Value root;
+      if (fatal)
+      {
+        root["error"] = arrayAcc;
+        root["info"] = fatalMsg;
+      }
+      else
+      {
+        root["warning"] = arrayAcc;
+      }
+      Json::StreamWriterBuilder wbuilder;
+      wbuilder["indentation"] = "  ";
+      std::string document = Json::writeString(wbuilder, root);
+      fmt::print(stdout, "{}\n", document);
+    }
+    else
+    {
+      if (fatal)
+        print_error(jsonOutput, "VDS", fatalMsg);
+    }
+    if (fatal)
+    {
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  void addWarning(const std::string& message, const std::string& value, const std::string& systemError)
+  {
+    if (jsonOutput)
+    {
+      Json::Value obj;
+      obj["message"] = message;
+      obj["title"] = title;
+      obj["value"] = value;
+      obj["error"] = systemError;
+      arrayAcc.append(obj);
+    }
+    else
+    {
+      fmt::print(stderr, "[{}] {}: {}\n", message, value, systemError);
+    }
+  }
+};
+
 inline char asciitolower(char in) {
   if (in <= 'Z' && in >= 'A')
     return in - ('Z' - 'z');
@@ -119,18 +387,18 @@ DataProvider CreateDataProvider(const std::string& name, const std::string& conn
   return DataProvider(nullptr);
 }
 
-std::vector<DataProvider> CreateDataProviders(const std::vector<std::string> &fileNames, const std::string &connection, OpenVDS::Error &error)
+static std::vector<DataProvider> CreateDataProviders(const std::vector<std::string> &fileNames, const std::string &connection, OpenVDS::Error &error, std::string &errorFileName)
 {
   std::vector<DataProvider>
     dataProviders;
 
   for (const auto& fileName : fileNames)
   {
-    error = OpenVDS::Error();
     dataProviders.push_back(CreateDataProvider(fileName, connection, error));
 
     if (error.code != 0)
     {
+      errorFileName = fileName;
       dataProviders.clear();
       break;
     }
@@ -707,7 +975,7 @@ copySamples(const void* data, SEGY::BinaryHeader::DataSampleFormatCode dataSampl
 }
 
 bool
-analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, int& fold, int& secondaryStep, const SEGY::SEGYType segyType, int& offsetStart, int& offsetEnd, int& offsetStep, OpenVDS::Error& error)
+analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSegmentInfo const& segmentInfo, float valueRangePercentile, OpenVDS::FloatRange& valueRange, int& fold, int& secondaryStep, const SEGY::SEGYType segyType, int& offsetStart, int& offsetEnd, int& offsetStep, bool jsonOutput, OpenVDS::Error& error)
 {
   assert(segmentInfo.m_traceStop >= segmentInfo.m_traceStart && "A valid segment info should always have a stop trace greater or equal to the start trace");
 
@@ -771,7 +1039,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
 
     if(tracePrimaryKey != segmentInfo.m_primaryKey)
     {
-      fmt::print(stderr, "Warning: trace {} has a primary key that doesn't match with the segment. This trace will be ignored.\n", segmentInfo.m_traceStart + trace);
+      print_warning(jsonOutput, "SEGY", fmt::format("trace {} has a primary key that doesn't match with the segment. This trace will be ignored.", segmentInfo.m_traceStart + trace));
       continue;
     }
 
@@ -860,7 +1128,8 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
     {
       const auto
         msgFormat = "The detected gather offset start/end/step of '{0}/{1}/{2}' is not consistent with the detected fold of '{3}'. This usually indicates using the wrong header format for the input dataset.\n.";
-      fmt::print(stderr, msgFormat, offsetStart, offsetEnd, offsetStep, fold);
+      error.string = fmt::format(msgFormat, offsetStart, offsetEnd, offsetStep, fold);
+      error.code = -1;
       return false;
 
     }
@@ -1084,10 +1353,8 @@ createImportInformationMetadata(const std::vector<DataProvider> &dataProviders, 
 }
 
 bool
-parseSEGYFileInfoFile(DataProvider &dataProvider, SEGYFileInfo& fileInfo)
+parseSEGYFileInfoFile(DataProvider &dataProvider, SEGYFileInfo& fileInfo, OpenVDS::Error &error)
 {
-  OpenVDS::Error error;
-
   int64_t fileSize = dataProvider.Size(error);
 
   if (error.code != 0)
@@ -1131,7 +1398,9 @@ parseSEGYFileInfoFile(DataProvider &dataProvider, SEGYFileInfo& fileInfo)
 
     if (!success)
     {
-      throw Json::Exception(errs);
+      error.string = errs;
+      error.code = -1;
+      return false;
     }
 
     fileInfo.m_persistentID = strtoull(jsonFileInfo["persistentID"].asCString(), nullptr, 16);
@@ -1156,7 +1425,8 @@ parseSEGYFileInfoFile(DataProvider &dataProvider, SEGYFileInfo& fileInfo)
   }
   catch (Json::Exception &e)
   {
-    std::cerr << "Failed to parse JSON SEG-Y file info file: " << e.what();
+    error.string = fmt::format("Failed to parse JSON SEG-Y file info file: {}", e.what());
+    error.code = -1;
     return false;
   }
 
@@ -1436,7 +1706,6 @@ PrimaryKeyDimension(const SEGYFileInfo& fileInfo)
   }
   return 2;
 }
-
 int
 main(int argc, char* argv[])
 {
@@ -1477,6 +1746,7 @@ main(int argc, char* argv[])
   bool disablePersistentID = false;
   bool prestack = false;
   bool traceOrderByOffset = true;
+  bool jsonOutput = false;
   bool help = false;
   bool version = false;
 
@@ -1515,6 +1785,7 @@ main(int argc, char* argv[])
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
   options.add_option("", "", "uniqueID", "Generate a new globally unique ID when scanning the input SEG-Y file.", cxxopts::value<bool>(uniqueID), "");
   options.add_option("", "", "disable-persistentID", "Disable the persistentID usage, placing the VDS directly into the url location.", cxxopts::value<bool>(disablePersistentID), "");
+  options.add_option("", "", "json-output", "Enable json output.", cxxopts::value<bool>(jsonOutput), "");
   // TODO add option for turning off traceOrderByOffset
 
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
@@ -1525,7 +1796,7 @@ main(int argc, char* argv[])
 
   if (argc == 1)
   {
-    std::cout << options.help();
+    print_info(jsonOutput, "Args", options.help());
     return EXIT_SUCCESS;
   }
 
@@ -1538,19 +1809,19 @@ main(int argc, char* argv[])
   }
   catch (cxxopts::OptionParseException &e)
   {
-    std::cerr << e.what();
+    print_error(jsonOutput, "Args", e.what());
     return EXIT_FAILURE;
   }
 
   if (help)
   {
-    std::cout << options.help();
+    print_info(jsonOutput, "Args", options.help());
     return EXIT_SUCCESS;
   }
 
   if (version)
   {
-    fmt::print(stdout, "{} - {} {}\n", "SEGYImport", PROJECT_NAME, PROJECT_VERSION);
+    print_version(jsonOutput);
     return EXIT_SUCCESS;
   }
 
@@ -1569,13 +1840,13 @@ main(int argc, char* argv[])
   else if(compressionMethodString == "waveletnormalizeblocklossless") compressionMethod = OpenVDS::CompressionMethod::WaveletNormalizeBlockLossless;
   else
   {
-    fmt::print(stderr, "Unknown compression method: {}", compressionMethod);
+    print_error(jsonOutput, "CompressionMethod", "Unknown compression method", compressionMethodString);
     return EXIT_FAILURE;
   }
 
   if(!OpenVDS::IsCompressionMethodSupported(compressionMethod))
   {
-    fmt::print(stderr, "Unsupported compression method: {}", compressionMethod);
+    print_error(jsonOutput, "CompressionMethod", "Unsupported compression method", compressionMethodString);
     return EXIT_FAILURE;
   }
 
@@ -1618,31 +1889,31 @@ main(int argc, char* argv[])
   }
   else
   {
-    std::cerr << std::string("Primary key does not match a known SEG-Y type");
+    print_error(jsonOutput, "SEGY", "Primary key does not match a known SEG-Y type");
     return EXIT_FAILURE;
   }
 
   if (fileNames.empty())
   {
-    std::cerr << std::string("No input SEG-Y file specified");
+    print_error(jsonOutput, "SEGY", "No input SEG-Y file specified");
     return EXIT_FAILURE;
   }
 
   if (fileNames.size() > 1 && segyType != SEGY::SEGYType::Prestack)
   {
-    std::cerr << std::string("Only one input SEG-Y file may be specified");
+    print_error(jsonOutput, "SEGY", "Only one input SEG-Y file may be specified");
     return EXIT_FAILURE;
   }
 
   if(uniqueID && !persistentID.empty())
   {
-    std::cerr << std::string("--uniqueID does not make sense when the persistentID is specified");
+    print_error(jsonOutput, "Args", "--uniqueID does not make sense when the persistentID is specified");
     return EXIT_FAILURE;
   }
   
   if(disablePersistentID && !persistentID.empty())
   {
-    std::cerr << std::string("--disable-PersistentID does not make sense when the persistentID is specified");
+    print_error(jsonOutput, "Args", "--disable-PersistentID does not make sense when the persistentID is specified");
     return EXIT_FAILURE;
   }
 
@@ -1656,7 +1927,7 @@ main(int argc, char* argv[])
 
     if (error.code != 0)
     {
-      std::cerr << std::string("Could not open file: ") << headerFormatFileName;
+      print_error(jsonOutput, "File", "Could not open header format file", headerFormatFileName);
       return EXIT_FAILURE;
     }
 
@@ -1664,7 +1935,7 @@ main(int argc, char* argv[])
 
     if (error.code != 0)
     {
-      fmt::print(stderr, "Could not read header format file {}: {}\n", headerFormatFileName, error.string);
+      print_error(jsonOutput, "File", "Could not read header format file", headerFormatFileName, error.string);
       return EXIT_FAILURE;
     }
   }
@@ -1673,7 +1944,7 @@ main(int argc, char* argv[])
     OpenVDS::Error error;
     if (!ParseHeaderFieldArgs(headerFields, g_traceHeaderFields, headerEndianness, error))
     {
-      fmt::print(stderr, "Could not parse header-fields: {}\n", error.string);
+      print_error(jsonOutput, "HeaderFields", "Could not parse header-fields", error.string);
       return EXIT_FAILURE;
     }
   }
@@ -1688,7 +1959,7 @@ main(int argc, char* argv[])
   }
   else
   {
-    std::cerr << std::string("Unrecognized header field given for primary key: ") << primaryKey;
+    print_error(jsonOutput, "HeaderFields", "Unrecognized header field given for primary key", primaryKey);
     return EXIT_FAILURE;
   }
 
@@ -1705,12 +1976,12 @@ main(int argc, char* argv[])
 
   OpenVDS::Error
     error;
-
-  auto dataProviders = CreateDataProviders(fileNames, inputConnection, error);
+  std::string errorFileName;
+  auto dataProviders = CreateDataProviders(fileNames, inputConnection, error, errorFileName);
   if (error.code != 0)
   {
     // TODO need to name which file failed to open
-    fmt::print(stderr, "Could not open: {} - {}\n", fileNames[0], error.string);
+    print_error(jsonOutput, "IO", "Could not open input file", errorFileName, error.string);
     return EXIT_FAILURE;
   }
 
@@ -1738,7 +2009,7 @@ main(int argc, char* argv[])
 
     if (!success)
     {
-      std::cerr << std::string("Failed to scan file: ") << fileNames[0];
+      print_error(jsonOutput, "File", "Failed to scan file", fileNames[0]);
       return EXIT_FAILURE;
     }
 
@@ -1759,7 +2030,7 @@ main(int argc, char* argv[])
 
       if (fileInfoFileName.empty())
       {
-        std::cout << document;
+        fmt::print(stdout, "{}", document);
       }
       else
       {
@@ -1774,14 +2045,14 @@ main(int argc, char* argv[])
           splitUrl(fileInfoFileName, dirname, basename, parameters, error);
           if (error.code)
           {
-            fmt::print(stderr, "Failed to creating IOManager for {}: {}\n", fileInfoFileName, error.string);
+            print_error(jsonOutput, "IO", "Failed to creating IOManager for", fileInfoFileName, error.string);
             return EXIT_FAILURE;
           }
           std::string scanUrl = dirname + parameters;
           std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(scanUrl, urlConnection, OpenVDS::IOManager::ReadWrite, error));
           if (error.code)
           {
-            fmt::print(stderr, "Failed to creating IOManager for {}: {}\n", fileInfoFileName, error.string);
+            print_error(jsonOutput, "IO", "Failed to creating IOManager for", fileInfoFileName, error.string);
             return EXIT_FAILURE;
           }
           auto shared_data = std::make_shared<std::vector<uint8_t>>();
@@ -1791,7 +2062,7 @@ main(int argc, char* argv[])
           req->IsSuccess(error);
           if (error.code)
           {
-            fmt::print(stderr, "Failed to write {}: {}\n", fileInfoFileName, error.string);
+            print_error(jsonOutput, "IO", "Failed to write", fileInfoFileName, error.string);
             return EXIT_FAILURE;
           }
         }
@@ -1804,7 +2075,7 @@ main(int argc, char* argv[])
 
           if (error.code != 0)
           {
-            std::cerr << std::string("Could not create file: ") << fileInfoFileName;
+            print_error(jsonOutput, "IO", "Could not create file info file", fileInfoFileName);
             return EXIT_FAILURE;
           }
 
@@ -1812,7 +2083,7 @@ main(int argc, char* argv[])
 
           if (error.code != 0)
           {
-            std::cerr << std::string("Could not write to file: ") << fileInfoFileName;
+            print_error(jsonOutput, "IO", "Could not write file info to file", fileInfoFileName);
             return EXIT_FAILURE;
           }
         }
@@ -1830,14 +2101,15 @@ main(int argc, char* argv[])
 
     if (error.code != 0)
     {
-      fmt::print(stderr, "Could not create data provider for {}: {}.\n", fileInfoFileName, error.string);
+      print_error(jsonOutput, "IO", "Could not create data provider for", fileInfoFileName, error.string);
       return EXIT_FAILURE;
     }
 
-    bool success = parseSEGYFileInfoFile(fileInfoDataProvider, fileInfo);
+    bool success = parseSEGYFileInfoFile(fileInfoDataProvider, fileInfo, error);
 
     if (!success)
     {
+      print_error(jsonOutput, "FileInfo", "Parse SEGYFileInfo", fileInfoFileName, error.string);
       return EXIT_FAILURE;
     }
 
@@ -1848,7 +2120,7 @@ main(int argc, char* argv[])
   }
   else
   {
-    std::cerr << std::string("No SEG-Y file info file specified");
+    print_error(jsonOutput, "IO", "No SEG-Y file info file specified");
     return EXIT_FAILURE;
   }
 
@@ -1861,12 +2133,7 @@ main(int argc, char* argv[])
 
   if(fileInfo.m_segmentInfoLists.size() == 1 && fileInfo.m_segmentInfoLists[0].size() == 1)
   {
-    fmt::print(stderr, "Warning: There is only one segment, either this is (as of now unsupported) 2D data or this usually indicates using the wrong header format for the input dataset.\n");
-    if(!ignoreWarnings)
-    {
-      fmt::print(stderr, "Use --ignore-warnings to force the import to go ahead.\n");
-      return EXIT_FAILURE;
-    }
+    print_warning_with_condition_fatal(jsonOutput, !ignoreWarnings, "SegmentInfoList", "Warning: There is only one segment, either this is (as of now unsupported) 2D data or this usually indicates using the wrong header format for the input dataset.", "Use --ignore-warnings to force the import to go ahead.");
   }
 
   // Determine value range, fold and primary/secondary step
@@ -1879,11 +2146,11 @@ main(int argc, char* argv[])
 
   int fileIndex;
   auto representativeSegment = findRepresentativeSegment(fileInfo, primaryStep, fileIndex);
-  analyzeSegment(dataProviders[fileIndex], fileInfo, representativeSegment, valueRangePercentile, valueRange, fold, secondaryStep, segyType, offsetStart, offsetEnd, offsetStep, error);
+  analyzeSegment(dataProviders[fileIndex], fileInfo, representativeSegment, valueRangePercentile, valueRange, fold, secondaryStep, segyType, offsetStart, offsetEnd, offsetStep, jsonOutput, error);
 
   if (error.code != 0)
   {
-    std::cerr << error.string;
+    print_error(jsonOutput, "SEGY", error.string);
     return EXIT_FAILURE;
   }
 
@@ -1891,7 +2158,7 @@ main(int argc, char* argv[])
   {
     if(fold > 1)
     {
-      fmt::print(stderr, "Detected a fold of '{0}', this usually indicates using the wrong header format or primary key for the input dataset or that the input data is binned prestack data (PSTM/PSDM gathers) in which case the --prestack option should be used.", fold);
+      print_error(jsonOutput, "SEGY", fmt::format("Detected a fold of '{0}', this usually indicates using the wrong header format or primary key for the input dataset or that the input data is binned prestack data (PSTM/PSDM gathers) in which case the --prestack option should be used.", fold));
       return EXIT_FAILURE;
     }
   }
@@ -1899,7 +2166,7 @@ main(int argc, char* argv[])
   {
     if (fold <= 1)
     {
-      fmt::print(stderr, "Detected a fold of '{0}', this usually indicates using the wrong header format or primary key for the input dataset or that the input data is poststack in which case the --prestack option should not been used.", fold);
+      print_error(jsonOutput, "SEGY", fmt::format("Detected a fold of '{0}', this usually indicates using the wrong header format or primary key for the input dataset or that the input data is poststack in which case the --prestack option should not been used.", fold));
       return EXIT_FAILURE;
     }
   }
@@ -1915,7 +2182,7 @@ main(int argc, char* argv[])
   case 128: brickSizeEnum = OpenVDS::VolumeDataLayoutDescriptor::BrickSize_128; break;
   case 256: brickSizeEnum = OpenVDS::VolumeDataLayoutDescriptor::BrickSize_256; break;
   default:
-    std::cerr << std::string("Illegal brick size (must be 32, 64, 128 or 256)");
+    print_error(jsonOutput, "Args", "Illegal brick size (must be 32, 64, 128 or 256)");
     return EXIT_FAILURE;
   }
 
@@ -1945,7 +2212,7 @@ main(int argc, char* argv[])
   }
   else
   {
-    fmt::print(stderr, "Unknown sample unit: {}, legal units are 'ms', 'm' or 'ft'\n", sampleUnit);
+    print_error(jsonOutput, "Args", "Unknown sample unit: {}, legal units are 'ms', 'm' or 'ft'\n", sampleUnit);
     return EXIT_FAILURE;
   }
 
@@ -1967,12 +2234,9 @@ main(int argc, char* argv[])
 
   if(traceCountInVDS >= totalTraceCount * 2)
   {
-    fmt::print(stderr, "Warning: There is more than {:.1f}% empty traces in the VDS, this usually indicates using the wrong header format or primary key for the input dataset.\n", double(traceCountInVDS - totalTraceCount) * 100.0 / double(traceCountInVDS));
-    if(!ignoreWarnings)
-    {
-      fmt::print(stderr, "Use --ignore-warnings to force the import to go ahead.\n");
-      return EXIT_FAILURE;
-    }
+    std::string msg = fmt::format("There is more than {:.1f}% empty traces in the VDS, this usually indicates using the wrong header format or primary key for the input dataset.\n", double(traceCountInVDS - totalTraceCount) * 100.0 / double(traceCountInVDS));
+    std::string fatal_msg = "Use --ignore-warnings to force the import to go ahead.";
+    print_warning_with_condition_fatal(jsonOutput, !ignoreWarnings, "SEGY", msg, fatal_msg);
   }
 
   // Create channel descriptors
@@ -1986,7 +2250,7 @@ main(int argc, char* argv[])
 
   if (error.code != 0)
   {
-    std::cerr << error.string;
+    print_error(jsonOutput, "Metadata", error.string);
     return EXIT_FAILURE;
   }
 
@@ -1998,7 +2262,7 @@ main(int argc, char* argv[])
 
   if (error.code != 0)
   {
-    std::cerr << error.string;
+    print_error(jsonOutput, "Metadata", error.string);
     return EXIT_FAILURE;
   }
 
@@ -2035,7 +2299,7 @@ main(int argc, char* argv[])
 
   if (createError.code != 0)
   {
-    fmt::print(stderr, "Could not create VDS: {}\n", createError.string);
+    print_error(jsonOutput, "VDS", "Could not create VDS", createError.string);
     return EXIT_FAILURE;
   }
 
@@ -2055,7 +2319,7 @@ main(int argc, char* argv[])
   std::shared_ptr<DataView> dataView;
 
   int percentage = -1;
-  fmt::print("\nImporting into: {}\n\n", url);
+  print_info(jsonOutput, "ImportLocation", "Importing into", url);
 
   struct ChunkInfo
   {
@@ -2159,24 +2423,24 @@ main(int argc, char* argv[])
   for (int64_t chunk = 0; chunk < amplitudeAccessor->GetChunkCount() && error.code == 0; chunk++)
   {
     int new_percentage = int(double(chunk) / amplitudeAccessor->GetChunkCount() * 100);
-    if (is_tty && percentage != new_percentage)
+    if (!jsonOutput && is_tty && percentage != new_percentage)
     {
       percentage = new_percentage;
       fmt::print(stdout, "\r {:3}% Done. ", percentage);
       fflush(stdout);
     }
     int32_t errorCount = accessManager.UploadErrorCount();
-    for (int i = 0; i < errorCount; i++)
+    if (errorCount)
     {
-      const char* object_id;
-      int32_t error_code;
-      const char* error_string;
-      accessManager.GetCurrentUploadError(&object_id, &error_code, &error_string);
-      fprintf(stderr, "\nFailed to upload object: %s. Error code %d: %s\n", object_id, error_code, error_string);
-    }
-    if (errorCount && !force)
-    {
-      return EXIT_FAILURE;
+      PrintWarningContext warningContext(jsonOutput, "VDS", !force, "Use -f/--force to continue uploading after upload errors");
+      for (int i = 0; i < errorCount; i++)
+      {
+        const char* object_id;
+        int32_t error_code;
+        const char* error_string;
+        accessManager.GetCurrentUploadError(&object_id, &error_code, &error_string);
+        warningContext.addWarning("Failed to upload object", fmt::format("{}", object_id), fmt::format("Error code {}: {}", object_id, error_code, error_string));
+      }
     }
 
     auto &chunkInfo = chunkInfos[chunk];
@@ -2278,7 +2542,7 @@ main(int argc, char* argv[])
           firstTrace = findFirstTrace(traceDataManager, *segment, chunkInfo.secondaryKeyStart, fileInfo, error);
           if (error.code)
           {
-            fmt::print(stderr, "Failed when reading data: {} - {}", error.code, error.string);
+            print_warning(jsonOutput, "IO", "Failed when reading data", fmt::format("{}", error.code), error.string);
             break;
           }
         }
@@ -2292,7 +2556,7 @@ main(int argc, char* argv[])
           const char* header = traceDataManager.getTraceData(trace, error);
           if (error.code)
           {
-            fmt::print(stderr, "Failed when reading data: {} - {}\n", error.code, error.string);
+            print_warning(jsonOutput, "IO", "Failed when reading data", fmt::format("{}", error.code), error.string);
             break;
           }
 
@@ -2435,7 +2699,10 @@ main(int argc, char* argv[])
   {
     return EXIT_FAILURE;
   }
-  fmt::print("\r100% done processing {}.\n", url);
+  if (!jsonOutput)
+  {
+    fmt::print("\r100% done processing {}.\n", url);
+  }
   //double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
   //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
 
