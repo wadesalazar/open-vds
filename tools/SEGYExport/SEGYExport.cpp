@@ -31,6 +31,8 @@
 #include <fmt/format.h>
 #include <chrono>
 
+#include <PrintHelpers.h>
+
 int
 main(int argc, char *argv[])
 {
@@ -43,6 +45,7 @@ main(int argc, char *argv[])
   std::string connection;
   std::string persistentID;
   std::string fileName;
+  bool jsonOutput = false;
   bool help = false;
   bool version = false;
 
@@ -51,6 +54,7 @@ main(int argc, char *argv[])
   options.add_option("", "", "vdsfile", "Input VDS file name.", cxxopts::value<std::string>(url), "<string>");
   options.add_option("", "", "persistentID", "A globally unique ID for the VDS, usually an 8-digit hexadecimal number.", cxxopts::value<std::string>(persistentID), "<ID>");
 
+  options.add_option("", "", "json-output", "Enable json output.", cxxopts::value<bool>(jsonOutput), "");
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
   options.add_option("", "", "version", "Print version information.", cxxopts::value<bool>(version), "");
 
@@ -60,7 +64,7 @@ main(int argc, char *argv[])
 
   if(argc == 1)
   {
-    std::cout << options.help();
+    OpenVDS::printInfo(jsonOutput, "Args", options.help());
     return EXIT_SUCCESS;
   }
 
@@ -70,25 +74,25 @@ main(int argc, char *argv[])
   }
   catch(cxxopts::OptionParseException &e)
   {
-    fmt::print(stderr, "{}", e.what());
+    OpenVDS::printError(jsonOutput, "Args", e.what());
     return EXIT_FAILURE;
   }
 
   if (help)
   {
-    std::cout << options.help();
+    OpenVDS::printInfo(jsonOutput, "Args", options.help());
     return EXIT_SUCCESS;
   }
 
   if (version)
   {
-    fmt::print(stdout, "{} - {} {}\n", "SEGYExport", PROJECT_NAME, PROJECT_VERSION);
+    OpenVDS::printVersion(jsonOutput, "SEGYExport");
     return EXIT_SUCCESS;
   }
 
   if(fileName.empty())
   {
-    fmt::print(stderr, "No output SEG-Y file specified");
+    OpenVDS::printError(jsonOutput, "Args", "No output SEG-Y file specified");
     return EXIT_FAILURE;
   }
 
@@ -117,7 +121,7 @@ main(int argc, char *argv[])
 
   if(openError.code != 0)
   {
-    fmt::print(stderr, "Could not open VDS: {}\n", openError.string);
+    OpenVDS::printError(jsonOutput, "VDS", "Could not open VDS", openError.string);
     return EXIT_FAILURE;
   }
 
@@ -160,20 +164,20 @@ main(int argc, char *argv[])
 
   if(accessManager.GetVDSProduceStatus(dimensionGroup, 0, 0) == OpenVDS::VDSProduceStatus::Unavailable)
   {
-    fmt::print(stderr, "VDS cannot produce data");
+    OpenVDS::printError(jsonOutput, "VDS", "VDS cannot produce data");
     return EXIT_FAILURE;
   }
 
   if(!volumeDataLayout->IsChannelAvailable("Trace"))
   {
-    fmt::print(stderr, "VDS has no \"Trace\" channel");
+    OpenVDS::printError(jsonOutput, "VDS", "VDS has no \"Trace\" channel");
     return EXIT_FAILURE;
   }
   int traceFlagChannel = volumeDataLayout->GetChannelIndex("Trace");
 
   if(!volumeDataLayout->IsChannelAvailable("SEGYTraceHeader"))
   {
-    fmt::print(stderr, "VDS has no \"SEGYTraceHeader\" channel");
+    OpenVDS::printError(jsonOutput, "VDS", "VDS has no \"SEGYTraceHeader\" channel");
     return EXIT_FAILURE;
   }
   int segyTraceHeaderChannel = volumeDataLayout->GetChannelIndex("SEGYTraceHeader");
@@ -181,7 +185,7 @@ main(int argc, char *argv[])
   if((!volumeDataLayout->IsMetadataBLOBAvailable("SEGY", "TextHeader")   && !volumeDataLayout->IsMetadataBLOBAvailable("", "SEGYTextHeader")) ||
      (!volumeDataLayout->IsMetadataBLOBAvailable("SEGY", "BinaryHeader") && !volumeDataLayout->IsMetadataBLOBAvailable("", "SEGYBinaryHeader")))
   {
-    fmt::print(stderr, "SEG-Y Text/Binary headers not found");
+    OpenVDS::printError(jsonOutput, "VDS", "SEG-Y Text/Binary headers not found");
     return EXIT_FAILURE;
   }
 
@@ -261,7 +265,7 @@ main(int argc, char *argv[])
 
   if(textHeader.size() != SEGY::TextualFileHeaderSize || binaryHeader.size() != SEGY::BinaryFileHeaderSize)
   {
-    fmt::print(stderr, "Invalid SEG-Y Text/Binary headers");
+    OpenVDS::printError(jsonOutput, "SEGY", "Invalid SEG-Y Text/Binary headers");
     return EXIT_FAILURE;
   }
 
@@ -278,14 +282,14 @@ main(int argc, char *argv[])
 
   if(dataSampleFormatCode == SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat && dataEndianness == SEGY::Endianness::LittleEndian)
   {
-    fmt::print(stderr, "Little-endian IBM float is not supported");
+    OpenVDS::printError(jsonOutput, "SEGY", "Little-endian IBM float is not supported");
     return EXIT_FAILURE;
   }
 
   if(dataSampleFormatCode != SEGY::BinaryHeader::DataSampleFormatCode::IBMFloat &&
      dataSampleFormatCode != SEGY::BinaryHeader::DataSampleFormatCode::IEEEFloat)
   {
-    fmt::print(stderr, "Unsupported data sample format: {}", dataSampleFormatCode);
+    OpenVDS::printError(jsonOutput, "SEGY", "Unsupported data sample format", fmt::format("{}", dataSampleFormatCode));
     return EXIT_FAILURE;
   }
 
@@ -299,14 +303,14 @@ main(int argc, char *argv[])
 
   if(error.code != 0)
   {
-    fmt::print(stderr, "Could not open file: {}", fileName);
+    OpenVDS::printError(jsonOutput, "VDS", "Could not open file", fileName);
     return EXIT_FAILURE;
   }
 
   file.Write(textHeader.data(), 0, SEGY::TextualFileHeaderSize, error) && file.Write(binaryHeader.data(), SEGY::TextualFileHeaderSize, SEGY::BinaryFileHeaderSize, error);
   if(error.code != 0)
   {
-    fmt::print(stderr, "Error writing SEG-Y headers to file: {}", fileName);
+    OpenVDS::printError(jsonOutput, "VDS", "Error writing SEG-Y headers to file", fileName);
     return EXIT_FAILURE;
   }
 
@@ -347,7 +351,7 @@ main(int argc, char *argv[])
   for(int line = 0; line < lineCount; line++)
   {
     int new_percentage = int(line / double(lineCount) * 100);
-    if (percentage != new_percentage)
+    if (!jsonOutput && percentage != new_percentage)
     {
       percentage = new_percentage;
       fmt::print(stdout, "\33[2K\r {:3}% Done. ", percentage);
@@ -378,7 +382,7 @@ main(int argc, char *argv[])
       int errorCode;
       const char* errorString;
       accessManager.GetCurrentDownloadError(&errorCode, &errorString);
-      fmt::print(stderr, "\nError in data request: {} - {}\n", errorCode, errorString);
+      OpenVDS::printError(jsonOutput, "Error in data request", errorString, fmt::format("{}", errorCode));
       assert(dataRequest->IsCanceled());
       exit(1);
     }
@@ -387,7 +391,7 @@ main(int argc, char *argv[])
       int errorCode;
       const char* errorString;
       accessManager.GetCurrentDownloadError(&errorCode, &errorString);
-      fmt::print(stderr, "\nError in traceFlag request: {} - {}\n", errorCode, errorString);
+      OpenVDS::printError(jsonOutput, "Error in traceFlag request", errorString, fmt::format("{}", errorCode));
       assert(traceFlagRequest->IsCanceled());
       exit(1);
     }
@@ -396,7 +400,7 @@ main(int argc, char *argv[])
       int errorCode;
       const char* errorString;
       accessManager.GetCurrentDownloadError(&errorCode, &errorString);
-      fmt::print(stderr, "\nError in segyTraceHeader request: {} - {}\n", errorCode, errorString);
+      OpenVDS::printError(jsonOutput, "Error in segyTraceHeader request", errorString, fmt::format("{}", errorCode));
       assert(segyTraceHaderRequest->IsCanceled());
       exit(1);
     }
@@ -435,12 +439,13 @@ main(int argc, char *argv[])
     file.Write(writeBuffer.get(), offset, activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize), error);
     if(error.code != 0)
     {
-      fmt::print(stderr, "Error writing SEG-Y traces to file: {}", fileName);
+      OpenVDS::printError(jsonOutput, "Error writing SEG-Y traces to file", fileName);
       return EXIT_FAILURE;
     }
     offset += activeTraceCount * (traceDataSize + SEGY::TraceHeaderSize);
   }
-  fmt::print(stdout, "\33[2K\r 100% Done.\n", percentage);
+  if (!jsonOutput)
+    fmt::print(stdout, "\33[2K\r 100% Done.\n", percentage);
 
   //double elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
   //fmt::print("Elapsed time is {}.\n", elapsed / 1000);
