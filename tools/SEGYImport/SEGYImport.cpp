@@ -46,6 +46,7 @@
 #include <fmt/format.h>
 
 #include "SplitUrl.h"
+#include <PrintHelpers.h>
 
 #include <chrono>
 #include <numeric>
@@ -75,274 +76,6 @@ int64_t GetTotalSystemMemory()
     return int64_t(pages) * int64_t(page_size);
 }
 #endif
-
-void
-print_info(bool jsonOutput, const std::string title, const std::string &str)
-{
-  if (jsonOutput)
-  {
-    Json::Value valueObj;
-    valueObj["message"] = str;
-    valueObj["title"] = title;
-    Json::Value info;
-    info["info"] = valueObj;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = "  ";
-    std::string document = Json::writeString(wbuilder, info);
-    fmt::print(stdout, "{}", document);
-  }
-  else
-  {
-    fmt::print(stdout, "{}", str);
-  }
-}
-
-void
-print_info(bool jsonOutput, const std::string title, const std::string &str, const std::string &value)
-{
-  if (jsonOutput)
-  {
-    Json::Value valueObj;
-    valueObj["value"] = value;
-    valueObj["message"] = str;
-    valueObj["title"] = title;
-    Json::Value info;
-    info["info"] = valueObj;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = "  ";
-    std::string document = Json::writeString(wbuilder, info);
-    fmt::print(stdout, "{}\n", document);
-  }
-  else
-  {
-    fmt::print(stdout, "{}: {}\n", str, value);
-  }
-}
-
-void
-print_version(bool jsonOutput)
-{
-  if (jsonOutput)
-  {
-    Json::Value version;
-    version["name"] = "SEGYImport";
-    version["project"] = PROJECT_NAME;
-    version["version"] = PROJECT_VERSION;
-    Json::Value info;
-    info["version"] = version;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = "  ";
-    std::string document = Json::writeString(wbuilder, info);
-    fmt::print(stdout, "{}\n", document);
-  }
-  else
-  {
-    fmt::print(stdout, "{} - {} {}\n", "SEGYImport", PROJECT_NAME, PROJECT_VERSION);
-  }
-}
-
-void
-print_warning(bool jsonOutput, const std::string &title, const std::string& str)
-{
-  if (jsonOutput)
-  {
-    Json::Value valueObj;
-    valueObj["message"] = str;
-    valueObj["title"] = title;
-    Json::Value warning;
-    warning["warning"] = valueObj;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = "  ";
-    std::string document = Json::writeString(wbuilder, warning);
-    fmt::print(stdout, "{}\n", document);
-  }
-  else
-  {
-    fmt::print(stderr, "[{}]\n", str);
-  }
-}
-void
-print_warning(bool jsonOutput, const std::string& title, const std::string& message, const std::string& value, const std::string &systemError)
-{
-  if (jsonOutput)
-  {
-    Json::Value valueObj;
-    valueObj["message"] = message;
-    valueObj["title"] = title;
-    valueObj["value"] = value;
-    valueObj["error"] = systemError;
-    Json::Value warning;
-    warning["warning"] = valueObj;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = "  ";
-    std::string document = Json::writeString(wbuilder, warning);
-    fmt::print(stdout, "{}\n", document);
-  }
-  else
-  {
-    fmt::print(stderr, "[{}] {}: {}\n", message, value, systemError);
-  }
-}
-
-void
-print_error(bool jsonOutput, const std::string &title, const std::string& str)
-{
-  if (jsonOutput)
-  {
-    Json::Value valueObj;
-    valueObj["message"] = str;
-    valueObj["title"] = title;
-    Json::Value error;
-    error["error"] = valueObj;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = "  ";
-    std::string document = Json::writeString(wbuilder, error);
-    fmt::print(stdout, "{}\n", document);
-  }
-  else
-  {
-    fmt::print(stderr, "[{}]\n", str);
-  }
-}
-
-void
-print_error(bool jsonOutput, const std::string& title, const std::string& message, const std::string& value)
-{
-  if (jsonOutput)
-  {
-    Json::Value valueObj;
-    valueObj["message"] = message;
-    valueObj["title"] = title;
-    valueObj["value"] = value;
-    Json::Value error;
-    error["error"] = valueObj;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = "  ";
-    std::string document = Json::writeString(wbuilder, error);
-    fmt::print(stdout, "{}\n", document);
-  }
-  else
-  {
-    fmt::print(stderr, "[{}] {}\n", message, value);
-  }
-}
-
-void
-print_error(bool jsonOutput, const std::string& title, const std::string& message, const std::string& value, const std::string &systemError)
-{
-  if (jsonOutput)
-  {
-    Json::Value valueObj;
-    valueObj["message"] = message;
-    valueObj["title"] = title;
-    valueObj["value"] = value;
-    valueObj["error"] = systemError;
-    Json::Value error;
-    error["error"] = valueObj;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = "  ";
-    std::string document = Json::writeString(wbuilder, error);
-    fmt::print(stdout, "{}\n", document);
-  }
-  else
-  {
-    fmt::print(stderr, "[{}] {}: {}\n", message, value, systemError);
-  }
-}
-
-void
-print_warning_with_condition_fatal(bool jsonOutput, bool fatal, const std::string title, const std::string& value, const std::string& fatal_value)
-{
-  if (jsonOutput)
-  {
-    Json::Value valueObj;
-    valueObj["message"] = value;
-    valueObj["title"] = title;
-    if (fatal)
-      valueObj["info"] = fatal_value;
-    Json::Value root;
-    if (fatal)
-      root["error"] = valueObj;
-    else
-      root["warning"] = valueObj;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder["indentation"] = "  ";
-    std::string document = Json::writeString(wbuilder, root);
-    fmt::print(stdout, "{}\n", document);
-  }
-  else
-  {
-    print_warning(jsonOutput, title, value);
-    if(fatal)
-    {
-      print_error(jsonOutput, title, fatal_value);
-    }
-  }
-  if (fatal)
-    exit(1);
-}
-
-struct PrintWarningContext
-{
-  Json::Value arrayAcc;
-  std::string title;
-  std::string fatalMsg;
-  bool jsonOutput;
-  bool fatal;
-  PrintWarningContext(bool jsonOutput, const std::string& title, bool fatal, const std::string fatalMsg)
-    : title(title)
-    , jsonOutput(jsonOutput)
-    , fatal(fatal)
-  {
-
-  }
-  ~PrintWarningContext()
-  {
-    if (jsonOutput)
-    {
-      Json::Value root;
-      if (fatal)
-      {
-        root["error"] = arrayAcc;
-        root["info"] = fatalMsg;
-      }
-      else
-      {
-        root["warning"] = arrayAcc;
-      }
-      Json::StreamWriterBuilder wbuilder;
-      wbuilder["indentation"] = "  ";
-      std::string document = Json::writeString(wbuilder, root);
-      fmt::print(stdout, "{}\n", document);
-    }
-    else
-    {
-      if (fatal)
-        print_error(jsonOutput, "VDS", fatalMsg);
-    }
-    if (fatal)
-    {
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  void addWarning(const std::string& message, const std::string& value, const std::string& systemError)
-  {
-    if (jsonOutput)
-    {
-      Json::Value obj;
-      obj["message"] = message;
-      obj["title"] = title;
-      obj["value"] = value;
-      obj["error"] = systemError;
-      arrayAcc.append(obj);
-    }
-    else
-    {
-      fmt::print(stderr, "[{}] {}: {}\n", message, value, systemError);
-    }
-  }
-};
 
 inline char asciitolower(char in) {
   if (in <= 'Z' && in >= 'A')
@@ -1039,7 +772,7 @@ analyzeSegment(DataProvider &dataProvider, SEGYFileInfo const& fileInfo, SEGYSeg
 
     if(tracePrimaryKey != segmentInfo.m_primaryKey)
     {
-      print_warning(jsonOutput, "SEGY", fmt::format("trace {} has a primary key that doesn't match with the segment. This trace will be ignored.", segmentInfo.m_traceStart + trace));
+      OpenVDS::printWarning(jsonOutput, "SEGY", fmt::format("trace {} has a primary key that doesn't match with the segment. This trace will be ignored.", segmentInfo.m_traceStart + trace));
       continue;
     }
 
@@ -1796,7 +1529,7 @@ main(int argc, char* argv[])
 
   if (argc == 1)
   {
-    print_info(jsonOutput, "Args", options.help());
+    OpenVDS::printInfo(jsonOutput, "Args", options.help());
     return EXIT_SUCCESS;
   }
 
@@ -1809,19 +1542,19 @@ main(int argc, char* argv[])
   }
   catch (cxxopts::OptionParseException &e)
   {
-    print_error(jsonOutput, "Args", e.what());
+    OpenVDS::printError(jsonOutput, "Args", e.what());
     return EXIT_FAILURE;
   }
 
   if (help)
   {
-    print_info(jsonOutput, "Args", options.help());
+    OpenVDS::printInfo(jsonOutput, "Args", options.help());
     return EXIT_SUCCESS;
   }
 
   if (version)
   {
-    print_version(jsonOutput);
+    OpenVDS::printVersion(jsonOutput, "SEGYImport");
     return EXIT_SUCCESS;
   }
 
@@ -1840,13 +1573,13 @@ main(int argc, char* argv[])
   else if(compressionMethodString == "waveletnormalizeblocklossless") compressionMethod = OpenVDS::CompressionMethod::WaveletNormalizeBlockLossless;
   else
   {
-    print_error(jsonOutput, "CompressionMethod", "Unknown compression method", compressionMethodString);
+    OpenVDS::printError(jsonOutput, "CompressionMethod", "Unknown compression method", compressionMethodString);
     return EXIT_FAILURE;
   }
 
   if(!OpenVDS::IsCompressionMethodSupported(compressionMethod))
   {
-    print_error(jsonOutput, "CompressionMethod", "Unsupported compression method", compressionMethodString);
+    OpenVDS::printError(jsonOutput, "CompressionMethod", "Unsupported compression method", compressionMethodString);
     return EXIT_FAILURE;
   }
 
@@ -1889,31 +1622,31 @@ main(int argc, char* argv[])
   }
   else
   {
-    print_error(jsonOutput, "SEGY", "Primary key does not match a known SEG-Y type");
+    OpenVDS::printError(jsonOutput, "SEGY", "Primary key does not match a known SEG-Y type");
     return EXIT_FAILURE;
   }
 
   if (fileNames.empty())
   {
-    print_error(jsonOutput, "SEGY", "No input SEG-Y file specified");
+    OpenVDS::printError(jsonOutput, "SEGY", "No input SEG-Y file specified");
     return EXIT_FAILURE;
   }
 
   if (fileNames.size() > 1 && segyType != SEGY::SEGYType::Prestack)
   {
-    print_error(jsonOutput, "SEGY", "Only one input SEG-Y file may be specified");
+    OpenVDS::printError(jsonOutput, "SEGY", "Only one input SEG-Y file may be specified");
     return EXIT_FAILURE;
   }
 
   if(uniqueID && !persistentID.empty())
   {
-    print_error(jsonOutput, "Args", "--uniqueID does not make sense when the persistentID is specified");
+    OpenVDS::printError(jsonOutput, "Args", "--uniqueID does not make sense when the persistentID is specified");
     return EXIT_FAILURE;
   }
   
   if(disablePersistentID && !persistentID.empty())
   {
-    print_error(jsonOutput, "Args", "--disable-PersistentID does not make sense when the persistentID is specified");
+    OpenVDS::printError(jsonOutput, "Args", "--disable-PersistentID does not make sense when the persistentID is specified");
     return EXIT_FAILURE;
   }
 
@@ -1927,7 +1660,7 @@ main(int argc, char* argv[])
 
     if (error.code != 0)
     {
-      print_error(jsonOutput, "File", "Could not open header format file", headerFormatFileName);
+      OpenVDS::printError(jsonOutput, "File", "Could not open header format file", headerFormatFileName);
       return EXIT_FAILURE;
     }
 
@@ -1935,7 +1668,7 @@ main(int argc, char* argv[])
 
     if (error.code != 0)
     {
-      print_error(jsonOutput, "File", "Could not read header format file", headerFormatFileName, error.string);
+      OpenVDS::printError(jsonOutput, "File", "Could not read header format file", headerFormatFileName, error.string);
       return EXIT_FAILURE;
     }
   }
@@ -1944,7 +1677,7 @@ main(int argc, char* argv[])
     OpenVDS::Error error;
     if (!ParseHeaderFieldArgs(headerFields, g_traceHeaderFields, headerEndianness, error))
     {
-      print_error(jsonOutput, "HeaderFields", "Could not parse header-fields", error.string);
+      OpenVDS::printError(jsonOutput, "HeaderFields", "Could not parse header-fields", error.string);
       return EXIT_FAILURE;
     }
   }
@@ -1959,7 +1692,7 @@ main(int argc, char* argv[])
   }
   else
   {
-    print_error(jsonOutput, "HeaderFields", "Unrecognized header field given for primary key", primaryKey);
+    OpenVDS::printError(jsonOutput, "HeaderFields", "Unrecognized header field given for primary key", primaryKey);
     return EXIT_FAILURE;
   }
 
@@ -1981,7 +1714,7 @@ main(int argc, char* argv[])
   if (error.code != 0)
   {
     // TODO need to name which file failed to open
-    print_error(jsonOutput, "IO", "Could not open input file", errorFileName, error.string);
+    OpenVDS::printError(jsonOutput, "IO", "Could not open input file", errorFileName, error.string);
     return EXIT_FAILURE;
   }
 
@@ -2009,7 +1742,7 @@ main(int argc, char* argv[])
 
     if (!success)
     {
-      print_error(jsonOutput, "File", "Failed to scan file", fileNames[0]);
+      OpenVDS::printError(jsonOutput, "File", "Failed to scan file", fileNames[0]);
       return EXIT_FAILURE;
     }
 
@@ -2045,14 +1778,14 @@ main(int argc, char* argv[])
           splitUrl(fileInfoFileName, dirname, basename, parameters, error);
           if (error.code)
           {
-            print_error(jsonOutput, "IO", "Failed to creating IOManager for", fileInfoFileName, error.string);
+            OpenVDS::printError(jsonOutput, "IO", "Failed to creating IOManager for", fileInfoFileName, error.string);
             return EXIT_FAILURE;
           }
           std::string scanUrl = dirname + parameters;
           std::unique_ptr<OpenVDS::IOManager> ioManager(OpenVDS::IOManager::CreateIOManager(scanUrl, urlConnection, OpenVDS::IOManager::ReadWrite, error));
           if (error.code)
           {
-            print_error(jsonOutput, "IO", "Failed to creating IOManager for", fileInfoFileName, error.string);
+            OpenVDS::printError(jsonOutput, "IO", "Failed to creating IOManager for", fileInfoFileName, error.string);
             return EXIT_FAILURE;
           }
           auto shared_data = std::make_shared<std::vector<uint8_t>>();
@@ -2061,7 +1794,7 @@ main(int argc, char* argv[])
           req->WaitForFinish(error);
           if (error.code)
           {
-            print_error(jsonOutput, "IO", "Failed to write", fileInfoFileName, error.string);
+            OpenVDS::printError(jsonOutput, "IO", "Failed to write", fileInfoFileName, error.string);
             return EXIT_FAILURE;
           }
         }
@@ -2074,7 +1807,7 @@ main(int argc, char* argv[])
 
           if (error.code != 0)
           {
-            print_error(jsonOutput, "IO", "Could not create file info file", fileInfoFileName);
+            OpenVDS::printError(jsonOutput, "IO", "Could not create file info file", fileInfoFileName);
             return EXIT_FAILURE;
           }
 
@@ -2082,7 +1815,7 @@ main(int argc, char* argv[])
 
           if (error.code != 0)
           {
-            print_error(jsonOutput, "IO", "Could not write file info to file", fileInfoFileName);
+            OpenVDS::printError(jsonOutput, "IO", "Could not write file info to file", fileInfoFileName);
             return EXIT_FAILURE;
           }
         }
@@ -2100,7 +1833,7 @@ main(int argc, char* argv[])
 
     if (error.code != 0)
     {
-      print_error(jsonOutput, "IO", "Could not create data provider for", fileInfoFileName, error.string);
+      OpenVDS::printError(jsonOutput, "IO", "Could not create data provider for", fileInfoFileName, error.string);
       return EXIT_FAILURE;
     }
 
@@ -2108,7 +1841,7 @@ main(int argc, char* argv[])
 
     if (!success)
     {
-      print_error(jsonOutput, "FileInfo", "Parse SEGYFileInfo", fileInfoFileName, error.string);
+      OpenVDS::printError(jsonOutput, "FileInfo", "Parse SEGYFileInfo", fileInfoFileName, error.string);
       return EXIT_FAILURE;
     }
 
@@ -2119,7 +1852,7 @@ main(int argc, char* argv[])
   }
   else
   {
-    print_error(jsonOutput, "IO", "No SEG-Y file info file specified");
+    OpenVDS::printError(jsonOutput, "IO", "No SEG-Y file info file specified");
     return EXIT_FAILURE;
   }
 
@@ -2132,7 +1865,7 @@ main(int argc, char* argv[])
 
   if(fileInfo.m_segmentInfoLists.size() == 1 && fileInfo.m_segmentInfoLists[0].size() == 1)
   {
-    print_warning_with_condition_fatal(jsonOutput, !ignoreWarnings, "SegmentInfoList", "Warning: There is only one segment, either this is (as of now unsupported) 2D data or this usually indicates using the wrong header format for the input dataset.", "Use --ignore-warnings to force the import to go ahead.");
+    OpenVDS::printWarning_with_condition_fatal(jsonOutput, !ignoreWarnings, "SegmentInfoList", "Warning: There is only one segment, either this is (as of now unsupported) 2D data or this usually indicates using the wrong header format for the input dataset.", "Use --ignore-warnings to force the import to go ahead.");
   }
 
   // Determine value range, fold and primary/secondary step
@@ -2149,7 +1882,7 @@ main(int argc, char* argv[])
 
   if (error.code != 0)
   {
-    print_error(jsonOutput, "SEGY", error.string);
+    OpenVDS::printError(jsonOutput, "SEGY", error.string);
     return EXIT_FAILURE;
   }
 
@@ -2157,7 +1890,7 @@ main(int argc, char* argv[])
   {
     if(fold > 1)
     {
-      print_error(jsonOutput, "SEGY", fmt::format("Detected a fold of '{0}', this usually indicates using the wrong header format or primary key for the input dataset or that the input data is binned prestack data (PSTM/PSDM gathers) in which case the --prestack option should be used.", fold));
+      OpenVDS::printError(jsonOutput, "SEGY", fmt::format("Detected a fold of '{0}', this usually indicates using the wrong header format or primary key for the input dataset or that the input data is binned prestack data (PSTM/PSDM gathers) in which case the --prestack option should be used.", fold));
       return EXIT_FAILURE;
     }
   }
@@ -2165,7 +1898,7 @@ main(int argc, char* argv[])
   {
     if (fold <= 1)
     {
-      print_error(jsonOutput, "SEGY", fmt::format("Detected a fold of '{0}', this usually indicates using the wrong header format or primary key for the input dataset or that the input data is poststack in which case the --prestack option should not been used.", fold));
+      OpenVDS::printError(jsonOutput, "SEGY", fmt::format("Detected a fold of '{0}', this usually indicates using the wrong header format or primary key for the input dataset or that the input data is poststack in which case the --prestack option should not been used.", fold));
       return EXIT_FAILURE;
     }
   }
@@ -2181,7 +1914,7 @@ main(int argc, char* argv[])
   case 128: brickSizeEnum = OpenVDS::VolumeDataLayoutDescriptor::BrickSize_128; break;
   case 256: brickSizeEnum = OpenVDS::VolumeDataLayoutDescriptor::BrickSize_256; break;
   default:
-    print_error(jsonOutput, "Args", "Illegal brick size (must be 32, 64, 128 or 256)");
+    OpenVDS::printError(jsonOutput, "Args", "Illegal brick size (must be 32, 64, 128 or 256)");
     return EXIT_FAILURE;
   }
 
@@ -2211,7 +1944,7 @@ main(int argc, char* argv[])
   }
   else
   {
-    print_error(jsonOutput, "Args", "Unknown sample unit: {}, legal units are 'ms', 'm' or 'ft'\n", sampleUnit);
+    OpenVDS::printError(jsonOutput, "Args", "Unknown sample unit: {}, legal units are 'ms', 'm' or 'ft'\n", sampleUnit);
     return EXIT_FAILURE;
   }
 
@@ -2235,7 +1968,7 @@ main(int argc, char* argv[])
   {
     std::string msg = fmt::format("There is more than {:.1f}% empty traces in the VDS, this usually indicates using the wrong header format or primary key for the input dataset.\n", double(traceCountInVDS - totalTraceCount) * 100.0 / double(traceCountInVDS));
     std::string fatal_msg = "Use --ignore-warnings to force the import to go ahead.";
-    print_warning_with_condition_fatal(jsonOutput, !ignoreWarnings, "SEGY", msg, fatal_msg);
+    OpenVDS::printWarning_with_condition_fatal(jsonOutput, !ignoreWarnings, "SEGY", msg, fatal_msg);
   }
 
   // Create channel descriptors
@@ -2249,7 +1982,7 @@ main(int argc, char* argv[])
 
   if (error.code != 0)
   {
-    print_error(jsonOutput, "Metadata", error.string);
+    OpenVDS::printError(jsonOutput, "Metadata", error.string);
     return EXIT_FAILURE;
   }
 
@@ -2261,7 +1994,7 @@ main(int argc, char* argv[])
 
   if (error.code != 0)
   {
-    print_error(jsonOutput, "Metadata", error.string);
+    OpenVDS::printError(jsonOutput, "Metadata", error.string);
     return EXIT_FAILURE;
   }
 
@@ -2298,7 +2031,7 @@ main(int argc, char* argv[])
 
   if (createError.code != 0)
   {
-    print_error(jsonOutput, "VDS", "Could not create VDS", createError.string);
+    OpenVDS::printError(jsonOutput, "VDS", "Could not create VDS", createError.string);
     return EXIT_FAILURE;
   }
 
@@ -2318,7 +2051,7 @@ main(int argc, char* argv[])
   std::shared_ptr<DataView> dataView;
 
   int percentage = -1;
-  print_info(jsonOutput, "ImportLocation", "Importing into", url);
+  OpenVDS::printInfo(jsonOutput, "ImportLocation", "Importing into", url);
 
   struct ChunkInfo
   {
@@ -2431,7 +2164,7 @@ main(int argc, char* argv[])
     int32_t errorCount = accessManager.UploadErrorCount();
     if (errorCount)
     {
-      PrintWarningContext warningContext(jsonOutput, "VDS", !force, "Use -f/--force to continue uploading after upload errors");
+      OpenVDS::PrintWarningContext warningContext(jsonOutput, "VDS", !force, "Use -f/--force to continue uploading after upload errors");
       for (int i = 0; i < errorCount; i++)
       {
         const char* object_id;
@@ -2541,7 +2274,7 @@ main(int argc, char* argv[])
           firstTrace = findFirstTrace(traceDataManager, *segment, chunkInfo.secondaryKeyStart, fileInfo, error);
           if (error.code)
           {
-            print_warning(jsonOutput, "IO", "Failed when reading data", fmt::format("{}", error.code), error.string);
+            OpenVDS::printWarning(jsonOutput, "IO", "Failed when reading data", fmt::format("{}", error.code), error.string);
             break;
           }
         }
@@ -2555,7 +2288,7 @@ main(int argc, char* argv[])
           const char* header = traceDataManager.getTraceData(trace, error);
           if (error.code)
           {
-            print_warning(jsonOutput, "IO", "Failed when reading data", fmt::format("{}", error.code), error.string);
+            OpenVDS::printWarning(jsonOutput, "IO", "Failed when reading data", fmt::format("{}", error.code), error.string);
             break;
           }
 

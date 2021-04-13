@@ -7,6 +7,7 @@
 #include "Base64.h"
 
 #include "cxxopts.hpp"
+#include <PrintHelpers.h>
 
 namespace OpenVDS
 {
@@ -205,6 +206,7 @@ int main(int argc, char **argv)
   bool metadataAutoDecodeEBCDIC = false;
   bool metadataAll = false;
   int  textDecodeWidth = std::numeric_limits<int>::max();
+  bool jsonOutput = false;
   bool help = false;
   bool version = false;
 
@@ -227,6 +229,7 @@ int main(int argc, char **argv)
   
   options.add_option("", "", "url", "Url with vendor specific protocol or VDS file. (Available as positional argument as well).", cxxopts::value<std::vector<std::string>>(urlarg), "<string>");
 
+  options.add_option("", "", "json-output", "Enable json output.", cxxopts::value<bool>(jsonOutput), "");
   options.add_option("", "h", "help", "Print this help information", cxxopts::value<bool>(help), "");
   options.add_option("", "", "version", "Print version information.", cxxopts::value<bool>(version), "");
 
@@ -234,7 +237,7 @@ int main(int argc, char **argv)
 
   if(argc == 1)
   {
-    std::cout << options.help();
+    OpenVDS::printInfo(jsonOutput, "Args", options.help());
     return EXIT_SUCCESS;
   }
 
@@ -244,26 +247,25 @@ int main(int argc, char **argv)
   }
   catch(cxxopts::OptionParseException &e)
   {
-    fmt::print(stderr, "{}\n", e.what());
+    OpenVDS::printError(jsonOutput, "Args", e.what());
     return EXIT_FAILURE;
   }
 
   if(help)
   {
-    std::cout << options.help();
+    OpenVDS::printInfo(jsonOutput, "Args", options.help());
     return EXIT_SUCCESS;
   }
 
   if (version)
   {
-    fmt::print(stdout, "{} - {} {}\n", "VDSInfo", PROJECT_NAME, PROJECT_VERSION);
+    OpenVDS::printVersion(jsonOutput, "VDSInfo");
     return EXIT_SUCCESS;
   }
 
   if (urlarg.empty())
   {
-    std::cout << "\nFailed - missing url/vdsfile argument\n\n";
-    std::cout << options.help();
+    OpenVDS::printError(jsonOutput, "Args", "Failed - missing url/vdsfile argument");
     return EXIT_FAILURE;
   }
   
@@ -293,7 +295,7 @@ int main(int argc, char **argv)
 
   if(openError.code != 0)
   {
-    fmt::print(stderr, "Could not open VDS: {}\n", openError.string);
+    OpenVDS::printError(jsonOutput, "VDS", "Could not open VDS", openError.string);
     return EXIT_FAILURE;
   }
 
@@ -303,7 +305,7 @@ int main(int argc, char **argv)
   auto layout = OpenVDS::GetLayout(handle);
   if (!layout)
   {
-    fmt::print(stderr, "Internal error, no layout\n");
+    OpenVDS::printError(jsonOutput, "VDS", "Internal error, no layout");
     return EXIT_FAILURE;
   }
   
