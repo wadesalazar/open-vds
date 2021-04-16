@@ -133,7 +133,6 @@ void ReadObjectInfoRequestAzure::run(azure::storage::cloud_blob_container& conta
       catch (const azure::storage::storage_exception & e)
       {
         // display the erro message, set completion (error) status and return the error to the handler
-        ucout << _XPLATSTR("Error message is: ") << e.what() << std::endl;
         m_error.code = -1;
         m_error.string = e.what();
       }
@@ -203,7 +202,6 @@ void DownloadRequestAzure::run(azure::storage::cloud_blob_container& container, 
       catch (const azure::storage::storage_exception & e)
       {
         // display the erro message, set completion (error) status and return the error to the handler
-        ucout << _XPLATSTR("Error message is: ") << e.what() << std::endl;
         m_error.code = -1;
         m_error.string = e.what();
       }
@@ -332,24 +330,38 @@ IOManagerAzure::~IOManagerAzure()
 {
 }
 
+static std::string create_id(const std::string& prefix, const std::string& objectName)
+{
+  if (objectName.empty())
+  {
+    return prefix;
+  }
+  if (prefix.empty())
+  {
+    return objectName;
+  }
+  return prefix + "/" + objectName;
+}
+
 std::shared_ptr<Request> IOManagerAzure::ReadObjectInfo(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler)
 {
-  std::shared_ptr<ReadObjectInfoRequestAzure> azureRequest = std::make_shared<ReadObjectInfoRequestAzure>(objectName, handler);
-  azureRequest->run(m_container, m_options, objectName, azureRequest);
+  std::string id = create_id(m_prefix, objectName);
+  std::shared_ptr<ReadObjectInfoRequestAzure> azureRequest = std::make_shared<ReadObjectInfoRequestAzure>(id, handler);
+  azureRequest->run(m_container, m_options, id, azureRequest);
   return azureRequest;
 }
 
-std::shared_ptr<Request> IOManagerAzure::ReadObject(const std::string &requestName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
+std::shared_ptr<Request> IOManagerAzure::ReadObject(const std::string &objectName, std::shared_ptr<TransferDownloadHandler> handler, const IORange& range)
 {
-  std::string id = requestName.empty() ? m_prefix : m_prefix + "/" + requestName;
+  std::string id = create_id(m_prefix, objectName);
   std::shared_ptr<DownloadRequestAzure> azureRequest = std::make_shared<DownloadRequestAzure>(id, handler);
   azureRequest->run(m_container, m_options, id, range, azureRequest);
   return azureRequest;
 }
 
-std::shared_ptr<Request> IOManagerAzure::WriteObject(const std::string &requestName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
+std::shared_ptr<Request> IOManagerAzure::WriteObject(const std::string &objectName, const std::string& contentDispositionFilename, const std::string& contentType, const std::vector<std::pair<std::string, std::string>>& metadataHeader, std::shared_ptr<std::vector<uint8_t>> data, std::function<void(const Request & request, const Error & error)> completedCallback)
 {
-  std::string id = requestName.empty() ? m_prefix : m_prefix + "/" + requestName;
+  std::string id = create_id(m_prefix, objectName);
   std::shared_ptr<UploadRequestAzure> azureRequest = std::make_shared<UploadRequestAzure>(id, completedCallback);
   azureRequest->run(m_container, m_options, id, contentDispositionFilename, contentType, metadataHeader, data, azureRequest);
   return azureRequest;
