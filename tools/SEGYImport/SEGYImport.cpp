@@ -2048,10 +2048,22 @@ main(int argc, char* argv[])
   auto accessManager = OpenVDS::GetAccessManager(handle);
   auto layout = accessManager.GetVolumeDataLayout();
 
-  auto amplitudeAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::DimensionsND::Dimensions_012, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto traceFlagAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::DimensionsND::Dimensions_012, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto segyTraceHeaderAccessor = accessManager.CreateVolumeDataPageAccessor(OpenVDS::DimensionsND::Dimensions_012, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
-  auto offsetAccessor = fileInfo.HasGatherOffset() ? accessManager.CreateVolumeDataPageAccessor(OpenVDS::DimensionsND::Dimensions_012, 0, 3, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create) : nullptr;
+
+  OpenVDS::DimensionsND writeDimensionGroup = OpenVDS::DimensionsND::Dimensions_012;
+
+  if (IsSEGYTypeUnbinned(segyType))
+  {
+    writeDimensionGroup = OpenVDS::DimensionsND::Dimensions_01;
+  }
+  else if(segyType == SEGY::SEGYType::Prestack && primaryKey == "CrosslineNumber")
+  {
+    writeDimensionGroup = OpenVDS::DimensionsND::Dimensions_013;
+  }
+
+  auto amplitudeAccessor = accessManager.CreateVolumeDataPageAccessor(writeDimensionGroup, 0, 0, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto traceFlagAccessor = accessManager.CreateVolumeDataPageAccessor(writeDimensionGroup, 0, 1, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto segyTraceHeaderAccessor = accessManager.CreateVolumeDataPageAccessor(writeDimensionGroup, 0, 2, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create);
+  auto offsetAccessor = fileInfo.HasGatherOffset() ? accessManager.CreateVolumeDataPageAccessor(writeDimensionGroup, 0, 3, 8, OpenVDS::VolumeDataAccessManager::AccessMode_Create) : nullptr;
 
   int64_t traceByteSize = fileInfo.TraceByteSize();
 
