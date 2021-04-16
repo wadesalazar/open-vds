@@ -108,7 +108,7 @@ struct SEGYFileInfo
 
   OPENVDS_EXPORT int  TraceByteSize() const;
 
-  OPENVDS_EXPORT bool Scan(const std::vector<DataProvider>& dataProviders, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGY::HeaderField const &startTimeHeaderField = SEGY::TraceHeader::StartTimeHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::StandardHeaderFields());
+  OPENVDS_EXPORT bool Scan(const std::vector<DataProvider>& dataProviders, OpenVDS::Error &error, SEGY::HeaderField const &primaryKeyHeaderField, SEGY::HeaderField const &secondaryKeyHeaderField = SEGY::HeaderField(), SEGY::HeaderField const &startTimeHeaderField = SEGY::TraceHeader::StartTimeHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields = SEGYBinInfoHeaderFields::StandardHeaderFields());
 
   OPENVDS_EXPORT SEGYBinInfo readBinInfoFromHeader(const char* header, SEGYBinInfoHeaderFields const& headerFields, SEGY::Endianness endianness, int segmentTraceIndex) const;
 

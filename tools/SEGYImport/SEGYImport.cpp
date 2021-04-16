@@ -1738,11 +1738,11 @@ main(int argc, char* argv[])
       fileInfo.m_persistentID = OpenVDS::HashCombiner(hash);
     }
 
-    bool success = fileInfo.Scan(dataProviders, primaryKeyHeaderField, secondaryKeyHeaderField, startTimeHeaderField, binInfoHeaderFields);
+    bool success = fileInfo.Scan(dataProviders, error, primaryKeyHeaderField, secondaryKeyHeaderField, startTimeHeaderField, binInfoHeaderFields);
 
     if (!success)
     {
-      OpenVDS::printError(jsonOutput, "File", "Failed to scan file", fileNames[0]);
+      OpenVDS::printError(jsonOutput, "File", "Failed to scan file", fileNames[0], error.string);
       return EXIT_FAILURE;
     }
 

@@ -93,7 +93,7 @@ SEGYFileInfo::StaticGetUniqueID()
 }
 
 bool
-SEGYFileInfo::Scan(const std::vector<DataProvider>& dataProviders, HeaderField const &primaryKeyHeaderField, HeaderField const &secondaryKeyHeaderField, SEGY::HeaderField const &startTimeHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
+SEGYFileInfo::Scan(const std::vector<DataProvider>& dataProviders, OpenVDS::Error &error, HeaderField const &primaryKeyHeaderField, HeaderField const &secondaryKeyHeaderField, SEGY::HeaderField const &startTimeHeaderField, SEGYBinInfoHeaderFields const &binInfoHeaderFields)
 {
   char textualFileHeader[TextualFileHeaderSize];
   char binaryFileHeader[BinaryFileHeaderSize];
@@ -101,8 +101,6 @@ SEGYFileInfo::Scan(const std::vector<DataProvider>& dataProviders, HeaderField c
 
   m_primaryKey = primaryKeyHeaderField;
   m_secondaryKey = secondaryKeyHeaderField;
-
-  OpenVDS::Error error;
 
   // we assume that the text/binary headers are the same for all files; read them from the first file
   dataProviders[0].Read(textualFileHeader,                          0, TextualFileHeaderSize, error) &&
