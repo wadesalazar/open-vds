@@ -46,7 +46,7 @@ TEST(SEGYScanTest, scan)
   SEGYFileInfo
     fileInfo;
 
-  bool success = fileInfo.Scan(dataProviders, HeaderField(189, FieldWidth::FourByte));
+  bool success = fileInfo.Scan(dataProviders, error, HeaderField(189, FieldWidth::FourByte));
   EXPECT_TRUE(success);
 
   EXPECT_EQ(1, fileInfo.m_segmentInfoLists.size());
