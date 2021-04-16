@@ -1886,7 +1886,13 @@ main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  if (segyType == SEGY::SEGYType::Poststack || segyType == SEGY::SEGYType::Poststack2D)
+  if (IsSEGYTypeUnbinned(segyType))
+  {
+    // For unbinned data the segments are the gathers, so the fold is the number of traces in the longest segment
+    assert(fold == 1 && "analyzeSegment should report a fold of 1 for unbinned types");
+    // If we ever want to print the fold for diagnostic purposes we should loop through the segments and determine the actual fold here
+  }
+  else if (segyType == SEGY::SEGYType::Poststack || segyType == SEGY::SEGYType::Poststack2D)
   {
     if(fold > 1)
     {
