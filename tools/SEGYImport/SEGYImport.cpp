@@ -2087,7 +2087,7 @@ main(int argc, char* argv[])
   };
 
   // limit DataViewManager's memory use to 1.5 sets of brick inlines
-  const int64_t dvmMemoryLimit = 3LL * brickSize * axisDescriptors[1].GetNumSamples() * fileInfo.TraceByteSize() / 2LL;
+  const int64_t dvmMemoryLimit = 3LL * (writeDimensionGroup == OpenVDS::DimensionsND::Dimensions_01 ? 1 : brickSize) * axisDescriptors[1].GetNumSamples() * fileInfo.TraceByteSize() / 2LL;
 
   // create DataViewManagers and TraceDataManagers for each input file
   std::vector<std::shared_ptr<DataViewManager>>
