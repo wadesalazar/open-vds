@@ -22,6 +22,7 @@
 #include <OpenVDS/VolumeDataLayout.h>
 #include <OpenVDS/VolumeDataChannelDescriptor.h>
 #include <OpenVDS/Vector.h>
+#include <OpenVDS/Exceptions.h>
 
 namespace OpenVDS {
 
@@ -72,9 +73,9 @@ public:
 
   virtual VolumeDataLayout const *
                 GetLayout() = 0;
-  
-  struct IndexOutOfRangeException {};
-  struct ReadErrorException { const char * message; int errorCode; };
+
+  using IndexOutOfRangeException = OpenVDS::IndexOutOfRangeException;
+  using ReadErrorException = OpenVDS::ReadErrorException;
 };
 
 template <typename INDEX>

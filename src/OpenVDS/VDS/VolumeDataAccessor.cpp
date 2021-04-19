@@ -174,7 +174,7 @@ void VolumeDataAccessorBase::ReadPageAtPosition(IntVector4 index, bool enableWri
       m_validRegion = AccessorRegion({0, 0, 0, 0}, {0, 0, 0, 0});
 
       IVolumeDataAccessor::ReadErrorException
-        exception = { error.message, error.errorCode };
+        exception(error.message, error.errorCode);
 
       throw exception;
     }

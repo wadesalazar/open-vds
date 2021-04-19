@@ -93,6 +93,23 @@ public:
   const char *GetParameterName() const noexcept { return m_parameterName; }
 };
 
+class IndexOutOfRangeException : public Exception
+{
+public:
+  const char *GetErrorMessage() const noexcept override { return "IndexOutOfRange"; }
+};
+
+struct ReadErrorException : public MessageBufferException<512>
+{
+public:
+  //keping member public for api compatibility
+  const char *message;
+  int errorCode;
+  ReadErrorException(const char* errorMessage, int errorCode) : message(AddToBuffer(errorMessage)) , errorCode(errorCode) {}
+
+  const char *GetErrorMessage() const noexcept override { return message; }
+  int GetErrorCode() const noexcept { return errorCode;  }
+};
 } /* namespace OpenVDS */
 
 #endif //EXCEPTIONS_H
