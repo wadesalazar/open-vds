@@ -41,13 +41,6 @@ public:
 
   static constexpr int Dimensionality_Max = VolumeDataLayout::Dimensionality_Max;  ///< the maximum number of dimensions a VDS can have
 
-  enum AccessMode
-  {
-    AccessMode_ReadOnly,
-    AccessMode_ReadWrite,
-    AccessMode_Create
-  };
-
   /// <summary>
   /// Get the VolumeDataLayout object for a VDS.
   /// </summary>
@@ -99,7 +92,7 @@ public:
   /// <returns>
   /// A VolumeDataPageAccessor object for the VDS.
   /// </returns>
-  virtual VolumeDataPageAccessor *CreateVolumeDataPageAccessor(DimensionsND dimensionsND, int LOD, int channel, int maxPages, AccessMode accessMode, int chunkMetadataPageSize = 1024) = 0;
+  virtual VolumeDataPageAccessor *CreateVolumeDataPageAccessor(DimensionsND dimensionsND, int LOD, int channel, int maxPages, VolumeDataPageAccessor::AccessMode accessMode, int chunkMetadataPageSize = 1024) = 0;
 
   /// <summary>
   /// Destroy a volume data page accessor object.
@@ -800,10 +793,10 @@ using VolumeDataRequestDouble     = VolumeDataRequest_t<double>;
 class VolumeDataAccessManager
 {
 public:
-  typedef IVolumeDataAccessManager::AccessMode AccessMode;
-  static constexpr AccessMode AccessMode_ReadOnly  = IVolumeDataAccessManager::AccessMode_ReadOnly;
-  static constexpr AccessMode AccessMode_ReadWrite = IVolumeDataAccessManager::AccessMode_ReadWrite;
-  static constexpr AccessMode AccessMode_Create    = IVolumeDataAccessManager::AccessMode_Create;
+  typedef VolumeDataPageAccessor::AccessMode AccessMode;
+  static constexpr AccessMode AccessMode_ReadOnly  = VolumeDataPageAccessor::AccessMode_ReadOnly;
+  static constexpr AccessMode AccessMode_ReadWrite = VolumeDataPageAccessor::AccessMode_ReadWrite;
+  static constexpr AccessMode AccessMode_Create    = VolumeDataPageAccessor::AccessMode_Create;
 
   static constexpr int Dimensionality_Max = VolumeDataLayout::Dimensionality_Max;  ///< the maximum number of dimensions a VDS can have
 
@@ -961,7 +954,7 @@ public:
   VolumeDataPageAccessor *CreateVolumeDataPageAccessor(DimensionsND dimensionsND, int LOD, int channel, int maxPages, AccessMode accessMode, int chunkMetadataPageSize = 1024)
   {
     EnsureValid();
-    return m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode(accessMode), chunkMetadataPageSize);
+    return m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, accessMode, chunkMetadataPageSize);
   }
 
   /// <summary>
@@ -1011,193 +1004,193 @@ public:
   VolumeData2DInterpolatingAccessorR64 CreateVolumeData2DInterpolatingAccessorR64(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData2DInterpolatingAccessorR64(m_IVolumeDataAccessManager->Create2DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData2DInterpolatingAccessorR64 CreateVolumeData2DInterpolatingAccessorR64(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData2DInterpolatingAccessorR64(m_IVolumeDataAccessManager->Create2DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData2DInterpolatingAccessorR32 CreateVolumeData2DInterpolatingAccessorR32(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData2DInterpolatingAccessorR32(m_IVolumeDataAccessManager->Create2DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData2DInterpolatingAccessorR32 CreateVolumeData2DInterpolatingAccessorR32(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData2DInterpolatingAccessorR32(m_IVolumeDataAccessManager->Create2DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData2DReadAccessor1Bit CreateVolumeData2DReadAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData2DReadAccessor1Bit(m_IVolumeDataAccessManager->Create2DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessor1Bit CreateVolumeData2DReadAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData2DReadAccessor1Bit(m_IVolumeDataAccessManager->Create2DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorU8 CreateVolumeData2DReadAccessorU8(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorU8(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorU8 CreateVolumeData2DReadAccessorU8(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorU8(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorU16 CreateVolumeData2DReadAccessorU16(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorU16(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorU16 CreateVolumeData2DReadAccessorU16(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorU16(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorU32 CreateVolumeData2DReadAccessorU32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorU32(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorU32 CreateVolumeData2DReadAccessorU32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorU32(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorU64 CreateVolumeData2DReadAccessorU64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorU64(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorU64 CreateVolumeData2DReadAccessorU64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorU64(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorR32 CreateVolumeData2DReadAccessorR32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorR32(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorR32 CreateVolumeData2DReadAccessorR32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorR32(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorR64 CreateVolumeData2DReadAccessorR64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorR64(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadAccessorR64 CreateVolumeData2DReadAccessorR64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData2DReadAccessorR64(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessor1Bit CreateVolumeData2DReadWriteAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessor1Bit(m_IVolumeDataAccessManager->Create2DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessor1Bit CreateVolumeData2DReadWriteAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessor1Bit(m_IVolumeDataAccessManager->Create2DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorU8 CreateVolumeData2DReadWriteAccessorU8(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorU8(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorU8 CreateVolumeData2DReadWriteAccessorU8(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorU8(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorU16 CreateVolumeData2DReadWriteAccessorU16(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorU16(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorU16 CreateVolumeData2DReadWriteAccessorU16(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorU16(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorU32 CreateVolumeData2DReadWriteAccessorU32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorU32(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorU32 CreateVolumeData2DReadWriteAccessorU32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorU32(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorU64 CreateVolumeData2DReadWriteAccessorU64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorU64(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorU64 CreateVolumeData2DReadWriteAccessorU64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorU64(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorR32 CreateVolumeData2DReadWriteAccessorR32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorR32(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorR32 CreateVolumeData2DReadWriteAccessorR32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorR32(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorR64 CreateVolumeData2DReadWriteAccessorR64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorR64(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData2DReadWriteAccessorR64 CreateVolumeData2DReadWriteAccessorR64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData2DReadWriteAccessorR64(m_IVolumeDataAccessManager->Create2DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
 
@@ -1208,193 +1201,193 @@ public:
   VolumeData3DInterpolatingAccessorR64 CreateVolumeData3DInterpolatingAccessorR64(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData3DInterpolatingAccessorR64(m_IVolumeDataAccessManager->Create3DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData3DInterpolatingAccessorR64 CreateVolumeData3DInterpolatingAccessorR64(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData3DInterpolatingAccessorR64(m_IVolumeDataAccessManager->Create3DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData3DInterpolatingAccessorR32 CreateVolumeData3DInterpolatingAccessorR32(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData3DInterpolatingAccessorR32(m_IVolumeDataAccessManager->Create3DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData3DInterpolatingAccessorR32 CreateVolumeData3DInterpolatingAccessorR32(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData3DInterpolatingAccessorR32(m_IVolumeDataAccessManager->Create3DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData3DReadAccessor1Bit CreateVolumeData3DReadAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData3DReadAccessor1Bit(m_IVolumeDataAccessManager->Create3DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessor1Bit CreateVolumeData3DReadAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData3DReadAccessor1Bit(m_IVolumeDataAccessManager->Create3DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorU8 CreateVolumeData3DReadAccessorU8(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorU8(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorU8 CreateVolumeData3DReadAccessorU8(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorU8(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorU16 CreateVolumeData3DReadAccessorU16(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorU16(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorU16 CreateVolumeData3DReadAccessorU16(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorU16(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorU32 CreateVolumeData3DReadAccessorU32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorU32(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorU32 CreateVolumeData3DReadAccessorU32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorU32(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorU64 CreateVolumeData3DReadAccessorU64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorU64(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorU64 CreateVolumeData3DReadAccessorU64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorU64(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorR32 CreateVolumeData3DReadAccessorR32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorR32(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorR32 CreateVolumeData3DReadAccessorR32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorR32(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorR64 CreateVolumeData3DReadAccessorR64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorR64(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadAccessorR64 CreateVolumeData3DReadAccessorR64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData3DReadAccessorR64(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessor1Bit CreateVolumeData3DReadWriteAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessor1Bit(m_IVolumeDataAccessManager->Create3DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessor1Bit CreateVolumeData3DReadWriteAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessor1Bit(m_IVolumeDataAccessManager->Create3DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorU8 CreateVolumeData3DReadWriteAccessorU8(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorU8(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorU8 CreateVolumeData3DReadWriteAccessorU8(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorU8(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorU16 CreateVolumeData3DReadWriteAccessorU16(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorU16(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorU16 CreateVolumeData3DReadWriteAccessorU16(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorU16(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorU32 CreateVolumeData3DReadWriteAccessorU32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorU32(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorU32 CreateVolumeData3DReadWriteAccessorU32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorU32(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorU64 CreateVolumeData3DReadWriteAccessorU64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorU64(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorU64 CreateVolumeData3DReadWriteAccessorU64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorU64(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorR32 CreateVolumeData3DReadWriteAccessorR32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorR32(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorR32 CreateVolumeData3DReadWriteAccessorR32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorR32(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorR64 CreateVolumeData3DReadWriteAccessorR64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorR64(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData3DReadWriteAccessorR64 CreateVolumeData3DReadWriteAccessorR64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData3DReadWriteAccessorR64(m_IVolumeDataAccessManager->Create3DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
 
@@ -1405,193 +1398,193 @@ public:
   VolumeData4DInterpolatingAccessorR64 CreateVolumeData4DInterpolatingAccessorR64(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData4DInterpolatingAccessorR64(m_IVolumeDataAccessManager->Create4DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData4DInterpolatingAccessorR64 CreateVolumeData4DInterpolatingAccessorR64(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData4DInterpolatingAccessorR64(m_IVolumeDataAccessManager->Create4DInterpolatingVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData4DInterpolatingAccessorR32 CreateVolumeData4DInterpolatingAccessorR32(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData4DInterpolatingAccessorR32(m_IVolumeDataAccessManager->Create4DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData4DInterpolatingAccessorR32 CreateVolumeData4DInterpolatingAccessorR32(DimensionsND dimensionsND, int LOD, int channel, InterpolationMethod interpolationMethod, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData4DInterpolatingAccessorR32(m_IVolumeDataAccessManager->Create4DInterpolatingVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue()), interpolationMethod));
   }
   VolumeData4DReadAccessor1Bit CreateVolumeData4DReadAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData4DReadAccessor1Bit(m_IVolumeDataAccessManager->Create4DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessor1Bit CreateVolumeData4DReadAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData4DReadAccessor1Bit(m_IVolumeDataAccessManager->Create4DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorU8 CreateVolumeData4DReadAccessorU8(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorU8(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorU8 CreateVolumeData4DReadAccessorU8(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorU8(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorU16 CreateVolumeData4DReadAccessorU16(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorU16(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorU16 CreateVolumeData4DReadAccessorU16(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorU16(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorU32 CreateVolumeData4DReadAccessorU32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorU32(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorU32 CreateVolumeData4DReadAccessorU32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorU32(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorU64 CreateVolumeData4DReadAccessorU64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorU64(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorU64 CreateVolumeData4DReadAccessorU64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorU64(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorR32 CreateVolumeData4DReadAccessorR32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorR32(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorR32 CreateVolumeData4DReadAccessorR32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorR32(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorR64 CreateVolumeData4DReadAccessorR64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorR64(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadAccessorR64 CreateVolumeData4DReadAccessorR64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadOnly);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadOnly);
     return VolumeData4DReadAccessorR64(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessor1Bit CreateVolumeData4DReadWriteAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessor1Bit(m_IVolumeDataAccessManager->Create4DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessor1Bit CreateVolumeData4DReadWriteAccessor1Bit(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessor1Bit(m_IVolumeDataAccessManager->Create4DVolumeDataAccessor1Bit(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorU8 CreateVolumeData4DReadWriteAccessorU8(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorU8(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorU8 CreateVolumeData4DReadWriteAccessorU8(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorU8(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU8(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorU16 CreateVolumeData4DReadWriteAccessorU16(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorU16(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorU16 CreateVolumeData4DReadWriteAccessorU16(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorU16(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU16(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorU32 CreateVolumeData4DReadWriteAccessorU32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorU32(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorU32 CreateVolumeData4DReadWriteAccessorU32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorU32(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorU64 CreateVolumeData4DReadWriteAccessorU64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorU64(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorU64 CreateVolumeData4DReadWriteAccessorU64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorU64(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorU64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorR32 CreateVolumeData4DReadWriteAccessorR32(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorR32(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorR32 CreateVolumeData4DReadWriteAccessorR32(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorR32(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorR32(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorR64 CreateVolumeData4DReadWriteAccessorR64(DimensionsND dimensionsND, int LOD, int channel, int maxPages, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPages, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorR64(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
   VolumeData4DReadWriteAccessorR64 CreateVolumeData4DReadWriteAccessorR64(DimensionsND dimensionsND, int LOD, int channel, optional<float> replacementNoValue = optional<float>())
   {
     EnsureValid();
-    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, IVolumeDataAccessManager::AccessMode_ReadWrite);
+    VolumeDataPageAccessor *volumeDataPageAccessor = m_IVolumeDataAccessManager->CreateVolumeDataPageAccessor(dimensionsND, LOD, channel, maxPagesDefault, AccessMode_ReadWrite);
     return VolumeData4DReadWriteAccessorR64(m_IVolumeDataAccessManager->Create4DVolumeDataAccessorR64(volumeDataPageAccessor, replacementNoValue.value_or(volumeDataPageAccessor->GetChannelDescriptor().GetNoValue())));
   }
 

@@ -73,7 +73,7 @@ public:
 
   VolumeDataLayoutImpl const *GetVolumeDataLayout() override;
   VDSProduceStatus GetVDSProduceStatus(DimensionsND dimensionsND, int LOD, int channel) override;
-  VolumeDataPageAccessor *CreateVolumeDataPageAccessor(DimensionsND dimensionsND, int LOD, int channel, int maxPages, AccessMode accessMode, int chunkMetadataPageSize = 1024) override;
+  VolumeDataPageAccessor *CreateVolumeDataPageAccessor(DimensionsND dimensionsND, int LOD, int channel, int maxPages, VolumeDataAccessManager::AccessMode accessMode, int chunkMetadataPageSize = 1024) override;
 
   void  DestroyVolumeDataPageAccessor(VolumeDataPageAccessor *volumeDataPageAccessor) override;
   void  DestroyVolumeDataAccessor(IVolumeDataAccessor *accessor) override;

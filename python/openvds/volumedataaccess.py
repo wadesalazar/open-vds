@@ -152,7 +152,6 @@ class VolumeDataAccessManager(object):
   """
   def __init__(self, handle: int):
     self._manager = openvds.core.getAccessManager(handle)
-    self.AccessMode = openvds.core.IVolumeDataAccessManager.AccessMode
 
   @property
   def manager(self):

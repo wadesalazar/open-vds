@@ -89,7 +89,7 @@ TEST(VDS_integration, RequestVolumeCleanupThread)
   activePages = accessManager->CountActivePages();
   ASSERT_EQ(activePages, 0);
 
-  auto pageAccessor = accessManager->CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::IVolumeDataAccessManager::AccessMode_ReadOnly);
+  auto pageAccessor = accessManager->CreateVolumeDataPageAccessor(OpenVDS::Dimensions_012, 0, 0, 1000, OpenVDS::VolumeDataAccessManager::AccessMode_ReadOnly);
   auto valueReader = accessManager->Create3DInterpolatingVolumeDataAccessorR32(pageAccessor, 0.0f, OpenVDS::InterpolationMethod::Nearest);
 
   std::vector<float> verify(10 * sampleCount0);

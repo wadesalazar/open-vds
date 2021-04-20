@@ -19,6 +19,10 @@ import openvds.core
 from openvds.core import *
 from .volumedataaccess import VolumeDataAccessManager
 
+openvds.core.IVolumeDataAccessManager.AccessMode = openvds.core.VolumeDataPageAccessor.AccessMode
+openvds.core.VolumeDataAccessManager.AccessMode = openvds.core.VolumeDataPageAccessor.AccessMode
+VolumeDataAccessManager.AccessMode = openvds.core.VolumeDataPageAccessor.AccessMode
+
 def getAccessManager(handle: int):
     """Get the VolumeDataAccessManager for a VDS
     

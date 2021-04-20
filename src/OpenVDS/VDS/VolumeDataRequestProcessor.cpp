@@ -1840,7 +1840,7 @@ int64_t VolumeDataRequestProcessor::AddJob(const std::vector<VolumeDataChunk>& c
   auto page_accessor_it = m_pageAccessors.find(key);
   if (page_accessor_it == m_pageAccessors.end())
   {
-    auto pa = static_cast<VolumeDataPageAccessorImpl *>(m_manager.CreateVolumeDataPageAccessor(dimensions, lod, channel, maxPages, OpenVDS::IVolumeDataAccessManager::AccessMode_ReadOnly));
+    auto pa = static_cast<VolumeDataPageAccessorImpl *>(m_manager.CreateVolumeDataPageAccessor(dimensions, lod, channel, maxPages, VolumeDataAccessManager::AccessMode_ReadOnly));
     pa->RemoveReference();
     auto insert_result = m_pageAccessors.emplace(key, pa);
     assert(insert_result.second);

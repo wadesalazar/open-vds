@@ -40,7 +40,7 @@ shape = (layout.getDimensionNumSamples(2), layout.getDimensionNumSamples(1), lay
 data = np.arange(shape[0]*shape[1]*shape[2], step=1.0, dtype=np.float).reshape(shape)
 
 manager = openvds.getAccessManager(vds)
-accessor = manager.createVolumeDataPageAccessor(openvds.DimensionsND.Dimensions_012, 0, 0, 8, openvds.IVolumeDataAccessManager.AccessMode.AccessMode_Create, 1024)
+accessor = manager.createVolumeDataPageAccessor(openvds.DimensionsND.Dimensions_012, 0, 0, 8, openvds.VolumeDataAccessManager.AccessMode.AccessMode_Create, 1024)
 writePages(accessor, data)
 
 req = manager.requestVolumeSubset(min=(0,0,0), max=(shape[2], shape[1], shape[0]))

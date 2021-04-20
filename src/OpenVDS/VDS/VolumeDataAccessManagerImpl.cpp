@@ -353,7 +353,7 @@ VolumeDataAccessManagerImpl::GetVDSProduceStatus(DimensionsND dimensionsND, int 
 }
 
 VolumeDataPageAccessor *
-VolumeDataAccessManagerImpl::CreateVolumeDataPageAccessor(DimensionsND dimensionsND, int LOD, int channel, int maxPages, AccessMode accessMode, int chunkMetadataPageSize)
+VolumeDataAccessManagerImpl::CreateVolumeDataPageAccessor(DimensionsND dimensionsND, int LOD, int channel, int maxPages, VolumeDataAccessManager::AccessMode accessMode, int chunkMetadataPageSize)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -369,7 +369,7 @@ VolumeDataAccessManagerImpl::CreateVolumeDataPageAccessor(DimensionsND dimension
     }
   }
 
-  VolumeDataPageAccessorImpl *pageAccessor = new VolumeDataPageAccessorImpl(this, ValidateProduceStatus(volumeDataLayer), maxPages, accessMode != AccessMode_ReadOnly);
+  VolumeDataPageAccessorImpl *pageAccessor = new VolumeDataPageAccessorImpl(this, ValidateProduceStatus(volumeDataLayer), maxPages, accessMode != VolumeDataAccessManager::AccessMode_ReadOnly);
   m_volumeDataPageAccessorList.InsertLast(pageAccessor);
   return pageAccessor;
 }

@@ -144,6 +144,14 @@ public:
 
 class VolumeDataPageAccessor
 {
+public:
+  enum AccessMode
+  {
+    AccessMode_ReadOnly,
+    AccessMode_ReadWrite,
+    AccessMode_Create
+  };
+
 protected:
                 VolumeDataPageAccessor() {}
   virtual      ~VolumeDataPageAccessor() {}

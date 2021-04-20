@@ -86,7 +86,7 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpCre
     try {
         return (jlong) GetManager(managerHandle)->CreateVolumeDataPageAccessor((DimensionsND) (dimensionsND), lod,
                                                                                channel, maxPages,
-                                                                               (IVolumeDataAccessManager::AccessMode) accessMode);
+                                                                               (VolumeDataPageAccessor::AccessMode) accessMode);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
     return 0;
@@ -103,7 +103,7 @@ JNIEXPORT jlong JNICALL Java_org_opengroup_openvds_VolumeDataAccessManager_cpCre
     try {
         return (jlong) GetManager(managerHandle)->CreateVolumeDataPageAccessor((DimensionsND) (dimensionsND), lod,
                                                                                channel, maxPages,
-                                                                               (IVolumeDataAccessManager::AccessMode) accessMode, chunkMetadataPageSize);
+                                                                               (VolumeDataPageAccessor::AccessMode) accessMode, chunkMetadataPageSize);
     }
     CATCH_EXCEPTIONS_FOR_JAVA;
     return 0;

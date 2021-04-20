@@ -161,8 +161,17 @@ PyVolumeDataAccess::initModule(py::module& m)
   VolumeDataPage_.def_property_readonly("volumeDataPageAccessor", &VolumeDataPage::GetVolumeDataPageAccessor, OPENVDS_DOCSTRING(VolumeDataPage_GetVolumeDataPageAccessor));
   VolumeDataPage_.def("getMinMax"                   , [](VolumeDataPage* self, py::array_t<int,py::array::c_style>& min, py::array_t<int,py::array::c_style>& max) { return self->GetMinMax(PyArrayAdapter<int, 6, true>::getArrayChecked(min), PyArrayAdapter<int, 6, true>::getArrayChecked(max)); }, py::arg("min").none(false), py::arg("max").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_GetMinMax));
   VolumeDataPage_.def("getMinMaxExcludingMargin"    , [](VolumeDataPage* self, py::array_t<int,py::array::c_style>& minExcludingMargin, py::array_t<int,py::array::c_style>& maxExcludingMargin) { return self->GetMinMaxExcludingMargin(PyArrayAdapter<int, 6, true>::getArrayChecked(minExcludingMargin), PyArrayAdapter<int, 6, true>::getArrayChecked(maxExcludingMargin)); }, py::arg("minExcludingMargin").none(false), py::arg("maxExcludingMargin").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_GetMinMaxExcludingMargin));
+  VolumeDataPage_.def("getError"                    , static_cast<native::VolumeDataPage::Error(VolumeDataPage::*)() const>(&VolumeDataPage::GetError), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_GetError));
+  VolumeDataPage_.def_property_readonly("error", &VolumeDataPage::GetError, OPENVDS_DOCSTRING(VolumeDataPage_GetError));
   VolumeDataPage_.def("updateWrittenRegion"         , [](VolumeDataPage* self, const py::array_t<int,py::array::forcecast>& writtenMin, const py::array_t<int,py::array::forcecast>& writtenMax) { return self->UpdateWrittenRegion(PyArrayAdapter<int, 6, false>::getArrayChecked(writtenMin), PyArrayAdapter<int, 6, false>::getArrayChecked(writtenMax)); }, py::arg("writtenMin").none(false), py::arg("writtenMax").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_UpdateWrittenRegion));
   VolumeDataPage_.def("release"                     , static_cast<void(VolumeDataPage::*)()>(&VolumeDataPage::Release), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_Release));
+
+  // VolumeDataPage::Error
+  py::class_<VolumeDataPage::Error> 
+    VolumeDataPage_Error_(VolumeDataPage_,"VolumeDataPage::Error", OPENVDS_DOCSTRING(VolumeDataPage_Error));
+
+  VolumeDataPage_Error_.def_readwrite("message"                     , &VolumeDataPage::Error::message, OPENVDS_DOCSTRING(VolumeDataPage_Error_message));
+  VolumeDataPage_Error_.def_readwrite("errorCode"                   , &VolumeDataPage::Error::errorCode, OPENVDS_DOCSTRING(VolumeDataPage_Error_errorCode));
 
   // VolumeDataPageAccessor
   py::class_<VolumeDataPageAccessor, std::unique_ptr<VolumeDataPageAccessor, py::nodelete>> 
@@ -193,6 +202,13 @@ PyVolumeDataAccess::initModule(py::module& m)
   VolumeDataPageAccessor_.def("readPage"                    , static_cast<native::VolumeDataPage *(VolumeDataPageAccessor::*)(int64_t)>(&VolumeDataPageAccessor::ReadPage), py::arg("chunkIndex").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPageAccessor_ReadPage));
   VolumeDataPageAccessor_.def("readPageAtPosition"          , [](VolumeDataPageAccessor* self, const py::array_t<int,py::array::forcecast>& position) { return self->ReadPageAtPosition(PyArrayAdapter<int, 6, false>::getArrayChecked(position)); }, py::arg("position").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPageAccessor_ReadPageAtPosition));
   VolumeDataPageAccessor_.def("commit"                      , static_cast<void(VolumeDataPageAccessor::*)()>(&VolumeDataPageAccessor::Commit), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPageAccessor_Commit));
+
+  py::enum_<VolumeDataPageAccessor::AccessMode> 
+    VolumeDataPageAccessor_AccessMode_(VolumeDataPageAccessor_,"AccessMode", OPENVDS_DOCSTRING(VolumeDataPageAccessor_AccessMode));
+
+  VolumeDataPageAccessor_AccessMode_.value("AccessMode_ReadOnly"         , VolumeDataPageAccessor::AccessMode::AccessMode_ReadOnly, OPENVDS_DOCSTRING(VolumeDataPageAccessor_AccessMode_AccessMode_ReadOnly));
+  VolumeDataPageAccessor_AccessMode_.value("AccessMode_ReadWrite"        , VolumeDataPageAccessor::AccessMode::AccessMode_ReadWrite, OPENVDS_DOCSTRING(VolumeDataPageAccessor_AccessMode_AccessMode_ReadWrite));
+  VolumeDataPageAccessor_AccessMode_.value("AccessMode_Create"           , VolumeDataPageAccessor::AccessMode::AccessMode_Create, OPENVDS_DOCSTRING(VolumeDataPageAccessor_AccessMode_AccessMode_Create));
 
 //AUTOGEN-END
 // IMPLEMENTED :     VolumeDataPage_.def("getBuffer"                   , [](VolumeDataPage* self, py::array_t<int,py::array::c_style>& pitch) { return self->GetBuffer(PyArrayAdapter<int, 6, true>::getArrayChecked(pitch)); }, py::arg("pitch").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(VolumeDataPage_GetBuffer));

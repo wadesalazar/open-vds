@@ -1135,14 +1135,6 @@ static const char *__doc_OpenVDS_IVolumeDataAccessManager = R"doc()doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_2 = R"doc()doc";
 
-static const char *__doc_OpenVDS_IVolumeDataAccessManager_AccessMode = R"doc()doc";
-
-static const char *__doc_OpenVDS_IVolumeDataAccessManager_AccessMode_AccessMode_Create = R"doc()doc";
-
-static const char *__doc_OpenVDS_IVolumeDataAccessManager_AccessMode_AccessMode_ReadOnly = R"doc()doc";
-
-static const char *__doc_OpenVDS_IVolumeDataAccessManager_AccessMode_AccessMode_ReadWrite = R"doc()doc";
-
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_AddRef = R"doc()doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessManager_Cancel =
@@ -2697,6 +2689,8 @@ static const char *__doc_OpenVDS_StringWrapper_StringWrapper = R"doc()doc";
 
 static const char *__doc_OpenVDS_StringWrapper_StringWrapper_2 = R"doc()doc";
 
+static const char *__doc_OpenVDS_StringWrapper_StringWrapper_3 = R"doc()doc";
+
 static const char *__doc_OpenVDS_StringWrapper_data = R"doc()doc";
 
 static const char *__doc_OpenVDS_StringWrapper_size = R"doc()doc";
@@ -2787,6 +2781,8 @@ static const char *__doc_OpenVDS_Vector = R"doc()doc";
 static const char *__doc_OpenVDS_VectorWrapper = R"doc()doc";
 
 static const char *__doc_OpenVDS_VectorWrapper_VectorWrapper = R"doc()doc";
+
+static const char *__doc_OpenVDS_VectorWrapper_VectorWrapper_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VectorWrapper_data = R"doc()doc";
 
@@ -4516,6 +4512,14 @@ static const char *__doc_OpenVDS_VolumeDataPageAccessor_2 = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataPageAccessor_3 = R"doc()doc";
 
+static const char *__doc_OpenVDS_VolumeDataPageAccessor_AccessMode = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataPageAccessor_AccessMode_AccessMode_Create = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataPageAccessor_AccessMode_AccessMode_ReadOnly = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataPageAccessor_AccessMode_AccessMode_ReadWrite = R"doc()doc";
+
 static const char *__doc_OpenVDS_VolumeDataPageAccessor_AddReference = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataPageAccessor_Commit = R"doc()doc";
@@ -4590,7 +4594,15 @@ static const char *__doc_OpenVDS_VolumeDataPageAccessor_SetMaxPages = R"doc()doc
 
 static const char *__doc_OpenVDS_VolumeDataPageAccessor_VolumeDataPageAccessor = R"doc()doc";
 
+static const char *__doc_OpenVDS_VolumeDataPage_Error = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataPage_Error_errorCode = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataPage_Error_message = R"doc()doc";
+
 static const char *__doc_OpenVDS_VolumeDataPage_GetBuffer = R"doc()doc";
+
+static const char *__doc_OpenVDS_VolumeDataPage_GetError = R"doc()doc";
 
 static const char *__doc_OpenVDS_VolumeDataPage_GetMinMax = R"doc()doc";
 
