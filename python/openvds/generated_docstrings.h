@@ -1715,8 +1715,6 @@ static const char *__doc_OpenVDS_IVolumeDataAccessor_GetManager = R"doc()doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessor_IVolumeDataAccessor = R"doc()doc";
 
-static const char *__doc_OpenVDS_IVolumeDataAccessor_IndexOutOfRangeException = R"doc()doc";
-
 static const char *__doc_OpenVDS_IVolumeDataAccessor_Manager = R"doc()doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessor_Manager_CloneVolumeDataAccessor = R"doc()doc";
@@ -1724,12 +1722,6 @@ static const char *__doc_OpenVDS_IVolumeDataAccessor_Manager_CloneVolumeDataAcce
 static const char *__doc_OpenVDS_IVolumeDataAccessor_Manager_DestroyVolumeDataAccessor = R"doc()doc";
 
 static const char *__doc_OpenVDS_IVolumeDataAccessor_Manager_Manager = R"doc()doc";
-
-static const char *__doc_OpenVDS_IVolumeDataAccessor_ReadErrorException = R"doc()doc";
-
-static const char *__doc_OpenVDS_IVolumeDataAccessor_ReadErrorException_errorCode = R"doc()doc";
-
-static const char *__doc_OpenVDS_IVolumeDataAccessor_ReadErrorException_message = R"doc()doc";
 
 static const char *__doc_OpenVDS_IVolumeDataReadAccessor = R"doc()doc";
 
@@ -1764,6 +1756,10 @@ static const char *__doc_OpenVDS_InMemoryOpenOptions_InMemoryOpenOptions_2 = R"d
 static const char *__doc_OpenVDS_InMemoryOpenOptions_InMemoryOpenOptions_3 = R"doc()doc";
 
 static const char *__doc_OpenVDS_InMemoryOpenOptions_name = R"doc()doc";
+
+static const char *__doc_OpenVDS_IndexOutOfRangeException = R"doc()doc";
+
+static const char *__doc_OpenVDS_IndexOutOfRangeException_GetErrorMessage = R"doc()doc";
 
 static const char *__doc_OpenVDS_IndexRegion = R"doc()doc";
 
@@ -2662,6 +2658,18 @@ Returns:
     Element at position "element" is returned.)doc";
 
 static const char *__doc_OpenVDS_ReadElement_2 = R"doc()doc";
+
+static const char *__doc_OpenVDS_ReadErrorException = R"doc()doc";
+
+static const char *__doc_OpenVDS_ReadErrorException_GetErrorCode = R"doc()doc";
+
+static const char *__doc_OpenVDS_ReadErrorException_GetErrorMessage = R"doc()doc";
+
+static const char *__doc_OpenVDS_ReadErrorException_ReadErrorException = R"doc()doc";
+
+static const char *__doc_OpenVDS_ReadErrorException_errorCode = R"doc()doc";
+
+static const char *__doc_OpenVDS_ReadErrorException_message = R"doc()doc";
 
 static const char *__doc_OpenVDS_RequestFormat = R"doc()doc";
 

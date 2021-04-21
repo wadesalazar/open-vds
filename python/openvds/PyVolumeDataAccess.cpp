@@ -142,17 +142,6 @@ PyVolumeDataAccess::initModule(py::module& m)
   IVolumeDataAccessor_Manager_.def("destroyVolumeDataAccessor"   , static_cast<void(IVolumeDataAccessor::Manager::*)(native::IVolumeDataAccessor *)>(&IVolumeDataAccessor::Manager::DestroyVolumeDataAccessor), py::arg("accessor").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IVolumeDataAccessor_Manager_DestroyVolumeDataAccessor));
   IVolumeDataAccessor_Manager_.def("cloneVolumeDataAccessor"     , static_cast<native::IVolumeDataAccessor *(IVolumeDataAccessor::Manager::*)(const native::IVolumeDataAccessor &)>(&IVolumeDataAccessor::Manager::CloneVolumeDataAccessor), py::arg("accessor").none(false), py::call_guard<py::gil_scoped_release>(), OPENVDS_DOCSTRING(IVolumeDataAccessor_Manager_CloneVolumeDataAccessor));
 
-  // IVolumeDataAccessor::IndexOutOfRangeException
-  py::class_<IVolumeDataAccessor::IndexOutOfRangeException> 
-    IVolumeDataAccessor_IndexOutOfRangeException_(IVolumeDataAccessor_,"IVolumeDataAccessor::IndexOutOfRangeException", OPENVDS_DOCSTRING(IVolumeDataAccessor_IndexOutOfRangeException));
-
-  // IVolumeDataAccessor::ReadErrorException
-  py::class_<IVolumeDataAccessor::ReadErrorException> 
-    IVolumeDataAccessor_ReadErrorException_(IVolumeDataAccessor_,"IVolumeDataAccessor::ReadErrorException", OPENVDS_DOCSTRING(IVolumeDataAccessor_ReadErrorException));
-
-  IVolumeDataAccessor_ReadErrorException_.def_readwrite("message"                     , &IVolumeDataAccessor::ReadErrorException::message, OPENVDS_DOCSTRING(IVolumeDataAccessor_ReadErrorException_message));
-  IVolumeDataAccessor_ReadErrorException_.def_readwrite("errorCode"                   , &IVolumeDataAccessor::ReadErrorException::errorCode, OPENVDS_DOCSTRING(IVolumeDataAccessor_ReadErrorException_errorCode));
-
   // VolumeDataPage
   py::class_<VolumeDataPage, std::unique_ptr<VolumeDataPage, py::nodelete>> 
     VolumeDataPage_(m,"VolumeDataPage", OPENVDS_DOCSTRING(VolumeDataPage));
