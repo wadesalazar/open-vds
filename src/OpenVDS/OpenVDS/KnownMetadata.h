@@ -126,6 +126,102 @@
 /// </ul>
 #define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_CROSSLINESPACING    "CrosslineSpacing"
 
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT0
+/// <ul>
+/// <li>Data type   : DoubleVector2
+/// <li>Name        : "GridPoint0"
+/// <li>Description : An optional reference point in the grid, the annotation coordinates for this point are GridPoint0Inline and GridPoint0Crossline
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT0    "GridPoint0"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT0INLINE
+/// <ul>
+/// <li>Data type   : Float
+/// <li>Name        : "GridPoint0Inline"
+/// <li>Description : The inline annotation coordinate for the point defined by GridPoint0
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT0INLINE    "GridPoint0Inline"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT0CROSSLINE
+/// <ul>
+/// <li>Data type   : Float
+/// <li>Name        : "GridPoint0Crossline"
+/// <li>Description : The inline annotation coordinate for the point defined by GridPoint0
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT0CROSSLINE    "GridPoint0Crossline"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT1
+/// <ul>
+/// <li>Data type   : DoubleVector2
+/// <li>Name        : "GridPoint1"
+/// <li>Description : An optional reference point in the grid, the annotation coordinates for this point are GridPoint1Inline and GridPoint1Crossline
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT1    "GridPoint1"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT1INLINE
+/// <ul>
+/// <li>Data type   : Float
+/// <li>Name        : "GridPoint1Inline"
+/// <li>Description : The inline annotation coordinate for the point defined by GridPoint1
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT1INLINE    "GridPoint1Inline"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT1CROSSLINE
+/// <ul>
+/// <li>Data type   : Float
+/// <li>Name        : "GridPoint1Crossline"
+/// <li>Description : The inline annotation coordinate for the point defined by GridPoint1
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT1CROSSLINE    "GridPoint1Crossline"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT2
+/// <ul>
+/// <li>Data type   : DoubleVector2
+/// <li>Name        : "GridPoint2"
+/// <li>Description : An optional reference point in the grid, the annotation coordinates for this point are GridPoint2Inline and GridPoint2Crossline
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT2    "GridPoint2"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT2INLINE
+/// <ul>
+/// <li>Data type   : Float
+/// <li>Name        : "GridPoint2Inline"
+/// <li>Description : The inline annotation coordinate for the point defined by GridPoint2
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT2INLINE    "GridPoint2Inline"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT2CROSSLINE
+/// <ul>
+/// <li>Data type   : Float
+/// <li>Name        : "GridPoint2Crossline"
+/// <li>Description : The inline annotation coordinate for the point defined by GridPoint2
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT2CROSSLINE    "GridPoint2Crossline"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT3
+/// <ul>
+/// <li>Data type   : DoubleVector2
+/// <li>Name        : "GridPoint3"
+/// <li>Description : An optional reference point in the grid, the annotation coordinates for this point are GridPoint3Inline and GridPoint3Crossline
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT3    "GridPoint3"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT3INLINE
+/// <ul>
+/// <li>Data type   : Float
+/// <li>Name        : "GridPoint3Inline"
+/// <li>Description : The inline annotation coordinate for the point defined by GridPoint3
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT3INLINE    "GridPoint3Inline"
+
+/// \def KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT3CROSSLINE
+/// <ul>
+/// <li>Data type   : Float
+/// <li>Name        : "GridPoint3Crossline"
+/// <li>Description : The inline annotation coordinate for the point defined by GridPoint3
+/// </ul>
+#define KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT3CROSSLINE    "GridPoint3Crossline"
+
 /// \def KNOWNMETADATA_SURVEYCOORDINATE_3DIJK_ORIGIN3D
 /// <ul>
 /// <li>Data type   : DoubleVector3
@@ -579,6 +675,54 @@ public:
   /// The XY spacing between units in the Crossline annotation dimension.
   /// </summary>
   static MetadataKey SurveyCoordinateSystemCrosslineSpacing() { return MetadataKey(MetadataType::DoubleVector2, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_CROSSLINESPACING); }
+  /// <summary>
+  /// An optional reference point in the grid, the annotation coordinates for this point are GridPoint0Inline and GridPoint0Crossline
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint0() { return MetadataKey(MetadataType::DoubleVector2, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT0); }
+  /// <summary>
+  /// The inline annotation coordinate for the point defined by GridPoint0
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint0Inline() { return MetadataKey(MetadataType::Float, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT0INLINE); }
+  /// <summary>
+  /// The inline annotation coordinate for the point defined by GridPoint0
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint0Crossline() { return MetadataKey(MetadataType::Float, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT0CROSSLINE); }
+  /// <summary>
+  /// An optional reference point in the grid, the annotation coordinates for this point are GridPoint1Inline and GridPoint1Crossline
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint1() { return MetadataKey(MetadataType::DoubleVector2, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT1); }
+  /// <summary>
+  /// The inline annotation coordinate for the point defined by GridPoint1
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint1Inline() { return MetadataKey(MetadataType::Float, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT1INLINE); }
+  /// <summary>
+  /// The inline annotation coordinate for the point defined by GridPoint1
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint1Crossline() { return MetadataKey(MetadataType::Float, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT1CROSSLINE); }
+  /// <summary>
+  /// An optional reference point in the grid, the annotation coordinates for this point are GridPoint2Inline and GridPoint2Crossline
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint2() { return MetadataKey(MetadataType::DoubleVector2, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT2); }
+  /// <summary>
+  /// The inline annotation coordinate for the point defined by GridPoint2
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint2Inline() { return MetadataKey(MetadataType::Float, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT2INLINE); }
+  /// <summary>
+  /// The inline annotation coordinate for the point defined by GridPoint2
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint2Crossline() { return MetadataKey(MetadataType::Float, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT2CROSSLINE); }
+  /// <summary>
+  /// An optional reference point in the grid, the annotation coordinates for this point are GridPoint3Inline and GridPoint3Crossline
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint3() { return MetadataKey(MetadataType::DoubleVector2, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT3); }
+  /// <summary>
+  /// The inline annotation coordinate for the point defined by GridPoint3
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint3Inline() { return MetadataKey(MetadataType::Float, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT3INLINE); }
+  /// <summary>
+  /// The inline annotation coordinate for the point defined by GridPoint3
+  /// </summary>
+  static MetadataKey SurveyCoordinateSystemGridPoint3Crossline() { return MetadataKey(MetadataType::Float, KNOWNMETADATA_SURVEYCOORDINATESYSTEM, KNOWNMETADATA_SURVEYCOORDINATE_INLINECROSSLINE_GRIDPOINT3CROSSLINE); }
   /// <summary>
   /// The XYZ position of the origin of the annotation (I/J/K) coordinate system.
   /// </summary>

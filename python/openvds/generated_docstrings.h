@@ -1988,6 +1988,38 @@ static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemCRSWkt = R"
 
 static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemCrosslineSpacing = R"doc(The XY spacing between units in the Crossline annotation dimension.)doc";
 
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint0 =
+R"doc(An optional reference point in the grid, the annotation coordinates
+for this point are GridPoint0Inline and GridPoint0Crossline)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint0Crossline = R"doc(The inline annotation coordinate for the point defined by GridPoint0)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint0Inline = R"doc(The inline annotation coordinate for the point defined by GridPoint0)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint1 =
+R"doc(An optional reference point in the grid, the annotation coordinates
+for this point are GridPoint1Inline and GridPoint1Crossline)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint1Crossline = R"doc(The inline annotation coordinate for the point defined by GridPoint1)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint1Inline = R"doc(The inline annotation coordinate for the point defined by GridPoint1)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint2 =
+R"doc(An optional reference point in the grid, the annotation coordinates
+for this point are GridPoint2Inline and GridPoint2Crossline)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint2Crossline = R"doc(The inline annotation coordinate for the point defined by GridPoint2)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint2Inline = R"doc(The inline annotation coordinate for the point defined by GridPoint2)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint3 =
+R"doc(An optional reference point in the grid, the annotation coordinates
+for this point are GridPoint3Inline and GridPoint3Crossline)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint3Crossline = R"doc(The inline annotation coordinate for the point defined by GridPoint3)doc";
+
+static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemGridPoint3Inline = R"doc(The inline annotation coordinate for the point defined by GridPoint3)doc";
+
 static const char *__doc_OpenVDS_KnownMetadata_SurveyCoordinateSystemIJKOrigin =
 R"doc(The XYZ position of the origin of the annotation (I/J/K) coordinate
 system.)doc";
