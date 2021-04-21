@@ -96,4 +96,10 @@ PyMetadataKey::initModule(py::module& m)
       }
       return std::string("MetadataKey(category='") + self->GetCategory() + "', name='" + self->GetName() + "', type=MetadataType." + type + ")";
     });
+
+// IMPLEMENTED :   MetadataKey_.def(py::init<native::MetadataType, const char *, const char *>(), py::arg("type").none(false), py::arg("category").none(false), py::arg("name").none(false), OPENVDS_DOCSTRING(MetadataKey_MetadataKey_2));
+  MetadataKey_.def(py::init([](native::MetadataType type, std::string category, std::string name)
+    {
+      return MetadataKey(type, PyDescriptorStringContainer::Add(category), PyDescriptorStringContainer::Add(name));
+    }), py::arg("type").none(false), py::arg("category").none(false), py::arg("name").none(false), OPENVDS_DOCSTRING(MetadataKey_MetadataKey_2));
 }
