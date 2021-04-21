@@ -32,7 +32,8 @@ TEST(OpenVDS, MixedRequests)
     auto request = accessManager.RequestVolumeSubset((void *)buffer.data(), buffer.size(), OpenVDS::Dimensions_012, 0, 0, { 0, 0, 0 }, { 100, 100, 100 }, layout->GetChannelFormat(0));
 
     auto dataAccessor = accessManager.CreateVolumeData3DReadAccessorR32(OpenVDS::Dimensions_012, 0, 0, 256, -1000);
-    float value = dataAccessor.GetValue({ 100, 100, 100 });
+
+    float value = dataAccessor.GetValue({ int(layout->GetDimensionNumSamples(2) / 1.44),int(layout->GetDimensionNumSamples(0) / 2.22), int(layout->GetDimensionNumSamples(1) / 1.55) });
     (void)value;
 
     request->WaitForCompletion();
